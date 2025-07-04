@@ -117,7 +117,7 @@ configure_service() {
     
     if [ ! -f "$conf_file" ]; then
         warn "Configuration file not found!"
-        read -p "Do you want to create a placeholder file now? (y/N) " -r
+        read -r -p "Do you want to create a placeholder file now? (y/N) "
         echo
         if [[ "$REPLY" =~ ^[Yy]$ ]]; then
             sudo mkdir -p "$(dirname "$conf_file")"

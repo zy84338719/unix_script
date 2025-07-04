@@ -56,7 +56,8 @@ set_temporary_shutdown() {
             return 1
         fi
         
-        local diff_minutes=$(( (target_epoch - current_epoch) / 60 ))
+        local diff_minutes
+        diff_minutes=$(( (target_epoch - current_epoch) / 60 ))
         info "计划在 ${diff_minutes} 分钟后关闭系统。"
         info "系统将提示您输入密码以执行 'shutdown' 命令。"
         
