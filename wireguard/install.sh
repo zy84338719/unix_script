@@ -209,28 +209,54 @@ uninstall_service() {
 
 # --- Main Execution ---
 main() {
-    if [ -z "$1" ]; then
-        error "No action specified."
-        echo "Usage: $0 {install_tools|configure_service|uninstall_service}"
-        exit 1
-    fi
+    # If an argument is provided, execute the corresponding function non-interactively.
+    if [ -n "$1" ]; then
+        case "$1" in
+            install_tools)
+                install_tools
+                ;;
+            configure_service)
+                configure_service
+                ;;
+            uninstall_service)
+                uninstall_service
+                ;;
+            *)
+                error "Invalid action: $1"
+                echo "Usage: $0 {install_tools|configure_service|uninstall_service}"
+                exit 1
+                ;;
+        esac
+    else
+        # Otherwise, show an interactive menu.
+        info "WireGuard Management Menu"
+        echo "Select an option:"
+        echo "  1. Install WireGuard Tools"
+        echo "  2. Configure Auto-start Service"
+        echo "  3. Uninstall Auto-start Service"
+        echo "  4. Exit"
+        
+        local choice
+        read -p "Enter choice [1-4]: " choice
 
-    case "$1" in
-        install_tools)
-            install_tools
-            ;;
-        configure_service)
-            configure_service
-            ;;
-        uninstall_service)
-            uninstall_service
-            ;;
-        *)
-            error "Invalid action: $1"
-            echo "Usage: $0 {install_tools|configure_service|uninstall_service}"
-            exit 1
-            ;;
-    esac
+        case $choice in
+            1)
+                install_tools
+                ;;
+            2)
+                configure_service
+                ;;
+            3)
+                uninstall_service
+                ;;
+            4)
+                info "Exiting."
+                ;;
+            *)
+                error "Invalid option. Please try again."
+                ;;
+        esac
+    fi
 }
 
 # Run the main function if the script is executed directly
