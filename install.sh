@@ -266,6 +266,27 @@ check_zsh_status() {
     fi
 }
 
+# 检查进程管理工具是否已安装
+check_process_manager_status() {
+    local is_installed=false
+    
+    # 检查是否安装到 ~/.tools/bin
+    if [ -f "$HOME/.tools/bin/process_manager" ] && [ -f "$HOME/.tools/bin/pm" ]; then
+        is_installed=true
+    fi
+    
+    if $is_installed; then
+        # 检查 PATH 是否包含 ~/.tools/bin
+        if echo "$PATH" | grep -q "$HOME/.tools/bin"; then
+            echo -e "${GREEN}✅ 已安装并配置${NC}"
+        else
+            echo -e "${YELLOW}⚠️  已安装但PATH未配置${NC}"
+        fi
+    else
+        echo -e "${RED}❌ 未安装${NC}"
+    fi
+}
+
 
 # 显示已安装服务状态
 show_installed_services() {
@@ -283,6 +304,7 @@ show_installed_services() {
     echo
     echo "--- 系统工具 ---"
     echo "自动关机任务: $(check_shutdown_timer_status)"
+    echo "进程管理工具: $(check_process_manager_status)"
 
     echo
     echo "========================================"
@@ -315,6 +337,7 @@ show_uninstall_menu() {
     echo "  3) 卸载 WireGuard (服务和配置)"
     echo "  4) 卸载 Zsh & Oh My Zsh (查看说明)"
     echo "  5) 取消每日自动关机任务"
+    echo "  6) 卸载进程管理工具"
     echo "  0) 返回主菜单"
     echo
     echo "========================================"
@@ -490,7 +513,7 @@ main() {
             9)
                 while true; do
                     show_uninstall_menu
-                    read -r -p "请输入选项 [0-5]: " uninstall_choice
+                    read -r -p "请输入选项 [0-6]: " uninstall_choice
                     
                     case $uninstall_choice in
                         1)
@@ -530,6 +553,23 @@ main() {
                         5)
                             uninstall_shutdown_timer
                             read -r -p "按回车键继续..."
+                            ;;
+                        6)
+                            echo
+                            read -r -p "确认卸载进程管理工具？[y/N]: " -n 1
+                            echo
+                            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                                print_info "开始卸载进程管理工具..."
+                                local uninstall_script="./process_manager_tool/install_process_manager.sh"
+                                if [ -f "$uninstall_script" ]; then
+                                    chmod +x "$uninstall_script"
+                                    cd process_manager_tool && bash install_process_manager.sh uninstall && cd ..
+                                else
+                                    print_error "卸载脚本不存在: $uninstall_script"
+                                fi
+                                echo
+                                read -r -p "按回车键继续..."
+                            fi
                             ;;
                         0)
                             break
@@ -571,18 +611,136 @@ manage_shutdown_timer() {
 
 # 管理进程管理工具
 manage_process_tool() {
-    local script_path="./process_manager.sh"
-    if [ ! -f "$script_path" ]; then
-        print_error "脚本不存在: $script_path"
-        sleep 2
-        return
-    fi
-    chmod +x "$script_path"
-    # 直接执行脚本，进入其交互式菜单
     clear
-    "$script_path"
-    print_info "已从进程管理工具返回主菜单。"
-    read -r -p "按回车键继续..."
+    print_header "🔧 进程管理工具"
+    echo "========================================"
+    
+    local install_script="./process_manager_tool/install_process_manager.sh"
+    local process_script="./process_manager_tool/process_manager.sh"
+    local wrapper_script="./process_manager_tool/pm_wrapper.sh"
+    
+    # 检查是否已安装
+    local is_installed=false
+    if [ -f "$HOME/.tools/bin/process_manager" ] && [ -f "$HOME/.tools/bin/pm" ]; then
+        is_installed=true
+        print_success "✅ 进程管理工具已安装到 ~/.tools/bin"
+    else
+        print_info "ℹ️  进程管理工具尚未安装"
+    fi
+    
+    echo
+    print_menu "请选择操作："
+    echo "  1) 安装/更新进程管理工具到 ~/.tools 目录"
+    echo "  2) 检查系统依赖"
+    echo "  3) 运行进程管理工具（交互式）"
+    echo "  4) 查看工具配置和状态"
+    echo "  5) 卸载进程管理工具"
+    echo "  0) 返回主菜单"
+    echo
+    
+    read -r -p "请输入选项 [0-5]: " pm_choice
+    
+    case $pm_choice in
+        1)
+            echo
+            print_info "开始安装进程管理工具..."
+            if [ ! -f "$install_script" ]; then
+                print_error "安装脚本不存在: $install_script"
+                sleep 2
+                return
+            fi
+            chmod +x "$install_script"
+            cd process_manager_tool && bash install_process_manager.sh && cd ..
+            echo
+            read -r -p "按回车键继续..."
+            ;;
+        2)
+            echo
+            print_info "检查系统依赖..."
+            local check_script="./process_manager_tool/check_dependencies.sh"
+            if [ ! -f "$check_script" ]; then
+                print_error "依赖检查脚本不存在: $check_script"
+                sleep 2
+                return
+            fi
+            chmod +x "$check_script"
+            cd process_manager_tool && bash check_dependencies.sh && cd ..
+            echo
+            read -r -p "按回车键继续..."
+            ;;
+        3)
+            echo
+            if [ "$is_installed" = true ]; then
+                print_info "运行已安装的进程管理工具..."
+                if command -v pm >/dev/null 2>&1; then
+                    pm
+                else
+                    print_warning "pm 命令不可用，请重新加载 Shell 配置或重启终端"
+                    print_info "手动运行: source ~/.bashrc 或 source ~/.zshrc"
+                fi
+            else
+                print_info "运行开发版本的进程管理工具..."
+                if [ ! -f "$process_script" ]; then
+                    print_error "脚本不存在: $process_script"
+                    sleep 2
+                    return
+                fi
+                chmod +x "$process_script"
+                cd process_manager_tool && bash process_manager.sh && cd ..
+            fi
+            echo
+            read -r -p "按回车键继续..."
+            ;;
+        4)
+            echo
+            print_info "查看工具配置和状态..."
+            if [ "$is_installed" = true ]; then
+                if command -v pm >/dev/null 2>&1; then
+                    pm --config
+                else
+                    print_warning "pm 命令不可用"
+                fi
+            else
+                if [ -f "$wrapper_script" ]; then
+                    chmod +x "$wrapper_script"
+                    cd process_manager_tool && bash pm_wrapper.sh --config && cd ..
+                else
+                    print_error "包装脚本不存在: $wrapper_script"
+                fi
+            fi
+            echo
+            read -r -p "按回车键继续..."
+            ;;
+        5)
+            echo
+            if [ "$is_installed" = true ]; then
+                read -r -p "确认卸载进程管理工具？[y/N]: " -n 1
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    print_info "开始卸载..."
+                    cd process_manager_tool && bash install_process_manager.sh uninstall && cd ..
+                else
+                    print_info "已取消卸载"
+                fi
+            else
+                print_warning "工具尚未安装，无需卸载"
+            fi
+            echo
+            read -r -p "按回车键继续..."
+            ;;
+        0)
+            return
+            ;;
+        *)
+            print_error "无效选项，请重新选择"
+            sleep 1
+            ;;
+    esac
+    
+    # 如果不是返回主菜单，则继续显示进程管理工具菜单
+    if [ "$pm_choice" != "0" ]; then
+        manage_process_tool
+    fi
 }
 
 # --- 脚本入口 ---
