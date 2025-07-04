@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # 进程管理工具配置文件
 # process_manager_config.sh
 #

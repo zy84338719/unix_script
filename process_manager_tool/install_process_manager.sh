@@ -84,7 +84,7 @@ create_tools_directory() {
         mkdir -p "$TOOLS_DIR"
         success "已创建 $TOOLS_DIR"
     else
-        info "~/.tools 目录已存在"
+        info "$HOME/.tools 目录已存在"
     fi
     
     if [[ ! -d "$BIN_DIR" ]]; then
@@ -92,7 +92,7 @@ create_tools_directory() {
         mkdir -p "$BIN_DIR"
         success "已创建 $BIN_DIR"
     else
-        info "~/.tools/bin 目录已存在"
+        info "$HOME/.tools/bin 目录已存在"
     fi
 }
 
@@ -151,7 +151,6 @@ setup_environment() {
     
     # 根据不同Shell添加相应的配置
     local path_export="export PATH=\"\$HOME/.tools/bin:\$PATH\""
-    local alias_pm="alias pm='$BIN_DIR/pm'"
     local alias_pmc="alias pmc='source \$HOME/.tools/bin/$CONFIG_NAME.sh && quick_search'"
     
     case "$USER_SHELL" in
@@ -161,27 +160,33 @@ setup_environment() {
             mkdir -p "$fish_config_dir"
             
             if ! grep -q "/.tools/bin" "$SHELL_RC" 2>/dev/null; then
-                echo "" >> "$SHELL_RC"
-                echo "# 添加 ~/.tools/bin 到 PATH" >> "$SHELL_RC"
-                echo "set -gx PATH \$HOME/.tools/bin \$PATH" >> "$SHELL_RC"
-                echo "" >> "$SHELL_RC"
-                echo "# 进程管理工具别名" >> "$SHELL_RC"
-                echo "alias pm='$BIN_DIR/pm'" >> "$SHELL_RC"
+                {
+                    echo ""
+                    echo "# 添加 ~/.tools/bin 到 PATH"
+                    echo "set -gx PATH \$HOME/.tools/bin \$PATH"
+                    echo ""
+                    echo "# 进程管理工具别名"
+                    echo "alias pm='$BIN_DIR/pm'"
+                    echo ""
+                } >> "$SHELL_RC"
                 success "已更新 Fish 配置文件"
             fi
             ;;
         *)
             # Bash/Zsh
             if ! grep -q "/.tools/bin" "$SHELL_RC" 2>/dev/null; then
-                echo "" >> "$SHELL_RC"
-                echo "# 添加 ~/.tools/bin 到 PATH" >> "$SHELL_RC"
-                echo "$path_export" >> "$SHELL_RC"
-                echo "" >> "$SHELL_RC"
-                echo "# 进程管理工具别名" >> "$SHELL_RC"
-                echo "alias pm='$BIN_DIR/pm'" >> "$SHELL_RC"
-                if [[ -f "$BIN_DIR/$CONFIG_NAME.sh" ]]; then
-                    echo "$alias_pmc" >> "$SHELL_RC"
-                fi
+                {
+                    echo ""
+                    echo "# 添加 ~/.tools/bin 到 PATH"
+                    echo "$path_export"
+                    echo ""
+                    echo "# 进程管理工具别名"
+                    echo "alias pm='$BIN_DIR/pm'"
+                    if [[ -f "$BIN_DIR/$CONFIG_NAME.sh" ]]; then
+                        echo "$alias_pmc"
+                    fi
+                    echo ""
+                } >> "$SHELL_RC"
                 success "已更新 $USER_SHELL 配置文件"
             fi
             ;;
