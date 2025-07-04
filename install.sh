@@ -67,16 +67,22 @@ show_system_info() {
 # 显示主菜单
 show_main_menu() {
     clear
-    print_header "🚀 一键安装脚本 - 服务管理工具"
+    print_header "🚀 一键安装脚本 - 服务与环境管理工具"
     echo "========================================"
     show_system_info
     
-    print_menu "请选择要安装的服务："
+    print_menu "请选择要安装的服务或配置环境："
     echo
+    echo "  --- 服务安装 ---"
     echo "  1) Node Exporter     - Prometheus 系统监控数据收集器"
-    echo "  2) DDNS-GO          - 动态域名解析服务"
-    echo "  3) 查看已安装服务    - 检查当前系统中已安装的服务"
-    echo "  4) 卸载服务         - 卸载已安装的服务"
+    echo "  2) DDNS-GO           - 动态域名解析服务"
+    echo
+    echo "  --- 开发环境配置 ---"
+    echo "  3) Zsh & Oh My Zsh   - 自动配置 Zsh 开发环境"
+    echo
+    echo "  --- 管理 ---"
+    echo "  8) 查看已安装状态    - 检查服务和环境的安装情况"
+    echo "  9) 卸载服务/环境     - 移除已安装的服务或环境"
     echo "  0) 退出"
     echo
     echo "========================================"
@@ -114,24 +120,51 @@ check_service_status() {
     # 返回状态
     if $is_installed; then
         if $is_running; then
-            echo "✅ 已安装并运行 ($version)"
+            echo -e "${GREEN}✅ 已安装并运行${NC} ($version)"
         else
-            echo "⚠️  已安装但未运行 ($version)"
+            echo -e "${YELLOW}⚠️  已安装但未运行${NC} ($version)"
         fi
     else
-        echo "❌ 未安装"
+        echo -e "${RED}❌ 未安装${NC}"
     fi
 }
+
+# 检查 Zsh 和 Oh My Zsh 是否已安装
+check_zsh_status() {
+    local zsh_installed=false
+    local omz_installed=false
+    
+    if command -v zsh &> /dev/null; then
+        zsh_installed=true
+    fi
+    
+    if [ -d "$HOME/.oh-my-zsh" ]; then
+        omz_installed=true
+    fi
+    
+    if $zsh_installed && $omz_installed; then
+        echo -e "${GREEN}✅ Zsh & Oh My Zsh 已安装${NC}"
+    elif $zsh_installed; then
+        echo -e "${YELLOW}⚠️  已安装 Zsh，但未安装 Oh My Zsh${NC}"
+    else
+        echo -e "${RED}❌ 未安装${NC}"
+    fi
+}
+
 
 # 显示已安装服务状态
 show_installed_services() {
     clear
-    print_header "📊 已安装服务状态"
+    print_header "📊 已安装状态"
     echo "========================================"
     
+    echo "--- 服务 ---"
     echo "Node Exporter:  $(check_service_status "node_exporter" "/usr/local/bin/node_exporter" "com.prometheus.node_exporter")"
     echo "DDNS-GO:        $(check_service_status "ddns-go" "/opt/ddns-go/ddns-go" "jeessy.ddns-go")"
-    
+    echo
+    echo "--- 开发环境 ---"
+    echo "Zsh 环境:       $(check_zsh_status)"
+
     echo
     echo "========================================"
     
@@ -152,7 +185,7 @@ show_installed_services() {
 # 卸载服务菜单
 show_uninstall_menu() {
     clear
-    print_header "🗑️  卸载服务"
+    print_header "🗑️  卸载服务与环境"
     echo "========================================"
     
     print_warning "注意：卸载操作将完全移除服务及其配置文件！"
@@ -160,6 +193,7 @@ show_uninstall_menu() {
     
     echo "  1) 卸载 Node Exporter"
     echo "  2) 卸载 DDNS-GO"
+    echo "  3) 卸载 Zsh & Oh My Zsh (查看说明)"
     echo "  0) 返回主菜单"
     echo
     echo "========================================"
@@ -205,6 +239,24 @@ uninstall_ddns_go() {
     print_success "DDNS-GO 已成功卸载！"
 }
 
+# 卸载 Zsh & Oh My Zsh (提供说明)
+uninstall_zsh_omz() {
+    print_warning "卸载 Zsh 和 Oh My Zsh 是一个敏感操作，建议手动执行以避免风险。"
+    print_info "Oh My Zsh 官方提供了一个卸载脚本，您可以运行它："
+    echo "  uninstall_oh_my_zsh"
+    echo
+    print_info "卸载 Zsh 本身，请使用系统的包管理器，例如："
+    echo "  - Ubuntu/Debian: sudo apt-get remove --purge zsh"
+    echo "  - CentOS/RHEL:   sudo yum remove zsh"
+    echo "  - macOS (Homebrew): brew uninstall zsh"
+    echo
+    print_warning "在卸载 Zsh 之前，请务必将您的默认 shell 切换回 bash 或其他 shell！"
+    echo "  chsh -s /bin/bash"
+    echo
+    print_info "更多详细信息，请参考项目的 README.md 文档。"
+}
+
+
 # 执行安装脚本
 run_install_script() {
     local script_path="$1"
@@ -245,7 +297,7 @@ main() {
     while true; do
         show_main_menu
         
-        read -p "请输入选项 [0-4]: " choice
+        read -p "请输入选项 [0-9]: " choice
         
         case $choice in
             1)
@@ -255,12 +307,15 @@ main() {
                 run_install_script "./ddns-go/install.sh" "DDNS-GO"
                 ;;
             3)
+                run_install_script "./zsh_setup/install.sh" "Zsh & Oh My Zsh"
+                ;;
+            8)
                 show_installed_services
                 ;;
-            4)
+            9)
                 while true; do
                     show_uninstall_menu
-                    read -p "请输入选项 [0-2]: " uninstall_choice
+                    read -p "请输入选项 [0-3]: " uninstall_choice
                     
                     case $uninstall_choice in
                         1)
@@ -282,6 +337,12 @@ main() {
                                 echo
                                 read -p "按回车键继续..."
                             fi
+                            ;;
+                        3)
+                            echo
+                            uninstall_zsh_omz
+                            echo
+                            read -p "按回车键继续..."
                             ;;
                         0)
                             break

@@ -81,10 +81,17 @@ chmod +x ddns-go/install.sh
 | 操作系统 | 架构 | Node Exporter | DDNS-GO |
 |---------|------|---------------|---------|
 | Linux | x86_64 | ✅ | ✅ |
-| Linux | ARM64 | ✅ | ✅ |
+| Linux | ARM64 | ✅ | ✅ | 
 | Linux | ARMv7 | ✅ | ✅ |
 | macOS | x86_64 (Intel) | ✅ | ✅ |
 | macOS | ARM64 (Apple Silicon) | ✅ | ✅ |
+
+### 3. Zsh & Oh My Zsh
+强大的 Shell 环境和配置管理工具
+
+- **支持平台**：Linux、macOS
+- **功能**：自动安装 Zsh、Oh My Zsh 及常用插件
+- **插件**：`zsh-autosuggestions`、`zsh-syntax-highlighting`
 
 ## 🔧 安装后配置
 
@@ -134,25 +141,42 @@ sudo launchctl bootout system /Library/LaunchDaemons/com.prometheus.node_exporte
 3. 配置 DNS 服务商信息
 4. 添加要更新的域名
 
+### Zsh & Oh My Zsh
+安装脚本会自动完成以下配置：
+- 安装 Zsh 和 Oh My Zsh
+- 下载 `zsh-autosuggestions` 和 `zsh-syntax-highlighting` 插件
+- 在 `.zshrc` 文件中启用插件
+- 提示您是否要将 Zsh 设置为默认 Shell
+
+安装完成后，请**重启您的终端**以使所有更改生效。
+
 #### Linux 服务管理
 ```bash
 # 查看服务状态
-sudo systemctl status ddns-go
+sudo systemctl status zsh
 
 # 查看日志
-sudo journalctl -u ddns-go -f
+sudo journalctl -u zsh -f
+
+# 启动/停止/重启服务
+sudo systemctl start zsh
+sudo systemctl stop zsh
+sudo systemctl restart zsh
 ```
 
 #### macOS 服务管理
 ```bash
 # 查看服务状态
-sudo launchctl list | grep ddns-go
+sudo launchctl list | grep zsh
+
+# 查看日志
+tail -f /var/log/zsh.log
 
 # 启动服务
-sudo launchctl bootstrap system /Library/LaunchDaemons/jeessy.ddns-go.plist
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.zsh.zsh.plist
 
 # 停止服务
-sudo launchctl bootout system /Library/LaunchDaemons/jeessy.ddns-go.plist
+sudo launchctl bootout system /Library/LaunchDaemons/com.zsh.zsh.plist
 ```
 
 ## 🐛 故障排除
@@ -197,6 +221,10 @@ sudo ss -tlnp | grep :9100
 sudo lsof -i :9100
 ```
 
+#### 5. Zsh 安装后终端未变化
+- **重启终端**：确保您已经关闭并重新打开了终端窗口。
+- **切换默认 Shell**：如果您在脚本提示时没有自动切换，可以手动执行 `chsh -s $(which zsh)`，然后重新登录。
+
 ### 卸载服务
 
 #### Node Exporter
@@ -234,6 +262,46 @@ sudo rm /Library/LaunchDaemons/jeessy.ddns-go.plist
 sudo rm -rf /opt/ddns-go
 ```
 
+#### Zsh & Oh My Zsh
+
+卸载 Zsh 和 Oh My Zsh 是一个敏感操作，建议手动执行以避免风险。
+
+1.  **卸载 Oh My Zsh**
+    Oh My Zsh 官方提供了一个卸载脚本。在终端中运行以下命令：
+    ```bash
+    uninstall_oh_my_zsh
+    ```
+
+2.  **切换回默认 Shell**
+    在卸载 Zsh 之前，**必须**将您的默认 Shell 切换回 `bash` 或其他 Shell。
+    ```bash
+    chsh -s /bin/bash
+    ```
+    执行后请注销并重新登录。
+
+3.  **卸载 Zsh**
+    使用系统的包管理器卸载 Zsh。
+
+    - **Ubuntu/Debian**:
+      ```bash
+      sudo apt-get remove --purge zsh
+      ```
+    - **CentOS/RHEL**:
+      ```bash
+      sudo yum remove zsh
+      ```
+    - **macOS (Homebrew)**:
+      ```bash
+      brew uninstall zsh
+      ```
+
+4.  **清理配置文件**
+    您可以选择性地删除 Zsh 的配置文件：
+    ```bash
+    rm ~/.zshrc
+    rm ~/.zsh_history # (如果存在)
+    ```
+
 ## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request 来改进这个项目！
@@ -259,6 +327,9 @@ sudo rm -rf /opt/ddns-go
 感谢以下开源项目：
 - [Prometheus Node Exporter](https://github.com/prometheus/node_exporter)
 - [DDNS-GO](https://github.com/jeessy2/ddns-go)
+- [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh)
+- [zsh-users/zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
+- [zsh-users/zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
 
 ---
 
