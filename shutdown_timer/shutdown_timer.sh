@@ -86,13 +86,13 @@ cancel_temporary_shutdown() {
     info "正在尝试取消已计划的临时关机。"
     info "系统将提示您输入密码。"
 
-    local result
     if [[ "$OS" == "Darwin" ]]; then
         # macOS 使用 killall
-        result=$(sudo killall shutdown 2>&1)
-        if [[ $? -eq 0 ]]; then
+        if sudo killall shutdown 2>/dev/null; then
             success "已计划的临时关机已被取消。"
         else
+            local result
+            result=$(sudo killall shutdown 2>&1)
             if [[ "$result" == *"No matching processes were found"* ]]; then
                 info "未找到要取消的临时关机。"
             else
@@ -102,10 +102,11 @@ cancel_temporary_shutdown() {
         fi
     else
         # Linux 使用 shutdown -c
-        result=$(sudo shutdown -c 2>&1)
-        if [[ $? -eq 0 ]]; then
+        if sudo shutdown -c 2>/dev/null; then
             success "已计划的临时关机已被取消。"
         else
+            local result
+            result=$(sudo shutdown -c 2>&1)
             if [[ "$result" == *"shutdown: Not scheduled."* ]]; then
                 info "未找到要取消的临时关机。"
             else
