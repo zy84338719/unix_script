@@ -55,20 +55,38 @@
 
 ```
 /opt/project/macos_script/
-├── process_manager_tool/           # 进程管理工具目录 (NEW)
+├── process_manager_tool/           # 进程管理工具目录
 │   ├── process_manager.sh          # 主进程管理工具
 │   ├── process_manager_config.sh   # 快捷别名配置
 │   ├── install_process_manager.sh  # 一键安装/卸载脚本  
-│   ├── pm_wrapper.sh               # 智能包装脚本 (NEW)
-│   ├── check_dependencies.sh       # 系统依赖检查 (NEW)
-│   ├── README.md                   # 详细文档 (ENHANCED)
-│   └── PROCESS_MANAGER_QUICKSTART.md # 快速上手指南 (ENHANCED)
-├── install.sh                      # 主菜单 (ENHANCED - 集成进程管理工具)
-├── pm_quick.sh                     # 进程管理工具快捷访问 (NEW)
-├── install_quick.sh                # 主菜单快捷访问 (NEW)
-├── create_project_shortcuts.sh     # 快捷脚本生成器 (NEW)
-└── FEATURE_ENHANCEMENT_SUMMARY.md  # 功能增强总结 (NEW)
+│   ├── pm_wrapper.sh               # 智能包装脚本
+│   ├── check_dependencies.sh       # 系统依赖检查
+│   ├── create_project_shortcuts.sh # 项目级快捷脚本生成器
+│   ├── README.md                   # 详细文档
+│   └── PROCESS_MANAGER_QUICKSTART.md # 快速上手指南
+├── install.sh                      # 主菜单（已集成进程管理工具）
+├── pm_quick.sh                     # 进程管理工具快捷访问（项目级）
+├── install_quick.sh                # 主菜单快捷访问（项目级）
+├── setup_project_shortcuts.sh      # 项目快捷脚本管理器
+└── FEATURE_ENHANCEMENT_SUMMARY.md  # 功能增强总结
 ```
+
+### 文件分类说明
+
+**核心工具文件（process_manager_tool/）：**
+- 所有进程管理工具相关文件统一存放
+- 可独立使用，也可通过主菜单管理
+- 包含完整的安装、配置、使用、卸载功能
+
+**项目级快捷访问（根目录）：**
+- `pm_quick.sh` - 智能选择系统安装版本或开发版本
+- `install_quick.sh` - 快速访问主安装菜单
+- `setup_project_shortcuts.sh` - 管理和更新快捷脚本
+
+**主安装系统（install.sh）：**
+- 第6项：完整的进程管理工具生命周期管理
+- 第8项：包含进程管理工具状态检查
+- 第9项：包含进程管理工具卸载选项
 
 ## 📋 安装后目录结构
 

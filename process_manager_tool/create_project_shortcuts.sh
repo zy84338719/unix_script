@@ -17,7 +17,7 @@ success() { echo -e "${GREEN}[成功]${NC} $1"; }
 warn() { echo -e "${YELLOW}[警告]${NC} $1"; }
 
 # 获取脚本所在目录（项目根目录）
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 info "正在创建项目快捷访问脚本..."
 
