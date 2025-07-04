@@ -156,7 +156,7 @@ change_default_shell() {
     fi
 
     info "Your current default shell is $SHELL."
-    read -p "Do you want to change your default shell to Zsh? (y/N) " -r
+    read -r -p "Do you want to change your default shell to Zsh? (y/N) "
     echo
     if [[ "$REPLY" =~ ^[Yy]$ ]]; then
         if chsh -s "$(command -v zsh)"; then

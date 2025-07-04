@@ -62,7 +62,7 @@ check_existing_installation() {
         local current_version
         current_version=$(/opt/ddns-go/ddns-go --version 2>&1)
         print_warning "检测到已安装 ddns-go $current_version"
-        read -p "是否继续并覆盖安装最新版本？[y/N]: " -n 1 -r
+        read -r -p "是否继续并覆盖安装最新版本？[y/N]: " -n 1
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
             print_info "安装已取消"
@@ -131,7 +131,7 @@ print_info "即将安装 ddns-go $latest_tag"
 print_info "安装位置：/opt/ddns-go"
 print_info "服务端口：9876"
 echo
-read -p "确认继续安装？[y/N]: " -n 1 -r
+read -r -p "确认继续安装？[y/N]: " -n 1
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     print_info "安装已取消"

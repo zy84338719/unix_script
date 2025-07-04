@@ -67,7 +67,7 @@ check_existing_installation() {
         local current_version
         current_version=$(node_exporter --version 2>&1 | grep -o 'version [0-9.]*' | cut -d' ' -f2 2>/dev/null || echo "未知版本")
         print_warning "检测到已安装 node_exporter v$current_version"
-        read -p "是否继续并覆盖安装最新版本？[y/N]: " -n 1 -r
+        read -r -p "是否继续并覆盖安装最新版本？[y/N]: " -n 1
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
             print_info "安装已取消"
@@ -143,7 +143,7 @@ elif [[ "$OS_TYPE" == "darwin" ]]; then
 fi
 print_info "服务端口：9100"
 echo
-read -p "确认继续安装？[y/N]: " -n 1 -r
+read -r -p "确认继续安装？[y/N]: " -n 1
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     print_info "安装已取消"
