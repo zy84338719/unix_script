@@ -81,6 +81,9 @@ show_main_menu() {
     echo "  --- 开发环境配置 ---"
     echo "  4) Zsh & Oh My Zsh   - 自动配置 Zsh 开发环境"
     echo
+    echo "  --- 系统工具 ---"
+    echo "  5) 自动关机管理     - 设置临时或每日定时关机"
+    echo
     echo "  --- 管理 ---"
     echo "  8) 查看已安装状态    - 检查服务和环境的安装情况"
     echo "  9) 卸载服务/环境     - 移除已安装的服务或环境"
@@ -127,6 +130,27 @@ check_service_status() {
         fi
     else
         echo -e "${RED}❌ 未安装${NC}"
+    fi
+}
+
+# 检查每日关机任务是否已配置
+check_shutdown_timer_status() {
+    local is_configured=false
+    if [[ "$OS_TYPE" == "macOS" ]]; then
+        if [ -f "/Library/LaunchDaemons/com.user.dailyshutdown.plist" ]; then
+            is_configured=true
+        fi
+    elif [[ "$OS_TYPE" == "Linux" ]]; then
+        # crontab -l 在没有 crontab 时会返回非零退出码
+        if crontab -l 2>/dev/null | grep -q "# AUTO_SHUTDOWN_SCRIPT"; then
+            is_configured=true
+        fi
+    fi
+
+    if $is_configured; then
+        echo -e "${GREEN}✅ 已配置每日定时关机${NC}"
+    else
+        echo -e "${RED}❌ 未配置${NC}"
     fi
 }
 
@@ -254,6 +278,9 @@ show_installed_services() {
     echo
     echo "--- 开发环境 ---"
     echo "Zsh 环境:       $(check_zsh_status)"
+    echo
+    echo "--- 系统工具 ---"
+    echo "自动关机任务: $(check_shutdown_timer_status)"
 
     echo
     echo "========================================"
@@ -285,6 +312,7 @@ show_uninstall_menu() {
     echo "  2) 卸载 DDNS-GO"
     echo "  3) 卸载 WireGuard (服务和配置)"
     echo "  4) 卸载 Zsh & Oh My Zsh (查看说明)"
+    echo "  5) 取消每日自动关机任务"
     echo "  0) 返回主菜单"
     echo
     echo "========================================"
@@ -298,9 +326,13 @@ uninstall_node_exporter() {
         sudo systemctl stop node_exporter &>/dev/null || true
         sudo systemctl disable node_exporter &>/dev/null || true
         sudo rm -f /etc/systemd/system/node_exporter.service
+        sudo systemctl daemon-reload &>/dev/null || true
         sudo rm -f /usr/local/bin/node_exporter
-        sudo userdel node_exporter &>/dev/null || true
-        sudo systemctl daemon-reload
+        # 只有当用户存在时才尝试删除
+        if id "node_exporter" &>/dev/null; then
+            sudo userdel node_exporter
+        fi
+        print_success "Node Exporter 已卸载。"
     elif [[ "$OS_TYPE" == "macOS" ]]; then
         sudo launchctl bootout system /Library/LaunchDaemons/com.prometheus.node_exporter.plist &>/dev/null || true
         sudo rm -f /Library/LaunchDaemons/com.prometheus.node_exporter.plist
@@ -310,6 +342,20 @@ uninstall_node_exporter() {
     fi
     
     print_success "Node Exporter 已成功卸载！"
+}
+
+# 取消每日自动关机
+uninstall_shutdown_timer() {
+    print_info "正在取消每日自动关机任务..."
+    local script_path="./shutdown_timer/shutdown_timer.sh"
+    if [ ! -f "$script_path" ]; then
+        print_error "脚本不存在: $script_path"
+        return
+    fi
+    # 使用脚本自身的取消功能
+    chmod +x "$script_path"
+    # 非交互式地调用取消功能
+    "$script_path" cancel_daily_shutdown_internal
 }
 
 # 卸载 DDNS-GO
@@ -430,13 +476,16 @@ main() {
             4)
                 run_install_script "./zsh_setup/install.sh" "Zsh & Oh My Zsh"
                 ;;
+            5)
+                manage_shutdown_timer
+                ;;
             8)
                 show_installed_services
                 ;;
             9)
                 while true; do
                     show_uninstall_menu
-                    read -p "请输入选项 [0-4]: " uninstall_choice
+                    read -p "请输入选项 [0-5]: " uninstall_choice
                     
                     case $uninstall_choice in
                         1)
@@ -470,9 +519,11 @@ main() {
                             fi
                             ;;
                         4)
-                            echo
-                            uninstall_zsh_omz
-                            echo
+                            print_warning "卸载 Zsh & Oh My Zsh 是一个敏感操作，建议您按照 README 中的说明手动执行。"
+                            read -p "按回车键返回..."
+                            ;;
+                        5)
+                            uninstall_shutdown_timer
                             read -p "按回车键继续..."
                             ;;
                         0)
@@ -497,7 +548,112 @@ main() {
     done
 }
 
-# 脚本入口点
-if [ "${BASH_SOURCE[0]}" == "${0}" ]; then
-    main "$@"
-fi
+# 管理自动关机脚本
+manage_shutdown_timer() {
+    local script_path="./shutdown_timer/shutdown_timer.sh"
+    if [ ! -f "$script_path" ]; then
+        print_error "脚本不存在: $script_path"
+        sleep 2
+        return
+    fi
+    chmod +x "$script_path"
+    # 直接执行脚本，进入其交互式菜单
+    clear
+    "$script_path"
+    print_info "已从自动关机管理返回主菜单。"
+    read -p "按回车键继续..."
+}
+
+# 初始化检查
+check_os
+check_arch
+
+# 主循环
+while true; do
+    show_main_menu
+
+    read -p "请输入选项 [0-9]: " choice
+
+    case $choice in
+        1)
+            run_install_script "./node_exporter/install.sh" "Node Exporter"
+            ;;
+        2)
+            run_install_script "./ddns-go/install.sh" "DDNS-GO"
+            ;;
+        3)
+            manage_wireguard
+            ;;
+        4)
+            run_install_script "./zsh_setup/install.sh" "Zsh & Oh My Zsh"
+            ;;
+        5)
+            manage_shutdown_timer
+            ;;
+        8)
+            show_installed_services
+            ;;
+        9)
+            while true; do
+                show_uninstall_menu
+                read -p "请输入选项 [0-5]: " uninstall_choice
+                
+                case $uninstall_choice in
+                    1)
+                        echo
+                        read -p "确认卸载 Node Exporter？[y/N]: " -n 1 -r
+                        echo
+                        if [[ $REPLY =~ ^[Yy]$ ]]; then
+                            uninstall_node_exporter
+                            echo
+                            read -p "按回车键继续..."
+                        fi
+                        ;;
+                    2)
+                        echo
+                        read -p "确认卸载 DDNS-GO？[y/N]: " -n 1 -r
+                        echo
+                        if [[ $REPLY =~ ^[Yy]$ ]]; then
+                            uninstall_ddns_go
+                            echo
+                            read -p "按回车键继续..."
+                        fi
+                        ;;
+                    3)
+                        echo
+                        read -p "确认卸载 WireGuard 服务和相关配置？[y/N]: " -n 1 -r
+                        echo
+                        if [[ $REPLY =~ ^[Yy]$ ]]; then
+                            uninstall_wireguard
+                            echo
+                            read -p "按回车键继续..."
+                        fi
+                        ;;
+                    4)
+                        print_warning "卸载 Zsh & Oh My Zsh 是一个敏感操作，建议您按照 README 中的说明手动执行。"
+                        read -p "按回车键返回..."
+                        ;;
+                    5)
+                        uninstall_shutdown_timer
+                        read -p "按回车键继续..."
+                        ;;
+                    0)
+                        break
+                        ;;
+                    *)
+                        print_error "无效选项，请重新输入！"
+                        sleep 1
+                        ;;
+                esac
+            done
+            ;;
+        0)
+            print_info "感谢使用！再见！"
+            exit 0
+            ;;
+        *)
+            print_error "无效选项，请重新输入！"
+            sleep 1
+            ;;
+    esac
+done
