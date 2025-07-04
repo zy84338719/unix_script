@@ -1,0 +1,35 @@
+name: CI Script Validation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-scripts:
+    name: Shellcheck Lint on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install shellcheck
+      run: |
+        if [ "${{ runner.os }}" == "Linux" ]; then
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+        elif [ "${{ runner.os }}" == "macOS" ]; then
+          brew install shellcheck
+        fi
+      shell: bash
+
+    - name: Run shellcheck on all scripts
+      run: |
+        echo "Running shellcheck on all .sh files..."
+        find . -type f -name "*.sh" -print0 | xargs -0 shellcheck -e SC2164 # Ignore SC2164, as cd is often in a conditional
+      shell: bash
