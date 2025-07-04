@@ -43,23 +43,37 @@ declare -A COMMON_PROCESSES=(
 # --- 快捷搜索函数 ---
 quick_search() {
     local pattern="$1"
+    local pm_command
+    
+    # 智能检测 process_manager 命令位置
+    if command -v process_manager >/dev/null 2>&1; then
+        pm_command="process_manager"
+    elif [[ -x "$HOME/.tools/bin/process_manager" ]]; then
+        pm_command="$HOME/.tools/bin/process_manager"
+    elif [[ -x "./process_manager.sh" ]]; then
+        pm_command="./process_manager.sh"
+    else
+        echo "错误: 未找到 process_manager 命令"
+        echo "请确保已正确安装或在项目目录中运行"
+        return 1
+    fi
     
     # 检查是否是常用端口别名
     if [[ -n "${COMMON_PORTS[$pattern]}" ]]; then
         echo "搜索端口: ${COMMON_PORTS[$pattern]} ($pattern)"
-        ./process_manager.sh "${COMMON_PORTS[$pattern]}"
+        "$pm_command" "${COMMON_PORTS[$pattern]}"
         return
     fi
     
     # 检查是否是常用进程别名
     if [[ -n "${COMMON_PROCESSES[$pattern]}" ]]; then
         echo "搜索进程: ${COMMON_PROCESSES[$pattern]} ($pattern)"
-        ./process_manager.sh "$pattern"
+        "$pm_command" "$pattern"
         return
     fi
     
     # 直接搜索
-    ./process_manager.sh "$pattern"
+    "$pm_command" "$pattern"
 }
 
 # --- 使用示例 ---
