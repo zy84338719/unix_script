@@ -83,6 +83,7 @@ show_main_menu() {
     echo
     echo "  --- 系统工具 ---"
     echo "  5) 自动关机管理     - 设置临时或每日定时关机"
+    echo "  6) 进程管理工具     - 智能搜索和管理系统进程"
     echo
     echo "  --- 管理 ---"
     echo "  8) 查看已安装状态    - 检查服务和环境的安装情况"
@@ -480,6 +481,9 @@ main() {
             5)
                 manage_shutdown_timer
                 ;;
+            6)
+                manage_process_tool
+                ;;
             8)
                 show_installed_services
                 ;;
@@ -562,6 +566,22 @@ manage_shutdown_timer() {
     clear
     "$script_path"
     print_info "已从自动关机管理返回主菜单。"
+    read -r -p "按回车键继续..."
+}
+
+# 管理进程管理工具
+manage_process_tool() {
+    local script_path="./process_manager.sh"
+    if [ ! -f "$script_path" ]; then
+        print_error "脚本不存在: $script_path"
+        sleep 2
+        return
+    fi
+    chmod +x "$script_path"
+    # 直接执行脚本，进入其交互式菜单
+    clear
+    "$script_path"
+    print_info "已从进程管理工具返回主菜单。"
     read -r -p "按回车键继续..."
 }
 
