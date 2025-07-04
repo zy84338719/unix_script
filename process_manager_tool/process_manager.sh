@@ -52,7 +52,9 @@ search_processes() {
         # macOS 使用 ps 和 lsof
         {
             echo "=== 按进程名搜索 ==="
-            ps aux | grep -i "$search_term" | grep -v grep | grep -v "$0"
+            pgrep -f "$search_term" | while read -r pid; do
+                ps -p "$pid" -o pid,user,comm,args 2>/dev/null || true
+            done
             echo ""
             echo "=== 按端口搜索 ==="
             if [[ "$search_term" =~ ^[0-9]+$ ]]; then
@@ -65,7 +67,9 @@ search_processes() {
         # Linux 使用 ps 和 netstat/ss
         {
             echo "=== 按进程名搜索 ==="
-            ps aux | grep -i "$search_term" | grep -v grep | grep -v "$0"
+            pgrep -f "$search_term" | while read -r pid; do
+                ps -p "$pid" -o pid,user,comm,args 2>/dev/null || true
+            done
             echo ""
             echo "=== 按端口搜索 ==="
             if [[ "$search_term" =~ ^[0-9]+$ ]]; then
@@ -85,6 +89,7 @@ search_processes() {
     # 显示搜索结果
     if [[ -s "$temp_file" ]]; then
         cat "$temp_file"
+        rm -f "$temp_file"
         echo ""
         return 0
     else
@@ -92,8 +97,6 @@ search_processes() {
         rm -f "$temp_file"
         return 1
     fi
-    
-    rm -f "$temp_file"
 }
 
 # --- 提取进程ID ---
@@ -101,9 +104,9 @@ extract_pids() {
     local search_term="$1"
     local pids=()
     
-    # 从进程名搜索中提取PID
+    # 从进程名搜索中提取PID，使用 pgrep 替代 ps | grep
     local process_pids
-    process_pids=$(ps aux | grep -i "$search_term" | grep -v grep | grep -v "$0" | awk '{print $2}')
+    process_pids=$(pgrep -f "$search_term" 2>/dev/null || true)
     
     # 从端口搜索中提取PID（如果搜索词是数字）
     local port_pids=""
@@ -161,7 +164,7 @@ show_process_details() {
         ss -tulnp | grep "pid=$pid," 2>/dev/null || echo "  无监听端口"
         echo ""
         echo "进程状态:"
-        cat "/proc/$pid/status" 2>/dev/null | grep -E "^(Name|State|Threads):" || echo "  无法读取状态"
+        grep -E "^(Name|State|Threads):" "/proc/$pid/status" 2>/dev/null || echo "  无法读取状态"
     fi
     echo "----------------------------------------"
 }
@@ -228,7 +231,9 @@ interactive_process_selection() {
         return 1
     fi
     
-    local pid_array=($pids)
+    # 使用 mapfile 来安全地处理数组
+    local pid_array
+    mapfile -t pid_array <<< "$pids"
     local pid_count=${#pid_array[@]}
     
     if [[ $pid_count -eq 0 ]]; then
