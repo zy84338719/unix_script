@@ -125,9 +125,9 @@ install_scripts() {
     fi
     
     # 复制文档（如果存在）
-    if [[ -d "process_manager" && -f "process_manager/README.md" ]]; then
+    if [[ -f "README.md" ]]; then
         mkdir -p "$TOOLS_DIR/docs"
-        cp "process_manager/README.md" "$TOOLS_DIR/docs/process_manager_README.md"
+        cp "README.md" "$TOOLS_DIR/docs/process_manager_README.md"
         success "已安装文档到 $TOOLS_DIR/docs"
     fi
     

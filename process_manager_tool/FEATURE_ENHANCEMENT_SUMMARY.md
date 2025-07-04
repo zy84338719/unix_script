@@ -55,19 +55,15 @@
 
 ```
 /opt/project/macos_script/
-├── process_manager_tool/           # 进程管理工具目录 (NEW)
-│   ├── process_manager.sh          # 主进程管理工具
-│   ├── process_manager_config.sh   # 快捷别名配置
-│   ├── install_process_manager.sh  # 一键安装/卸载脚本  
-│   ├── pm_wrapper.sh               # 智能包装脚本 (NEW)
-│   ├── check_dependencies.sh       # 系统依赖检查 (NEW)
-│   ├── README.md                   # 详细文档 (ENHANCED)
-│   └── PROCESS_MANAGER_QUICKSTART.md # 快速上手指南 (ENHANCED)
-├── install.sh                      # 主菜单 (ENHANCED - 集成进程管理工具)
-├── pm_quick.sh                     # 进程管理工具快捷访问 (NEW)
-├── install_quick.sh                # 主菜单快捷访问 (NEW)
-├── create_project_shortcuts.sh     # 快捷脚本生成器 (NEW)
-└── FEATURE_ENHANCEMENT_SUMMARY.md  # 功能增强总结 (NEW)
+├── process_manager.sh              # 主进程管理工具
+├── process_manager_config.sh       # 快捷别名配置
+├── install_process_manager.sh      # 一键安装/卸载脚本  
+├── pm_wrapper.sh                   # 智能包装脚本 (NEW)
+├── check_dependencies.sh           # 系统依赖检查 (NEW)
+├── process_manager/
+│   └── README.md                   # 详细文档 (ENHANCED)
+├── PROCESS_MANAGER_QUICKSTART.md   # 快速上手指南 (ENHANCED)
+└── install.sh                     # 主菜单 (已集成)
 ```
 
 ## 📋 安装后目录结构
@@ -85,32 +81,20 @@
 
 ## 🎯 使用方式
 
-### 1. 主安装菜单（推荐）
+### 1. 系统检查
 ```bash
-./install.sh                       # 打开主菜单
-# 选择"6) 进程管理工具"进入专用管理界面
-# 包含安装、更新、检查依赖、运行、配置、卸载等选项
-```
-
-### 2. 快捷访问脚本
-```bash
-./pm_quick.sh --help               # 进程管理工具帮助
-./pm_quick.sh node                 # 直接搜索node进程
-./pm_quick.sh --config             # 查看配置状态
-./install_quick.sh                 # 快速打开主菜单
-```
-
-### 3. 直接使用（开发模式）
-```bash
-cd process_manager_tool/
 ./check_dependencies.sh            # 基本检查
 ./check_dependencies.sh --performance  # 包含性能测试
+```
+
+### 2. 安装
+```bash
 ./install_process_manager.sh       # 标准安装
 ./install_process_manager.sh check # 先检查依赖
 ./pm_wrapper.sh --install          # 通过包装脚本安装
 ```
 
-### 4. 安装后使用
+### 3. 使用
 ```bash
 pm node                            # 搜索Node.js进程
 pm 3000                            # 搜索端口3000
@@ -119,12 +103,11 @@ pm --help                          # 查看帮助
 pmc chrome                         # 快捷搜索Chrome
 ```
 
-### 5. 管理
+### 4. 管理
 ```bash
-./install.sh                       # 主菜单 -> 选项8 -> 查看状态
-./install.sh                       # 主菜单 -> 选项9 -> 选项6 -> 卸载
-pm --config                        # 检查安装状态
-./process_manager_tool/check_dependencies.sh  # 重新检查依赖
+./install_process_manager.sh uninstall  # 卸载
+pm --config                             # 检查状态
+./check_dependencies.sh                 # 重新检查依赖
 ```
 
 ## ✅ 测试验证
