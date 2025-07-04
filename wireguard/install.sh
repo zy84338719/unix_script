@@ -77,9 +77,9 @@ install_tools() {
         elif [[ "$PKG_MANAGER" == "yum" || "$PKG_MANAGER" == "dnf" ]]; then
             if ! rpm -q epel-release &>/dev/null; then
                 info "Installing EPEL repository..."
-                sudo $PKG_MANAGER install -y epel-release
+                sudo "$PKG_MANAGER" install -y epel-release
             fi
-            sudo $PKG_MANAGER install -y wireguard-tools
+            sudo "$PKG_MANAGER" install -y wireguard-tools
         fi
     elif [[ "$OS" == "Darwin" ]]; then
         if ! command_exists brew; then
@@ -142,7 +142,8 @@ configure_service() {
         fi
     elif [[ "$OS" == "Darwin" ]]; then
         local plist_file="/Library/LaunchDaemons/com.wireguard.${interface}.plist"
-        local wg_quick_path="$(command -v wg-quick)"
+        local wg_quick_path
+        wg_quick_path="$(command -v wg-quick)"
 
         if [ -z "$wg_quick_path" ]; then
             error "Could not find wg-quick executable. Please install wireguard-tools first."
@@ -237,7 +238,7 @@ main() {
         echo "  4. Exit"
         
         local choice
-        read -p "Enter choice [1-4]: " choice
+        read -r -p "Enter choice [1-4]: " choice
 
         case $choice in
             1)

@@ -59,7 +59,8 @@ check_dependencies() {
 # 检查是否已安装
 check_existing_installation() {
     if [ -f "/opt/ddns-go/ddns-go" ]; then
-        local current_version=$(/opt/ddns-go/ddns-go --version 2>&1)
+        local current_version
+        current_version=$(/opt/ddns-go/ddns-go --version 2>&1)
         print_warning "检测到已安装 ddns-go $current_version"
         read -p "是否继续并覆盖安装最新版本？[y/N]: " -n 1 -r
         echo

@@ -202,7 +202,8 @@ manage_wireguard() {
         echo "========================================"
         echo "当前状态:"
         echo "  - WireGuard 工具: $(command -v wg &>/dev/null && echo -e "${GREEN}✅ 已安装${NC}" || echo -e "${RED}❌ 未安装${NC}")"
-        local wg_status_output=$(check_wireguard_status)
+        local wg_status_output
+        wg_status_output=$(check_wireguard_status)
         if [[ $wg_status_output == *"运行"* ]]; then
             echo -e "  - 开机自启服务: ${GREEN}✅ 已配置并运行${NC}"
         elif [[ $wg_status_output == *"未运行"* ]]; then
@@ -216,20 +217,20 @@ manage_wireguard() {
         echo "  2) 配置/重置开机自启服务"
         echo "  0) 返回主菜单"
         echo "========================================"
-        read -p "请输入选项 [0-2]: " wg_choice
+        read -r -p "请输入选项 [0-2]: " wg_choice
 
         case $wg_choice in
             1)
                 print_info "正在调用 WireGuard 工具安装脚本..."
                 "$script_path" install_tools
                 echo
-                read -p "按回车键继续..."
+                read -r -p "按回车键继续..."
                 ;;
             2)
                 print_info "正在调用 WireGuard 服务配置脚本..."
                 "$script_path" configure_service
                 echo
-                read -p "按回车键继续..."
+                read -r -p "按回车键继续..."
                 ;;
             0)
                 break
@@ -296,7 +297,7 @@ show_installed_services() {
     fi
     
     echo
-    read -p "按回车键返回主菜单..."
+    read -r -p "按回车键返回主菜单..."
 }
 
 # 卸载服务菜单
@@ -388,7 +389,7 @@ uninstall_wireguard() {
     "$script_path" uninstall_service
 
     echo
-    read -p "是否删除 /etc/wireguard/ 目录下的 .conf 配置文件？[y/N]: " -n 1 -r
+    read -r -p "是否删除 /etc/wireguard/ 目录下的 .conf 配置文件？[y/N]: " -n 1
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         if [[ "$OS_TYPE" == "Linux" ]]; then
@@ -449,7 +450,7 @@ run_install_script() {
     fi
     
     echo
-    read -p "按回车键返回主菜单..."
+    read -r -p "按回车键返回主菜单..."
 }
 
 # 主函数
@@ -461,7 +462,7 @@ main() {
     while true; do
         show_main_menu
         
-        read -p "请输入选项 [0-9]: " choice
+        read -r -p "请输入选项 [0-9]: " choice
         
         case $choice in
             1)
@@ -485,46 +486,46 @@ main() {
             9)
                 while true; do
                     show_uninstall_menu
-                    read -p "请输入选项 [0-5]: " uninstall_choice
+                    read -r -p "请输入选项 [0-5]: " uninstall_choice
                     
                     case $uninstall_choice in
                         1)
                             echo
-                            read -p "确认卸载 Node Exporter？[y/N]: " -n 1 -r
+                            read -r -p "确认卸载 Node Exporter？[y/N]: " -n 1
                             echo
                             if [[ $REPLY =~ ^[Yy]$ ]]; then
                                 uninstall_node_exporter
                                 echo
-                                read -p "按回车键继续..."
+                                read -r -p "按回车键继续..."
                             fi
                             ;;
                         2)
                             echo
-                            read -p "确认卸载 DDNS-GO？[y/N]: " -n 1 -r
+                            read -r -p "确认卸载 DDNS-GO？[y/N]: " -n 1
                             echo
                             if [[ $REPLY =~ ^[Yy]$ ]]; then
                                 uninstall_ddns_go
                                 echo
-                                read -p "按回车键继续..."
+                                read -r -p "按回车键继续..."
                             fi
                             ;;
                         3)
                             echo
-                            read -p "确认卸载 WireGuard 服务和相关配置？[y/N]: " -n 1 -r
+                            read -r -p "确认卸载 WireGuard 服务和相关配置？[y/N]: " -n 1
                             echo
                             if [[ $REPLY =~ ^[Yy]$ ]]; then
                                 uninstall_wireguard
                                 echo
-                                read -p "按回车键继续..."
+                                read -r -p "按回车键继续..."
                             fi
                             ;;
                         4)
                             print_warning "卸载 Zsh & Oh My Zsh 是一个敏感操作，建议您按照 README 中的说明手动执行。"
-                            read -p "按回车键返回..."
+                            read -r -p "按回车键返回..."
                             ;;
                         5)
                             uninstall_shutdown_timer
-                            read -p "按回车键继续..."
+                            read -r -p "按回车键继续..."
                             ;;
                         0)
                             break
@@ -561,99 +562,8 @@ manage_shutdown_timer() {
     clear
     "$script_path"
     print_info "已从自动关机管理返回主菜单。"
-    read -p "按回车键继续..."
+    read -r -p "按回车键继续..."
 }
 
-# 初始化检查
-check_os
-check_arch
-
-# 主循环
-while true; do
-    show_main_menu
-
-    read -p "请输入选项 [0-9]: " choice
-
-    case $choice in
-        1)
-            run_install_script "./node_exporter/install.sh" "Node Exporter"
-            ;;
-        2)
-            run_install_script "./ddns-go/install.sh" "DDNS-GO"
-            ;;
-        3)
-            manage_wireguard
-            ;;
-        4)
-            run_install_script "./zsh_setup/install.sh" "Zsh & Oh My Zsh"
-            ;;
-        5)
-            manage_shutdown_timer
-            ;;
-        8)
-            show_installed_services
-            ;;
-        9)
-            while true; do
-                show_uninstall_menu
-                read -p "请输入选项 [0-5]: " uninstall_choice
-                
-                case $uninstall_choice in
-                    1)
-                        echo
-                        read -p "确认卸载 Node Exporter？[y/N]: " -n 1 -r
-                        echo
-                        if [[ $REPLY =~ ^[Yy]$ ]]; then
-                            uninstall_node_exporter
-                            echo
-                            read -p "按回车键继续..."
-                        fi
-                        ;;
-                    2)
-                        echo
-                        read -p "确认卸载 DDNS-GO？[y/N]: " -n 1 -r
-                        echo
-                        if [[ $REPLY =~ ^[Yy]$ ]]; then
-                            uninstall_ddns_go
-                            echo
-                            read -p "按回车键继续..."
-                        fi
-                        ;;
-                    3)
-                        echo
-                        read -p "确认卸载 WireGuard 服务和相关配置？[y/N]: " -n 1 -r
-                        echo
-                        if [[ $REPLY =~ ^[Yy]$ ]]; then
-                            uninstall_wireguard
-                            echo
-                            read -p "按回车键继续..."
-                        fi
-                        ;;
-                    4)
-                        print_warning "卸载 Zsh & Oh My Zsh 是一个敏感操作，建议您按照 README 中的说明手动执行。"
-                        read -p "按回车键返回..."
-                        ;;
-                    5)
-                        uninstall_shutdown_timer
-                        read -p "按回车键继续..."
-                        ;;
-                    0)
-                        break
-                        ;;
-                    *)
-                        print_error "无效选项，请重新输入！"
-                        sleep 1
-                        ;;
-                esac
-            done
-            ;;
-        0)
-            print_info "感谢使用！再见！"
-            exit 0
-            ;;
-        *)
-            print_error "无效选项，请重新输入！"
-            sleep 1
-            ;;
-    esac
-done
+# --- 脚本入口 ---
+main
