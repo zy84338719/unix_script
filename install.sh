@@ -76,9 +76,10 @@ show_main_menu() {
     echo "  --- 服务安装 ---"
     echo "  1) Node Exporter     - Prometheus 系统监控数据收集器"
     echo "  2) DDNS-GO           - 动态域名解析服务"
+    echo "  3) WireGuard         - 现代、快速、安全的 VPN"
     echo
     echo "  --- 开发环境配置 ---"
-    echo "  3) Zsh & Oh My Zsh   - 自动配置 Zsh 开发环境"
+    echo "  4) Zsh & Oh My Zsh   - 自动配置 Zsh 开发环境"
     echo
     echo "  --- 管理 ---"
     echo "  8) 查看已安装状态    - 检查服务和环境的安装情况"
@@ -129,6 +130,37 @@ check_service_status() {
     fi
 }
 
+# 检查 WireGuard 是否已安装
+check_wireguard_status() {
+    local wg_installed=false
+    local service_running=false
+    local interface="wg0"
+
+    if command -v wg &> /dev/null; then
+        wg_installed=true
+    fi
+
+    if [[ "$OS_TYPE" == "Linux" ]]; then
+        if systemctl is-active --quiet "wg-quick@${interface}" 2>/dev/null; then
+            service_running=true
+        fi
+    elif [[ "$OS_TYPE" == "macOS" ]]; then
+        if sudo launchctl list | grep -q "com.wireguard.${interface}" 2>/dev/null; then
+            service_running=true
+        fi
+    fi
+
+    if $wg_installed; then
+        if $service_running; then
+            echo -e "${GREEN}✅ 已安装并运行${NC} (接口: ${interface})"
+        else
+            echo -e "${YELLOW}⚠️  已安装但服务未运行${NC}"
+        fi
+    else
+        echo -e "${RED}❌ 未安装${NC}"
+    fi
+}
+
 # 检查 Zsh 和 Oh My Zsh 是否已安装
 check_zsh_status() {
     local zsh_installed=false
@@ -161,6 +193,7 @@ show_installed_services() {
     echo "--- 服务 ---"
     echo "Node Exporter:  $(check_service_status "node_exporter" "/usr/local/bin/node_exporter" "com.prometheus.node_exporter")"
     echo "DDNS-GO:        $(check_service_status "ddns-go" "/opt/ddns-go/ddns-go" "jeessy.ddns-go")"
+    echo "WireGuard:      $(check_wireguard_status)"
     echo
     echo "--- 开发环境 ---"
     echo "Zsh 环境:       $(check_zsh_status)"
@@ -193,7 +226,8 @@ show_uninstall_menu() {
     
     echo "  1) 卸载 Node Exporter"
     echo "  2) 卸载 DDNS-GO"
-    echo "  3) 卸载 Zsh & Oh My Zsh (查看说明)"
+    echo "  3) 卸载 WireGuard"
+    echo "  4) 卸载 Zsh & Oh My Zsh (查看说明)"
     echo "  0) 返回主菜单"
     echo
     echo "========================================"
@@ -237,6 +271,37 @@ uninstall_ddns_go() {
     fi
     
     print_success "DDNS-GO 已成功卸载！"
+}
+
+# 卸载 WireGuard
+uninstall_wireguard() {
+    print_info "正在卸载 WireGuard..."
+    local interface="wg0"
+
+    if [[ "$OS_TYPE" == "Linux" ]]; then
+        sudo systemctl stop "wg-quick@${interface}" &>/dev/null || true
+        sudo systemctl disable "wg-quick@${interface}" &>/dev/null || true
+        sudo rm -f "/etc/systemd/system/wg-quick@${interface}.service"
+        sudo systemctl daemon-reload
+        read -p "是否删除配置文件 /etc/wireguard/${interface}.conf？[y/N]: " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            sudo rm -f "/etc/wireguard/${interface}.conf"
+        fi
+
+    elif [[ "$OS_TYPE" == "macOS" ]]; then
+        local plist_file="/Library/LaunchDaemons/com.wireguard.${interface}.plist"
+        sudo launchctl bootout system "$plist_file" &>/dev/null || true
+        sudo rm -f "$plist_file"
+        read -p "是否删除配置文件 /usr/local/etc/wireguard/${interface}.conf？[y/N]: " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            sudo rm -f "/usr/local/etc/wireguard/${interface}.conf"
+        fi
+    fi
+    
+    print_warning "WireGuard 服务已移除。要完全卸载，请使用包管理器手动移除 'wireguard-tools'。"
+    print_success "WireGuard 卸载完成！"
 }
 
 # 卸载 Zsh & Oh My Zsh (提供说明)
@@ -307,6 +372,9 @@ main() {
                 run_install_script "./ddns-go/install.sh" "DDNS-GO"
                 ;;
             3)
+                run_install_script "./wireguard/install.sh" "WireGuard"
+                ;;
+            4)
                 run_install_script "./zsh_setup/install.sh" "Zsh & Oh My Zsh"
                 ;;
             8)
@@ -315,7 +383,7 @@ main() {
             9)
                 while true; do
                     show_uninstall_menu
-                    read -p "请输入选项 [0-3]: " uninstall_choice
+                    read -p "请输入选项 [0-4]: " uninstall_choice
                     
                     case $uninstall_choice in
                         1)
@@ -339,6 +407,16 @@ main() {
                             fi
                             ;;
                         3)
+                            echo
+                            read -p "确认卸载 WireGuard 服务？[y/N]: " -n 1 -r
+                            echo
+                            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                                uninstall_wireguard
+                                echo
+                                read -p "按回车键继续..."
+                            fi
+                            ;;
+                        4)
                             echo
                             uninstall_zsh_omz
                             echo
