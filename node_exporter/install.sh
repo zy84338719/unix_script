@@ -64,7 +64,8 @@ check_dependencies() {
 # 检查是否已安装
 check_existing_installation() {
     if command -v node_exporter &> /dev/null; then
-        local current_version=$(node_exporter --version 2>&1 | grep -o 'version [0-9.]*' | cut -d' ' -f2 2>/dev/null || echo "未知版本")
+        local current_version
+        current_version=$(node_exporter --version 2>&1 | grep -o 'version [0-9.]*' | cut -d' ' -f2 2>/dev/null || echo "未知版本")
         print_warning "检测到已安装 node_exporter v$current_version"
         read -p "是否继续并覆盖安装最新版本？[y/N]: " -n 1 -r
         echo

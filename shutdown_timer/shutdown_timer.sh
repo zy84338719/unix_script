@@ -41,13 +41,15 @@ validate_time() {
 # 设置临时关机
 set_temporary_shutdown() {
     local time
-    read -p "请输入今天的关机时间 (HH:MM): " time
+    read -r -p "请输入今天的关机时间 (HH:MM): " time
     validate_time "$time" || return 1
 
     if [[ "$OS" == "Darwin" ]]; then
         # macOS 需要将 HH:MM 转换为 +m (从现在开始的分钟数)
-        local current_epoch=$(date +%s)
-        local target_epoch=$(date -j -f "%H:%M" "$time" +%s)
+        local current_epoch
+        local target_epoch
+        current_epoch=$(date +%s)
+        target_epoch=$(date -j -f "%H:%M" "$time" +%s)
         
         if [[ $target_epoch -le $current_epoch ]]; then
             error "指定时间已过。请输入未来的时间。"
@@ -87,19 +89,28 @@ cancel_temporary_shutdown() {
     if [[ "$OS" == "Darwin" ]]; then
         # macOS 使用 killall
         result=$(sudo killall shutdown 2>&1)
+        if [[ $? -eq 0 ]]; then
+            success "已计划的临时关机已被取消。"
+        else
+            if [[ "$result" == *"No matching processes were found"* ]]; then
+                info "未找到要取消的临时关机。"
+            else
+                error "尝试取消临时关机时发生错误。"
+                error "详细信息: $result"
+            fi
+        fi
     else
         # Linux 使用 shutdown -c
         result=$(sudo shutdown -c 2>&1)
-    fi
-    
-    if [ $? -eq 0 ]; then
-        success "已计划的临时关机已被取消。"
-    else
-        if [[ "$result" == *"No matching processes were found"* || "$result" == *"shutdown: Not scheduled."* ]]; then
-            info "未找到要取消的临时关机。"
+        if [[ $? -eq 0 ]]; then
+            success "已计划的临时关机已被取消。"
         else
-            error "尝试取消临时关机时发生错误。"
-            error "详细信息: $result"
+            if [[ "$result" == *"shutdown: Not scheduled."* ]]; then
+                info "未找到要取消的临时关机。"
+            else
+                error "尝试取消临时关机时发生错误。"
+                error "详细信息: $result"
+            fi
         fi
     fi
 }
@@ -117,15 +128,14 @@ check_shutdown_status() {
             found_temp=true
         fi
     else # Linux
-        # 'shutdown -c' 的成功执行通常意味着有关机计划，但这里我们只检查状态
-        # 一个更可靠的方法是检查 /run/systemd/shutdown/scheduled 文件，但这不通用
-        # 这里我们用一个间接的方式：尝试取消，看返回信息
-        if sudo shutdown -c &>/dev/null; then
-            # 如果上一个命令成功，说明有关机任务，我们得重新设置它
-            error "检查Linux临时关机状态的逻辑需要更完善。暂时无法准确判断。"
-        elif ps -ef | grep "[s]hutdown" | grep -v "grep" > /dev/null; then
-             info "检测到已计划的临时关机。"
-             found_temp=true
+        # 优先检查 systemd 的关机计划文件（现代 Linux 发行版）
+        if [ -f "/run/systemd/shutdown/scheduled" ]; then
+            info "检测到已计划的临时关机 (systemd)。"
+            found_temp=true
+        # 备用方案：检查是否有正在运行的 shutdown 进程
+        elif pgrep -f "/usr/sbin/shutdown\|/sbin/shutdown" >/dev/null; then
+            info "检测到已计划的临时关机。"
+            found_temp=true
         fi
     fi
     if ! $found_temp; then
@@ -158,7 +168,7 @@ check_shutdown_status() {
 # 设置每日定时关机
 set_daily_shutdown() {
     local time
-    read -p "请输入每日的关机时间 (HH:MM): " time
+    read -r -p "请输入每日的关机时间 (HH:MM): " time
     validate_time "$time" || return 1
 
     if [[ "$OS" == "Darwin" ]]; then
@@ -299,7 +309,7 @@ main() {
         echo "5. 检查关机状态"
         echo "6. 退出"
         echo "------------------------"
-        read -p "请输入选项 [1-6]: " choice
+        read -r -p "请输入选项 [1-6]: " choice
 
         case $choice in
             1) set_temporary_shutdown ;;
