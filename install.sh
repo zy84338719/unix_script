@@ -161,6 +161,63 @@ check_wireguard_status() {
     fi
 }
 
+# 管理 WireGuard 的子菜单
+manage_wireguard() {
+    local script_path="./wireguard/install.sh"
+
+    if [ ! -f "$script_path" ]; then
+        print_error "脚本不存在: $script_path"
+        sleep 2
+        return
+    fi
+    chmod +x "$script_path"
+
+    while true; do
+        clear
+        print_header "🔧 WireGuard 管理"
+        echo "========================================"
+        echo "当前状态:"
+        echo "  - WireGuard 工具: $(command -v wg &>/dev/null && echo -e "${GREEN}✅ 已安装${NC}" || echo -e "${RED}❌ 未安装${NC}")"
+        local wg_status_output=$(check_wireguard_status)
+        if [[ $wg_status_output == *"运行"* ]]; then
+            echo -e "  - 开机自启服务: ${GREEN}✅ 已配置并运行${NC}"
+        elif [[ $wg_status_output == *"未运行"* ]]; then
+            echo -e "  - 开机自启服务: ${YELLOW}⚠️  已配置但未运行${NC}"
+        else
+            echo -e "  - 开机自启服务: ${RED}❌ 未配置${NC}"
+        fi
+        echo
+        print_menu "请选择操作:"
+        echo "  1) 安装/更新 WireGuard 工具"
+        echo "  2) 配置/重置开机自启服务"
+        echo "  0) 返回主菜单"
+        echo "========================================"
+        read -p "请输入选项 [0-2]: " wg_choice
+
+        case $wg_choice in
+            1)
+                print_info "正在调用 WireGuard 工具安装脚本..."
+                "$script_path" install_tools
+                echo
+                read -p "按回车键继续..."
+                ;;
+            2)
+                print_info "正在调用 WireGuard 服务配置脚本..."
+                "$script_path" configure_service
+                echo
+                read -p "按回车键继续..."
+                ;;
+            0)
+                break
+                ;;
+            *)
+                print_error "无效选项，请重新输入！"
+                sleep 1
+                ;;
+        esac
+    done
+}
+
 # 检查 Zsh 和 Oh My Zsh 是否已安装
 check_zsh_status() {
     local zsh_installed=false
@@ -226,7 +283,7 @@ show_uninstall_menu() {
     
     echo "  1) 卸载 Node Exporter"
     echo "  2) 卸载 DDNS-GO"
-    echo "  3) 卸载 WireGuard"
+    echo "  3) 卸载 WireGuard (服务和配置)"
     echo "  4) 卸载 Zsh & Oh My Zsh (查看说明)"
     echo "  0) 返回主菜单"
     echo
@@ -275,32 +332,28 @@ uninstall_ddns_go() {
 
 # 卸载 WireGuard
 uninstall_wireguard() {
-    print_info "正在卸载 WireGuard..."
-    local interface="wg0"
-
-    if [[ "$OS_TYPE" == "Linux" ]]; then
-        sudo systemctl stop "wg-quick@${interface}" &>/dev/null || true
-        sudo systemctl disable "wg-quick@${interface}" &>/dev/null || true
-        sudo rm -f "/etc/systemd/system/wg-quick@${interface}.service"
-        sudo systemctl daemon-reload
-        read -p "是否删除配置文件 /etc/wireguard/${interface}.conf？[y/N]: " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            sudo rm -f "/etc/wireguard/${interface}.conf"
-        fi
-
-    elif [[ "$OS_TYPE" == "macOS" ]]; then
-        local plist_file="/Library/LaunchDaemons/com.wireguard.${interface}.plist"
-        sudo launchctl bootout system "$plist_file" &>/dev/null || true
-        sudo rm -f "$plist_file"
-        read -p "是否删除配置文件 /usr/local/etc/wireguard/${interface}.conf？[y/N]: " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            sudo rm -f "/usr/local/etc/wireguard/${interface}.conf"
-        fi
+    local script_path="./wireguard/install.sh"
+    if [ ! -f "$script_path" ]; then
+        print_error "脚本不存在: $script_path"
+        return
     fi
-    
-    print_warning "WireGuard 服务已移除。要完全卸载，请使用包管理器手动移除 'wireguard-tools'。"
+
+    print_info "正在卸载 WireGuard 开机自启服务..."
+    "$script_path" uninstall_service
+
+    echo
+    read -p "是否删除 /etc/wireguard/ 目录下的 .conf 配置文件？[y/N]: " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        if [[ "$OS_TYPE" == "Linux" ]]; then
+            sudo rm -f /etc/wireguard/*.conf
+        elif [[ "$OS_TYPE" == "macOS" ]]; then
+            sudo rm -f /usr/local/etc/wireguard/*.conf
+        fi
+        print_success "配置文件已删除。"
+    fi
+
+    print_warning "服务已移除。要完全卸载，请使用包管理器 (e.g., apt, brew) 手动移除 'wireguard-tools'。"
     print_success "WireGuard 卸载完成！"
 }
 
@@ -372,7 +425,7 @@ main() {
                 run_install_script "./ddns-go/install.sh" "DDNS-GO"
                 ;;
             3)
-                run_install_script "./wireguard/install.sh" "WireGuard"
+                manage_wireguard
                 ;;
             4)
                 run_install_script "./zsh_setup/install.sh" "Zsh & Oh My Zsh"
@@ -408,7 +461,7 @@ main() {
                             ;;
                         3)
                             echo
-                            read -p "确认卸载 WireGuard 服务？[y/N]: " -n 1 -r
+                            read -p "确认卸载 WireGuard 服务和相关配置？[y/N]: " -n 1 -r
                             echo
                             if [[ $REPLY =~ ^[Yy]$ ]]; then
                                 uninstall_wireguard
