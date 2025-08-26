@@ -85,6 +85,9 @@ show_main_menu() {
     echo "  5) 自动关机管理     - 设置临时或每日定时关机"
     echo "  6) 进程管理工具     - 智能搜索和管理系统进程"
     echo
+    echo "  --- Kubernetes 开发 ---"
+    echo "  7) minikube 环境    - 本地 Kubernetes 开发环境"
+    echo
     echo "  --- 管理 ---"
     echo "  8) 查看已安装状态    - 检查服务和环境的安装情况"
     echo "  9) 卸载服务/环境     - 移除已安装的服务或环境"
@@ -287,6 +290,29 @@ check_process_manager_status() {
     fi
 }
 
+# 检查 minikube 状态
+check_minikube_status() {
+    local install_dir="$HOME/.tools/minikube"
+    local kubectl_path="$install_dir/bin/kubectl"
+    local minikube_path="$install_dir/bin/minikube"
+    
+    if [[ -d "$install_dir" && -x "$kubectl_path" && -x "$minikube_path" ]]; then
+        # 检查是否在 PATH 中
+        if echo "$PATH" | grep -q "$install_dir/bin"; then
+            # 检查集群状态
+            if command -v minikube >/dev/null 2>&1 && minikube status >/dev/null 2>&1; then
+                echo "✅ 已安装并运行"
+            else
+                echo "🟡 已安装未运行"
+            fi
+        else
+            echo "🟡 已安装需配置"
+        fi
+    else
+        echo "❌ 未安装"
+    fi
+}
+
 
 # 显示已安装服务状态
 show_installed_services() {
@@ -305,6 +331,9 @@ show_installed_services() {
     echo "--- 系统工具 ---"
     echo "自动关机任务: $(check_shutdown_timer_status)"
     echo "进程管理工具: $(check_process_manager_status)"
+    echo
+    echo "--- Kubernetes 开发 ---"
+    echo "minikube 环境:  $(check_minikube_status)"
 
     echo
     echo "========================================"
@@ -338,6 +367,7 @@ show_uninstall_menu() {
     echo "  4) 卸载 Zsh & Oh My Zsh (查看说明)"
     echo "  5) 取消每日自动关机任务"
     echo "  6) 卸载进程管理工具"
+    echo "  7) 卸载 minikube 环境"
     echo "  0) 返回主菜单"
     echo
     echo "========================================"
@@ -507,13 +537,16 @@ main() {
             6)
                 manage_process_tool
                 ;;
+            7)
+                manage_minikube
+                ;;
             8)
                 show_installed_services
                 ;;
             9)
                 while true; do
                     show_uninstall_menu
-                    read -r -p "请输入选项 [0-6]: " uninstall_choice
+                    read -r -p "请输入选项 [0-7]: " uninstall_choice
                     
                     case $uninstall_choice in
                         1)
@@ -740,6 +773,220 @@ manage_process_tool() {
     # 如果不是返回主菜单，则继续显示进程管理工具菜单
     if [ "$pm_choice" != "0" ]; then
         manage_process_tool
+    fi
+}
+
+# minikube 管理
+manage_minikube() {
+    clear
+    print_header "🐳 minikube Kubernetes 开发环境"
+    echo "========================================"
+    
+    local install_dir="$HOME/.tools/minikube"
+    local install_script="./minikube/install.sh"
+    local check_script="./minikube/check_minikube.sh"
+    
+    # 检查是否已安装
+    local is_installed=false
+    if [[ -d "$install_dir" && -x "$install_dir/bin/kubectl" && -x "$install_dir/bin/minikube" ]]; then
+        is_installed=true
+        print_success "✅ minikube 已安装到 $install_dir"
+        
+        # 检查环境变量
+        if echo "$PATH" | grep -q "$install_dir/bin"; then
+            print_success "✅ PATH 配置正确"
+        else
+            print_warning "⚠️  PATH 未配置，请运行: source ~/.zshrc"
+        fi
+        
+        # 检查集群状态
+        if command -v minikube >/dev/null 2>&1; then
+            if minikube status >/dev/null 2>&1; then
+                print_success "✅ minikube 集群正在运行"
+            else
+                print_warning "⚠️  minikube 集群未运行"
+            fi
+        else
+            print_warning "⚠️  minikube 命令不可用"
+        fi
+    else
+        print_info "ℹ️  minikube 尚未安装"
+    fi
+    
+    echo
+    print_menu "请选择操作："
+    echo "  1) 安装/更新 minikube 和 kubectl"
+    echo "  2) 启动 minikube 集群"
+    echo "  3) 检查环境状态"
+    echo "  4) 停止 minikube 集群"
+    echo "  5) 打开 Kubernetes 仪表板"
+    echo "  6) 查看集群信息"
+    echo "  7) 重置集群"
+    echo "  8) 卸载 minikube"
+    echo "  0) 返回主菜单"
+    echo
+    
+    read -r -p "请输入选项 [0-8]: " mk_choice
+    
+    case $mk_choice in
+        1)
+            echo
+            print_info "开始安装 minikube 和 kubectl..."
+            if [[ ! -f "$install_script" ]]; then
+                print_error "安装脚本不存在: $install_script"
+                sleep 2
+                return
+            fi
+            chmod +x "$install_script"
+            bash "$install_script"
+            echo
+            read -r -p "按回车键继续..."
+            ;;
+        2)
+            echo
+            if [[ "$is_installed" = true ]] && command -v minikube >/dev/null 2>&1; then
+                print_info "启动 minikube 集群..."
+                if [[ -x "$install_dir/start-minikube.sh" ]]; then
+                    bash "$install_dir/start-minikube.sh"
+                else
+                    minikube start --cpus=2 --memory=4096 --disk-size=20g
+                fi
+            else
+                print_error "minikube 未安装或不可用"
+            fi
+            echo
+            read -r -p "按回车键继续..."
+            ;;
+        3)
+            echo
+            print_info "检查 minikube 环境状态..."
+            if [[ -f "$check_script" ]]; then
+                chmod +x "$check_script"
+                bash "$check_script"
+            else
+                print_warning "状态检查脚本不存在: $check_script"
+                if [[ "$is_installed" = true ]]; then
+                    if [[ -x "$install_dir/check-status.sh" ]]; then
+                        bash "$install_dir/check-status.sh"
+                    else
+                        print_info "手动检查状态..."
+                        echo "kubectl version: $(kubectl version --client --short 2>/dev/null || echo '不可用')"
+                        echo "minikube version: $(minikube version --short 2>/dev/null || echo '不可用')"
+                        echo "minikube status:"
+                        minikube status 2>/dev/null || echo "集群未运行"
+                    fi
+                fi
+            fi
+            echo
+            read -r -p "按回车键继续..."
+            ;;
+        4)
+            echo
+            if command -v minikube >/dev/null 2>&1; then
+                print_info "停止 minikube 集群..."
+                minikube stop
+                print_success "集群已停止"
+            else
+                print_error "minikube 命令不可用"
+            fi
+            echo
+            read -r -p "按回车键继续..."
+            ;;
+        5)
+            echo
+            if command -v minikube >/dev/null 2>&1; then
+                print_info "打开 Kubernetes 仪表板..."
+                if minikube status >/dev/null 2>&1; then
+                    minikube dashboard
+                else
+                    print_warning "集群未运行，请先启动集群"
+                fi
+            else
+                print_error "minikube 命令不可用"
+            fi
+            echo
+            read -r -p "按回车键继续..."
+            ;;
+        6)
+            echo
+            if command -v kubectl >/dev/null 2>&1 && command -v minikube >/dev/null 2>&1; then
+                print_info "集群信息："
+                echo
+                echo "=== 集群状态 ==="
+                minikube status 2>/dev/null || echo "集群未运行"
+                echo
+                echo "=== 节点信息 ==="
+                kubectl get nodes 2>/dev/null || echo "无法连接到集群"
+                echo
+                echo "=== 系统 Pod ==="
+                kubectl get pods -n kube-system 2>/dev/null || echo "无法获取 Pod 信息"
+            else
+                print_error "kubectl 或 minikube 命令不可用"
+            fi
+            echo
+            read -r -p "按回车键继续..."
+            ;;
+        7)
+            echo
+            if command -v minikube >/dev/null 2>&1; then
+                read -r -p "确认重置 minikube 集群？这将删除所有数据 [y/N]: " -n 1
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    print_info "重置 minikube 集群..."
+                    minikube delete
+                    print_success "集群已删除，可以重新启动"
+                else
+                    print_info "已取消重置"
+                fi
+            else
+                print_error "minikube 命令不可用"
+            fi
+            echo
+            read -r -p "按回车键继续..."
+            ;;
+        8)
+            echo
+            if [[ "$is_installed" = true ]]; then
+                read -r -p "确认卸载 minikube 和 kubectl？[y/N]: " -n 1
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    print_info "开始卸载..."
+                    # 先停止和删除集群
+                    if command -v minikube >/dev/null 2>&1; then
+                        minikube stop 2>/dev/null || true
+                        minikube delete 2>/dev/null || true
+                    fi
+                    
+                    # 运行卸载脚本
+                    if [[ -x "$install_dir/uninstall.sh" ]]; then
+                        bash "$install_dir/uninstall.sh"
+                    else
+                        # 手动卸载
+                        rm -rf "$install_dir"
+                        print_success "minikube 已卸载"
+                        print_warning "请手动从 shell 配置文件中删除 PATH 配置"
+                    fi
+                else
+                    print_info "已取消卸载"
+                fi
+            else
+                print_warning "minikube 尚未安装，无需卸载"
+            fi
+            echo
+            read -r -p "按回车键继续..."
+            ;;
+        0)
+            return
+            ;;
+        *)
+            print_error "无效选项，请重新选择"
+            sleep 1
+            ;;
+    esac
+    
+    # 如果不是返回主菜单，则继续显示 minikube 菜单
+    if [[ "$mk_choice" != "0" ]]; then
+        manage_minikube
     fi
 }
 
