@@ -295,7 +295,7 @@ show_installed_services() {
     echo "========================================"
     
     echo "--- 服务 ---"
-    echo "Node Exporter:  $(check_service_status "node_exporter" "/usr/local/bin/node_exporter" "com.prometheus.node_exporter")"
+    echo "Node Exporter:  $(check_service_status "1" "/usr/local/bin/node_exporter" "com.prometheus.node_exporter")"
     echo "DDNS-GO:        $(check_service_status "ddns-go" "/opt/ddns-go/ddns-go" "jeessy.ddns-go")"
     echo "WireGuard:      $(check_wireguard_status)"
     echo
