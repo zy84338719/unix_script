@@ -823,6 +823,7 @@ manage_minikube() {
     echo "  6) 查看集群信息"
     echo "  7) 重置集群"
     echo "  8) 卸载 minikube"
+    echo "  9) 运行 smoke test (快速验证安装与启动)"
     echo "  0) 返回主菜单"
     echo
     
@@ -944,7 +945,7 @@ manage_minikube() {
             echo
             read -r -p "按回车键继续..."
             ;;
-        8)
+    8)
             echo
             if [[ "$is_installed" = true ]]; then
                 read -r -p "确认卸载 minikube 和 kubectl？[y/N]: " -n 1
@@ -975,6 +976,18 @@ manage_minikube() {
             echo
             read -r -p "按回车键继续..."
             ;;
+            9)
+                echo
+                local smoke_script="./minikube/smoke_test.sh"
+                if [[ -f "$smoke_script" ]]; then
+                    chmod +x "$smoke_script"
+                    bash "$smoke_script"
+                else
+                    print_warning "smoke test 脚本不存在: $smoke_script"
+                fi
+                echo
+                read -r -p "按回车键继续..."
+                ;;
         0)
             return
             ;;

@@ -23,6 +23,10 @@ ARCH=""
 INSTALL_DIR="$HOME/.tools/minikube"
 KUBECTL_VERSION=""
 MINIKUBE_VERSION=""
+# 非交互标志（--yes）
+NON_INTERACTIVE=false
+# 推荐驱动（auto-detect）
+PREFERRED_DRIVER="auto"
 
 # 检查操作系统和架构
 check_system() {
@@ -59,6 +63,29 @@ check_system() {
     print_success "系统: $OS_TYPE-$ARCH"
 }
 
+# 解析参数（支持 --yes 和 --driver）
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --yes|-y)
+                NON_INTERACTIVE=true
+                shift
+                ;;
+            --driver)
+                PREFERRED_DRIVER="$2"
+                shift 2
+                ;;
+            --driver=*)
+                PREFERRED_DRIVER="${1#*=}"
+                shift
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+}
+
 # 检查依赖
 check_dependencies() {
     print_info "检查依赖项..."
@@ -88,6 +115,35 @@ check_dependencies() {
     fi
     
     print_success "所有依赖项都已安装"
+}
+
+# 自动检测可用驱动
+detect_driver() {
+    # 返回驱动名称或 "docker" 为默认
+    if [[ "$PREFERRED_DRIVER" != "auto" ]]; then
+        echo "$PREFERRED_DRIVER"
+        return
+    fi
+
+    if command -v docker >/dev/null 2>&1; then
+        echo "docker"
+        return
+    fi
+
+    # macOS hyperkit
+    if [[ "$OS_TYPE" == "darwin" ]] && command -v hyperkit >/dev/null 2>&1; then
+        echo "hyperkit"
+        return
+    fi
+
+    # Linux kvm2
+    if [[ "$OS_TYPE" == "linux" ]] && command -v virsh >/dev/null 2>&1; then
+        echo "kvm2"
+        return
+    fi
+
+    # fallback
+    echo "docker"
 }
 
 # 获取最新版本号
@@ -161,20 +217,19 @@ install_kubectl() {
 # 安装 minikube
 install_minikube() {
     print_header "安装 minikube"
-    
     local minikube_url="https://github.com/kubernetes/minikube/releases/download/$MINIKUBE_VERSION/minikube-$OS_TYPE-$ARCH"
     local minikube_path="$INSTALL_DIR/bin/minikube"
-    
+
     print_info "下载 minikube $MINIKUBE_VERSION..."
-    
+
     if command -v curl >/dev/null 2>&1; then
         curl -L "$minikube_url" -o "$minikube_path"
     else
         wget -O "$minikube_path" "$minikube_url"
     fi
-    
+
     chmod +x "$minikube_path"
-    
+
     # 验证安装
     if "$minikube_path" version >/dev/null 2>&1; then
         print_success "minikube 安装成功"
@@ -182,6 +237,11 @@ install_minikube() {
         print_error "minikube 安装失败"
         exit 1
     fi
+
+    # 如果指定或检测到驱动，建议用户在启动时使用该驱动
+    local detected_driver
+    detected_driver=$(detect_driver)
+    print_info "建议的驱动: $detected_driver (可使用 --driver 参数覆盖)"
 }
 
 # 配置环境变量
@@ -246,11 +306,20 @@ fi
 print_info "启动 minikube..."
 
 # 启动 minikube（使用推荐配置）
-minikube start \
-    --cpus=2 \
-    --memory=4096 \
-    --disk-size=20g \
-    --driver=docker
+DRIVER_ARG="$(detect_driver)"
+if [[ "$PREFERRED_DRIVER" != "auto" ]]; then
+    DRIVER_ARG="$PREFERRED_DRIVER"
+fi
+
+if [[ "$NON_INTERACTIVE" == true ]]; then
+    minikube start --cpus=2 --memory=4096 --disk-size=20g --driver="$DRIVER_ARG"
+else
+    minikube start \
+        --cpus=2 \
+        --memory=4096 \
+        --disk-size=20g \
+        --driver="$DRIVER_ARG"
+fi
 
 if [ $? -eq 0 ]; then
     print_success "minikube 启动成功！"
