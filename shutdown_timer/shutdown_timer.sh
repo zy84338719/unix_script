@@ -6,18 +6,10 @@
 # 一个在 macOS 和 Linux 上计划或取消临时及每日系统关机的脚本。
 #
 
-# --- 颜色定义 ---
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # 无颜色
-
-# --- 日志函数 ---
-info() { echo -e "${BLUE}[信息]${NC} $1"; }
-success() { echo -e "${GREEN}[成功]${NC} $1"; }
-error() { echo -e "${RED}[错误]${NC} $1"; }
-warn() { echo -e "${YELLOW}[警告]${NC} $1"; }
+# 引入公共函数库（颜色 / 打印函数等）
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
 # --- 全局变量 ---
 OS="" # 将在 main 函数中设置为 "Darwin" 或 "Linux"
