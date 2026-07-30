@@ -177,7 +177,7 @@ status_deskflow_module()  { run_in_dir deskflow install.sh status; }
 
 # ---------------- 已安装状态总览 ----------------
 show_installed_services() {
-    $INTERACTIVE && clear
+    if $INTERACTIVE; then clear; fi
     header "📊 已安装状态"
     echo "========================================"
 
@@ -210,7 +210,7 @@ show_installed_services() {
         echo "  查看日志: tail -f /var/log/<service>.log"
     fi
     echo
-    $INTERACTIVE && read -r -p "按回车键返回主菜单..."
+    if $INTERACTIVE; then read -r -p "按回车键返回主菜单..."; fi
 }
 
 # ---------------- 执行安装脚本 ----------------

@@ -72,9 +72,9 @@ check_permissions
 check_dependencies
 check_existing_installation
 
-# 获取最新版本号
+# 获取最新版本号（若设置 GH_TOKEN/GITHUB_TOKEN 则带认证，规避 API 速率限制）
 info "正在获取最新版本信息..."
-latest=$(curl -s https://api.github.com/repos/prometheus/node_exporter/releases/latest | grep '"tag_name":' | head -1 | sed -E 's/.*"v([^"]+)".*/\1/')
+latest=$(github_latest_tag "prometheus/node_exporter")
 
 if [[ -z "$latest" ]]; then
     error "无法获取最新版本信息，请检查网络连接"

@@ -137,10 +137,16 @@ get_local_ip() {
 }
 
 # 从 GitHub API 取最新 release 的 tag（不含前缀 v）
+# 若设置了 GH_TOKEN 或 GITHUB_TOKEN 环境变量，则带认证头（提升速率限制到 5000/h）。
 github_latest_tag() {
     local repo="$1"
     local tag
-    tag=$(curl -fsSL "https://api.github.com/repos/${repo}/releases/latest" 2>/dev/null \
+    local auth=()
+    local token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
+    if [[ -n "$token" ]]; then
+        auth=(-H "Authorization: Bearer $token")
+    fi
+    tag=$(curl -fsSL "${auth[@]}" "https://api.github.com/repos/${repo}/releases/latest" 2>/dev/null \
           | grep '"tag_name"' | head -1 | sed -E 's/.*"v?([^"]+)".*/\1/')
     echo "$tag"
 }
