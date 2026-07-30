@@ -24,9 +24,11 @@ pkg_name_for() {
     local cmd="$1"
     case "$cmd" in
         # bind-utils 在 Debian 系叫 dnsutils
-        bind-utils) [[ "$OS_TYPE" == "linux" ]] && { command -v apt-get >/dev/null && echo "dnsutils" || echo "bind-utils"; } ;;
+        bind-utils)
+            if command -v apt-get >/dev/null 2>&1; then echo "dnsutils"; else echo "bind-utils"; fi
+            ;;
         bash-completion) echo "bash-completion" ;;
-        net-tools) [[ "$OS_TYPE" == "linux" ]] && { command -v apt-get >/dev/null && echo "net-tools" || echo "net-tools"; } ;;
+        net-tools) echo "net-tools" ;;
         *) echo "$cmd" ;;
     esac
 }

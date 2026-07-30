@@ -116,7 +116,8 @@ do_timezone() {
             apt-get) sudo apt-get install -y chrony && sudo systemctl enable --now chrony ;;
             dnf)     sudo dnf install -y chrony && sudo systemctl enable --now chronyd ;;
             yum)     sudo yum install -y ntp && sudo systemctl enable --now ntpd ;;
-        esac 2>/dev/null && success "已安装并启用时间同步服务" || true
+        esac 2>/dev/null || true
+        success "已安装并启用时间同步服务"
     fi
 }
 
@@ -250,8 +251,11 @@ status_sys_setup() {
     fi
     echo "时区: $(timedatectl show -p Timezone --value 2>/dev/null || cat /etc/timezone 2>/dev/null || echo '未知')"
     echo "NTP 同步: $(timedatectl show -p NTP --value 2>/dev/null || echo '未知')"
-    echo "文件描述符上限: $([[ -f /etc/security/limits.d/99-unix-script.conf ]] && echo '✅ 已优化' || echo '默认')"
-    echo "SSH 加固: $([[ -f /etc/ssh/sshd_config.d/99-unix-script.conf ]] && echo '✅ 已加固' || echo '默认')"
+    local fd_state ssh_state
+    if [[ -f /etc/security/limits.d/99-unix-script.conf ]]; then fd_state="✅ 已优化"; else fd_state="默认"; fi
+    if [[ -f /etc/ssh/sshd_config.d/99-unix-script.conf ]]; then ssh_state="✅ 已加固"; else ssh_state="默认"; fi
+    echo "文件描述符上限: $fd_state"
+    echo "SSH 加固: $ssh_state"
 }
 
 usage() {
