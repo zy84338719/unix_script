@@ -65,6 +65,7 @@ show_main_menu() {
     echo "  18) 自动关机管理     - 设置临时或每日定时关机"
     echo "  19) 进程管理工具     - 智能搜索和管理系统进程"
     echo "  20) Deskflow         - 键鼠共享 (Flatpak, 仅 Linux 图形环境)"
+    echo "  21) safe-rm 回收站   - 安全删除替代 rm，防误删灾难"
     echo
     echo "  --- 管理 ---"
     echo "  s) 查看已安装状态    - 检查服务和环境的安装情况"
@@ -194,6 +195,7 @@ status_sys_setup_module() { run_in_dir sys-setup install.sh status; }
 status_swap_module()      { run_in_dir swap install.sh status; }
 status_bbr_module()       { run_in_dir bbr install.sh status; }
 status_nvm_module()       { run_in_dir nvm install.sh status; }
+status_safe_rm_module()   { run_in_dir safe-rm install.sh status; }
 
 # ---------------- 已安装状态总览 ----------------
 show_installed_services() {
@@ -227,6 +229,7 @@ show_installed_services() {
     echo "自动关机任务:   $(check_shutdown_timer_status)"
     echo "进程管理工具:   $(check_process_manager_status)"
     echo "Deskflow:       $(status_deskflow_module)"
+    echo "safe-rm 回收站: $(status_safe_rm_module)"
 
     echo
     echo "========================================"
@@ -595,6 +598,7 @@ show_uninstall_menu() {
     echo "  16) 关闭 BBR 网络加速 (恢复默认)"
     echo "  17) 卸载 Swap 虚拟内存"
     echo "  18) 卸载 nvm"
+    echo "  19) 卸载 safe-rm 回收站"
     echo "  0) 返回主菜单"
     echo
     echo "========================================"
@@ -627,6 +631,7 @@ do_uninstall() {
         16) run_in_dir bbr install.sh disable ;;
         17) run_in_dir swap install.sh uninstall ;;
         18) run_in_dir nvm install.sh uninstall ;;
+        19) run_in_dir safe-rm install.sh uninstall ;;
         0) return 1 ;;
         *) error "无效选项，请重新输入！"; sleep 1 ;;
     esac
@@ -654,6 +659,7 @@ dispatch_module() {
         swap)                       run_in_dir swap install.sh install ;;
         bbr)                        run_in_dir bbr install.sh enable ;;
         nvm)                        run_in_dir nvm install.sh install ;;
+        safe-rm|safe_rm|safesrm)    run_in_dir safe-rm install.sh install ;;
         zsh)                        run_install_script "$SCRIPT_DIR/zsh_setup/install.sh" "Zsh & Oh My Zsh" ;;
         minikube)                   run_in_dir minikube install.sh install ;;
         deskflow)                   run_in_dir deskflow install.sh install ;;
@@ -682,7 +688,7 @@ show_usage() {
   node_exporter | ddns-go | wireguard | tailscale | docker |
   fail2ban | alist | uptime-kuma | cockpit |
   essential-pkgs | sys-setup | swap | bbr | nvm |
-  zsh | minikube | dev-tui | deskflow | shutdown_timer | process_manager
+  zsh | minikube | dev-tui | deskflow | shutdown_timer | process_manager | safe-rm
 
 示例:
   $0                       # 进入交互式主菜单
@@ -713,7 +719,7 @@ main() {
         -v|--version) echo "unix_script $(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"; exit 0 ;;
         -s|--status)  INTERACTIVE=false; show_installed_services; exit 0 ;;
         --list)
-            echo "node_exporter ddns-go wireguard tailscale docker fail2ban alist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm zsh minikube dev-tui deskflow shutdown_timer process_manager"
+            echo "node_exporter ddns-go wireguard tailscale docker fail2ban alist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm zsh minikube dev-tui deskflow shutdown_timer process_manager safe-rm"
             exit 0
             ;;
         -*) error "未知选项: $1"; show_usage; exit 1 ;;
@@ -747,11 +753,12 @@ interactive_main() {
             18) manage_shutdown_timer ;;
             19) manage_process_tool ;;
             20) run_in_dir deskflow install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            21) run_in_dir safe-rm install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             s|S) show_installed_services ;;
             u|U)
                 while true; do
                     show_uninstall_menu
-                    read -r -p "请输入选项 [0-18]: " uninstall_choice
+                    read -r -p "请输入选项 [0-19]: " uninstall_choice
                     if ! do_uninstall "$uninstall_choice"; then
                         break
                     fi
