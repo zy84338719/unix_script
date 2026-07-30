@@ -1,0 +1,37 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ZCode 工具本地目录（计划/缓存等，不可推送）
+.zcode/
+
+# 编辑器/IDE
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# 备份与临时文件
+*.bak
+*.backup
+*.backup.*
+*.tmp
+*.orig
+
+# 本地安装产物（不提交 ~/.tools 镜像或本地构建结果）
+.tools/
+build/
+dist/
+
+# 日志
+*.log
+
+# 下载的临时安装包
+*.tar.gz
+*.zip
+
+# 测试报告产物（由 tests/ci_run.sh 本地运行生成）
+tests/*-report.md
+*-report.md

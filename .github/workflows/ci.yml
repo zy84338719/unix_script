@@ -1,35 +1,251 @@
-name: CI Script Validation
+name: CI
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch: # 允许手动触发
+
+# 同一分支的新推送取消正在运行的旧运行，节省额度
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-  lint-scripts:
-    name: Shellcheck Lint on ${{ matrix.os }}
+  # ============================================================
+  # Job 1: 静态检查（bash -n + shellcheck），Linux + macOS
+  # ============================================================
+  static:
+    name: 静态检查 / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install shellcheck
-      run: |
-        if [ "${{ runner.os }}" == "Linux" ]; then
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
-        elif [ "${{ runner.os }}" == "macOS" ]; then
-          brew install shellcheck
-        fi
-      shell: bash
+      - name: 安装 shellcheck
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            sudo apt-get update
+            sudo apt-get install -y shellcheck
+          else
+            brew install shellcheck
+          fi
 
-    - name: Run shellcheck on all scripts
-      run: |
-        echo "Running shellcheck on all .sh files..."
-        find . -type f -name "*.sh" -print0 | xargs -0 shellcheck -e SC2164 # Ignore SC2164, as cd is often in a conditional
-      shell: bash
+      - name: 运行静态检查并生成报告
+        shell: bash
+        run: |
+          chmod +x tests/ci_run.sh
+          ./tests/ci_run.sh --phase static --out static-report.md
+
+      - name: 上传报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-report-${{ matrix.os }}
+          path: static-report.md
+          if-no-files-found: error
+
+  # ============================================================
+  # Job 2: 路由与子命令测试，Linux + macOS
+  # ============================================================
+  routing:
+    name: 路由测试 / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 运行路由测试并生成报告
+        shell: bash
+        run: |
+          chmod +x tests/ci_run.sh
+          ./tests/ci_run.sh --phase routing --out routing-report.md
+
+      - name: 上传报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: routing-report-${{ matrix.os }}
+          path: routing-report.md
+          if-no-files-found: error
+
+  # ============================================================
+  # Job 3: 实装测试 —— 多 Linux 发行版
+  #
+  # 设计说明（CI 可行性约束）：
+  #   - GitHub Actions 的 container: 不支持 privileged，systemd 无法作为 PID 1 启动。
+  #     故容器矩阵只验证「包名解析 / 脚本可解析目标发行版」这类不依赖 systemd 的环节。
+  #   - 完整 systemd 实装（fail2ban / node_exporter 启停验证）放在 ubuntu-latest VM 上
+  #     （真实 VM，systemd 原生可用）。
+  #   - macOS 实装仅进程管理工具（纯用户态）；Docker-on-mac 因无嵌套虚拟化不可行，故跳过。
+  # ============================================================
+  install-container:
+    name: 包解析 / 容器 / ${{ matrix.distro }}
+    runs-on: ubuntu-latest
+    container: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - distro: ubuntu-22.04
+            image: ubuntu:22.04
+          - distro: debian-12
+            image: debian:12
+          - distro: fedora
+            image: fedora:latest
+          - distro: centos-stream9
+            image: quay.io/centos/centos:stream9
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装基础依赖（容器极简镜像需要）
+        shell: bash
+        run: |
+          # 容器内无 sudo / bash 可能需补充
+          if command -v apt-get >/dev/null 2>&1; then
+            apt-get update
+            apt-get install -y bash sudo curl
+          elif command -v dnf >/dev/null 2>&1; then
+            dnf install -y --allowerasing bash sudo curl which
+          elif command -v yum >/dev/null 2>&1; then
+            yum install -y bash sudo curl which
+          fi
+
+      - name: 验证包管理器识别与脚本可解析
+        shell: bash
+        run: |
+          chmod +x tests/ci_run.sh
+          # 容器内只做路由级验证（不触发真实安装）
+          ./tests/ci_run.sh --phase routing --out routing-report.md
+
+      - name: 上传报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-container-${{ matrix.distro }}
+          path: routing-report.md
+          if-no-files-found: warn
+
+  install-vm:
+    name: 实装测试 / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            modules: fail2ban,node_exporter,pm
+          - os: macos-latest
+            modules: pm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 运行实装测试
+        shell: bash
+        env:
+          # 注入 GITHUB_TOKEN 以提升 api.github.com 速率限制到 5000/h，
+          # 规避 node_exporter 等获取最新版本时的 403。
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x tests/ci_run.sh
+          ./tests/ci_run.sh --phase install --module ${{ matrix.modules }} --out install-report.md
+
+      - name: 上传报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-vm-${{ matrix.os }}
+          path: install-report.md
+          if-no-files-found: error
+
+  # ============================================================
+  # Job 4: 汇总报告 —— 聚合所有矩阵腿的报告为单一 ci-report.md
+  # ============================================================
+  report:
+    name: 汇总报告
+    runs-on: ubuntu-latest
+    needs: [static, routing, install-container, install-vm]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 下载所有报告产物
+        uses: actions/download-artifact@v4
+        with:
+          path: reports
+
+      - name: 合并为 ci-report.md
+        shell: bash
+        run: |
+          set -e
+          {
+            echo "# CI 测试报告"
+            echo
+            echo "- 触发: ${{ github.event_name }}"
+            echo "- 分支/引用: ${{ github.ref_name }}"
+            echo "- 提交: ${{ github.sha }}"
+            echo "- 时间: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+            echo
+            echo "## 各阶段结果索引"
+            echo
+            echo "| 阶段 | 状态 |"
+            echo "|------|------|"
+            echo "| 静态检查 (static) | ${{ needs.static.result }} |"
+            echo "| 路由测试 (routing) | ${{ needs.routing.result }} |"
+            echo "| 容器包解析 (install-container) | ${{ needs.install-container.result }} |"
+            echo "| VM 实装 (install-vm) | ${{ needs.install-vm.result }} |"
+            echo
+            echo "---"
+            echo
+          } > ci-report.md
+
+          # 按目录顺序追加各报告
+          for d in reports/*/; do
+            name=$(basename "$d")
+            {
+              echo "## 产物集: $name"
+              echo
+              for f in "$d"*.md; do
+                [ -f "$f" ] || continue
+                echo "### $(basename "$f")"
+                echo
+                cat "$f"
+                echo
+              done
+            } >> ci-report.md
+          done
+
+          # 写入步骤摘要（commit/PR 上直接可见）
+          cat ci-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 上传汇总报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-report
+          path: ci-report.md
+          if-no-files-found: error
+
+      - name: 整体结果判定
+        if: always()
+        shell: bash
+        run: |
+          # 任一前置 job 失败则整体失败（report 自身总是运行以产出报告）
+          for r in "${{ needs.static.result }}" "${{ needs.routing.result }}" "${{ needs.install-vm.result }}"; do
+            if [ "$r" != "success" ] && [ "$r" != "skipped" ]; then
+              echo "前置阶段结果: $r —— 整体判定为失败"
+              exit 1
+            fi
+          done
+          echo "所有关键阶段通过"

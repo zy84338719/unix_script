@@ -7,36 +7,10 @@
 # and essential plugins (zsh-autosuggestions, zsh-syntax-highlighting).
 #
 
-# --- Color Definitions ---
-RED='[0;31m'
-GREEN='[0;32m'
-YELLOW='[0;33m'
-BLUE='[0;34m'
-NC='[0m' # No Color
-
-# --- Log Functions ---
-info() {
-    echo -e "${BLUE}[INFO] $1${NC}"
-}
-
-success() {
-    echo -e "${GREEN}[SUCCESS] $1${NC}"
-}
-
-warn() {
-    echo -e "${YELLOW}[WARNING] $1${NC}"
-}
-
-error() {
-    echo -e "${RED}[ERROR] $1${NC}"
-}
-
-# --- Helper Functions ---
-
-# Check if a command exists
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
-}
+# 引入公共函数库（颜色 / 打印 / command_exists / detect_pkg_manager 等）
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
 # Detect OS and package manager
 detect_os() {

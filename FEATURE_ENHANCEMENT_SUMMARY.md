@@ -54,7 +54,7 @@
 ## 🗂️ 文件结构
 
 ```
-/opt/project/macos_script/
+unix_script/
 ├── process_manager_tool/           # 进程管理工具目录
 │   ├── process_manager.sh          # 主进程管理工具
 │   ├── process_manager_config.sh   # 快捷别名配置
@@ -179,3 +179,27 @@ pm --config                        # 检查安装状态
 5. **智能的路径检测和配置管理**
 
 用户现在可以安全、便捷地安装和使用这个强大的进程管理工具！
+
+---
+
+## 📦 仓库整体完善（v1.1.0, 2026-07-30）
+
+在进程管理工具之外，对整个脚本库做了系统性的完善：
+
+### 新增
+- **公共函数库** `lib/common.sh`：统一颜色、打印函数（info/success/warn/error）、平台/架构/包管理器检测、权限与依赖检查、IP/版本号获取、systemd/launchd 服务管理封装。
+- **3 个新服务模块**：
+  - `tailscale/` —— 基于官方安装脚本封装，支持 Linux（apt/yum/dnf）与 macOS（Homebrew）。
+  - `docker/` —— Linux 用 get.docker.com 一键安装，可选加入 docker 组；macOS 引导安装 Docker Desktop。
+  - `fail2ban/` —— 仅 Linux，安装并写入保护 sshd 的默认 jail.local。
+- **一键卸载入口** `uninstall.sh`：逐项交互、`--all` 全量、单模块卸载。
+- **文档**：`VERSION`、`CHANGELOG.md`、`CONTRIBUTING.md`、`.gitignore`。
+
+### 工程质量
+- `install.sh`（主菜单）：菜单编号改为连续 1-9；新增非交互命令行（--help/--version/--status/--list/模块名）；子目录脚本调用改用子 shell 避免工作目录污染；`manage_process_tool` 由递归改为 while 循环并刷新安装状态；修复卸载菜单中 `uninstall_zsh_omz` 死代码。
+- 现有模块（node_exporter、ddns-go、wireguard、zsh_setup、shutdown_timer）统一 `source lib/common.sh`，统一打印命名，修复 zsh_setup 颜色码缺失 ESC 转义的缺陷。
+- 重写 `check_issues.sh`：优先用系统 shellcheck 做真实静态检查 + 全量 bash -n 语法检查，shellcheck 缺失时回退 grep 启发式。
+- 重写 `README.md`：服务表格、平台矩阵补全新模块；新增非交互用法与卸载说明；修复重复出现的 Zsh 小节。
+
+### 说明
+- `process_manager_tool/` 作为独立子项目，保持其内部自洽的打印定义与已交付的 ShellCheck 修复，本轮未改动其内部实现。
