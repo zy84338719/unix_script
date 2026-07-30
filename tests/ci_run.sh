@@ -247,8 +247,9 @@ phase_install() {
             if [[ -n "${GH_TOKEN:-${GITHUB_TOKEN:-}}" ]]; then
                 export GH_TOKEN="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
             fi
-            # 安装脚本内部用 curl 无认证调 API；CI 中若遇限速会失败，记录但不阻塞整体（continue-on-error 在 workflow 层处理）
-            if bash "$REPO_DIR/node_exporter/install.sh" </dev/null >/tmp/ne_install.log 2>&1; then
+            # node_exporter install.sh 是交互式脚本（有"确认继续安装"提示），
+            # 用 yes y | 喂入确认，避免 </dev/null 导致 read 收到 EOF 而取消安装。
+            if yes y | bash "$REPO_DIR/node_exporter/install.sh" >/tmp/ne_install.log 2>&1; then
                 if systemctl is-active --quiet node_exporter 2>/dev/null || curl -sf http://localhost:9100 >/dev/null 2>&1; then
                     report_row "node_exporter: 安装并运行" pass
                 else
