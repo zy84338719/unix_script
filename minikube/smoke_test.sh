@@ -4,7 +4,6 @@ set -e
 # 简单的 smoke test：检查 minikube 和 kubectl 是否可用，并尝试获取集群状态
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
@@ -33,7 +32,6 @@ fi
 print "尝试以临时配置启动 minikube（超时 60s）..."
 # 尝试以很小的资源启动以验证基本功能
 minikube start --cpus=1 --memory=1024 --driver=docker &>/tmp/minikube_smoke.log &
-PID=$!
 
 WAIT=0
 while [[ $WAIT -lt 60 ]]; do

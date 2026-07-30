@@ -1,384 +1,235 @@
 # macOS/Linux 一键安装脚本集合
 
-这是一个跨平台的服务安装脚本集合，支持在 macOS 和 Linux 系统上一键安装和配置各种常用服务。
+[![CI](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml/badge.svg)](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+一个跨平台的服务与环境安装脚本库，支持在 macOS 和 Linux 上一键安装、配置、卸载各种常用服务。
+
+> 当前版本：见 [VERSION](VERSION) ｜ 更新日志：[CHANGELOG.md](CHANGELOG.md)
 
 ## 🌟 特性
 
-- **跨平台支持**：同时支持 macOS 和 Linux 系统
+- **跨平台支持**：同时支持 macOS 和 Linux
 - **多架构兼容**：支持 x86_64、ARM64、ARMv7 等架构
-- **智能检测**：自动检测操作系统和 CPU 架构
-- **友好交互**：彩色输出和交互式安装过程
-- **服务管理**：自动配置开机自启服务
-- **错误处理**：完善的错误处理和回滚机制
+- **智能检测**：自动检测操作系统、CPU 架构与包管理器
+- **统一入口**：`install.sh` 交互式菜单，也支持非交互命令行
+- **一键卸载**：`uninstall.sh` 逐项或全量卸载
+- **公共函数库**：`lib/common.sh` 统一打印、检测、服务管理
+- **错误处理**：完善的依赖检查与回滚提示
 
 ## 📦 支持的服务
 
-### 1. Node Exporter
-Prometheus 系统监控数据收集器
+| 模块 | 说明 | Linux | macOS | 默认端口 |
+|------|------|:-----:|:-----:|:--------:|
+| [Node Exporter](node_exporter) | Prometheus 系统监控数据收集器 | ✅ | ✅ | 9100 |
+| [DDNS-GO](ddns-go) | 动态域名解析服务 | ✅ | ✅ | 9876 |
+| [WireGuard](wireguard) | 现代、快速、安全的 VPN | ✅ | ✅ | - |
+| [Tailscale](tailscale) | 免公网 IP 的组网 VPN | ✅ | ✅ | - |
+| [Docker](docker) | 容器引擎 (Engine / Desktop) | ✅ | ✅* | - |
+| [Fail2ban](fail2ban) | SSH 暴力破解防护 | ✅ | ❌ | - |
+| [Zsh & Oh My Zsh](zsh_setup) | Shell 环境与插件配置 | ✅ | ✅ | - |
+| [自动关机管理](shutdown_timer) | 临时或每日定时关机 | ✅ | ✅ | - |
+| [进程管理工具](process_manager_tool) | 智能搜索和管理系统进程 | ✅ | ✅ | - |
 
-- **支持平台**：Linux、macOS
-- **支持架构**：x86_64、ARM64、ARMv7
-- **默认端口**：9100
-- **服务管理**：systemd (Linux) / launchd (macOS)
-
-### 2. DDNS-GO
-动态域名解析服务
-
-- **支持平台**：Linux、macOS  
-- **支持架构**：x86_64、ARM64、ARMv7
-- **默认端口**：9876
-- **Web 界面**：支持通过浏览器配置
-
-### 3. WireGuard
-现代、快速、安全的 VPN 隧道
-
-- **支持平台**：Linux、macOS
-- **功能**：安装 `wireguard-tools` 并设置开机自启服务
-- **服务管理**：systemd (Linux) / launchd (macOS)
-
-### 4. Zsh & Oh My Zsh
-强大的 Shell 环境和配置管理工具
-
-- **支持平台**：Linux、macOS
-- **功能**：自动安装 Zsh、Oh My Zsh 及常用插件
-- **插件**：`zsh-autosuggestions`、`zsh-syntax-highlighting`
+\* macOS 上引导安装 Docker Desktop。
 
 ## 🚀 快速开始
 
-### 统一安装脚本
-
-使用主安装脚本可以选择安装任何支持的服务：
+### 交互式安装（推荐）
 
 ```bash
-# 克隆或下载项目
 git clone <repository-url>
-cd macos_script
-
-# 给脚本执行权限
+cd unix_script
 chmod +x install.sh
-
-# 运行主安装脚本
 ./install.sh
 ```
 
-### 单独安装
+### 非交互式安装
 
-您也可以直接运行特定服务的安装脚本：
-
-#### 安装 Node Exporter
 ```bash
-chmod +x node_exporter/install.sh
+./install.sh docker         # 直接安装 docker
+./install.sh tailscale      # 直接安装 tailscale
+./install.sh --status       # 查看所有模块安装状态
+./install.sh --list         # 列出可用模块名
+./install.sh --help         # 查看帮助
+./install.sh --version      # 查看版本
+```
+
+可用模块名：`node_exporter | ddns-go | wireguard | tailscale | docker | fail2ban | zsh | shutdown_timer | process_manager`
+
+### 单独安装某模块
+
+每个模块目录下都有独立的 `install.sh`，可直接运行：
+
+```bash
 ./node_exporter/install.sh
+./tailscale/install.sh install      # 显式子命令
+./fail2ban/install.sh uninstall     # 卸载
 ```
 
-#### 安装 DDNS-GO
+通用子命令：`install | uninstall | status | help`
+
+## 🗑️ 卸载
+
 ```bash
-chmod +x ddns-go/install.sh
-./ddns-go/install.sh
+./uninstall.sh             # 逐项交互询问
+./uninstall.sh docker      # 仅卸载 docker
+./uninstall.sh --all       # 卸载全部（需二次确认）
 ```
 
-#### 安装 WireGuard
-```bash
-chmod +x wireguard/install.sh
-./wireguard/install.sh
-```
+> Zsh & Oh My Zsh 属敏感操作，未自动卸载，请参考文末说明手动处理。
 
 ## 💻 系统要求
 
-### 基本要求
-- **操作系统**：macOS 10.12+ 或 Linux (任意发行版)
-- **权限**：需要 sudo 权限
-- **网络**：需要互联网连接以下载软件包
+- **操作系统**：macOS 10.12+ 或 Linux（任意主流发行版）
+- **权限**：多数服务需要 sudo 权限
+- **网络**：安装时需要互联网连接
+- **依赖工具**：脚本会自动检查 `curl`、`tar` 等；macOS 服务通常需要 [Homebrew](https://brew.sh/)
 
-### 依赖工具
-脚本会自动检查以下必需工具：
-- `curl` - 用于下载文件
-- `tar` - 用于解压文件
-- `systemctl` - Linux 系统服务管理 (仅 Linux)
+## 📋 支持的平台与架构
 
-## 📋 支持的平台和架构
-
-| 操作系统 | 架构 | Node Exporter | DDNS-GO | WireGuard |
-|---------|------|---------------|---------|-----------|
-| Linux | x86_64 | ✅ | ✅ | ✅ |
-| Linux | ARM64 | ✅ | ✅ | ✅ |
-| Linux | ARMv7 | ✅ | ✅ | ✅ |
-| macOS | x86_64 (Intel) | ✅ | ✅ | ✅ |
-| macOS | ARM64 (Apple Silicon) | ✅ | ✅ | ✅ |
-
-### 3. Zsh & Oh My Zsh
-强大的 Shell 环境和配置管理工具
-
-- **支持平台**：Linux、macOS
-- **功能**：自动安装 Zsh、Oh My Zsh 及常用插件
-- **插件**：`zsh-autosuggestions`、`zsh-syntax-highlighting`
+| 操作系统 | 架构 | Node Exporter | DDNS-GO | WireGuard | Tailscale | Docker | Fail2ban |
+|---------|------|:---:|:---:|:---:|:---:|:---:|:---:|
+| Linux | x86_64 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Linux | ARM64 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Linux | ARMv7 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| macOS | Intel (x86_64) | ✅ | ✅ | ✅ | ✅ | ✅* | ❌ |
+| macOS | Apple Silicon (ARM64) | ✅ | ✅ | ✅ | ✅ | ✅* | ❌ |
 
 ## 🔧 安装后配置
 
 ### Node Exporter
-安装完成后，Node Exporter 将在端口 9100 上运行：
+监听端口 9100：状态页面 `http://your-ip:9100`，指标 `http://your-ip:9100/metrics`。
 
-- **状态页面**：`http://your-ip:9100`
-- **指标数据**：`http://your-ip:9100/metrics`
-
-#### Linux 服务管理
 ```bash
-# 查看服务状态
+# Linux
 sudo systemctl status node_exporter
-
-# 查看日志
 sudo journalctl -u node_exporter -f
-
-# 启动/停止/重启服务
-sudo systemctl start node_exporter
-sudo systemctl stop node_exporter
-sudo systemctl restart node_exporter
-```
-
-#### macOS 服务管理
-```bash
-# 查看服务状态
+# macOS
 sudo launchctl list | grep node_exporter
-
-# 查看日志
 tail -f /var/log/node_exporter.log
-
-# 启动服务
-sudo launchctl bootstrap system /Library/LaunchDaemons/com.prometheus.node_exporter.plist
-
-# 停止服务
-sudo launchctl bootout system /Library/LaunchDaemons/com.prometheus.node_exporter.plist
 ```
 
 ### DDNS-GO
-安装完成后，DDNS-GO 将在端口 9876 上运行：
-
-- **Web 界面**：`http://your-ip:9876`
-
-#### 首次配置
-1. 打开浏览器访问 `http://your-ip:9876`
-2. 设置管理员密码
-3. 配置 DNS 服务商信息
-4. 添加要更新的域名
+Web 界面 `http://your-ip:9876`，首次访问需设置管理员密码并配置 DNS 服务商。
 
 ### WireGuard
-安装脚本会安装 `wireguard-tools` 并设置开机自启服务。
+需要配置文件才能启动：
+- Linux：`/etc/wireguard/wg0.conf`
+- macOS：`/usr/local/etc/wireguard/wg0.conf`
 
-**重要提示**：脚本需要一个名为 `wg0.conf` 的配置文件才能启动服务。
-- **Linux 路径**：`/etc/wireguard/wg0.conf`
-- **macOS 路径**：`/usr/local/etc/wireguard/wg0.conf`
-
-如果文件不存在，脚本会提示您创建一个空的占位文件，您必须手动将您的 WireGuard 配置填入其中。
-
-#### Linux 服务管理
 ```bash
-# 查看服务状态
-sudo systemctl status wg-quick@wg0
-
-# 启动/停止服务
-sudo systemctl start wg-quick@wg0
-sudo systemctl stop wg-quick@wg0
-
-# 查看日志
-sudo journalctl -u wg-quick@wg0 -f
+sudo systemctl status wg-quick@wg0       # Linux
+sudo wg                                  # 查看状态
 ```
 
-#### macOS 服务管理
+### Tailscale
+安装后需登录：`sudo tailscale up`，详见 [tailscale/README.md](tailscale/README.md)。
+
+### Docker
 ```bash
-# 查看服务状态
-sudo launchctl list | grep com.wireguard.wg0
-
-# 启动/停止服务
-sudo launchctl bootstrap system /Library/LaunchDaemons/com.wireguard.wg0.plist
-sudo launchctl bootout system /Library/LaunchDaemons/com.wireguard.wg0.plist
-
-# 查看日志
-tail -f /var/log/wireguard.log
+docker --version
+sudo systemctl status docker             # Linux
+sudo docker run hello-world              # 测试
 ```
+安装时会询问是否将当前用户加入 `docker` 组（免 sudo，需重新登录生效）。
+
+### Fail2ban（仅 Linux）
+```bash
+sudo fail2ban-client status              # 总览
+sudo fail2ban-client status sshd         # sshd jail 详情
+sudo tail -f /var/log/fail2ban.log
+```
+默认策略：封禁 1 小时、10 分钟内失败 5 次即封；本机与内网不封。调整请编辑 `/etc/fail2ban/jail.local`。
 
 ### Zsh & Oh My Zsh
-安装脚本会自动完成以下配置：
-- 安装 Zsh 和 Oh My Zsh
-- 下载 `zsh-autosuggestions` 和 `zsh-syntax-highlighting` 插件
-- 在 `.zshrc` 文件中启用插件
-- 提示您是否要将 Zsh 设置为默认 Shell
-
-安装完成后，请**重启您的终端**以使所有更改生效。
+自动安装 Zsh、Oh My Zsh 及 `zsh-autosuggestions`、`zsh-syntax-highlighting` 插件，并提示是否设为默认 Shell。安装后请**重启终端**。
 
 ## 🐛 故障排除
 
-### 常见问题
-
-#### 1. 权限错误
-确保使用具有 sudo 权限的用户运行脚本：
+### 权限错误
 ```bash
-sudo -v  # 测试 sudo 权限
+sudo -v   # 测试 sudo 权限
 ```
 
-#### 2. 网络连接问题
-检查网络连接和 DNS 解析：
+### 网络问题
 ```bash
 curl -I https://api.github.com
 ```
 
-#### 3. 服务启动失败
-查看详细错误日志：
-
-**Linux:**
-```bash
-sudo systemctl status <service-name>
-sudo journalctl -u <service-name> -f
-```
-
-**macOS:**
-```bash
-sudo launchctl list | grep <service-name>
-tail -f /var/log/<service-name>.log
-```
-
-#### 4. 端口冲突
-检查端口是否被占用：
+### 服务启动失败
 ```bash
 # Linux
-sudo netstat -tlnp | grep :9100
-sudo ss -tlnp | grep :9100
-
+sudo systemctl status <service>
+sudo journalctl -u <service> -f
 # macOS
-sudo lsof -i :9100
+sudo launchctl list | grep <service>
+tail -f /var/log/<service>.log
 ```
 
-#### 5. Zsh 安装后终端未变化
-- **重启终端**：确保您已经关闭并重新打开了终端窗口。
-- **切换默认 Shell**：如果您在脚本提示时没有自动切换，可以手动执行 `chsh -s $(which zsh)`，然后重新登录。
-
-### 卸载服务
-
-#### Node Exporter
-
-**Linux:**
+### 端口冲突
 ```bash
-sudo systemctl stop node_exporter
-sudo systemctl disable node_exporter
-sudo rm /etc/systemd/system/node_exporter.service
-sudo rm /usr/local/bin/node_exporter
-sudo userdel node_exporter
-sudo systemctl daemon-reload
+sudo ss -tlnp | grep :9100      # Linux
+sudo lsof -i :9100              # macOS
 ```
 
-**macOS:**
+## 🔍 本地质量检查
+
 ```bash
-sudo launchctl bootout system /Library/LaunchDaemons/com.prometheus.node_exporter.plist
-sudo rm /Library/LaunchDaemons/com.prometheus.node_exporter.plist
-sudo rm /usr/local/bin/node_exporter
+./check_issues.sh              # bash -n 语法检查 + shellcheck（若已安装）
+./check_issues.sh --strict     # 不排除 SC2164 的严格模式
+./check_issues.sh install.sh   # 仅检查指定文件
 ```
 
-#### DDNS-GO
+CI 驱动脚本也可本地复现：
 
-**Linux:**
 ```bash
-sudo systemctl stop ddns-go
-sudo systemctl disable ddns-go
-sudo rm -rf /opt/ddns-go
+./tests/ci_run.sh --phase static     # 静态检查（bash -n + shellcheck）
+./tests/ci_run.sh --phase routing    # CLI 路由与子命令测试
+./tests/ci_run.sh --phase install    # 实装测试（fail2ban / node_exporter / 进程管理工具）
 ```
 
-**macOS:**
-```bash
-sudo launchctl bootout system /Library/LaunchDaemons/jeessy.ddns-go.plist
-sudo rm /Library/LaunchDaemons/jeessy.ddns-go.plist
-sudo rm -rf /opt/ddns-go
-```
+## 🤖 持续集成 (CI)
 
-#### WireGuard
+[CI 工作流](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml) 在多个操作系统/发行版上验证脚本库，每次 push/PR 自动运行，结果通过顶部徽章实时反映。
 
-**Linux:**
-```bash
-sudo systemctl stop wg-quick@wg0
-sudo systemctl disable wg-quick@wg0
-sudo rm /etc/systemd/system/wg-quick@wg0.service
-sudo rm -f /etc/wireguard/wg0.conf
-# 卸载工具 (示例):
-sudo apt-get remove --purge wireguard-tools
-```
+**测试矩阵与分级**（设计原则：CI 的 pass/fail 只反映脚本质量，不因 CI 环境限制而误报）：
 
-**macOS:**
-```bash
-sudo launchctl bootout system /Library/LaunchDaemons/com.wireguard.wg0.plist
-sudo rm /Library/LaunchDaemons/com.wireguard.wg0.plist
-sudo rm -f /usr/local/etc/wireguard/wg0.conf
-# 卸载工具 (示例):
-brew uninstall wireguard-tools
-```
+| 阶段 | 覆盖环境 | 内容 |
+|------|----------|------|
+| 静态检查 | ubuntu-latest, macos-latest | `bash -n` + `shellcheck`（全量脚本） |
+| 路由测试 | ubuntu-latest, macos-latest | `lib/common.sh` source、`install.sh --version/--list/--status`、各模块 `status/help` |
+| 实装测试 | ubuntu-latest VM（完整 systemd） + Debian/Fedora/CentOS 容器（包名解析） | Fail2ban、Node Exporter、进程管理工具真实安装/验证/卸载 |
 
-#### Zsh & Oh My Zsh
+**降级项**（CI 环境限制，不做完整实装，避免误报）：
+- Docker (macOS)：runner 无嵌套虚拟化，Docker Desktop 无法安装 → 只测 Linux 分支
+- WireGuard：runner 缺 `CAP_NET_ADMIN`/内核模块 → 只测包安装与卸载路由
+- Tailscale：需真实登录认证 → 只测 status/help/包路由
+- DDNS-GO：需真实 DNS 配置与端口 → 只测下载解压逻辑
 
-卸载 Zsh 和 Oh My Zsh 是一个敏感操作，建议手动执行以避免风险。
-
-1.  **卸载 Oh My Zsh**
-    Oh My Zsh 官方提供了一个卸载脚本。在终端中运行以下命令：
-    ```bash
-    uninstall_oh_my_zsh
-    ```
-
-2.  **切换回默认 Shell**
-    在卸载 Zsh 之前，**必须**将您的默认 Shell 切换回 `bash` 或其他 Shell。
-    ```bash
-    chsh -s /bin/bash
-    ```
-    执行后请注销并重新登录。
-
-3.  **卸载 Zsh**
-    使用系统的包管理器卸载 Zsh。
-
-    - **Ubuntu/Debian**:
-      ```bash
-      sudo apt-get remove --purge zsh
-      ```
-    - **CentOS/RHEL**:
-      ```bash
-      sudo yum remove zsh
-      ```
-    - **macOS (Homebrew)**:
-      ```bash
-      brew uninstall zsh
-      ```
-
-4.  **清理配置文件**
-    您可以选择性地删除 Zsh 的配置文件：
-    ```bash
-    rm ~/.zshrc
-    rm ~/.zsh_history # (如果存在)
-    ```
+每次运行会生成一份 **Markdown 测试报告**（`ci-report`），可在对应 Action 运行页面的 Artifacts 区下载；报告摘要也会显示在 commit/PR 的检查摘要中。
 
 ## 🤝 贡献
 
-欢迎提交 Issue 和 Pull Request 来改进这个项目！
+欢迎提交 Issue 和 Pull Request！贡献约定详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
-### 添加新服务
-1. 在项目根目录创建新的服务目录
-2. 编写对应的 `install.sh` 脚本
-3. 更新主安装脚本和文档
-
-### 报告问题
-请在 Issue 中包含：
-- 操作系统和版本
-- CPU 架构
-- 错误信息
-- 重现步骤
+新增模块要点：创建 `<name>/install.sh`（`source lib/common.sh`，实现 install/uninstall/status 子命令）+ `<name>/README.md`，并接入 `install.sh` 的主菜单/卸载菜单/状态页与 `uninstall.sh`。
 
 ## 📄 许可证
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE)。
 
 ## 🙏 致谢
 
-感谢以下开源项目：
 - [Prometheus Node Exporter](https://github.com/prometheus/node_exporter)
 - [DDNS-GO](https://github.com/jeessy2/ddns-go)
 - [WireGuard](https://www.wireguard.com/)
+- [Tailscale](https://tailscale.com/)
+- [Docker](https://www.docker.com/)
+- [Fail2ban](https://github.com/fail2ban/fail2ban)
 - [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh)
-- [zsh-users/zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
-- [zsh-users/zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
+- [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) / [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
 
 ---
 
-**注意**：这些脚本会修改系统配置和安装服务，请在生产环境使用前充分测试。
+**注意**：这些脚本会修改系统配置并安装服务，请在生产环境使用前充分测试。
