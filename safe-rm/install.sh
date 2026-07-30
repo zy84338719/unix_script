@@ -142,7 +142,9 @@ disable_rm_guard() {
     fi
     local rc
     for rc in "$HOME/.bashrc" "$HOME/.zshrc"; do
-        [[ -f "$rc" ]] && sed -i.bak "/alias rm='_safe_rm_guard'/d" "$rc" 2>/dev/null || true
+        if [[ -f "$rc" ]]; then
+            sed -i.bak "/alias rm='_safe_rm_guard'/d" "$rc" 2>/dev/null || true
+        fi
     done
     success "已禁用 rm 危险路径保护"
 }
