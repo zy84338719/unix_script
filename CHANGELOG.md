@@ -2,6 +2,25 @@
 
 本文件记录 unix_script 项目的显著变更。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
 
+## [1.2.0] - 2026-07-31
+
+### 新增（吸纳自 origin/main 的独立模块）
+- **`minikube/`**：本地 Kubernetes 开发环境（kubectl + minikube）。
+  - 纳入 install / check / smoke_test / README 全部文件。
+  - 统一为 `source lib/common.sh`（适配别名保留内部 `print_*` 调用），新增 install/uninstall/status/help 子命令分发。
+  - 支持 `--yes` 非交互与 `--driver` 驱动选择。
+- **`deskflow/`**：键鼠共享（Flatpak，仅 Linux 图形环境）。重写为 common 风格 + 子命令分发 + README。
+
+### 集成
+- 主菜单接入 minikube（开发环境，选项 8）与 deskflow（系统工具，选项 11），菜单编号重排。
+- 状态页、卸载菜单、`dispatch_module`、`--list`、CI routing 测试同步更新（覆盖 11 个模块）。
+
+### 合并 origin/main（冲突解决）
+- 与 origin/main 的扁平化重构（根脚本、`linux/`+`macos/` 双目录、`common/`、迁移文档）整合。
+- **以本分支为基底**：保留子目录结构与 `lib/common.sh`，全部冲突（install.sh 内容冲突、7 个 modify/delete、5 个 add/add）按本分支版本解决。
+- 远端扁平化文件（`main.sh`/`pm.sh`/`linux/*`/`macos/*`/`common/*`/`MIGRATION_*` 等 42 个）不纳入本分支。
+- Docker 镜像换源采用本分支的 `registry`/`mirror` 子命令（不采用远端的 `docker/change_registry.sh`）。
+
 ## [1.1.0] - 2026-07-30
 
 ### 新增
