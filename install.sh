@@ -49,15 +49,22 @@ show_main_menu() {
     echo "  8) Uptime Kuma       - 服务可用性监控面板 (Docker)"
     echo "  9) Cockpit           - Linux Web 管理面板 (端口 9090, 仅 Linux)"
     echo
+    echo "  --- 装机必备 / 必设置 ---"
+    echo "  10) 装机必备工具包   - curl/wget/git/vim/htop/tmux/jq 等一键装齐"
+    echo "  11) 系统初始化配置   - 换源/时区/系统优化/SSH 加固/自动安全更新"
+    echo "  12) Swap 虚拟内存    - 创建/调整 swap (小内存 VPS 必备)"
+    echo "  13) BBR 网络加速     - 开启 TCP BBR 拥塞控制"
+    echo "  14) nvm              - Node.js 多版本管理"
+    echo
     echo "  --- 开发环境配置 ---"
-    echo "  10) Zsh & Oh My Zsh  - 自动配置 Zsh 开发环境"
-    echo "  11) minikube         - 本地 Kubernetes 开发环境 (kubectl + minikube)"
-    echo "  12) 终端 TUI 工具    - lazydocker + lazygit"
+    echo "  15) Zsh & Oh My Zsh  - 自动配置 Zsh 开发环境"
+    echo "  16) minikube         - 本地 Kubernetes 开发环境 (kubectl + minikube)"
+    echo "  17) 终端 TUI 工具    - lazydocker + lazygit"
     echo
     echo "  --- 系统工具 ---"
-    echo "  13) 自动关机管理     - 设置临时或每日定时关机"
-    echo "  14) 进程管理工具     - 智能搜索和管理系统进程"
-    echo "  15) Deskflow         - 键鼠共享 (Flatpak, 仅 Linux 图形环境)"
+    echo "  18) 自动关机管理     - 设置临时或每日定时关机"
+    echo "  19) 进程管理工具     - 智能搜索和管理系统进程"
+    echo "  20) Deskflow         - 键鼠共享 (Flatpak, 仅 Linux 图形环境)"
     echo
     echo "  --- 管理 ---"
     echo "  s) 查看已安装状态    - 检查服务和环境的安装情况"
@@ -182,6 +189,11 @@ status_alist_module()     { run_in_dir alist install.sh status; }
 status_uptime_kuma_module() { run_in_dir uptime-kuma install.sh status; }
 status_cockpit_module()   { run_in_dir cockpit install.sh status; }
 status_dev_tui_module()   { run_in_dir dev-tui install.sh status; }
+status_essential_module() { run_in_dir essential-pkgs install.sh status; }
+status_sys_setup_module() { run_in_dir sys-setup install.sh status; }
+status_swap_module()      { run_in_dir swap install.sh status; }
+status_bbr_module()       { run_in_dir bbr install.sh status; }
+status_nvm_module()       { run_in_dir nvm install.sh status; }
 
 # ---------------- 已安装状态总览 ----------------
 show_installed_services() {
@@ -199,6 +211,12 @@ show_installed_services() {
     echo "Alist:          $(status_alist_module)"
     echo "Uptime Kuma:    $(status_uptime_kuma_module)"
     echo "Cockpit:        $(status_cockpit_module)"
+    echo
+    echo "--- 装机必备 ---"
+    echo "必备工具包:     $(status_essential_module)"
+    echo "BBR 加速:       $(status_bbr_module)"
+    echo "Swap:           $(status_swap_module)"
+    echo "nvm:            $(status_nvm_module)"
     echo
     echo "--- 开发环境 ---"
     echo "Zsh 环境:       $(check_zsh_status)"
@@ -326,6 +344,45 @@ manage_docker() {
             0) break ;;
             *) error "无效选项，请重新输入！"; sleep 1 ;;
         esac
+    done
+}
+
+# ---------------- 系统初始化配置（装机必设置） ----------------
+manage_sys_setup() {
+    local script_path="$SCRIPT_DIR/sys-setup/install.sh"
+    [ -f "$script_path" ] || { error "脚本不存在: $script_path"; sleep 2; return; }
+    chmod +x "$script_path"
+
+    while true; do
+        clear
+        header "⚙️  系统初始化配置（装机必设置，仅 Linux）"
+        echo "========================================"
+        echo "当前状态："
+        run_in_dir sys-setup install.sh status 2>/dev/null | sed 's/^/  /'
+        echo
+        menu "请选择要执行的配置："
+        echo "  1) all           - 一次性执行全部（推荐）"
+        echo "  2) mirror        - 更换软件源（国内镜像）"
+        echo "  3) timezone      - 设置时区 + NTP 时间同步"
+        echo "  4) optimize      - 系统参数优化（文件描述符/内核）"
+        echo "  5) ssh           - SSH 加固（⚠️ 需先配好密钥）"
+        echo "  6) autoupdate    - 启用自动安全更新"
+        echo "  0) 返回主菜单"
+        echo "========================================"
+        read -r -p "请输入选项 [0-6]: " ss_choice
+
+        case $ss_choice in
+            1) run_in_dir sys-setup install.sh all ;;
+            2) run_in_dir sys-setup install.sh mirror ;;
+            3) run_in_dir sys-setup install.sh timezone ;;
+            4) run_in_dir sys-setup install.sh optimize ;;
+            5) run_in_dir sys-setup install.sh ssh ;;
+            6) run_in_dir sys-setup install.sh autoupdate ;;
+            0) break ;;
+            *) error "无效选项，请重新输入！"; sleep 1 ;;
+        esac
+        echo
+        read -r -p "按回车键继续..."
     done
 }
 
@@ -535,6 +592,9 @@ show_uninstall_menu() {
     echo "  13) 取消每日自动关机任务"
     echo "  14) 卸载进程管理工具"
     echo "  15) 卸载 Deskflow"
+    echo "  16) 关闭 BBR 网络加速 (恢复默认)"
+    echo "  17) 卸载 Swap 虚拟内存"
+    echo "  18) 卸载 nvm"
     echo "  0) 返回主菜单"
     echo
     echo "========================================"
@@ -564,6 +624,9 @@ do_uninstall() {
             fi
             ;;
         15) run_in_dir deskflow install.sh uninstall ;;
+        16) run_in_dir bbr install.sh disable ;;
+        17) run_in_dir swap install.sh uninstall ;;
+        18) run_in_dir nvm install.sh uninstall ;;
         0) return 1 ;;
         *) error "无效选项，请重新输入！"; sleep 1 ;;
     esac
@@ -586,6 +649,11 @@ dispatch_module() {
         uptime-kuma|uptime_kuma)    run_in_dir uptime-kuma install.sh install ;;
         cockpit)                    run_in_dir cockpit install.sh install ;;
         dev-tui|dev_tui|tui)        run_in_dir dev-tui install.sh install ;;
+        essential-pkgs|essential_pkgs|essential) run_in_dir essential-pkgs install.sh install ;;
+        sys-setup|sys_setup)        run_in_dir sys-setup install.sh all ;;
+        swap)                       run_in_dir swap install.sh install ;;
+        bbr)                        run_in_dir bbr install.sh enable ;;
+        nvm)                        run_in_dir nvm install.sh install ;;
         zsh)                        run_install_script "$SCRIPT_DIR/zsh_setup/install.sh" "Zsh & Oh My Zsh" ;;
         minikube)                   run_in_dir minikube install.sh install ;;
         deskflow)                   run_in_dir deskflow install.sh install ;;
@@ -612,8 +680,9 @@ show_usage() {
 
 模块名（用于非交互安装）:
   node_exporter | ddns-go | wireguard | tailscale | docker |
-  fail2ban | alist | uptime-kuma | cockpit | zsh | minikube | dev-tui |
-  deskflow | shutdown_timer | process_manager
+  fail2ban | alist | uptime-kuma | cockpit |
+  essential-pkgs | sys-setup | swap | bbr | nvm |
+  zsh | minikube | dev-tui | deskflow | shutdown_timer | process_manager
 
 示例:
   $0                       # 进入交互式主菜单
@@ -644,7 +713,7 @@ main() {
         -v|--version) echo "unix_script $(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"; exit 0 ;;
         -s|--status)  INTERACTIVE=false; show_installed_services; exit 0 ;;
         --list)
-            echo "node_exporter ddns-go wireguard tailscale docker fail2ban alist uptime-kuma cockpit zsh minikube dev-tui deskflow shutdown_timer process_manager"
+            echo "node_exporter ddns-go wireguard tailscale docker fail2ban alist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm zsh minikube dev-tui deskflow shutdown_timer process_manager"
             exit 0
             ;;
         -*) error "未知选项: $1"; show_usage; exit 1 ;;
@@ -667,17 +736,22 @@ interactive_main() {
             7) run_in_dir alist install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             8) run_in_dir uptime-kuma install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             9) run_in_dir cockpit install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            10) run_install_script "$SCRIPT_DIR/zsh_setup/install.sh" "Zsh & Oh My Zsh" ;;
-            11) run_in_dir minikube install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            12) run_in_dir dev-tui install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            13) manage_shutdown_timer ;;
-            14) manage_process_tool ;;
-            15) run_in_dir deskflow install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            10) run_in_dir essential-pkgs install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            11) manage_sys_setup ;;
+            12) run_in_dir swap install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            13) run_in_dir bbr install.sh enable; echo; read -r -p "按回车键返回主菜单..." ;;
+            14) run_in_dir nvm install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            15) run_install_script "$SCRIPT_DIR/zsh_setup/install.sh" "Zsh & Oh My Zsh" ;;
+            16) run_in_dir minikube install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            17) run_in_dir dev-tui install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            18) manage_shutdown_timer ;;
+            19) manage_process_tool ;;
+            20) run_in_dir deskflow install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             s|S) show_installed_services ;;
             u|U)
                 while true; do
                     show_uninstall_menu
-                    read -r -p "请输入选项 [0-15]: " uninstall_choice
+                    read -r -p "请输入选项 [0-18]: " uninstall_choice
                     if ! do_uninstall "$uninstall_choice"; then
                         break
                     fi
