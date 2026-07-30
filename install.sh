@@ -286,7 +286,13 @@ manage_wireguard() {
         header "🔧 WireGuard 管理"
         echo "========================================"
         echo "当前状态:"
-        echo "  - WireGuard 工具: $(command -v wg &>/dev/null && echo -e "${GREEN}✅ 已安装${NC}" || echo -e "${RED}❌ 未安装${NC}")"
+        local wg_tool_state
+        if command -v wg &>/dev/null; then
+            wg_tool_state="${GREEN}✅ 已安装${NC}"
+        else
+            wg_tool_state="${RED}❌ 未安装${NC}"
+        fi
+        echo "  - WireGuard 工具: $wg_tool_state"
         local wg_status_output
         wg_status_output=$(check_wireguard_status)
         if [[ $wg_status_output == *"运行"* ]]; then
