@@ -60,10 +60,15 @@ check_permissions
 check_dependencies
 check_existing_installation
 
-# 获取最新版本号和下载地址
+# 获取最新版本号和下载地址（若设置 GH_TOKEN/GITHUB_TOKEN 则带认证，规避 API 速率限制）
 info "正在获取最新版本信息..."
 api_url="https://api.github.com/repos/jeessy2/ddns-go/releases/latest"
-release_info=$(curl -s "$api_url")
+gh_auth=()
+gh_token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
+if [[ -n "$gh_token" ]]; then
+    gh_auth=(-H "Authorization: Bearer $gh_token")
+fi
+release_info=$(curl -s "${gh_auth[@]}" "$api_url")
 
 latest_tag=$(echo "$release_info" | grep '"tag_name"' | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
 if [[ -z "$latest_tag" ]]; then

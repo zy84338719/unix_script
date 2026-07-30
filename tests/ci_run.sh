@@ -189,16 +189,18 @@ phase_install() {
     cd "$REPO_DIR" || exit 1
 
     # 进程管理工具：纯用户态，最稳定，Linux + macOS 都可
+    # 注意：install_process_manager.sh 内部按相对路径查找 process_manager.sh，
+    # 必须在其所在目录下运行（用子 shell cd）。
     if [[ "${MODULES_OVERRIDE}" == "" || "${MODULES_OVERRIDE}" == *"pm"* ]]; then
         local pm_dir="$REPO_DIR/process_manager_tool"
-        if bash "$pm_dir/install_process_manager.sh" >/tmp/pm_install.log 2>&1; then
+        if ( cd "$pm_dir" && bash install_process_manager.sh ) >/tmp/pm_install.log 2>&1; then
             if "$HOME/.tools/bin/pm" --version >/dev/null 2>&1; then
                 report_row "pm: 安装并运行 pm --version" pass
             else
                 report_row "pm: 安装并运行 pm --version" fail "pm 不可执行"
             fi
             # 卸载清理
-            if bash "$pm_dir/install_process_manager.sh" uninstall >/tmp/pm_uninstall.log 2>&1; then
+            if ( cd "$pm_dir" && bash install_process_manager.sh uninstall ) >/tmp/pm_uninstall.log 2>&1; then
                 report_row "pm: 卸载" pass
             else
                 report_row "pm: 卸载" fail "见 pm_uninstall.log"
@@ -257,7 +259,9 @@ phase_install() {
                 sudo systemctl disable node_exporter 2>/dev/null || true
                 sudo rm -f /etc/systemd/system/node_exporter.service /usr/local/bin/node_exporter
                 sudo systemctl daemon-reload 2>/dev/null || true
-                id node_exporter >/dev/null 2>&1 && sudo userdel node_exporter 2>/dev/null || true
+                if id node_exporter >/dev/null 2>&1; then
+                    sudo userdel node_exporter 2>/dev/null || true
+                fi
                 report_row "node_exporter: 卸载" pass
             else
                 # 多半是 GitHub API 限速或网络，记 fail 但备注
