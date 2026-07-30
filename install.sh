@@ -48,10 +48,12 @@ show_main_menu() {
     echo
     echo "  --- 开发环境配置 ---"
     echo "  7) Zsh & Oh My Zsh   - 自动配置 Zsh 开发环境"
+    echo "  8) minikube          - 本地 Kubernetes 开发环境 (kubectl + minikube)"
     echo
     echo "  --- 系统工具 ---"
-    echo "  8) 自动关机管理     - 设置临时或每日定时关机"
-    echo "  9) 进程管理工具     - 智能搜索和管理系统进程"
+    echo "  9) 自动关机管理     - 设置临时或每日定时关机"
+    echo "  10) 进程管理工具    - 智能搜索和管理系统进程"
+    echo "  11) Deskflow         - 键鼠共享 (Flatpak, 仅 Linux 图形环境)"
     echo
     echo "  --- 管理 ---"
     echo "  s) 查看已安装状态    - 检查服务和环境的安装情况"
@@ -166,10 +168,12 @@ check_process_manager_status() {
     fi
 }
 
-# Tailscale / Docker / Fail2ban 状态委托给各模块的 status 子命令
+# Tailscale / Docker / Fail2ban / minikube / deskflow 状态委托给各模块的 status 子命令
 status_tailscale_module() { run_in_dir tailscale install.sh status; }
 status_docker_module()    { run_in_dir docker install.sh status; }
 status_fail2ban_module()  { run_in_dir fail2ban install.sh status; }
+status_minikube_module()  { run_in_dir minikube install.sh status; }
+status_deskflow_module()  { run_in_dir deskflow install.sh status; }
 
 # ---------------- 已安装状态总览 ----------------
 show_installed_services() {
@@ -187,10 +191,12 @@ show_installed_services() {
     echo
     echo "--- 开发环境 ---"
     echo "Zsh 环境:       $(check_zsh_status)"
+    echo "minikube:       $(status_minikube_module)"
     echo
     echo "--- 系统工具 ---"
     echo "自动关机任务:   $(check_shutdown_timer_status)"
     echo "进程管理工具:   $(check_process_manager_status)"
+    echo "Deskflow:       $(status_deskflow_module)"
 
     echo
     echo "========================================"
@@ -511,6 +517,8 @@ show_uninstall_menu() {
     echo "  7) 卸载 Zsh & Oh My Zsh (查看说明)"
     echo "  8) 取消每日自动关机任务"
     echo "  9) 卸载进程管理工具"
+    echo "  10) 卸载 minikube"
+    echo "  11) 卸载 Deskflow"
     echo "  0) 返回主菜单"
     echo
     echo "========================================"
@@ -534,6 +542,8 @@ do_uninstall() {
                 run_in_dir process_manager_tool install_process_manager.sh uninstall
             fi
             ;;
+        10) run_in_dir minikube install.sh uninstall ;;
+        11) run_in_dir deskflow install.sh uninstall ;;
         0) return 1 ;;
         *) error "无效选项，请重新输入！"; sleep 1 ;;
     esac
@@ -553,6 +563,8 @@ dispatch_module() {
         docker)                     run_in_dir docker install.sh install ;;
         fail2ban|f2b)               run_in_dir fail2ban install.sh install ;;
         zsh)                        run_install_script "$SCRIPT_DIR/zsh_setup/install.sh" "Zsh & Oh My Zsh" ;;
+        minikube)                   run_in_dir minikube install.sh install ;;
+        deskflow)                   run_in_dir deskflow install.sh install ;;
         shutdown|shutdown_timer)    manage_shutdown_timer ;;
         process_manager|pm)         manage_process_tool ;;
         *)
@@ -576,7 +588,7 @@ show_usage() {
 
 模块名（用于非交互安装）:
   node_exporter | ddns-go | wireguard | tailscale | docker |
-  fail2ban | zsh | shutdown_timer | process_manager
+  fail2ban | zsh | minikube | deskflow | shutdown_timer | process_manager
 
 示例:
   $0                       # 进入交互式主菜单
@@ -607,7 +619,7 @@ main() {
         -v|--version) echo "unix_script $(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"; exit 0 ;;
         -s|--status)  INTERACTIVE=false; show_installed_services; exit 0 ;;
         --list)
-            echo "node_exporter ddns-go wireguard tailscale docker fail2ban zsh shutdown_timer process_manager"
+            echo "node_exporter ddns-go wireguard tailscale docker fail2ban zsh minikube deskflow shutdown_timer process_manager"
             exit 0
             ;;
         -*) error "未知选项: $1"; show_usage; exit 1 ;;
@@ -628,13 +640,15 @@ interactive_main() {
             5) manage_docker ;;
             6) run_in_dir fail2ban install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             7) run_install_script "$SCRIPT_DIR/zsh_setup/install.sh" "Zsh & Oh My Zsh" ;;
-            8) manage_shutdown_timer ;;
-            9) manage_process_tool ;;
+            8) run_in_dir minikube install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            9) manage_shutdown_timer ;;
+            10) manage_process_tool ;;
+            11) run_in_dir deskflow install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             s|S) show_installed_services ;;
             u|U)
                 while true; do
                     show_uninstall_menu
-                    read -r -p "请输入选项 [0-9]: " uninstall_choice
+                    read -r -p "请输入选项 [0-11]: " uninstall_choice
                     if ! do_uninstall "$uninstall_choice"; then
                         break
                     fi
