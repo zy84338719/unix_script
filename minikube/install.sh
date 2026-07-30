@@ -1,21 +1,17 @@
 #!/usr/bin/env bash
 set -e
 
-# 颜色定义
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-PURPLE='\033[0;35m'
-NC='\033[0m' # No Color
+# 引入公共函数库（颜色码与打印函数统一）
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
-# 打印带颜色的消息
-print_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
-print_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-print_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
-print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
-print_header() { echo -e "${CYAN}=== $1 ===${NC}"; }
+# 适配别名：本模块内部沿用 print_* 命名，映射到 common 的统一函数
+print_info()    { info "$1"; }
+print_success() { success "$1"; }
+print_warning() { warn "$1"; }
+print_error()   { error "$1"; }
+print_header()  { header "=== $1 ==="; }
 
 # 全局变量
 OS_TYPE=""
@@ -68,6 +64,8 @@ parse_args() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --yes|-y)
+                # NON_INTERACTIVE 供本脚本生成的 start-minikube.sh 在运行时读取（SC2034 误报）
+                # shellcheck disable=SC2034
                 NON_INTERACTIVE=true
                 shift
                 ;;
@@ -265,9 +263,11 @@ setup_environment() {
     if ! echo "$PATH" | grep -q "$INSTALL_DIR/bin"; then
         print_info "添加 $INSTALL_DIR/bin 到 PATH..."
         
-        echo "" >> "$shell_rc"
-        echo "# minikube 和 kubectl 路径" >> "$shell_rc"
-        echo "export PATH=\"$INSTALL_DIR/bin:\$PATH\"" >> "$shell_rc"
+        {
+            echo ""
+            echo "# minikube 和 kubectl 路径"
+            echo "export PATH=\"$INSTALL_DIR/bin:\$PATH\""
+        } >> "$shell_rc"
         
         print_success "环境变量已添加到 $shell_rc"
         print_warning "请运行 'source $shell_rc' 或重新打开终端以生效"
@@ -548,13 +548,14 @@ show_usage() {
     echo
 }
 
-# 主函数
-main() {
+# 执行完整安装流程
+do_install() {
     print_header "minikube 安装工具"
     echo "此工具将为您安装 Kubernetes 开发环境"
     echo
-    
+
     check_system
+    parse_args "$@"
     check_dependencies
     get_latest_versions
     create_install_dir
@@ -566,8 +567,67 @@ main() {
     create_uninstall_script
     verify_installation
     show_usage
-    
+
     print_success "安装完成！"
+}
+
+# 查询安装/运行状态（供主菜单“查看状态”调用）
+do_status() {
+    local install_dir="$HOME/.tools/minikube"
+    if [[ -x "$install_dir/bin/minikube" ]] && [[ -x "$install_dir/bin/kubectl" ]]; then
+        if echo "$PATH" | grep -q "$install_dir/bin"; then
+            echo -e "${GREEN}✅ 已安装并配置${NC}"
+        else
+            echo -e "${YELLOW}⚠️  已安装但 PATH 未配置${NC}"
+        fi
+    else
+        echo -e "${RED}❌ 未安装${NC}"
+    fi
+}
+
+# 卸载（委托给安装时生成的卸载脚本）
+do_uninstall() {
+    local uninstall_script="$HOME/.tools/minikube/uninstall.sh"
+    if [[ -x "$uninstall_script" ]]; then
+        "$uninstall_script"
+    else
+        warn "未找到卸载脚本（$uninstall_script），可能尚未安装。"
+        if [[ -d "$HOME/.tools/minikube" ]]; then
+            rm -rf "$HOME/.tools/minikube" && success "已删除 $HOME/.tools/minikube"
+        fi
+    fi
+}
+
+usage() {
+    cat <<EOF
+用法: $0 {install|uninstall|status|help} [--yes] [--driver <驱动>]
+
+  install     安装 minikube + kubectl（默认动作）
+  uninstall   卸载 minikube
+  status      查看安装与运行状态
+  help        显示本帮助
+
+选项（仅 install）:
+  --yes, -y             非交互模式
+  --driver <驱动>       指定 minikube 驱动（docker/hyperkit/kvm2 等，默认 auto）
+EOF
+}
+
+# 主函数：子命令分发
+main() {
+    local action="${1:-install}"
+    # 兼容旧调用：第一个参数若为选项（--yes/--driver），视为 install 的参数
+    if [[ "$action" == --* || "$action" == -* ]]; then
+        do_install "$@"
+        return
+    fi
+    case "$action" in
+        install)   shift; do_install "$@" ;;
+        uninstall) do_uninstall ;;
+        status)    do_status ;;
+        help|--help|-h) usage ;;
+        *) error "未知操作: $action"; usage; exit 1 ;;
+    esac
 }
 
 # 运行主函数

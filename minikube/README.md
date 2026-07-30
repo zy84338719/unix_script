@@ -27,7 +27,7 @@
 
 ```bash
 # 进入 minikube 目录
-cd /path/to/macos_script/minikube
+cd /path/to/unix_script/minikube
 
 # 运行安装脚本
 ./install.sh
@@ -37,7 +37,7 @@ cd /path/to/macos_script/minikube
 
 ```bash
 # 运行主安装脚本
-cd /path/to/macos_script
+cd /path/to/unix_script
 ./install.sh
 
 # 选择 minikube 安装选项

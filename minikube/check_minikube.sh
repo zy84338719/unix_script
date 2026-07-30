@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 
-# 颜色定义
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-CYAN='\033[0;36m'
-NC='\033[0m'
+# 引入公共函数库（颜色码与打印函数统一）
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../lib/common.sh
+source "$SCRIPT_DIR/../lib/common.sh"
 
-print_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
-print_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-print_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
-print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
-print_header() { echo -e "${CYAN}=== $1 ===${NC}"; }
+# 适配别名：本模块内部沿用 print_* 命名，映射到 common 的统一函数
+print_info()    { info "$1"; }
+print_success() { success "$1"; }
+print_warning() { warn "$1"; }
+print_error()   { error "$1"; }
+print_header()  { header "=== $1 ==="; }
 
 # 检查 minikube 安装状态
 check_minikube_installation() {
