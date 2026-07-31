@@ -794,6 +794,8 @@ show_usage() {
   -v, --version     显示版本
   -s, --status      查看所有模块的安装状态后退出（非交互）
   --list            列出可用模块名后退出
+  check-update      检查远端是否有新版本（不修改本地）
+  update            安全检查 + 确认后执行 git pull 更新本地仓库
 
 模块名（用于非交互安装）:
   node_exporter | ddns-go | wireguard | tailscale | docker |
@@ -806,6 +808,8 @@ show_usage() {
   $0 --status              # 直接打印安装状态
   $0 docker                # 直接安装 docker
   $0 tailscale             # 直接安装 tailscale
+  $0 check-update          # 检查是否有新版本
+  $0 update                # 更新到最新版本（需确认）
 EOF
 }
 
@@ -813,10 +817,24 @@ show_noninteractive_usage() {
     show_usage
 }
 
+# 判断是否应在启动时自动检查更新。
+# 跳过条件：UNIX_SCRIPT_NO_UPDATE_CHECK=1、或 CI=true、或非交互（非 TTY）。
+should_auto_check_update() {
+    [[ "${UNIX_SCRIPT_NO_UPDATE_CHECK:-0}" == "1" ]] && return 1
+    [[ "${CI:-false}" == "true" ]] && return 1
+    [[ -t 1 ]] || return 1   # 非 TTY（管道/重定向）不自动检查
+    return 0
+}
+
 # ---------------- 主函数 ----------------
 main() {
     detect_os
     detect_arch
+
+    # 启动时自动检查远端新版本（仅提示，不阻塞、不影响退出码）
+    if should_auto_check_update; then
+        print_update_hint 2>/dev/null || true
+    fi
 
     # 无参数 -> 交互式
     if [[ $# -eq 0 ]]; then
@@ -832,6 +850,24 @@ main() {
         --list)
             echo "node_exporter ddns-go wireguard tailscale docker fail2ban openlist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm zsh minikube dev-tui opencode ollama deskflow shutdown_timer process_manager safe-rm clash multi-net"
             exit 0
+            ;;
+        check-update)
+            info "检查远端最新版本..."
+            if check_for_update 2>/dev/null; then
+                warn "有新版本：当前 $(get_local_version) → 远端 ${REMOTE_LATEST}"
+                info "运行 ./install.sh update 一键更新"
+            else
+                if [[ -n "${REMOTE_LATEST:-}" ]]; then
+                    success "已是最新版本：$(get_local_version)（远端 ${REMOTE_LATEST}）"
+                else
+                    warn "无法获取远端版本（网络问题或未发布 release），当前版本 $(get_local_version)"
+                fi
+            fi
+            exit 0
+            ;;
+        update)
+            do_self_update
+            exit $?
             ;;
         -*) error "未知选项: $1"; show_usage; exit 1 ;;
         *)  dispatch_module "$1" ;;
