@@ -152,6 +152,8 @@ phase_routing() {
     assert "关闭自动检查开关后 --help 正常" bash -c "UNIX_SCRIPT_NO_UPDATE_CHECK=1 \"$REPO_DIR/install.sh\" --help >/dev/null"
     # common.sh 新函数存在
     assert "common.sh 含更新检查函数" bash -c "source \"$REPO_DIR/lib/common.sh\" && type get_local_version >/dev/null && type version_gt >/dev/null && type check_for_update >/dev/null && type do_self_update >/dev/null"
+    # cli 子命令：install.sh 含 install_cli / uninstall_cli 函数（不实际安装，避免污染 CI 环境）
+    assert "install.sh 含 cli 安装/卸载函数" bash -c "grep -q 'install_cli()' \"$REPO_DIR/install.sh\" && grep -q 'uninstall_cli()' \"$REPO_DIR/install.sh\""
 
     # 2c. bootstrap.sh 引导脚本：存在、可执行、语法正确、含关键函数
     #     （不在此做真实 git clone，避免 CI 增加网络依赖与耗时；实装由本地端到端覆盖）

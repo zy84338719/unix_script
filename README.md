@@ -147,6 +147,21 @@ chmod +x install.sh
 
 > 环境变量 `UNIX_SCRIPT_NO_UPDATE_CHECK=1` 可关闭启动时的自动检查（CI / 离线场景适用）。
 
+### ⌨️ 安装为全局命令（uxs）
+
+安装后可在**任意目录**直接用 `uxs` 调用，免去每次进目录或敲长路径：
+
+```bash
+./install.sh cli            # 安装全局命令 uxs 到 ~/.tools/bin（自动配置 PATH）
+uxs --version               # 之后任意目录可直接用
+uxs docker-image            # 等价于 ./install.sh docker-image
+uxs --status                # 等价于 ./install.sh --status
+
+./install.sh uninstall-cli  # 卸载全局命令 uxs
+```
+
+> 安装会写入 shell 的 rc 文件（自动检测 bash/zsh/fish），将 `~/.tools/bin` 加入 PATH。需 `source ~/.zshrc`（或重开终端）后生效。
+
 ## 🗑️ 卸载
 
 ```bash
