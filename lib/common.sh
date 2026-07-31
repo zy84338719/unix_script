@@ -240,6 +240,42 @@ github_latest_tag() {
     echo "$tag"
 }
 
+# ---------------- 版本更新检查 ----------------
+# 本仓库在 GitHub 的标识（owner/repo），用于查询远端最新 release。
+UPDATE_REPO="zy84338719/unix_script"
+
+# 读取本地 VERSION 文件内容（去首尾空白）；读不到返回 "unknown"。
+# 依赖调用方已定义的全局变量 SCRIPT_DIR（仓库根）。
+get_local_version() {
+    local ver_file="${SCRIPT_DIR:-.}/VERSION"
+    local ver
+    ver=$(cat "$ver_file" 2>/dev/null | tr -d '[:space:]')
+    if [[ -z "$ver" ]]; then
+        ver="unknown"
+    fi
+    echo "$ver"
+}
+
+# 语义化版本比较：当且仅当 a > b 返回 0，否则返回 1。
+# 自动去除前导 'v'；对空值或非法版本串保守返回 1（不误报有更新）。
+# 实现：用 sort -V 对 "a\nb" 排序，若最小者 == b 且 a != b，则 a > b。
+# 兼容 macOS BSD sort（支持 -V）。
+version_gt() {
+    local a="$1"
+    local b="$2"
+    # 去前导 v/V
+    a="${a#v}"; a="${a#V}"
+    b="${b#v}"; b="${b#V}"
+    # 空值或含明显非版本字符（仅允许数字与点）则保守判否
+    [[ -z "$a" || -z "$b" ]] && return 1
+    [[ "$a" =~ ^[0-9][0-9.]*$ ]] || return 1
+    [[ "$b" =~ ^[0-9][0-9.]*$ ]] || return 1
+    [[ "$a" == "$b" ]] && return 1
+    local lowest
+    lowest=$(printf '%s\n%s\n' "$a" "$b" | sort -V | head -n1)
+    [[ "$lowest" == "$b" ]]
+}
+
 # ---------------- 服务管理封装（systemd / launchd 双平台） ----------------
 # service_is_active <systemd_name> <launchd_label>
 service_is_active() {
