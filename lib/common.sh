@@ -307,6 +307,64 @@ print_update_hint() {
     fi
 }
 
+# 安全自更新：检查前置条件 → yes_no 确认 → git pull。
+# 任何不安全条件都拒绝执行并提示，绝不静默改动本地仓库。
+# 返回码：0=更新成功（或已是最新），1=用户拒绝或不满足安全条件。
+do_self_update() {
+    cd "${SCRIPT_DIR:-.}" 2>/dev/null || { error "无法进入仓库目录"; return 1; }
+
+    # 1) 必须是 git 仓库
+    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        error "当前目录不是 git 仓库（可能是直接下载的压缩包）。"
+        info "请重新克隆：git clone git@github.com:${UPDATE_REPO}.git"
+        return 1
+    fi
+
+    # 2) 必须有 origin 远端
+    if ! git remote get-url origin >/dev/null 2>&1; then
+        error "未配置 origin 远端，无法执行 git pull。"
+        info "请手动添加远端或从 ${UPDATE_REPO} 重新克隆。"
+        return 1
+    fi
+
+    # 3) 工作区必须干净（无未提交改动），避免 pull 覆盖本地修改
+    if [[ -n "$(git status --porcelain 2>/dev/null)" ]]; then
+        error "工作区有未提交改动，为安全起见拒绝自动 pull。"
+        info "请先 commit 或 stash 本地改动后重试：./install.sh update"
+        return 1
+    fi
+
+    # 4) detached HEAD 警告（main 分支才适合 pull）
+    if ! git symbolic-ref -q HEAD >/dev/null 2>&1; then
+        warn "当前处于 detached HEAD 状态，git pull 可能无意义。"
+        if ! yes_no "仍要尝试更新？"; then
+            info "已取消。请切到 main 分支：git checkout main && git pull"
+            return 1
+        fi
+    fi
+
+    # 先查询是否有新版本（取 REMOTE_LATEST 用于提示）
+    check_for_update 2>/dev/null || true
+    local target="${REMOTE_LATEST:-最新}"
+    info "将执行 git pull 更新到 ${target}（origin: $(git remote get-url origin)）"
+    if ! yes_no "确认执行 git pull 更新？"; then
+        info "已取消更新。"
+        return 1
+    fi
+
+    info "正在拉取更新..."
+    if git pull --ff-only origin 2>/dev/null; then
+        local new_ver
+        new_ver=$(get_local_version)
+        success "更新完成，当前版本：${new_ver}"
+        return 0
+    else
+        error "git pull 失败（可能是冲突或网络问题）。"
+        info "请手动执行：git pull --ff-only origin"
+        return 1
+    fi
+}
+
 # ---------------- 服务管理封装（systemd / launchd 双平台） ----------------
 # service_is_active <systemd_name> <launchd_label>
 service_is_active() {
