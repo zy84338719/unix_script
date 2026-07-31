@@ -48,6 +48,7 @@
 | [safe-rm 回收站](safe-rm) | 安全删除替代 rm，防误删灾难 | ✅ | ✅ | - |
 | [Clash (mihomo)](clash) | 代理核心 + 快速配置 + TUN 透明代理 | ✅ | ✅ | 7890 |
 | [多网卡策略路由](multi-net) | 指定服务/用户/端口走指定网卡 | ✅ | ❌ | - |
+| [Docker 镜像导出](docker-image) | 拉取公网镜像并导出为 .tar.gz（离线分发/备份） | ✅ | ✅ | - |
 
 \* macOS 上引导安装 Docker Desktop。
 
