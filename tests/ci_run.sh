@@ -152,6 +152,12 @@ phase_routing() {
     # common.sh 新函数存在
     assert "common.sh 含更新检查函数" bash -c "source \"$REPO_DIR/lib/common.sh\" && type get_local_version >/dev/null && type version_gt >/dev/null && type check_for_update >/dev/null && type do_self_update >/dev/null"
 
+    # 2c. bootstrap.sh 引导脚本：存在、可执行、语法正确、含关键函数
+    #     （不在此做真实 git clone，避免 CI 增加网络依赖与耗时；实装由本地端到端覆盖）
+    assert "bootstrap.sh 存在且可执行" bash -c "test -x \"$REPO_DIR/bootstrap.sh\""
+    assert "bootstrap.sh 语法正确 (bash -n)" bash -n "$REPO_DIR/bootstrap.sh"
+    assert "bootstrap.sh 含主函数与依赖检查" bash -c "grep -q 'main()' \"$REPO_DIR/bootstrap.sh\" && grep -q 'check_deps' \"$REPO_DIR/bootstrap.sh\" && grep -q 'clone_or_update' \"$REPO_DIR/bootstrap.sh\""
+
     # 3. uninstall.sh
     assert "uninstall.sh --help (exit 0)" bash "$REPO_DIR/uninstall.sh" --help
 
