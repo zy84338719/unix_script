@@ -72,9 +72,29 @@ install_pkgs() {
 
     info "将安装：${all_pkgs[*]}"
     case "$PKG_MANAGER" in
-        apt-get) sudo apt-get update -y; sudo apt-get install -y "${all_pkgs[@]}" ;;
-        dnf)     sudo dnf install -y "${all_pkgs[@]}" ;;
-        yum)     sudo yum install -y "${all_pkgs[@]}" ;;
+        apt-get)
+            sudo apt-get update -y
+            sudo apt-get install -y "${all_pkgs[@]}"
+            ;;
+        dnf|yum)
+            # RHEL/CentOS 系：先确保 EPEL（htop/screen 等在 EPEL 仓库）
+            if ! rpm -q epel-release >/dev/null 2>&1; then
+                info "安装 EPEL 仓库（提供 htop/screen 等）..."
+                sudo "$PKG_MANAGER" install -y epel-release 2>/dev/null || warn "EPEL 安装失败，部分包可能不可用"
+                sudo "$PKG_MANAGER" makecache 2>/dev/null || true
+            fi
+            # 逐包安装并容错：个别包在当前仓库/EPEL 仍缺失时，记录但不中断
+            local missing_pkgs=()
+            for p in "${all_pkgs[@]}"; do
+                if ! sudo "$PKG_MANAGER" install -y "$p" >/dev/null 2>&1; then
+                    missing_pkgs+=("$p")
+                    warn "包 '$p' 安装失败（可能需要额外仓库），已跳过"
+                fi
+            done
+            if [[ ${#missing_pkgs[@]} -gt 0 ]]; then
+                warn "以下包未能安装：${missing_pkgs[*]}"
+            fi
+            ;;
         *)       error "不支持的包管理器"; exit 1 ;;
     esac
     success "装机必备工具安装完成"

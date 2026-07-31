@@ -104,11 +104,12 @@ check_commands() {
     fi
 }
 
-# 要求以非 root 身份运行、且具备 sudo 权限（与现有模块逻辑一致）
+# 确保有足够的权限执行特权操作。
+# - 已是 root：直接放行（适用于 CI 容器、直接 root 登录的服务器）
+# - 普通用户：确保 sudo 可用（交互式场景）
 require_sudo() {
     if [[ $EUID -eq 0 ]]; then
-        error "请不要使用 root 用户运行本脚本（需要普通用户 + sudo）。"
-        exit 1
+        return 0
     fi
     if ! sudo -n true 2>/dev/null; then
         info "此操作需要 sudo 权限，请输入密码："
