@@ -98,15 +98,9 @@ uninstall_tailscale() {
         require_sudo
         sudo systemctl disable --now tailscaled 2>/dev/null || true
         detect_pkg_manager
-        case "$PKG_MANAGER" in
-            apt-get) sudo apt-get remove --purge -y tailscale ;;
-            dnf)     sudo dnf remove -y tailscale ;;
-            yum)     sudo yum remove -y tailscale ;;
-            *)
-                error "无法识别包管理器，请手动卸载 tailscale"
-                exit 1
-                ;;
-        esac
+        if ! pkg_remove tailscale; then
+            warn "自动卸载失败（$PKG_MANAGER），请手动卸载 tailscale"
+        fi
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         brew services stop tailscale 2>/dev/null || true
         brew uninstall tailscale
