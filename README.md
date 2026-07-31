@@ -12,9 +12,10 @@
 - **跨平台支持**：同时支持 macOS 和 Linux
 - **多架构兼容**：支持 x86_64、ARM64、ARMv7 等架构
 - **智能检测**：自动检测操作系统、CPU 架构与包管理器
-- **统一入口**：`install.sh` 交互式菜单，也支持非交互命令行
+- **统一入口**：`install.sh` 交互式菜单（25+ 模块），也支持非交互命令行
 - **一键卸载**：`uninstall.sh` 逐项或全量卸载
 - **公共函数库**：`lib/common.sh` 统一打印、检测、服务管理
+- **自动更新检查**：运行时自动检测远端新版本并提示（详见 [自动更新检查](#-自动更新检查)）
 - **错误处理**：完善的依赖检查与回滚提示
 
 ## 📦 支持的服务
@@ -27,9 +28,25 @@
 | [Tailscale](tailscale) | 免公网 IP 的组网 VPN | ✅ | ✅ | - |
 | [Docker](docker) | 容器引擎 (Engine / Desktop) | ✅ | ✅* | - |
 | [Fail2ban](fail2ban) | SSH 暴力破解防护 | ✅ | ❌ | - |
+| [OpenList](openlist) | 文件列表 / 网盘聚合（原 Alist） | ✅ | ✅ | 5244 |
+| [Uptime Kuma](uptime-kuma) | 服务可用性监控面板 (Docker) | ✅ | ✅ | 3001 |
+| [Cockpit](cockpit) | Linux Web 管理面板 | ✅ | ❌ | 9090 |
+| [装机必备工具包](essential-pkgs) | curl/wget/git/vim/htop/tmux/jq 等一键装齐 | ✅ | ✅ | - |
+| [系统初始化配置](sys-setup) | 换源/时区/系统优化/SSH 加固/自动安全更新 | ✅ | ✅ | - |
+| [Swap 虚拟内存](swap) | 创建/调整 swap（小内存 VPS 必备） | ✅ | ❌ | - |
+| [BBR 网络加速](bbr) | 开启 TCP BBR 拥塞控制 | ✅ | ❌ | - |
+| [nvm](nvm) | Node.js 多版本管理 | ✅ | ✅ | - |
 | [Zsh & Oh My Zsh](zsh_setup) | Shell 环境与插件配置 | ✅ | ✅ | - |
+| [minikube](minikube) | 本地 Kubernetes 开发环境 (kubectl + minikube) | ✅ | ✅ | - |
+| [终端 TUI 工具](dev-tui) | lazydocker + lazygit | ✅ | ✅ | - |
+| [OpenCode](opencode) | 终端 AI 编程助手 (sst/opencode) | ✅ | ✅ | - |
+| [Ollama](ollama) | 本地大模型运行时（跑 Llama/Qwen/DeepSeek） | ✅ | ✅ | 11434 |
 | [自动关机管理](shutdown_timer) | 临时或每日定时关机 | ✅ | ✅ | - |
 | [进程管理工具](process_manager_tool) | 智能搜索和管理系统进程 | ✅ | ✅ | - |
+| [Deskflow](deskflow) | 键鼠共享 (Flatpak) | ✅ | ❌ | - |
+| [safe-rm 回收站](safe-rm) | 安全删除替代 rm，防误删灾难 | ✅ | ✅ | - |
+| [Clash (mihomo)](clash) | 代理核心 + 快速配置 + TUN 透明代理 | ✅ | ✅ | 7890 |
+| [多网卡策略路由](multi-net) | 指定服务/用户/端口走指定网卡 | ✅ | ❌ | - |
 
 \* macOS 上引导安装 Docker Desktop。
 
@@ -38,7 +55,7 @@
 ### 交互式安装（推荐）
 
 ```bash
-git clone <repository-url>
+git clone git@github.com:zy84338719/unix_script.git
 cd unix_script
 chmod +x install.sh
 ./install.sh
@@ -57,7 +74,7 @@ chmod +x install.sh
 ./install.sh update         # 安全检查 + 确认后 git pull 更新
 ```
 
-可用模块名：`node_exporter | ddns-go | wireguard | tailscale | docker | fail2ban | zsh | shutdown_timer | process_manager`
+可用模块名：`node_exporter | ddns-go | wireguard | tailscale | docker | fail2ban | openlist | uptime-kuma | cockpit | essential-pkgs | sys-setup | swap | bbr | nvm | zsh | minikube | dev-tui | opencode | ollama | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net`
 
 ### 单独安装某模块
 
@@ -101,13 +118,15 @@ chmod +x install.sh
 
 ## 📋 支持的平台与架构
 
-| 操作系统 | 架构 | Node Exporter | DDNS-GO | WireGuard | Tailscale | Docker | Fail2ban |
-|---------|------|:---:|:---:|:---:|:---:|:---:|:---:|
-| Linux | x86_64 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Linux | ARM64 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Linux | ARMv7 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| macOS | Intel (x86_64) | ✅ | ✅ | ✅ | ✅ | ✅* | ❌ |
-| macOS | Apple Silicon (ARM64) | ✅ | ✅ | ✅ | ✅ | ✅* | ❌ |
+| 操作系统 | 架构 | 服务安装 | 装机配置 | 开发环境 | AI 工具 |
+|---------|------|:---:|:---:|:---:|:---:|
+| Linux | x86_64 | ✅ | ✅ | ✅ | ✅ |
+| Linux | ARM64 | ✅ | ✅ | ✅ | ✅ |
+| Linux | ARMv7 | ✅ | ✅ | ✅ | ✅ |
+| macOS | Intel (x86_64) | ✅* | ✅ | ✅ | ✅ |
+| macOS | Apple Silicon (ARM64) | ✅* | ✅ | ✅ | ✅ |
+
+\* 部分 Linux 专属服务（Fail2ban、Cockpit、Swap、BBR、Deskflow、多网卡策略路由）在 macOS 不可用，详见上方 [支持的服务](#-支持的服务) 表。
 
 ## 🔧 安装后配置
 
@@ -154,6 +173,21 @@ sudo fail2ban-client status sshd         # sshd jail 详情
 sudo tail -f /var/log/fail2ban.log
 ```
 默认策略：封禁 1 小时、10 分钟内失败 5 次即封；本机与内网不封。调整请编辑 `/etc/fail2ban/jail.local`。
+
+### OpenList（原 Alist）
+Web 界面 `http://your-ip:5244`，详见 [openlist/README.md](openlist/README.md)。
+
+### Uptime Kuma
+基于 Docker 部署，Web 界面 `http://your-ip:3001`，详见 [uptime-kuma/README.md](uptime-kuma/README.md)。
+
+### Cockpit（仅 Linux）
+Web 管理面板 `http://your-ip:9090`，详见 [cockpit/README.md](cockpit/README.md)。
+
+### Ollama
+本地大模型运行时，API 端口 11434。安装后拉取模型：`ollama run llama3`，详见 [ollama/README.md](ollama/README.md)。
+
+### Clash (mihomo)
+代理端口 7890（HTTP/SOCKS），控制面板 9090。详见 [clash/README.md](clash/README.md)。
 
 ### Zsh & Oh My Zsh
 自动安装 Zsh、Oh My Zsh 及 `zsh-autosuggestions`、`zsh-syntax-highlighting` 插件，并提示是否设为默认 Shell。安装后请**重启终端**。
@@ -244,5 +278,3 @@ CI 驱动脚本也可本地复现：
 - [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) / [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
 
 ---
-
-**注意**：这些脚本会修改系统配置并安装服务，请在生产环境使用前充分测试。
