@@ -17,6 +17,12 @@
 
 ## [Unreleased]
 
+### 新增
+- **`dev-mirror` 模块**：开发换源加速统一入口，覆盖 npm（+ yarn/pnpm）、Go（GOPROXY）、Rust（cargo）、Python（pip）四大生态；每生态内置多个国内镜像（默认推荐：淘宝/goproxy.cn/清华/清华），支持交互选择、`install all default` 一键批量、自定义 URL；写用户级配置无需 sudo；接入主菜单（选项 15）、状态页、卸载菜单、非交互 CLI。
+
+### 变更
+- **合并并删除 `npm-mirror` 模块**：其能力已并入 `dev-mirror` 的 npm 分支。`install.sh npm-mirror` 别名保留以向后兼容（路由到 dev-mirror）。
+
 ## [1.3.0] - 2026-07-31
 
 ### 新增
