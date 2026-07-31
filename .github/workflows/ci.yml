@@ -81,6 +81,51 @@ jobs:
           if-no-files-found: error
 
   # ============================================================
+  # Job 2b: 容器静态检查 —— 多 Linux 发行版（补充 VM 矩阵未覆盖的 shellcheck 版本）
+  #
+  # 设计说明：
+  #   - GitHub Actions 无原生 CentOS/RHEL runner，只能在 ubuntu runner 里用 container: 跑。
+  #   - 不同发行版的 shellcheck 版本不同（ubuntu≈0.8.0、macOS≈0.11.0、CentOS EPEL≈0.10.0），
+  #     版本差异会导致规则不一致（曾因 0.8.0 报 SC2002/SC2086 而 0.11.0 不报）。
+  #     本 job 在 RHEL 系容器内复用同一 tests/ci_run.sh --phase static，补全覆盖。
+  # ============================================================
+  static-container:
+    name: 容器静态检查 / ${{ matrix.distro }}
+    runs-on: ubuntu-latest
+    container: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - distro: centos-stream9
+            image: quay.io/centos/centos:stream9
+          - distro: almalinux-9
+            image: almalinux:9
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 shellcheck（EPEL）与 bash
+        shell: sh
+        run: |
+          # RHEL 系：shellcheck 在 EPEL 仓库，先装 epel-release 再装 shellcheck
+          dnf install -y -q epel-release
+          dnf install -y -q shellcheck bash
+
+      - name: 运行静态检查并生成报告
+        shell: bash
+        run: |
+          chmod +x tests/ci_run.sh
+          ./tests/ci_run.sh --phase static --out static-report.md
+
+      - name: 上传报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-report-container-${{ matrix.distro }}
+          path: static-report.md
+          if-no-files-found: error
+
+  # ============================================================
   # Job 3: 实装测试 —— 多 Linux 发行版
   #
   # 设计说明（CI 可行性约束）：
@@ -205,7 +250,7 @@ jobs:
   report:
     name: 汇总报告
     runs-on: ubuntu-latest
-    needs: [static, routing, install-container, install-vm]
+    needs: [static, static-container, routing, install-container, install-vm]
     if: always()
     steps:
       - uses: actions/checkout@v4
@@ -232,6 +277,7 @@ jobs:
             echo "| 阶段 | 状态 |"
             echo "|------|------|"
             echo "| 静态检查 (static) | ${{ needs.static.result }} |"
+            echo "| 容器静态检查 (static-container) | ${{ needs.static-container.result }} |"
             echo "| 路由测试 (routing) | ${{ needs.routing.result }} |"
             echo "| 容器包解析 (install-container) | ${{ needs.install-container.result }} |"
             echo "| VM 实装 (install-vm) | ${{ needs.install-vm.result }} |"
@@ -271,10 +317,10 @@ jobs:
         if: always()
         shell: bash
         run: |
-          # 质量门禁：静态检查 + 路由测试 + 容器包解析 必须全部通过。
+          # 质量门禁：静态检查 (VM + 容器) + 路由测试 + 容器包解析 必须全部通过。
           # 实装测试 (install-vm) 依赖外网下载与真实 systemd，属“尽力而为”，
           # 其失败会记录在报告里但不阻塞整体（避免环境性误报让 CI 永远飘红）。
-          for r in "${{ needs.static.result }}" "${{ needs.routing.result }}" "${{ needs.install-container.result }}"; do
+          for r in "${{ needs.static.result }}" "${{ needs.static-container.result }}" "${{ needs.routing.result }}" "${{ needs.install-container.result }}"; do
             if [ "$r" != "success" ] && [ "$r" != "skipped" ]; then
               echo "核心阶段结果: $r —— 整体判定为失败"
               exit 1
