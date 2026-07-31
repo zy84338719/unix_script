@@ -838,6 +838,8 @@ show_usage() {
   --list            列出可用模块名后退出
   check-update      检查远端是否有新版本（不修改本地）
   update            安全检查 + 确认后执行 git pull 更新本地仓库
+  cli               安装全局命令 uxs 到 ~/.tools/bin（之后可在任意目录 uxs <子命令>）
+  uninstall-cli     卸载全局命令 uxs
 
 模块名（用于非交互安装）:
   node_exporter | ddns-go | wireguard | tailscale | docker |
@@ -852,6 +854,7 @@ show_usage() {
   $0 tailscale             # 直接安装 tailscale
   $0 check-update          # 检查是否有新版本
   $0 update                # 更新到最新版本（需确认）
+  $0 cli                   # 安装全局命令 uxs（之后可 uxs docker-image 等）
 EOF
 }
 
@@ -866,6 +869,152 @@ should_auto_check_update() {
     [[ "${CI:-false}" == "true" ]] && return 1
     [[ -t 1 ]] || return 1   # 非 TTY（管道/重定向）不自动检查
     return 0
+}
+
+# ---------------- 安装为全局命令 (uxs) ----------------
+# 将本仓库的 install.sh 包装成全局命令 `uxs`，安装到 ~/.tools/bin/ 并配置 PATH。
+# 之后用户可在任意目录直接：uxs docker-image / uxs --status / uxs check-update
+UXS_CMD_NAME="uxs"
+UXS_TOOLS_BIN="$HOME/.tools/bin"
+
+# 检测当前用户的 shell 及对应 rc 文件，设置 UXS_SHELL_RC / UXS_USER_SHELL。
+detect_shell_rc() {
+    UXS_USER_SHELL="$(basename "${SHELL:-/bin/sh}")"
+    case "$UXS_USER_SHELL" in
+        bash)
+            if [[ "$OS_TYPE" == "darwin" ]]; then
+                UXS_SHELL_RC="$HOME/.bash_profile"
+            else
+                UXS_SHELL_RC="$HOME/.bashrc"
+            fi
+            ;;
+        zsh)  UXS_SHELL_RC="$HOME/.zshrc" ;;
+        fish) UXS_SHELL_RC="$HOME/.config/fish/config.fish" ;;
+        *)    UXS_SHELL_RC="$HOME/.profile" ;;
+    esac
+}
+
+# 安装 uxs 命令：创建 wrapper + symlink + 配置 PATH
+install_cli() {
+    detect_os
+    detect_shell_rc
+
+    header "🔧 安装全局命令：uxs"
+    echo "───────────────────────────────"
+
+    # 1) 创建 ~/.tools/bin 目录
+    if [[ ! -d "$UXS_TOOLS_BIN" ]]; then
+        info "创建目录：$UXS_TOOLS_BIN"
+        mkdir -p "$UXS_TOOLS_BIN" || { error "无法创建 $UXS_TOOLS_BIN"; return 1; }
+    fi
+
+    # 2) 创建 wrapper 脚本（指向本仓库 install.sh，透传所有参数）
+    #    用 wrapper 而非直接 symlink，是为了固定 SCRIPT_DIR，使相对路径模块调用正确。
+    local repo_install="$SCRIPT_DIR/install.sh"
+    if [[ ! -f "$repo_install" ]]; then
+        error "未找到 install.sh：$repo_install"
+        return 1
+    fi
+    local wrapper="$UXS_TOOLS_BIN/$UXS_CMD_NAME"
+    cat > "$wrapper" <<EOF
+#!/usr/bin/env bash
+# 由 unix_script install.sh cli 生成 —— 全局命令 uxs
+# 透传所有参数给仓库的 install.sh
+exec bash "$repo_install" "\$@"
+EOF
+    chmod +x "$wrapper"
+    success "已创建命令：$wrapper → $repo_install"
+
+    # 3) 配置 PATH（若已包含则跳过）
+    if echo "$PATH" | grep -q "$UXS_TOOLS_BIN"; then
+        info "PATH 中已包含 $UXS_TOOLS_BIN"
+    else
+        info "配置 PATH（写入 $UXS_USER_SHELL 的 $UXS_SHELL_RC）..."
+        if ! grep -q "/.tools/bin" "$UXS_SHELL_RC" 2>/dev/null; then
+            # 备份 rc 文件（若存在）
+            if [[ -f "$UXS_SHELL_RC" ]]; then
+                cp "$UXS_SHELL_RC" "${UXS_SHELL_RC}.bak.$(date +%Y%m%d_%H%M%S)" 2>/dev/null || true
+            fi
+            if [[ "$UXS_USER_SHELL" == "fish" ]]; then
+                {
+                    echo ""
+                    echo "# 添加 ~/.tools/bin 到 PATH（由 unix_script cli 添加）"
+                    echo "set -gx PATH \$HOME/.tools/bin \$PATH"
+                } >> "$UXS_SHELL_RC"
+            else
+                {
+                    echo ""
+                    echo "# 添加 ~/.tools/bin 到 PATH（由 unix_script cli 添加）"
+                    # shellcheck disable=SC2016  # 故意用单引号：字面写入 rc，运行时再展开
+                    echo 'export PATH="$HOME/.tools/bin:$PATH"'
+                } >> "$UXS_SHELL_RC"
+            fi
+            success "已更新 $UXS_SHELL_RC"
+        else
+            info "$UXS_SHELL_RC 已含 ~/.tools/bin 配置（跳过）"
+        fi
+    fi
+
+    echo
+    header "✅ 安装完成"
+    echo "  命令：uxs"
+    echo "  位置：$wrapper"
+    echo
+    if echo "$PATH" | grep -q "$UXS_TOOLS_BIN"; then
+        info "当前 shell 已可直接使用，试运行：uxs --version"
+    else
+        warn "PATH 尚未在当前 shell 生效，请执行以下任一操作："
+        echo "    source $UXS_SHELL_RC      # 当前终端立即生效"
+        echo "    # 或重新打开终端"
+    fi
+    echo
+    info "用法示例：uxs docker-image  |  uxs --status  |  uxs check-update  |  uxs update"
+}
+
+# 卸载 uxs 命令：删除 wrapper，并清理 PATH 配置（可选）
+uninstall_cli() {
+    detect_os
+    detect_shell_rc
+
+    header "🗑️  卸载全局命令：uxs"
+    echo "───────────────────────────────"
+
+    local wrapper="$UXS_TOOLS_BIN/$UXS_CMD_NAME"
+    local removed=false
+
+    # 1) 删除 wrapper
+    if [[ -f "$wrapper" ]]; then
+        rm -f "$wrapper" && success "已删除：$wrapper" && removed=true
+    else
+        info "未找到 $wrapper（可能未安装）"
+    fi
+
+    # 2) 询问是否清理 PATH 配置
+    if [[ -f "$UXS_SHELL_RC" ]] && grep -q "/.tools/bin" "$UXS_SHELL_RC" 2>/dev/null; then
+        echo
+        warn "$UXS_SHELL_RC 中含 ~/.tools/bin 的 PATH 配置。"
+        warn "（注意：process_manager 等其它工具可能也在用该目录，清理需谨慎）"
+        if yes_no "是否从 $UXS_SHELL_RC 移除 ~/.tools/bin 的 PATH 配置？"; then
+            cp "$UXS_SHELL_RC" "${UXS_SHELL_RC}.bak.$(date +%Y%m%d_%H%M%S)" 2>/dev/null || true
+            # 删除本工具写入的 PATH 行（含标识注释）
+            if [[ "$UXS_USER_SHELL" == "fish" ]]; then
+                sed -i.tmp '/# 添加 .*\.tools\/bin 到 PATH（由 unix_script cli 添加）/,/^$/d' "$UXS_SHELL_RC" 2>/dev/null || true
+            else
+                sed -i.tmp '/# 添加 .*\.tools\/bin 到 PATH（由 unix_script cli 添加）/,/^$/d' "$UXS_SHELL_RC" 2>/dev/null || true
+            fi
+            rm -f "${UXS_SHELL_RC}.tmp" 2>/dev/null || true
+            success "已从 $UXS_SHELL_RC 移除本工具添加的 PATH 配置"
+        else
+            info "保留 PATH 配置（~/.tools/bin 仍可用）"
+        fi
+    fi
+
+    echo
+    if $removed; then
+        success "uxs 命令已卸载"
+    else
+        warn "无需清理的内容"
+    fi
 }
 
 # ---------------- 主函数 ----------------
@@ -924,6 +1073,14 @@ main() {
             ;;
         update)
             do_self_update
+            exit $?
+            ;;
+        cli|install-cli)
+            install_cli
+            exit $?
+            ;;
+        uninstall-cli|remove-cli)
+            uninstall_cli
             exit $?
             ;;
         -*) error "未知选项: $1"; show_usage; exit 1 ;;

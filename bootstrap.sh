@@ -124,9 +124,10 @@ show_alias_hint() {
     echo "    ./install.sh                # 交互式菜单"
     echo "    ./install.sh update         # 更新到最新版本（需确认）"
     echo
-    b_info "可选：创建全局命令别名，免去每次 curl："
-    echo "    mkdir -p ~/.local/bin && ln -sf \"$INSTALL_DIR/install.sh\" ~/.local/bin/unix_script"
-    echo "    # 确保 ~/.local/bin 在 PATH 中，之后即可：unix_script --status"
+    b_info "可选：安装为全局命令 uxs，免去每次进目录："
+    echo "    \"$INSTALL_DIR/install.sh\" cli        # 安装到 ~/.tools/bin（自动配置 PATH）"
+    echo "    # source ~/.zshrc 后即可在任意目录：uxs --status / uxs docker-image"
+    echo "    # 卸载：\"$INSTALL_DIR/install.sh\" uninstall-cli"
 }
 
 # ---------------- 主函数 ----------------
