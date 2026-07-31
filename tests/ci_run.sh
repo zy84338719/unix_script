@@ -145,8 +145,9 @@ phase_routing() {
     # 2b. 版本更新检查子命令
     # check-update 即使无网络/无 release 也必须正常退出（容错）
     assert "install.sh check-update (exit 0)" bash "$REPO_DIR/install.sh" check-update
-    # update 在 CI（非交互、detached 或受控）不应破坏仓库：用 n 取消 / 或被安全检查拦截
-    assert "install.sh update (不破坏仓库)" bash -c "echo n | \"$REPO_DIR/install.sh\" update >/dev/null 2>&1; git -C \"$REPO_DIR\" diff --quiet HEAD"
+    # update 不应真正执行 git pull（破坏仓库）：记录运行前后 HEAD，应相同。
+    # 用 </dev/null 让所有确认 read 立即返回非 y（取消），不依赖工作区是否 clean。
+    assert "install.sh update (不改变 HEAD)" bash -c "before=\$(git -C \"$REPO_DIR\" rev-parse HEAD); \"$REPO_DIR/install.sh\" update </dev/null >/dev/null 2>&1; after=\$(git -C \"$REPO_DIR\" rev-parse HEAD); [ \"\$before\" = \"\$after\" ]"
     # UNIX_SCRIPT_NO_UPDATE_CHECK=1 关闭自动检查，且 --help 不受影响
     assert "关闭自动检查开关后 --help 正常" bash -c "UNIX_SCRIPT_NO_UPDATE_CHECK=1 \"$REPO_DIR/install.sh\" --help >/dev/null"
     # common.sh 新函数存在
@@ -164,7 +165,7 @@ phase_routing() {
     # 4. 新式模块（有子命令分发）：验证 status 子命令退出码 0
     #    注意：node_exporter/ddns-go/zsh_setup 是老式脚本，直接执行=安装，
     #    此处绝不调用它们（避免触发真实安装），仅 static 阶段覆盖其语法。
-    local new_mods=(tailscale docker fail2ban minikube deskflow openlist uptime-kuma cockpit dev-tui essential-pkgs swap bbr nvm safe-rm clash multi-net opencode ollama)
+    local new_mods=(tailscale docker fail2ban minikube deskflow openlist uptime-kuma cockpit dev-tui essential-pkgs swap bbr nvm safe-rm clash multi-net opencode ollama npm-mirror)
     local m
     for m in "${new_mods[@]}"; do
         local script="$REPO_DIR/$m/install.sh"
@@ -193,6 +194,14 @@ phase_routing() {
 
     # 8. process_manager_tool 脚本就绪
     assert "pm_wrapper: --version (exit 0)" bash "$REPO_DIR/process_manager_tool/pm_wrapper.sh" --version
+
+    # 9. npm-mirror 模块集成断言
+    #    主菜单含 npm-mirror 项、install.sh 含 manage_npm_mirror 与 status_npm_mirror_module 函数
+    assert "install.sh 主菜单含 npm-mirror 项" bash -c "grep -q 'npm-mirror' \"$REPO_DIR/install.sh\""
+    assert "install.sh 含 manage_npm_mirror 函数" bash -c "grep -q 'manage_npm_mirror()' \"$REPO_DIR/install.sh\""
+    assert "install.sh 含 status_npm_mirror_module 函数" bash -c "grep -q 'status_npm_mirror_module()' \"$REPO_DIR/install.sh\""
+    # npm-mirror 子命令路由：非法源标识应报错退出 1（验证源解析路径）
+    assert "npm-mirror: 非法源标识报错 (exit 1)" bash -c "! \"$REPO_DIR/npm-mirror/install.sh\" install __bad_source__ >/dev/null 2>&1"
 
     report_footer
     [[ $FAIL_COUNT -eq 0 ]]
