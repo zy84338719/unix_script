@@ -53,6 +53,8 @@ chmod +x install.sh
 ./install.sh --list         # 列出可用模块名
 ./install.sh --help         # 查看帮助
 ./install.sh --version      # 查看版本
+./install.sh check-update   # 检查远端是否有新版本
+./install.sh update         # 安全检查 + 确认后 git pull 更新
 ```
 
 可用模块名：`node_exporter | ddns-go | wireguard | tailscale | docker | fail2ban | zsh | shutdown_timer | process_manager`
@@ -68,6 +70,17 @@ chmod +x install.sh
 ```
 
 通用子命令：`install | uninstall | status | help`
+
+### 🔄 自动更新检查
+
+运行 `install.sh` 时会自动（仅提示，不自动改动）检查 GitHub 是否发布了新版本，有更新会在顶部提示。也可手动检查或更新：
+
+```bash
+./install.sh check-update   # 检查是否有新版本
+./install.sh update         # 安全检查 + 确认后 git pull 更新（需 git clone 来源）
+```
+
+> 环境变量 `UNIX_SCRIPT_NO_UPDATE_CHECK=1` 可关闭启动时的自动检查（CI / 离线场景适用）。
 
 ## 🗑️ 卸载
 
