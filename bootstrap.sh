@@ -53,15 +53,23 @@ check_deps() {
 # ---------------- 克隆或更新仓库 ----------------
 clone_or_update() {
     if [[ -d "$INSTALL_DIR/.git" ]]; then
-        # 已存在：尝试更新
+        # 已存在：尝试更新（幂等——第二次运行即更新）
         b_info "发现已有安装：$INSTALL_DIR"
-        b_info "拉取最新更新..."
+        local old_ver
+        old_ver=$(cat "$INSTALL_DIR/VERSION" 2>/dev/null || echo "未知")
+        b_info "当前版本：$old_ver，拉取最新更新..."
         if git -C "$INSTALL_DIR" pull --ff-only origin 2>/dev/null; then
-            b_success "已更新到最新版本"
+            local new_ver
+            new_ver=$(cat "$INSTALL_DIR/VERSION" 2>/dev/null || echo "未知")
+            if [[ "$old_ver" == "$new_ver" ]]; then
+                b_success "已是最新版本（$new_ver）"
+            else
+                b_success "已更新：$old_ver → $new_ver"
+            fi
         else
             b_warn "自动更新失败（可能有本地改动或网络问题）。"
-            b_warn "可手动进入目录处理：cd \"$INSTALL_DIR\" && git pull"
-            b_warn "继续使用当前本地版本..."
+            b_warn "可手动处理：cd \"$INSTALL_DIR\" && git pull"
+            b_warn "继续使用当前本地版本（$old_ver）..."
         fi
     elif [[ -e "$INSTALL_DIR" ]]; then
         # 目录存在但不是 git 仓库
@@ -97,14 +105,28 @@ run_install() {
     bash "$install_script" "$@"
 }
 
-# ---------------- 提示别名 ----------------
+# ---------------- 日常使用提示 ----------------
 show_alias_hint() {
-    local bin_link="$HOME/.local/bin/unix_script"
     echo
-    b_info "提示：为方便日后使用，可创建一个全局命令别名："
-    echo "    mkdir -p ~/.local/bin && ln -sf \"$INSTALL_DIR/install.sh\" \"$bin_link\""
-    echo "    # 确保 ~/.local/bin 在你的 PATH 中（多数发行版默认已包含）"
-    echo "    # 之后即可直接：unix_script docker   或   unix_script --status"
+    b_header "💡 日常使用"
+    echo "───────────────────────────────"
+    b_info "无论首次安装还是日后更新，都用同一条命令（幂等，自动检测并更新）："
+    echo "    curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstrap.sh | bash"
+    echo
+    b_info "透传参数（非交互，适合脚本/CI）："
+    echo "    curl -fsSL .../bootstrap.sh | bash -s -- --status      # 查看安装状态"
+    echo "    curl -fsSL .../bootstrap.sh | bash -s -- --list        # 列出可用模块"
+    echo "    curl -fsSL .../bootstrap.sh | bash -s -- docker        # 直接安装某模块"
+    echo "    curl -fsSL .../bootstrap.sh | bash -s -- dev-mirror    # 开发换源（npm/Go/Rust/pip）"
+    echo
+    b_info "已克隆到本地后，也可直接在仓库目录运行："
+    echo "    cd \"$INSTALL_DIR\""
+    echo "    ./install.sh                # 交互式菜单"
+    echo "    ./install.sh update         # 更新到最新版本（需确认）"
+    echo
+    b_info "可选：创建全局命令别名，免去每次 curl："
+    echo "    mkdir -p ~/.local/bin && ln -sf \"$INSTALL_DIR/install.sh\" ~/.local/bin/unix_script"
+    echo "    # 确保 ~/.local/bin 在 PATH 中，之后即可：unix_script --status"
 }
 
 # ---------------- 主函数 ----------------

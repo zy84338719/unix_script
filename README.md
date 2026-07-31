@@ -70,6 +70,35 @@ curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstr
 
 > 引导脚本会将仓库克隆到 `~/.local/share/unix_script`；再次运行会自动 `git pull` 更新。详见 [bootstrap.sh](bootstrap.sh)。
 
+### 📌 日常使用（幂等：一条命令通吃首次与更新）
+
+**无论首次安装还是日后更新，都用同一条 `curl|bash` 命令**——它会自动检测：未安装则克隆，已安装则 `git pull` 更新到最新版。
+
+```bash
+# 首次安装 / 日后更新（同一条命令）
+curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstrap.sh | bash
+```
+
+**常用非交互参数**（通过 `bash -s --` 透传，适合脚本/CI，无需进入菜单）：
+
+```bash
+curl -fsSL .../bootstrap.sh | bash -s -- --status      # 查看所有模块安装状态
+curl -fsSL .../bootstrap.sh | bash -s -- --list        # 列出可用模块名
+curl -fsSL .../bootstrap.sh | bash -s -- docker        # 直接安装指定模块
+curl -fsSL .../bootstrap.sh | bash -s -- dev-mirror    # 开发换源（npm/Go/Rust/pip）
+curl -fsSL .../bootstrap.sh | bash -s -- update        # 更新到最新版本（需确认）
+```
+
+> ⚠️ **注意**：`curl|bash` 管道模式下**无法进入交互式菜单**（标准输入被管道占用）。若要使用交互菜单，请先 [手动 clone](#交互式安装手动-clone) 后在终端直接运行 `./install.sh`。
+
+**已克隆到本地后**，也可直接在仓库目录运行（支持完整交互菜单）：
+
+```bash
+cd ~/.local/share/unix_script   # bootstrap 的默认安装目录
+./install.sh                    # 交互式主菜单
+./install.sh update             # 更新到最新版本（需确认）
+```
+
 ### 交互式安装（手动 clone）
 
 ```bash
