@@ -51,11 +51,30 @@ install_linux() {
             exit 1
         fi
     else
-        info "使用官方一键脚本安装 Docker Engine（get.docker.com）..."
-        if ! curl -fsSL "$DOCKER_INSTALLER" | sudo sh; then
-            error "官方安装脚本执行失败，请检查网络或参考 https://docs.docker.com/engine/install/ 手动安装"
-            exit 1
-        fi
+        detect_pkg_manager
+        # Arch/Alpine/openSUSE：get.docker.com 不支持，改用系统包管理器
+        case "$PKG_MANAGER" in
+            pacman)
+                info "通过 pacman 安装 Docker..."
+                pkg_install docker docker-compose || { error "安装失败"; exit 1; }
+                ;;
+            apk)
+                info "通过 apk 安装 Docker..."
+                pkg_install docker docker-cli-compose || { error "安装失败"; exit 1; }
+                # Alpine 需开启 community 仓库（默认已开）
+                ;;
+            zypper)
+                info "通过 zypper 安装 Docker..."
+                pkg_install docker docker-compose || { error "安装失败"; exit 1; }
+                ;;
+            *)
+                info "使用官方一键脚本安装 Docker Engine（get.docker.com）..."
+                if ! curl -fsSL "$DOCKER_INSTALLER" | sudo sh; then
+                    error "官方安装脚本执行失败，请检查网络或参考 https://docs.docker.com/engine/install/ 手动安装"
+                    exit 1
+                fi
+                ;;
+        esac
     fi
 
     info "启用并启动 docker 服务..."
@@ -135,11 +154,17 @@ uninstall_docker() {
 
     sudo systemctl disable --now docker 2>/dev/null || true
     detect_pkg_manager
+    # 尝试卸载 Docker 相关包（包名因发行版/安装方式不同，逐个尝试）
+    local docker_pkgs=(docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker docker-engine docker.io runc)
     case "$PKG_MANAGER" in
-        apt-get) sudo apt-get remove --purge -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras 2>/dev/null || sudo apt-get remove --purge -y docker docker-engine docker.io containerd runc ;;
-        dnf)     sudo dnf remove -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin ;;
-        yum)     sudo yum remove -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin ;;
-        *)       error "无法识别包管理器，请手动卸载"; exit 1 ;;
+        apt-get|dnf|yum)
+            # apt/dnf/yum 可能装的是 docker-ce 系
+            pkg_remove "${docker_pkgs[@]}" 2>/dev/null || true
+            ;;
+        *)
+            # 其他发行版（zypper/pacman/apk）通常包名为 docker
+            pkg_remove docker containerd 2>/dev/null || true
+            ;;
     esac
 
     if yes_no "是否同时删除所有镜像/容器/卷（/var/lib/docker, /var/lib/containerd）？此操作不可逆！"; then

@@ -39,16 +39,28 @@ do_mirror() {
     detect_pkg_manager
     info "🌐 更换软件源为国内镜像（清华 TUNA）"
 
+    # 识别发行版（优先用 os-release 的 ID，回退到文件检测）
+    local os_id=""
+    os_id=$(. /etc/os-release 2>/dev/null && echo "$ID")
     local distro=""
-    if [[ -f /etc/debian_version ]]; then
-        distro="debian"
-        # 区分 Debian / Ubuntu（看是否有 /etc/lsb-release 且 ID=ubuntu）
-        if [[ -f /etc/os-release ]] && grep -q '^ID=ubuntu' /etc/os-release 2>/dev/null; then
-            distro="ubuntu"
-        fi
-    elif [[ -f /etc/centos-release ]] || [[ -f /etc/redhat-release ]]; then
-        distro="centos"
-    fi
+    case "$os_id" in
+        ubuntu|linuxmint) distro="ubuntu" ;;   # Mint 基于 Ubuntu，apt 源结构相同
+        debian)           distro="debian" ;;
+        centos)           distro="centos" ;;
+        almalinux|rocky|rhel|fedora) distro="rhel" ;;  # AlmaLinux/Rocky/RHEL/Fedora: dnf 系
+        opensuse-leap|opensuse-tumbleweed|sles|suse) distro="opensuse" ;;
+        arch|manjaro|garuda) distro="arch" ;;
+        alpine)           distro="alpine" ;;
+        *)
+            # 回退：按文件特征判断
+            if [[ -f /etc/debian_version ]]; then
+                distro="debian"
+                grep -q '^ID=ubuntu' /etc/os-release 2>/dev/null && distro="ubuntu"
+            elif [[ -f /etc/centos-release ]] || [[ -f /etc/redhat-release ]]; then
+                distro="centos"
+            fi
+            ;;
+    esac
 
     case "$distro" in
         debian|ubuntu)
@@ -79,7 +91,7 @@ EOF
             success "apt 源已更换为清华镜像（$distro/$codename），原文件已备份"
             sudo apt-get update
             ;;
-        centos)
+        centos|rhel)
             # 通过 os-release 区分 CentOS Stream 9 / 其他版本或衍生版
             local os_id os_ver is_stream
             os_id=$(. /etc/os-release 2>/dev/null && echo "$ID")
@@ -136,8 +148,47 @@ EOF
                 warn "已备份原 /etc/yum.repos.d 到 .bak.$ts，请按指引手动替换 baseurl"
             fi
             ;;
+        opensuse)
+            # openSUSE：替换 zypper 仓库 URL 为清华镜像
+            local ts; ts=$(date +%s)
+            sudo cp -a /etc/zypp/repos.d "/etc/zypp/repos.d.bak.$ts" 2>/dev/null || true
+            info "openSUSE 换源：将所有仓库 URL 替换为清华镜像"
+            sudo sed -i.bak \
+                -e 's|download.opensuse.org|mirrors.tuna.tsinghua.edu.cn/opensuse|g' \
+                -e 's|download.tumbleweed|mirrors.tuna.tsinghua.edu.cn/opensuse/tumbleweed|g' \
+                /etc/zypp/repos.d/*.repo 2>/dev/null || true
+            sudo zypper --non-interactive refresh 2>/dev/null || true
+            success "openSUSE 源已替换为清华镜像（原 /etc/zypp/repos.d 已备份）"
+            ;;
+        arch)
+            # Arch：替换 mirrorlist 为清华镜像（启用 Server 行）
+            info "Arch Linux 换源：生成清华镜像 /etc/pacman.d/mirrorlist"
+            local ts; ts=$(date +%s)
+            sudo cp -a /etc/pacman.d/mirrorlist "/etc/pacman.d/mirrorlist.bak.$ts" 2>/dev/null || true
+            sudo tee /etc/pacman.d/mirrorlist >/dev/null <<'EOF'
+# 由 unix_script sys-setup 生成 —— Arch Linux 清华镜像
+Server = https://mirrors.tuna.tsinghua.edu.cn/archlinux/$repo/os/$arch
+EOF
+            sudo pacman -Sy 2>/dev/null || true
+            success "Arch mirrorlist 已替换为清华镜像"
+            ;;
+        alpine)
+            # Alpine：替换 /etc/apk/repositories 为清华镜像
+            local alpine_ver
+            alpine_ver=$(. /etc/os-release 2>/dev/null && echo "$VERSION_ID")
+            [[ -z "$alpine_ver" ]] && alpine_ver="latest-stable"
+            local ts; ts=$(date +%s)
+            sudo cp -a /etc/apk/repositories "/etc/apk/repositories.bak.$ts" 2>/dev/null || true
+            sudo tee /etc/apk/repositories >/dev/null <<EOF
+# 由 unix_script sys-setup 生成 —— Alpine 清华镜像
+https://mirrors.tuna.tsinghua.edu.cn/alpine/v${alpine_ver}/main
+https://mirrors.tuna.tsinghua.edu.cn/alpine/v${alpine_ver}/community
+EOF
+            sudo apk update 2>/dev/null || true
+            success "Alpine 源已替换为清华镜像"
+            ;;
         *)
-            warn "无法识别发行版，跳过换源。当前支持 Debian/Ubuntu/CentOS。"
+            warn "无法识别发行版，跳过换源。当前支持 Debian/Ubuntu/Mint/CentOS/AlmaLinux/Rocky/openSUSE/Arch/Alpine。"
             ;;
     esac
 }
@@ -250,22 +301,33 @@ do_autoupdate() {
     detect_pkg_manager
     case "$PKG_MANAGER" in
         apt-get)
-            sudo apt-get install -y unattended-upgrades apt-listchanges
+            pkg_install unattended-upgrades apt-listchanges
             sudo dpkg-reconfigure -fnoninteractive -plow unattended-upgrades 2>/dev/null || true
-            success "已启用 Debian/Ubuntu 自动安全更新（unattended-upgrades）"
+            success "已启用 Debian/Ubuntu/Mint 自动安全更新（unattended-upgrades）"
             ;;
-        dnf|yum)
-            # dnf-automatic / yum-cron
-            if command_exists dnf; then
-                sudo dnf install -y dnf-automatic
-                sudo sed -i 's/^apply_updates = no/apply_updates = yes/' /etc/dnf/automatic.conf 2>/dev/null || true
-                sudo systemctl enable --now dnf-automatic.timer 2>/dev/null || true
-                success "已启用 dnf-automatic"
-            else
-                sudo yum install -y yum-cron
-                sudo systemctl enable --now yum-cron 2>/dev/null || true
-                success "已启用 yum-cron"
-            fi
+        dnf)
+            pkg_install dnf-automatic
+            sudo sed -i 's/^apply_updates = no/apply_updates = yes/' /etc/dnf/automatic.conf 2>/dev/null || true
+            sudo systemctl enable --now dnf-automatic.timer 2>/dev/null || true
+            success "已启用 dnf-automatic"
+            ;;
+        yum)
+            pkg_install yum-cron
+            sudo systemctl enable --now yum-cron 2>/dev/null || true
+            success "已启用 yum-cron"
+            ;;
+        zypper)
+            # openSUSE 用 zypper-updates-service（或 yast2-online-update）
+            pkg_install yast2-online-update-configuration 2>/dev/null || true
+            info "openSUSE 建议用 yast2 online_update 配置自动补丁；或定期执行 sudo zypper patch"
+            ;;
+        pacman)
+            # Arch 滚动发布，官方推荐定期 pacman -Syu；可装 pacman-contrib 的 checkupdates
+            pkg_install pacman-contrib 2>/dev/null || true
+            info "Arch 为滚动发布，建议定期执行 sudo pacman -Syu 保持更新"
+            ;;
+        apk)
+            info "Alpine 无原生自动安全更新；建议定期执行 sudo apk upgrade"
             ;;
         *)
             warn "无法识别包管理器，跳过自动更新配置"

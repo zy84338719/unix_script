@@ -56,16 +56,8 @@ install_tools() {
 
     info "WireGuard tools not found. Attempting to install..."
     if [[ "$OS" == "Linux" ]]; then
-        if [[ "$PKG_MANAGER" == "apt-get" ]]; then
-            sudo apt-get update -y
-            sudo apt-get install -y wireguard-tools
-        elif [[ "$PKG_MANAGER" == "yum" || "$PKG_MANAGER" == "dnf" ]]; then
-            if ! rpm -q epel-release &>/dev/null; then
-                info "Installing EPEL repository..."
-                sudo "$PKG_MANAGER" install -y epel-release
-            fi
-            sudo "$PKG_MANAGER" install -y wireguard-tools
-        fi
+        ensure_epel
+        pkg_install wireguard-tools || { error "wireguard-tools 安装失败（$PKG_MANAGER）"; exit 1; }
     elif [[ "$OS" == "Darwin" ]]; then
         if ! command_exists brew; then
             error "Homebrew is not installed. Please install it first: https://brew.sh/"
