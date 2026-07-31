@@ -205,7 +205,9 @@ do_clear() {
     ip rule show 2>/dev/null | grep "fwmark" | while read -r line; do
         local m
         m=$(echo "$line" | grep -oE 'fwmark 0x[0-9a-f]+' | awk '{print $2}')
-        [[ -n "$m" ]] && ip rule del fwmark "$m" 2>/dev/null || true
+        if [[ -n "$m" ]]; then
+            ip rule del fwmark "$m" 2>/dev/null || true
+        fi
     done
     success "已清除 multi-net 规则（路由表条目保留，可重新 setup 复用）"
 }
@@ -213,12 +215,11 @@ do_clear() {
 status_multinet() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        echo -e "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return
+        echo -e "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return 0
     fi
-    local rules
-    rules=$(ip rule show 2>/dev/null | grep -c "fwmark")
-    local marks
-    marks=$(iptables -t mangle -L OUTPUT 2>/dev/null | grep -c "$RULE_COMMENT")
+    local rules=0 marks=0
+    rules=$(ip rule show 2>/dev/null | grep -c "fwmark" || true)
+    marks=$(iptables -t mangle -L OUTPUT 2>/dev/null | grep -c "$RULE_COMMENT" || true)
     if [[ ${rules:-0} -gt 0 ]] || [[ ${marks:-0} -gt 0 ]]; then
         echo -e "${GREEN}✅ 已配置${NC}（$rules 条路由规则, $marks 条标记规则）"
     else
