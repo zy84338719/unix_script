@@ -316,7 +316,7 @@ do_self_update() {
     # 1) 必须是 git 仓库
     if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         error "当前目录不是 git 仓库（可能是直接下载的压缩包）。"
-        info "请重新克隆：git clone git@github.com:${UPDATE_REPO}.git"
+        info "请重新克隆：git clone https://github.com/${UPDATE_REPO}.git"
         return 1
     fi
 

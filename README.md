@@ -52,10 +52,27 @@
 
 ## 🚀 快速开始
 
-### 交互式安装（推荐）
+### 一键安装（推荐）
+
+无需手动 clone，终端粘贴一行命令即可（自动下载并启动安装菜单）：
 
 ```bash
-git clone git@github.com:zy84338719/unix_script.git
+curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstrap.sh | bash
+```
+
+也可直接安装指定模块或执行子命令（参数透传给 `install.sh`）：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstrap.sh | bash -s -- docker
+curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstrap.sh | bash -s -- --status
+```
+
+> 引导脚本会将仓库克隆到 `~/.local/share/unix_script`；再次运行会自动 `git pull` 更新。详见 [bootstrap.sh](bootstrap.sh)。
+
+### 交互式安装（手动 clone）
+
+```bash
+git clone https://github.com/zy84338719/unix_script.git
 cd unix_script
 chmod +x install.sh
 ./install.sh
