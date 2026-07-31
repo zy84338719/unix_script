@@ -36,7 +36,7 @@
 | [Swap 虚拟内存](swap) | 创建/调整 swap（小内存 VPS 必备） | ✅ | ❌ | - |
 | [BBR 网络加速](bbr) | 开启 TCP BBR 拥塞控制 | ✅ | ❌ | - |
 | [nvm](nvm) | Node.js 多版本管理 | ✅ | ✅ | - |
-| [npm-mirror](npm-mirror) | npm/yarn/pnpm 换源加速（默认淘宝源） | ✅ | ✅ | - |
+| [dev-mirror](dev-mirror) | 开发换源加速（npm/Go/Rust/Python） | ✅ | ✅ | - |
 | [Zsh & Oh My Zsh](zsh_setup) | Shell 环境与插件配置 | ✅ | ✅ | - |
 | [minikube](minikube) | 本地 Kubernetes 开发环境 (kubectl + minikube) | ✅ | ✅ | - |
 | [终端 TUI 工具](dev-tui) | lazydocker + lazygit | ✅ | ✅ | - |
@@ -92,7 +92,7 @@ chmod +x install.sh
 ./install.sh update         # 安全检查 + 确认后 git pull 更新
 ```
 
-可用模块名：`node_exporter | ddns-go | wireguard | tailscale | docker | fail2ban | openlist | uptime-kuma | cockpit | essential-pkgs | sys-setup | swap | bbr | nvm | npm-mirror | zsh | minikube | dev-tui | opencode | ollama | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net`
+可用模块名：`node_exporter | ddns-go | wireguard | tailscale | docker | fail2ban | openlist | uptime-kuma | cockpit | essential-pkgs | sys-setup | swap | bbr | nvm | dev-mirror | zsh | minikube | dev-tui | opencode | ollama | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net`
 
 ### 单独安装某模块
 

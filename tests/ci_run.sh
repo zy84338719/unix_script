@@ -165,7 +165,7 @@ phase_routing() {
     # 4. 新式模块（有子命令分发）：验证 status 子命令退出码 0
     #    注意：node_exporter/ddns-go/zsh_setup 是老式脚本，直接执行=安装，
     #    此处绝不调用它们（避免触发真实安装），仅 static 阶段覆盖其语法。
-    local new_mods=(tailscale docker fail2ban minikube deskflow openlist uptime-kuma cockpit dev-tui essential-pkgs swap bbr nvm safe-rm clash multi-net opencode ollama npm-mirror)
+    local new_mods=(tailscale docker fail2ban minikube deskflow openlist uptime-kuma cockpit dev-tui essential-pkgs swap bbr nvm safe-rm clash multi-net opencode ollama dev-mirror)
     local m
     for m in "${new_mods[@]}"; do
         local script="$REPO_DIR/$m/install.sh"
@@ -195,13 +195,17 @@ phase_routing() {
     # 8. process_manager_tool 脚本就绪
     assert "pm_wrapper: --version (exit 0)" bash "$REPO_DIR/process_manager_tool/pm_wrapper.sh" --version
 
-    # 9. npm-mirror 模块集成断言
-    #    主菜单含 npm-mirror 项、install.sh 含 manage_npm_mirror 与 status_npm_mirror_module 函数
-    assert "install.sh 主菜单含 npm-mirror 项" bash -c "grep -q 'npm-mirror' \"$REPO_DIR/install.sh\""
-    assert "install.sh 含 manage_npm_mirror 函数" bash -c "grep -q 'manage_npm_mirror()' \"$REPO_DIR/install.sh\""
-    assert "install.sh 含 status_npm_mirror_module 函数" bash -c "grep -q 'status_npm_mirror_module()' \"$REPO_DIR/install.sh\""
-    # npm-mirror 子命令路由：非法源标识应报错退出 1（验证源解析路径）
-    assert "npm-mirror: 非法源标识报错 (exit 1)" bash -c "! \"$REPO_DIR/npm-mirror/install.sh\" install __bad_source__ >/dev/null 2>&1"
+    # 9. dev-mirror 模块集成断言
+    #    主菜单含 dev-mirror 项、install.sh 含 manage_dev_mirror 与 status_dev_mirror_module 函数
+    assert "install.sh 主菜单含 dev-mirror 项" bash -c "grep -q 'dev-mirror' \"$REPO_DIR/install.sh\""
+    assert "install.sh 含 manage_dev_mirror 函数" bash -c "grep -q 'manage_dev_mirror()' \"$REPO_DIR/install.sh\""
+    assert "install.sh 含 status_dev_mirror_module 函数" bash -c "grep -q 'status_dev_mirror_module()' \"$REPO_DIR/install.sh\""
+    # dev-mirror 子命令路由：非法生态应报错退出 1
+    assert "dev-mirror: 非法生态报错 (exit 1)" bash -c "! \"$REPO_DIR/dev-mirror/install.sh\" install __bad_eco__ >/dev/null 2>&1"
+    # dev-mirror: 非法源标识应报错退出 1
+    assert "dev-mirror: 非法源标识报错 (exit 1)" bash -c "! \"$REPO_DIR/dev-mirror/install.sh\" install go __bad_source__ >/dev/null 2>&1"
+    # 旧 npm-mirror 别名仍可路由（向后兼容）
+    assert "install.sh npm-mirror 别名仍可路由" bash -c "grep -q 'npm-mirror|npm_mirror' \"$REPO_DIR/install.sh\""
 
     report_footer
     [[ $FAIL_COUNT -eq 0 ]]
