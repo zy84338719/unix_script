@@ -61,13 +61,17 @@ show_main_menu() {
     echo "  16) minikube         - 本地 Kubernetes 开发环境 (kubectl + minikube)"
     echo "  17) 终端 TUI 工具    - lazydocker + lazygit"
     echo
+    echo "  --- AI 工具 ---"
+    echo "  18) OpenCode         - 终端 AI 编程助手 (sst/opencode)"
+    echo "  19) Ollama           - 本地大模型运行时 (跑 Llama/Qwen/DeepSeek)"
+    echo
     echo "  --- 系统工具 ---"
-    echo "  18) 自动关机管理     - 设置临时或每日定时关机"
-    echo "  19) 进程管理工具     - 智能搜索和管理系统进程"
-    echo "  20) Deskflow         - 键鼠共享 (Flatpak, 仅 Linux 图形环境)"
-    echo "  21) safe-rm 回收站   - 安全删除替代 rm，防误删灾难"
-    echo "  22) Clash (mihomo)   - 代理核心 + 快速配置 + TUN 透明代理"
-    echo "  23) 多网卡策略路由   - 指定服务/用户/端口走指定网卡"
+    echo "  20) 自动关机管理     - 设置临时或每日定时关机"
+    echo "  21) 进程管理工具     - 智能搜索和管理系统进程"
+    echo "  22) Deskflow         - 键鼠共享 (Flatpak, 仅 Linux 图形环境)"
+    echo "  23) safe-rm 回收站   - 安全删除替代 rm，防误删灾难"
+    echo "  24) Clash (mihomo)   - 代理核心 + 快速配置 + TUN 透明代理"
+    echo "  25) 多网卡策略路由   - 指定服务/用户/端口走指定网卡"
     echo
     echo "  --- 管理 ---"
     echo "  s) 查看已安装状态    - 检查服务和环境的安装情况"
@@ -200,6 +204,8 @@ status_nvm_module()       { run_in_dir nvm install.sh status; }
 status_safe_rm_module()   { run_in_dir safe-rm install.sh status; }
 status_clash_module()     { run_in_dir clash install.sh status; }
 status_multinet_module()  { run_in_dir multi-net install.sh status; }
+status_opencode_module()  { run_in_dir opencode install.sh status; }
+status_ollama_module()    { run_in_dir ollama install.sh status; }
 
 # ---------------- 已安装状态总览 ----------------
 show_installed_services() {
@@ -228,6 +234,10 @@ show_installed_services() {
     echo "Zsh 环境:       $(check_zsh_status)"
     echo "minikube:       $(status_minikube_module)"
     echo "终端 TUI 工具:  $(status_dev_tui_module)"
+    echo
+    echo "--- AI 工具 ---"
+    echo "OpenCode:       $(status_opencode_module)"
+    echo "Ollama:         $(status_ollama_module)"
     echo
     echo "--- 系统工具 ---"
     echo "自动关机任务:   $(check_shutdown_timer_status)"
@@ -690,6 +700,8 @@ show_uninstall_menu() {
     echo "  19) 卸载 safe-rm 回收站"
     echo "  20) 卸载 Clash (mihomo)"
     echo "  21) 清除多网卡策略路由规则"
+    echo "  22) 卸载 OpenCode"
+    echo "  23) 卸载 Ollama"
     echo "  0) 返回主菜单"
     echo
     echo "========================================"
@@ -725,6 +737,8 @@ do_uninstall() {
         19) run_in_dir safe-rm install.sh uninstall ;;
         20) run_in_dir clash install.sh uninstall ;;
         21) run_in_dir multi-net install.sh clear ;;
+        22) run_in_dir opencode install.sh uninstall ;;
+        23) run_in_dir ollama install.sh uninstall ;;
         0) return 1 ;;
         *) error "无效选项，请重新输入！"; sleep 1 ;;
     esac
@@ -747,6 +761,8 @@ dispatch_module() {
         uptime-kuma|uptime_kuma)    run_in_dir uptime-kuma install.sh install ;;
         cockpit)                    run_in_dir cockpit install.sh install ;;
         dev-tui|dev_tui|tui)        run_in_dir dev-tui install.sh install ;;
+        opencode)                   run_in_dir opencode install.sh install ;;
+        ollama)                     run_in_dir ollama install.sh install ;;
         essential-pkgs|essential_pkgs|essential) run_in_dir essential-pkgs install.sh install ;;
         sys-setup|sys_setup)        run_in_dir sys-setup install.sh all ;;
         swap)                       run_in_dir swap install.sh install ;;
@@ -783,7 +799,7 @@ show_usage() {
   node_exporter | ddns-go | wireguard | tailscale | docker |
   fail2ban | openlist | uptime-kuma | cockpit |
   essential-pkgs | sys-setup | swap | bbr | nvm |
-  zsh | minikube | dev-tui | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net
+  zsh | minikube | dev-tui | opencode | ollama | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net
 
 示例:
   $0                       # 进入交互式主菜单
@@ -814,7 +830,7 @@ main() {
         -v|--version) echo "unix_script $(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"; exit 0 ;;
         -s|--status)  INTERACTIVE=false; show_installed_services; exit 0 ;;
         --list)
-            echo "node_exporter ddns-go wireguard tailscale docker fail2ban openlist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm zsh minikube dev-tui deskflow shutdown_timer process_manager safe-rm clash multi-net"
+            echo "node_exporter ddns-go wireguard tailscale docker fail2ban openlist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm zsh minikube dev-tui opencode ollama deskflow shutdown_timer process_manager safe-rm clash multi-net"
             exit 0
             ;;
         -*) error "未知选项: $1"; show_usage; exit 1 ;;
@@ -845,17 +861,19 @@ interactive_main() {
             15) run_install_script "$SCRIPT_DIR/zsh_setup/install.sh" "Zsh & Oh My Zsh" ;;
             16) run_in_dir minikube install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             17) run_in_dir dev-tui install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            18) manage_shutdown_timer ;;
-            19) manage_process_tool ;;
-            20) run_in_dir deskflow install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            21) run_in_dir safe-rm install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            22) manage_clash ;;
-            23) manage_multinet ;;
+            18) run_in_dir opencode install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            19) run_in_dir ollama install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            20) manage_shutdown_timer ;;
+            21) manage_process_tool ;;
+            22) run_in_dir deskflow install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            23) run_in_dir safe-rm install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            24) manage_clash ;;
+            25) manage_multinet ;;
             s|S) show_installed_services ;;
             u|U)
                 while true; do
                     show_uninstall_menu
-                    read -r -p "请输入选项 [0-21]: " uninstall_choice
+                    read -r -p "请输入选项 [0-23]: " uninstall_choice
                     if ! do_uninstall "$uninstall_choice"; then
                         break
                     fi
