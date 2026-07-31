@@ -12,7 +12,7 @@
 - **跨平台支持**：同时支持 macOS 和 Linux
 - **多架构兼容**：支持 x86_64、ARM64、ARMv7 等架构
 - **智能检测**：自动检测操作系统、CPU 架构与包管理器
-- **统一入口**：`install.sh` 交互式菜单（25+ 模块），也支持非交互命令行
+- **统一入口**：`install.sh` 交互式菜单（26+ 模块），也支持非交互命令行
 - **一键卸载**：`uninstall.sh` 逐项或全量卸载
 - **公共函数库**：`lib/common.sh` 统一打印、检测、服务管理
 - **自动更新检查**：运行时自动检测远端新版本并提示（详见 [自动更新检查](#-自动更新检查)）
@@ -36,6 +36,7 @@
 | [Swap 虚拟内存](swap) | 创建/调整 swap（小内存 VPS 必备） | ✅ | ❌ | - |
 | [BBR 网络加速](bbr) | 开启 TCP BBR 拥塞控制 | ✅ | ❌ | - |
 | [nvm](nvm) | Node.js 多版本管理 | ✅ | ✅ | - |
+| [npm-mirror](npm-mirror) | npm/yarn/pnpm 换源加速（默认淘宝源） | ✅ | ✅ | - |
 | [Zsh & Oh My Zsh](zsh_setup) | Shell 环境与插件配置 | ✅ | ✅ | - |
 | [minikube](minikube) | 本地 Kubernetes 开发环境 (kubectl + minikube) | ✅ | ✅ | - |
 | [终端 TUI 工具](dev-tui) | lazydocker + lazygit | ✅ | ✅ | - |
@@ -91,7 +92,7 @@ chmod +x install.sh
 ./install.sh update         # 安全检查 + 确认后 git pull 更新
 ```
 
-可用模块名：`node_exporter | ddns-go | wireguard | tailscale | docker | fail2ban | openlist | uptime-kuma | cockpit | essential-pkgs | sys-setup | swap | bbr | nvm | zsh | minikube | dev-tui | opencode | ollama | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net`
+可用模块名：`node_exporter | ddns-go | wireguard | tailscale | docker | fail2ban | openlist | uptime-kuma | cockpit | essential-pkgs | sys-setup | swap | bbr | nvm | npm-mirror | zsh | minikube | dev-tui | opencode | ollama | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net`
 
 ### 单独安装某模块
 
