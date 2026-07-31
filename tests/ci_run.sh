@@ -158,6 +158,13 @@ phase_routing() {
     assert "bootstrap.sh 存在且可执行" bash -c "test -x \"$REPO_DIR/bootstrap.sh\""
     assert "bootstrap.sh 语法正确 (bash -n)" bash -n "$REPO_DIR/bootstrap.sh"
     assert "bootstrap.sh 含主函数与依赖检查" bash -c "grep -q 'main()' \"$REPO_DIR/bootstrap.sh\" && grep -q 'check_deps' \"$REPO_DIR/bootstrap.sh\" && grep -q 'clone_or_update' \"$REPO_DIR/bootstrap.sh\""
+    # bootstrap.sh 幂等：clone_or_update 同时处理「已存在则更新」与「全新克隆」
+    assert "bootstrap.sh 幂等（含已存在更新分支）" bash -c "grep -q 'pull --ff-only' \"$REPO_DIR/bootstrap.sh\" && grep -q 'clone --depth 1' \"$REPO_DIR/bootstrap.sh\""
+
+    # 2d. install.sh 非 TTY 无参（curl|bash 管道场景）：应优雅打印帮助+退出 0，而非卡死/刷屏
+    #     复现并固化修复：stdin 非 tty 且无参数时不能进入交互菜单
+    assert "install.sh 非 TTY 无参 → 打印帮助 (exit 0)" bash -c "bash \"$REPO_DIR/install.sh\" </dev/null 2>&1 | grep -q '检测到非交互环境'"
+    assert "install.sh 非 TTY 无参 → 含用法说明 (exit 0)" bash -c "bash \"$REPO_DIR/install.sh\" </dev/null 2>&1 | grep -q '显示本帮助'"
 
     # 3. uninstall.sh
     assert "uninstall.sh --help (exit 0)" bash "$REPO_DIR/uninstall.sh" --help

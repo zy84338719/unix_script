@@ -838,7 +838,7 @@ show_usage() {
 模块名（用于非交互安装）:
   node_exporter | ddns-go | wireguard | tailscale | docker |
   fail2ban | openlist | uptime-kuma | cockpit |
-  essential-pkgs | sys-setup | swap | bbr | nvm |
+  essential-pkgs | sys-setup | swap | bbr | nvm | dev-mirror |
   zsh | minikube | dev-tui | opencode | ollama | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net
 
 示例:
@@ -876,6 +876,21 @@ main() {
 
     # 无参数 -> 交互式
     if [[ $# -eq 0 ]]; then
+        # stdin 非 TTY（如 curl|bash 管道场景）：read 收不到终端输入，
+        # 菜单会因 EOF 无限循环。此时不进菜单，改为打印帮助+提示后退出。
+        if [[ ! -t 0 ]]; then
+            warn "检测到非交互环境（标准输入来自管道，无法显示菜单）。"
+            echo
+            info "若要使用交互式菜单，请先克隆仓库后在终端直接运行："
+            echo "    git clone https://github.com/zy84338719/unix_script && cd unix_script && ./install.sh"
+            echo
+            info "或通过 bootstrap 透传参数（非交互），例如："
+            echo "    curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstrap.sh | bash -s -- --status"
+            echo "    curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstrap.sh | bash -s -- docker"
+            echo
+            show_usage
+            exit 0
+        fi
         interactive_main
         return
     fi
