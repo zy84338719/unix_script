@@ -142,6 +142,16 @@ phase_routing() {
     fi
     assert "install.sh 未知模块报错 (exit 1)" bash -c "! \"$REPO_DIR/install.sh\" __nope__ >/dev/null 2>&1"
 
+    # 2b. 版本更新检查子命令
+    # check-update 即使无网络/无 release 也必须正常退出（容错）
+    assert "install.sh check-update (exit 0)" bash "$REPO_DIR/install.sh" check-update
+    # update 在 CI（非交互、detached 或受控）不应破坏仓库：用 n 取消 / 或被安全检查拦截
+    assert "install.sh update (不破坏仓库)" bash -c "echo n | \"$REPO_DIR/install.sh\" update >/dev/null 2>&1; git -C \"$REPO_DIR\" diff --quiet HEAD"
+    # UNIX_SCRIPT_NO_UPDATE_CHECK=1 关闭自动检查，且 --help 不受影响
+    assert "关闭自动检查开关后 --help 正常" bash -c "UNIX_SCRIPT_NO_UPDATE_CHECK=1 \"$REPO_DIR/install.sh\" --help >/dev/null"
+    # common.sh 新函数存在
+    assert "common.sh 含更新检查函数" bash -c "source \"$REPO_DIR/lib/common.sh\" && type get_local_version >/dev/null && type version_gt >/dev/null && type check_for_update >/dev/null && type do_self_update >/dev/null"
+
     # 3. uninstall.sh
     assert "uninstall.sh --help (exit 0)" bash "$REPO_DIR/uninstall.sh" --help
 
