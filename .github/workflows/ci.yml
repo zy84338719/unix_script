@@ -123,12 +123,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: 安装基础依赖（容器极简镜像需要）
-        shell: bash
+        # 用 sh 而非 bash：Alpine 默认无 bash，需先用 sh 装上 bash
+        shell: sh
         run: |
-          # 各包管理器族安装 bash/sudo/curl/which
+          # 各包管理器族安装 bash/sudo/curl（which 在 debian 系由 debianutils 内置）
           if command -v apt-get >/dev/null 2>&1; then
             apt-get update
-            apt-get install -y bash sudo curl which
+            apt-get install -y bash sudo curl
           elif command -v dnf >/dev/null 2>&1; then
             dnf install -y --allowerasing bash sudo curl which
           elif command -v yum >/dev/null 2>&1; then
