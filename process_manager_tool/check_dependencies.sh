@@ -381,7 +381,7 @@ main() {
     # 生成建议
     generate_recommendations
     
-    return $errors
+    return "$errors"
 }
 
 # --- 脚本入口 ---

@@ -249,7 +249,7 @@ UPDATE_REPO="zy84338719/unix_script"
 get_local_version() {
     local ver_file="${SCRIPT_DIR:-.}/VERSION"
     local ver
-    ver=$(cat "$ver_file" 2>/dev/null | tr -d '[:space:]')
+    ver=$(tr -d '[:space:]' < "$ver_file" 2>/dev/null)
     if [[ -z "$ver" ]]; then
         ver="unknown"
     fi
