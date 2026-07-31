@@ -2,6 +2,12 @@
 
 本文件记录 unix_script 项目的显著变更。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
 
+## [1.5.0] - 2026-07-31
+
+### 新增
+- **`docker-image` 模块**：从公网拉取 Docker 镜像并导出为 gzip 压缩 `.tar.gz`（离线分发/备份）；交互式逐步引导（镜像名→目录→文件名），支持批量循环、本地已有时询问、导出摘要（digest/大小/耗时）；接入主菜单（选项 27）。
+- **`uxs` 全局命令**：`install.sh cli` 将脚本库安装为全局命令 `uxs`（位于 `~/.tools/bin`，自动配置 bash/zsh/fish 的 PATH），之后可在任意目录 `uxs docker-image` / `uxs --status` 等；`install.sh uninstall-cli` 卸载。
+
 ## [1.3.1] - 2026-07-31
 
 ### 新增
