@@ -276,6 +276,37 @@ version_gt() {
     [[ "$lowest" == "$b" ]]
 }
 
+# 比对本地与远端版本，设置全局：
+#   REMOTE_LATEST      远端最新 tag（去前导 v）；取不到则为空
+#   UPDATE_AVAILABLE   true / false
+# 返回码：0=有新版本，1=无新版本或检查过程出错（网络失败等，静默不报错）。
+check_for_update() {
+    REMOTE_LATEST=""
+    UPDATE_AVAILABLE=false
+    local local_ver remote_ver
+    local_ver=$(get_local_version)
+    # 复用既有 github_latest_tag（已处理 GH_TOKEN/GITHUB_TOKEN 认证与失败返回空）
+    remote_ver=$(github_latest_tag "$UPDATE_REPO")
+    REMOTE_LATEST="$remote_ver"
+    if [[ -n "$remote_ver" ]] && version_gt "$remote_ver" "$local_ver"; then
+        UPDATE_AVAILABLE=true
+        return 0
+    fi
+    return 1
+}
+
+# 若有更新则打印一行醒目提示（仅提示，不自动改）。
+# 若 UPDATE_AVAILABLE 未设置，先调用 check_for_update（容错：失败不打印）。
+print_update_hint() {
+    if [[ -z "${UPDATE_AVAILABLE:-}" ]]; then
+        check_for_update 2>/dev/null || true
+    fi
+    if [[ "${UPDATE_AVAILABLE:-}" == "true" ]]; then
+        warn "[更新提示] 检测到新版本：当前 $(get_local_version) → 远端 ${REMOTE_LATEST}"
+        warn "    运行 ./install.sh update 一键更新（会先确认，不会静默改动）"
+    fi
+}
+
 # ---------------- 服务管理封装（systemd / launchd 双平台） ----------------
 # service_is_active <systemd_name> <launchd_label>
 service_is_active() {
