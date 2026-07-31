@@ -73,6 +73,7 @@ show_main_menu() {
     echo "  24) safe-rm 回收站   - 安全删除替代 rm，防误删灾难"
     echo "  25) Clash (mihomo)   - 代理核心 + 快速配置 + TUN 透明代理"
     echo "  26) 多网卡策略路由   - 指定服务/用户/端口走指定网卡"
+    echo "  27) Docker 镜像导出   - 拉取公网镜像并导出为 .tar.gz（离线分发/备份）"
     echo
     echo "  --- 管理 ---"
     echo "  s) 查看已安装状态    - 检查服务和环境的安装情况"
@@ -206,6 +207,7 @@ status_dev_mirror_module() { run_in_dir dev-mirror install.sh status 2>/dev/null
 status_safe_rm_module()   { run_in_dir safe-rm install.sh status; }
 status_clash_module()     { run_in_dir clash install.sh status; }
 status_multinet_module()  { run_in_dir multi-net install.sh status; }
+status_docker_image_module() { run_in_dir docker-image install.sh status; }
 status_opencode_module()  { run_in_dir opencode install.sh status; }
 status_ollama_module()    { run_in_dir ollama install.sh status; }
 
@@ -249,6 +251,7 @@ show_installed_services() {
     echo "safe-rm 回收站: $(status_safe_rm_module)"
     echo "Clash (mihomo): $(status_clash_module)"
     echo "多网卡策略路由: $(status_multinet_module)"
+    echo "Docker 镜像导出: $(status_docker_image_module)"
 
     echo
     echo "========================================"
@@ -809,6 +812,7 @@ dispatch_module() {
         safe-rm|safe_rm|safesrm)    run_in_dir safe-rm install.sh install ;;
         clash|mihomo)               run_in_dir clash install.sh install ;;
         multi-net|multinet|multi_net) run_in_dir multi-net install.sh list ;;
+        docker-image|docker_image|dockerimage) run_in_dir docker-image install.sh save ;;
         zsh)                        run_install_script "$SCRIPT_DIR/zsh_setup/install.sh" "Zsh & Oh My Zsh" ;;
         minikube)                   run_in_dir minikube install.sh install ;;
         deskflow)                   run_in_dir deskflow install.sh install ;;
@@ -901,7 +905,7 @@ main() {
         -v|--version) echo "unix_script $(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"; exit 0 ;;
         -s|--status)  INTERACTIVE=false; show_installed_services; exit 0 ;;
         --list)
-            echo "node_exporter ddns-go wireguard tailscale docker fail2ban openlist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm dev-mirror zsh minikube dev-tui opencode ollama deskflow shutdown_timer process_manager safe-rm clash multi-net"
+            echo "node_exporter ddns-go wireguard tailscale docker fail2ban openlist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm dev-mirror zsh minikube dev-tui opencode ollama deskflow shutdown_timer process_manager safe-rm clash multi-net docker-image"
             exit 0
             ;;
         check-update)
@@ -959,6 +963,7 @@ interactive_main() {
             24) run_in_dir safe-rm install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             25) manage_clash ;;
             26) manage_multinet ;;
+            27) run_in_dir docker-image install.sh save; echo; read -r -p "按回车键返回主菜单..." ;;
             s|S) show_installed_services ;;
             u|U)
                 while true; do
