@@ -6,19 +6,16 @@
 
 ### 新增
 - **一键安装引导脚本 `bootstrap.sh`**：无需手动 clone，`curl -fsSL .../bootstrap.sh | bash` 一行命令即可下载并启动安装菜单；自动克隆到 `~/.local/share/unix_script`，再次运行自动 `git pull` 更新；支持透传参数（`bash -s -- docker`）。
+- **`npm-mirror` 模块**：npm/yarn/pnpm 换源加速（默认淘宝 npmmirror），支持腾讯/华为/官方/自定义源，一键切换或还原；接入主菜单（选项 15）、状态页、卸载菜单。
 
 ### 变更
 - README 与代码中的仓库克隆地址统一改为 HTTPS（原 SSH 地址外部用户无法 clone）。
 - `do_self_update` 的重新克隆提示改为 HTTPS 地址。
+
+### 修复
+- routing 测试 `install.sh update` 断言不再依赖工作区是否 clean（改用 `</dev/null` 取消 + 对比 HEAD 前后），根治间歇性误报。
 
 ## [Unreleased]
-
-### 新增
-- **一键安装引导脚本 `bootstrap.sh`**：无需手动 clone，`curl -fsSL .../bootstrap.sh | bash` 一行命令即可下载并启动安装菜单；自动克隆到 `~/.local/share/unix_script`，再次运行自动 `git pull` 更新；支持透传参数（`bash -s -- docker`）。
-
-### 变更
-- README 与代码中的仓库克隆地址统一改为 HTTPS（原 SSH 地址外部用户无法 clone）。
-- `do_self_update` 的重新克隆提示改为 HTTPS 地址。
 
 ## [1.3.0] - 2026-07-31
 
