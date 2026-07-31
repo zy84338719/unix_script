@@ -2,7 +2,7 @@
 
 本文件记录 unix_script 项目的显著变更。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
 
-## [Unreleased]
+## [1.3.0] - 2026-07-31
 
 ### 新增
 - **远端版本监测与更新提示**：
