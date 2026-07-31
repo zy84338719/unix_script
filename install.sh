@@ -66,6 +66,8 @@ show_main_menu() {
     echo "  19) 进程管理工具     - 智能搜索和管理系统进程"
     echo "  20) Deskflow         - 键鼠共享 (Flatpak, 仅 Linux 图形环境)"
     echo "  21) safe-rm 回收站   - 安全删除替代 rm，防误删灾难"
+    echo "  22) Clash (mihomo)   - 代理核心 + 快速配置 + TUN 透明代理"
+    echo "  23) 多网卡策略路由   - 指定服务/用户/端口走指定网卡"
     echo
     echo "  --- 管理 ---"
     echo "  s) 查看已安装状态    - 检查服务和环境的安装情况"
@@ -196,6 +198,8 @@ status_swap_module()      { run_in_dir swap install.sh status; }
 status_bbr_module()       { run_in_dir bbr install.sh status; }
 status_nvm_module()       { run_in_dir nvm install.sh status; }
 status_safe_rm_module()   { run_in_dir safe-rm install.sh status; }
+status_clash_module()     { run_in_dir clash install.sh status; }
+status_multinet_module()  { run_in_dir multi-net install.sh status; }
 
 # ---------------- 已安装状态总览 ----------------
 show_installed_services() {
@@ -230,6 +234,8 @@ show_installed_services() {
     echo "进程管理工具:   $(check_process_manager_status)"
     echo "Deskflow:       $(status_deskflow_module)"
     echo "safe-rm 回收站: $(status_safe_rm_module)"
+    echo "Clash (mihomo): $(status_clash_module)"
+    echo "多网卡策略路由: $(status_multinet_module)"
 
     echo
     echo "========================================"
@@ -392,6 +398,83 @@ manage_sys_setup() {
         esac
         echo
         read -r -p "按回车键继续..."
+    done
+}
+
+# ---------------- Clash (mihomo) 管理 ----------------
+manage_clash() {
+    local script_path="$SCRIPT_DIR/clash/install.sh"
+    [ -f "$script_path" ] || { error "脚本不存在: $script_path"; sleep 2; return; }
+    chmod +x "$script_path"
+    while true; do
+        clear
+        header "🌐 Clash (mihomo) 管理"
+        echo "========================================"
+        echo "当前状态: $(status_clash_module)"
+        echo
+        menu "请选择操作："
+        echo "  1) 安装/更新 mihomo (二进制 + systemd)"
+        echo "  2) 放入配置 (订阅URL或本地文件)"
+        echo "  3) 生成示例配置"
+        echo "  4) 开启 TUN 透明代理 (全局)"
+        echo "  5) 关闭 TUN"
+        echo "  6) 启动服务"
+        echo "  7) 停止服务"
+        echo "  8) 重启服务"
+        echo "  0) 返回主菜单"
+        echo "========================================"
+        read -r -p "请输入选项 [0-8]: " cl_choice
+        case $cl_choice in
+            1) run_in_dir clash install.sh install ;;
+            2)
+                read -r -p "输入订阅URL或本地文件路径: " cl_src
+                run_in_dir clash install.sh config "$cl_src"
+                ;;
+            3) run_in_dir clash install.sh example ;;
+            4) run_in_dir clash install.sh tun-on ;;
+            5) run_in_dir clash install.sh tun-off ;;
+            6) run_in_dir clash install.sh start ;;
+            7) run_in_dir clash install.sh stop ;;
+            8) run_in_dir clash install.sh restart ;;
+            0) break ;;
+            *) error "无效选项"; sleep 1 ;;
+        esac
+        echo; read -r -p "按回车键继续..."
+    done
+}
+
+# ---------------- 多网卡策略路由管理 ----------------
+manage_multinet() {
+    local script_path="$SCRIPT_DIR/multi-net/install.sh"
+    [ -f "$script_path" ] || { error "脚本不存在: $script_path"; sleep 2; return; }
+    chmod +x "$script_path"
+    while true; do
+        clear
+        header "🔀 多网卡策略路由管理"
+        echo "========================================"
+        echo "当前状态: $(status_multinet_module)"
+        echo "本机网卡:"
+        (command -v ip >/dev/null 2>&1 && ip -br link show 2>/dev/null | awk '{print "  "$1}' || echo "  (需 Linux)") | head -8
+        echo
+        menu "请选择操作："
+        echo "  1) 初始化某网卡策略路由 (setup)"
+        echo "  2) 让某用户走指定网卡 (route-user)"
+        echo "  3) 让某端口走指定网卡 (route-port)"
+        echo "  4) 查看当前策略路由规则 (list)"
+        echo "  5) 清除所有规则 (clear)"
+        echo "  0) 返回主菜单"
+        echo "========================================"
+        read -r -p "请输入选项 [0-5]: " mn_choice
+        case $mn_choice in
+            1) read -r -p "网卡名 (如 eth1): " mn_if; run_in_dir multi-net install.sh setup "$mn_if" ;;
+            2) read -r -p "用户名 网卡名 (空格分隔): " mn_u mn_if; run_in_dir multi-net install.sh route-user "$mn_u" "$mn_if" ;;
+            3) read -r -p "目的端口 网卡名 (空格分隔): " mn_p mn_if; run_in_dir multi-net install.sh route-port "$mn_p" "$mn_if" ;;
+            4) run_in_dir multi-net install.sh list ;;
+            5) run_in_dir multi-net install.sh clear ;;
+            0) break ;;
+            *) error "无效选项"; sleep 1 ;;
+        esac
+        echo; read -r -p "按回车键继续..."
     done
 }
 
@@ -605,6 +688,8 @@ show_uninstall_menu() {
     echo "  17) 卸载 Swap 虚拟内存"
     echo "  18) 卸载 nvm"
     echo "  19) 卸载 safe-rm 回收站"
+    echo "  20) 卸载 Clash (mihomo)"
+    echo "  21) 清除多网卡策略路由规则"
     echo "  0) 返回主菜单"
     echo
     echo "========================================"
@@ -638,6 +723,8 @@ do_uninstall() {
         17) run_in_dir swap install.sh uninstall ;;
         18) run_in_dir nvm install.sh uninstall ;;
         19) run_in_dir safe-rm install.sh uninstall ;;
+        20) run_in_dir clash install.sh uninstall ;;
+        21) run_in_dir multi-net install.sh clear ;;
         0) return 1 ;;
         *) error "无效选项，请重新输入！"; sleep 1 ;;
     esac
@@ -666,6 +753,8 @@ dispatch_module() {
         bbr)                        run_in_dir bbr install.sh enable ;;
         nvm)                        run_in_dir nvm install.sh install ;;
         safe-rm|safe_rm|safesrm)    run_in_dir safe-rm install.sh install ;;
+        clash|mihomo)               run_in_dir clash install.sh install ;;
+        multi-net|multinet|multi_net) run_in_dir multi-net install.sh list ;;
         zsh)                        run_install_script "$SCRIPT_DIR/zsh_setup/install.sh" "Zsh & Oh My Zsh" ;;
         minikube)                   run_in_dir minikube install.sh install ;;
         deskflow)                   run_in_dir deskflow install.sh install ;;
@@ -694,7 +783,7 @@ show_usage() {
   node_exporter | ddns-go | wireguard | tailscale | docker |
   fail2ban | alist | uptime-kuma | cockpit |
   essential-pkgs | sys-setup | swap | bbr | nvm |
-  zsh | minikube | dev-tui | deskflow | shutdown_timer | process_manager | safe-rm
+  zsh | minikube | dev-tui | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net
 
 示例:
   $0                       # 进入交互式主菜单
@@ -725,7 +814,7 @@ main() {
         -v|--version) echo "unix_script $(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"; exit 0 ;;
         -s|--status)  INTERACTIVE=false; show_installed_services; exit 0 ;;
         --list)
-            echo "node_exporter ddns-go wireguard tailscale docker fail2ban alist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm zsh minikube dev-tui deskflow shutdown_timer process_manager safe-rm"
+            echo "node_exporter ddns-go wireguard tailscale docker fail2ban alist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm zsh minikube dev-tui deskflow shutdown_timer process_manager safe-rm clash multi-net"
             exit 0
             ;;
         -*) error "未知选项: $1"; show_usage; exit 1 ;;
@@ -760,11 +849,13 @@ interactive_main() {
             19) manage_process_tool ;;
             20) run_in_dir deskflow install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             21) run_in_dir safe-rm install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            22) manage_clash ;;
+            23) manage_multinet ;;
             s|S) show_installed_services ;;
             u|U)
                 while true; do
                     show_uninstall_menu
-                    read -r -p "请输入选项 [0-19]: " uninstall_choice
+                    read -r -p "请输入选项 [0-21]: " uninstall_choice
                     if ! do_uninstall "$uninstall_choice"; then
                         break
                     fi
