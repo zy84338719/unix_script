@@ -148,7 +148,7 @@ phase_routing() {
     # 4. 新式模块（有子命令分发）：验证 status 子命令退出码 0
     #    注意：node_exporter/ddns-go/zsh_setup 是老式脚本，直接执行=安装，
     #    此处绝不调用它们（避免触发真实安装），仅 static 阶段覆盖其语法。
-    local new_mods=(tailscale docker fail2ban minikube deskflow alist uptime-kuma cockpit dev-tui essential-pkgs swap bbr nvm)
+    local new_mods=(tailscale docker fail2ban minikube deskflow alist uptime-kuma cockpit dev-tui essential-pkgs swap bbr nvm safe-rm)
     local m
     for m in "${new_mods[@]}"; do
         local script="$REPO_DIR/$m/install.sh"
@@ -270,6 +270,28 @@ phase_install() {
             fi
         else
             report_row "node_exporter 实装" skip "无 systemd（容器环境），仅静态/路由覆盖"
+        fi
+    fi
+
+    # essential-pkgs 实装：纯包安装，容器内也可行，能验证 dnf/yum/apt 各分支
+    if [[ "${MODULES_OVERRIDE}" == "" || "${MODULES_OVERRIDE}" == *"essential-pkgs"* || "${MODULES_OVERRIDE}" == *"essential_pkgs"* ]]; then
+        if command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1 || command -v apt-get >/dev/null 2>&1; then
+            local epkg_log=/tmp/essential_install.log
+            # essential-pkgs 在容器里需用 sudo（容器内 root 直接跑 sudo 可能无此命令，已装）
+            if bash "$REPO_DIR/essential-pkgs/install.sh" install >"$epkg_log" 2>&1; then
+                # 验证至少装上几个关键工具
+                local got=0 need="curl git vim"
+                for c in $need; do command -v "$c" >/dev/null 2>&1 && got=$((got+1)); done
+                if [[ $got -ge 3 ]]; then
+                    report_row "essential-pkgs: 安装 (dnf/yum/apt 分支)" pass
+                else
+                    report_row "essential-pkgs: 安装" fail "部分工具仍缺失 ($got/3)"
+                fi
+            else
+                report_row "essential-pkgs: 安装" fail "$(tail -2 "$epkg_log" | tr '\n' ' ')"
+            fi
+        else
+            report_row "essential-pkgs 实装" skip "无包管理器"
         fi
     fi
 

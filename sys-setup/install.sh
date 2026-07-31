@@ -80,9 +80,61 @@ EOF
             sudo apt-get update
             ;;
         centos)
-            sudo cp -a /etc/yum.repos.d/CentOS-Base.repo "/etc/yum.repos.d/CentOS-Base.repo.bak.$(date +%s)" 2>/dev/null || true
-            info "CentOS 换源请根据版本参考 https://mirrors.tuna.tsinghua.edu.cn/help/centos/ 手动配置"
-            warn "（已备份原 CentOS-Base.repo）"
+            # 通过 os-release 区分 CentOS Stream 9 / 其他版本或衍生版
+            local os_id os_ver is_stream
+            os_id=$(. /etc/os-release 2>/dev/null && echo "$ID")
+            os_ver=$(. /etc/os-release 2>/dev/null && echo "$VERSION_ID")
+            is_stream=$(. /etc/os-release 2>/dev/null && echo "$NAME" | grep -qi stream && echo yes || echo no)
+
+            # 备份现有 repo 文件
+            local ts; ts=$(date +%s)
+            sudo cp -a /etc/yum.repos.d "/etc/yum.repos.d.bak.$ts" 2>/dev/null || true
+
+            if [[ "$is_stream" == "yes" ]] && [[ "$os_ver" == 9* ]]; then
+                # CentOS Stream 9：覆盖 centos.repo（核心仓库指向清华镜像）
+                info "检测到 CentOS Stream $os_ver，覆盖 centos.repo 为清华镜像"
+                sudo tee /etc/yum.repos.d/centos.repo >/dev/null <<'EOF'
+# 由 unix_script sys-setup 生成 —— CentOS Stream 9 清华 TUNA 镜像
+[baseos]
+name=CentOS Stream $releasever - BaseOS
+baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-stream/$releasever-stream/BaseOS/$basearch/os
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+enabled=1
+
+[appstream]
+name=CentOS Stream $releasever - AppStream
+baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-stream/$releasever-stream/AppStream/$basearch/os
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+enabled=1
+
+[crb]
+name=CentOS Stream $releasever - CRB
+baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-stream/$releasever-stream/CRB/$basearch/os
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
+gpgcheck=1
+enabled=1
+
+[extras-common]
+name=CentOS Stream $releasever - Extras packages
+baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-stream/SIGs/$releasever-stream/extras/$basearch/extras-common
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-Extras-SHA512
+gpgcheck=1
+enabled=1
+EOF
+                success "CentOS Stream 9 源已更换为清华镜像（原 /etc/yum.repos.d 已备份）"
+                sudo dnf clean all 2>/dev/null || true
+                sudo dnf makecache 2>/dev/null || true
+            else
+                # CentOS 7/8 等老版或 AlmaLinux/Rocky Linux 等衍生版
+                info "检测到 RHEL 系发行版：$os_id $os_ver（非 Stream 9）"
+                info "衍生版/老版换源请参考对应镜像帮助："
+                echo "  CentOS 7:   https://mirrors.tuna.tsinghua.edu.cn/help/centos-vault/"
+                echo "  AlmaLinux:  https://mirrors.tuna.tsinghua.edu.cn/help/almalinux/"
+                echo "  Rocky:      https://mirrors.tuna.tsinghua.edu.cn/help/rocky/"
+                warn "已备份原 /etc/yum.repos.d 到 .bak.$ts，请按指引手动替换 baseurl"
+            fi
             ;;
         *)
             warn "无法识别发行版，跳过换源。当前支持 Debian/Ubuntu/CentOS。"
