@@ -172,15 +172,32 @@ uninstall_safe_rm() {
     if [[ ! -f "$TARGET_SH" ]]; then
         warn "未安装 safe-rm"; return 0
     fi
-    if ! yes_no "确认卸载 safe-rm（不会清空已删除的回收站内容）？"; then
+    if ! yes_no "确认卸载 safe-rm？"; then
         info "已取消"; return 0
     fi
+
+    # 卸载前询问是否清空回收站数据
+    local trash_root="${XDG_DATA_HOME:-$HOME/.local/share}/Trash"
+    if [[ -d "$trash_root/files" ]] && [[ -n "$(ls -A "$trash_root/files" 2>/dev/null)" ]]; then
+        local sz
+        sz=$(du -sh "$trash_root/files" 2>/dev/null | cut -f1)
+        info "回收站当前占用：$sz（路径 $trash_root）"
+        if yes_no "是否同时清空回收站数据（不可恢复）？"; then
+            rm -rf "${trash_root}/files/"* "${trash_root}/info/"* 2>/dev/null || true
+            success "回收站已清空"
+        else
+            info "保留回收站数据（可手动删除 $trash_root）"
+        fi
+    else
+        info "回收站为空，无需清理"
+    fi
+
     disable_rm_guard 2>/dev/null || true
     rm -f "$TARGET_SH"
     remove_rc_source "$HOME/.bashrc"
     remove_rc_source "$HOME/.zshrc"
     remove_rc_source "$HOME/.profile"
-    success "safe-rm 已卸载（回收站数据保留，可手动删除 ~/.local/share/Trash）"
+    success "safe-rm 已卸载"
 }
 
 usage() {
