@@ -45,7 +45,7 @@ show_main_menu() {
     echo "  4) Tailscale         - 免公网 IP 的组网 VPN"
     echo "  5) Docker            - 容器引擎 (Engine / Desktop)"
     echo "  6) Fail2ban          - SSH 暴力破解防护 (仅 Linux)"
-    echo "  7) Alist             - 文件列表 / 网盘聚合 (端口 5244)"
+    echo "  7) OpenList          - 文件列表 / 网盘聚合 (端口 5244，原 Alist)"
     echo "  8) Uptime Kuma       - 服务可用性监控面板 (Docker)"
     echo "  9) Cockpit           - Linux Web 管理面板 (端口 9090, 仅 Linux)"
     echo
@@ -188,7 +188,7 @@ status_docker_module()    { run_in_dir docker install.sh status; }
 status_fail2ban_module()  { run_in_dir fail2ban install.sh status; }
 status_minikube_module()  { run_in_dir minikube install.sh status; }
 status_deskflow_module()  { run_in_dir deskflow install.sh status; }
-status_alist_module()     { run_in_dir alist install.sh status; }
+status_openlist_module()     { run_in_dir openlist install.sh status; }
 status_uptime_kuma_module() { run_in_dir uptime-kuma install.sh status; }
 status_cockpit_module()   { run_in_dir cockpit install.sh status; }
 status_dev_tui_module()   { run_in_dir dev-tui install.sh status; }
@@ -214,7 +214,7 @@ show_installed_services() {
     echo "Tailscale:      $(status_tailscale_module)"
     echo "Docker:         $(status_docker_module)"
     echo "Fail2ban:       $(status_fail2ban_module)"
-    echo "Alist:          $(status_alist_module)"
+    echo "OpenList:          $(status_openlist_module)"
     echo "Uptime Kuma:    $(status_uptime_kuma_module)"
     echo "Cockpit:        $(status_cockpit_module)"
     echo
@@ -675,7 +675,7 @@ show_uninstall_menu() {
     echo "  4) 卸载 Tailscale"
     echo "  5) 卸载 Docker"
     echo "  6) 卸载 Fail2ban"
-    echo "  7) 卸载 Alist"
+    echo "  7) 卸载 OpenList"
     echo "  8) 卸载 Uptime Kuma"
     echo "  9) 卸载 Cockpit"
     echo "  10) 卸载 Zsh & Oh My Zsh (查看说明)"
@@ -705,7 +705,7 @@ do_uninstall() {
         4) run_in_dir tailscale install.sh uninstall ;;
         5) run_in_dir docker install.sh uninstall ;;
         6) run_in_dir fail2ban install.sh uninstall ;;
-        7) run_in_dir alist install.sh uninstall ;;
+        7) run_in_dir openlist install.sh uninstall ;;
         8) run_in_dir uptime-kuma install.sh uninstall ;;
         9) run_in_dir cockpit install.sh uninstall ;;
         10) uninstall_zsh_omz ;;
@@ -743,7 +743,7 @@ dispatch_module() {
         tailscale|ts)               run_in_dir tailscale install.sh install ;;
         docker)                     run_in_dir docker install.sh install ;;
         fail2ban|f2b)               run_in_dir fail2ban install.sh install ;;
-        alist)                      run_in_dir alist install.sh install ;;
+        openlist)                    run_in_dir openlist install.sh install ;;
         uptime-kuma|uptime_kuma)    run_in_dir uptime-kuma install.sh install ;;
         cockpit)                    run_in_dir cockpit install.sh install ;;
         dev-tui|dev_tui|tui)        run_in_dir dev-tui install.sh install ;;
@@ -781,7 +781,7 @@ show_usage() {
 
 模块名（用于非交互安装）:
   node_exporter | ddns-go | wireguard | tailscale | docker |
-  fail2ban | alist | uptime-kuma | cockpit |
+  fail2ban | openlist | uptime-kuma | cockpit |
   essential-pkgs | sys-setup | swap | bbr | nvm |
   zsh | minikube | dev-tui | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net
 
@@ -814,7 +814,7 @@ main() {
         -v|--version) echo "unix_script $(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"; exit 0 ;;
         -s|--status)  INTERACTIVE=false; show_installed_services; exit 0 ;;
         --list)
-            echo "node_exporter ddns-go wireguard tailscale docker fail2ban alist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm zsh minikube dev-tui deskflow shutdown_timer process_manager safe-rm clash multi-net"
+            echo "node_exporter ddns-go wireguard tailscale docker fail2ban openlist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm zsh minikube dev-tui deskflow shutdown_timer process_manager safe-rm clash multi-net"
             exit 0
             ;;
         -*) error "未知选项: $1"; show_usage; exit 1 ;;
@@ -834,7 +834,7 @@ interactive_main() {
             4) run_in_dir tailscale install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             5) manage_docker ;;
             6) run_in_dir fail2ban install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            7) run_in_dir alist install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            7) run_in_dir openlist install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             8) run_in_dir uptime-kuma install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             9) run_in_dir cockpit install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             10) run_in_dir essential-pkgs install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;

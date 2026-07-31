@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# alist/install.sh
+# openlist/install.sh
 #
-# 安装与管理 Alist —— 文件列表程序 / 网盘聚合（支持多存储后端，提供 WebDAV）。
+# 安装与管理 OpenList（原 Alist，已更名）—— 文件列表程序 / 网盘聚合（支持多存储后端，提供 WebDAV）。
 # Linux（systemd）+ macOS（launchd）。默认端口 5244。
 #
 # 子命令：install | uninstall | status | help
@@ -14,19 +14,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../lib/common.sh
 source "$SCRIPT_DIR/../lib/common.sh"
 
-INSTALL_DIR="/opt/alist"
-ALIST_BIN="$INSTALL_DIR/alist"
-SERVICE_NAME="alist"
-PLIST_LABEL="com.alist.server"
+INSTALL_DIR="/opt/openlist"
+OPENLIST_BIN="$INSTALL_DIR/openlist"
+SERVICE_NAME="openlist"
+PLIST_LABEL="org.openlist.server"
 PLIST_FILE="/Library/LaunchDaemons/${PLIST_LABEL}.plist"
-ALIST_PORT=5244
+OPENLIST_PORT=5244
 
 preflight() {
     detect_os
     check_commands curl tar
 }
 
-# 解析架构到 alist 的发布后缀
+# 解析架构到 openlist 的发布后缀
 arch_suffix() {
     local arch
     arch="$(uname -m)"
@@ -40,15 +40,15 @@ arch_suffix() {
     esac
 }
 
-install_alist() {
+install_openlist() {
     preflight
     require_sudo
-    info "🚀 开始安装 Alist"
+    info "🚀 开始安装 OpenList"
 
-    if [[ -x "$ALIST_BIN" ]]; then
+    if [[ -x "$OPENLIST_BIN" ]]; then
         local cur
-        cur=$("$ALIST_BIN" version 2>/dev/null | head -1 || echo "已安装")
-        warn "检测到已安装 Alist（$cur）"
+        cur=$("$OPENLIST_BIN" version 2>/dev/null | head -1 || echo "已安装")
+        warn "检测到已安装 OpenList（$cur）"
         if ! yes_no "是否继续并覆盖安装最新版？"; then
             info "已取消"; return 0
         fi
@@ -58,7 +58,7 @@ install_alist() {
 
     info "获取最新版本..."
     local version suffix url tmpdir
-    version=$(github_latest_tag "alist-org/alist")
+    version=$(github_latest_tag "OpenListTeam/OpenList")
     if [[ -z "$version" ]]; then
         error "无法获取最新版本（请检查网络或设置 GH_TOKEN 规避 API 限速）"
         exit 1
@@ -66,24 +66,24 @@ install_alist() {
     success "最新版本：v$version"
 
     suffix=$(arch_suffix)
-    url="https://github.com/alist-org/alist/releases/download/v${version}/alist-${suffix}.tar.gz"
+    url="https://github.com/OpenListTeam/OpenList/releases/download/v${version}/openlist-${suffix}.tar.gz"
     info "下载：$url"
 
     tmpdir=$(mktemp -d)
-    if ! curl -fSL "$url" -o "$tmpdir/alist.tar.gz"; then
+    if ! curl -fSL "$url" -o "$tmpdir/openlist.tar.gz"; then
         error "下载失败"; rm -rf "$tmpdir"; exit 1
     fi
-    if ! tar -xzf "$tmpdir/alist.tar.gz" -C "$tmpdir"; then
+    if ! tar -xzf "$tmpdir/openlist.tar.gz" -C "$tmpdir"; then
         error "解压失败"; rm -rf "$tmpdir"; exit 1
     fi
 
     sudo mkdir -p "$INSTALL_DIR"
-    sudo mv "$tmpdir/alist" "$ALIST_BIN"
-    sudo chmod +x "$ALIST_BIN"
+    sudo mv "$tmpdir/openlist" "$OPENLIST_BIN"
+    sudo chmod +x "$OPENLIST_BIN"
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        sudo chown root:wheel "$ALIST_BIN"
+        sudo chown root:wheel "$OPENLIST_BIN"
     else
-        sudo chown root:root "$ALIST_BIN"
+        sudo chown root:root "$OPENLIST_BIN"
     fi
     rm -rf "$tmpdir"
     success "二进制安装完成"
@@ -99,7 +99,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=${INSTALL_DIR}
-ExecStart=${ALIST_BIN} server
+ExecStart=${OPENLIST_BIN} server
 Restart=always
 RestartSec=5
 
@@ -119,7 +119,7 @@ EOF
     <string>${PLIST_LABEL}</string>
     <key>ProgramArguments</key>
     <array>
-        <string>${ALIST_BIN}</string>
+        <string>${OPENLIST_BIN}</string>
         <string>server</string>
     </array>
     <key>WorkingDirectory</key>
@@ -129,9 +129,9 @@ EOF
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/var/log/alist.log</string>
+    <string>/var/log/openlist.log</string>
     <key>StandardErrorPath</key>
-    <string>/var/log/alist.err</string>
+    <string>/var/log/openlist.err</string>
 </dict>
 </plist>
 EOF
@@ -141,7 +141,7 @@ EOF
     info "验证..."
     sleep 3
     if service_is_active "$SERVICE_NAME" "$PLIST_LABEL"; then
-        success "Alist 服务运行正常"
+        success "OpenList 服务运行正常"
     else
         warn "服务可能仍在启动中，稍后访问 Web 界面确认"
     fi
@@ -150,33 +150,33 @@ EOF
     info "首次安装的管理员密码（随机生成）："
     if [[ "$OS_TYPE" == "linux" ]]; then
         sudo journalctl -u "$SERVICE_NAME" --no-pager 2>/dev/null | grep -i "password" | tail -3 || \
-            echo "  可执行：sudo ${ALIST_BIN} admin random   # 重新生成随机密码"
+            echo "  可执行：sudo ${OPENLIST_BIN} admin random   # 重新生成随机密码"
     else
-        echo "  可执行：sudo ${ALIST_BIN} admin random"
+        echo "  可执行：sudo ${OPENLIST_BIN} admin random"
     fi
 
     local ip_addr
     ip_addr=$(get_local_ip)
     echo
-    success "🎉 Alist v$version 安装完成！"
-    info "访问地址：http://${ip_addr}:${ALIST_PORT}"
+    success "🎉 OpenList v$version 安装完成！"
+    info "访问地址：http://${ip_addr}:${OPENLIST_PORT}"
     info "默认管理员账号：admin"
     echo
     info "常用命令："
     if [[ "$OS_TYPE" == "linux" ]]; then
-        echo "  sudo systemctl status alist"
-        echo "  sudo journalctl -u alist -f"
+        echo "  sudo systemctl status openlist"
+        echo "  sudo journalctl -u openlist -f"
     else
-        echo "  sudo launchctl list | grep alist"
-        echo "  tail -f /var/log/alist.log"
+        echo "  sudo launchctl list | grep openlist"
+        echo "  tail -f /var/log/openlist.log"
     fi
-    echo "  sudo ${ALIST_BIN} admin set NEW_PASSWORD   # 设置管理员密码"
+    echo "  sudo ${OPENLIST_BIN} admin set NEW_PASSWORD   # 设置管理员密码"
 }
 
-uninstall_alist() {
+uninstall_openlist() {
     preflight
     require_sudo
-    if ! yes_no "确认卸载 Alist？"; then
+    if ! yes_no "确认卸载 OpenList？"; then
         info "已取消"; return 0
     fi
     service_stop "$SERVICE_NAME" "$PLIST_FILE"
@@ -190,12 +190,12 @@ uninstall_alist() {
         sudo rm -rf "$INSTALL_DIR"
         success "数据目录已删除"
     fi
-    success "Alist 已卸载。"
+    success "OpenList 已卸载。"
 }
 
-status_alist() {
+status_openlist() {
     detect_os
-    if [[ ! -x "$ALIST_BIN" ]]; then
+    if [[ ! -x "$OPENLIST_BIN" ]]; then
         echo -e "${RED}❌ 未安装${NC}"; return
     fi
     if service_is_active "$SERVICE_NAME" "$PLIST_LABEL"; then
@@ -219,9 +219,9 @@ main() {
     local action="${1:-install}"
     detect_os
     case "$action" in
-        install)   install_alist ;;
-        uninstall) uninstall_alist ;;
-        status)    status_alist ;;
+        install)   install_openlist ;;
+        uninstall) uninstall_openlist ;;
+        status)    status_openlist ;;
         help|--help|-h) usage ;;
         *) error "未知操作: $action"; usage; exit 1 ;;
     esac
