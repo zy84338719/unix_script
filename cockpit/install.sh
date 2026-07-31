@@ -42,21 +42,10 @@ install_cockpit() {
     fi
 
     info "安装 cockpit..."
-    case "$PKG_MANAGER" in
-        apt-get)
-            sudo apt-get update -y
-            sudo apt-get install -y cockpit
-            ;;
-        dnf)
-            sudo dnf install -y cockpit
-            ;;
-        yum)
-            sudo yum install -y cockpit
-            ;;
-        *)
-            error "不支持的包管理器，请手动安装 cockpit"; exit 1
-            ;;
-    esac
+    if ! pkg_install cockpit; then
+        error "cockpit 安装失败（包管理器：$PKG_MANAGER）"
+        exit 1
+    fi
 
     if ! command_exists cockpit-bridge 2>/dev/null; then
         error "安装失败：找不到 cockpit-bridge"
@@ -105,11 +94,7 @@ uninstall_cockpit() {
     fi
     sudo systemctl disable --now cockpit.socket 2>/dev/null || true
     sudo systemctl disable --now cockpit 2>/dev/null || true
-    case "$PKG_MANAGER" in
-        apt-get) sudo apt-get remove --purge -y cockpit ;;
-        dnf)     sudo dnf remove -y cockpit ;;
-        yum)     sudo yum remove -y cockpit ;;
-    esac
+    pkg_remove cockpit 2>/dev/null || warn "cockpit 包移除失败，请手动卸载"
     if command_exists firewall-cmd; then
         sudo firewall-cmd --remove-service=cockpit --permanent 2>/dev/null || true
         sudo firewall-cmd --reload 2>/dev/null || true

@@ -23,13 +23,35 @@ LINUX_EXTRA=(net-tools bind-utils sudo bash-completion ca-certificates gnupg lso
 pkg_name_for() {
     local cmd="$1"
     case "$cmd" in
-        # bind-utils 在 Debian 系叫 dnsutils
         bind-utils)
-            if command -v apt-get >/dev/null 2>&1; then echo "dnsutils"; else echo "bind-utils"; fi
+            # Debian 系叫 dnsutils；Arch/Alpine 叫 bind-tools；其他 bind-utils
+            case "$PKG_MANAGER" in
+                apt-get)   echo "dnsutils" ;;
+                pacman)    echo "bind-tools" ;;
+                apk)       echo "bind-tools" ;;
+                *)         echo "bind-utils" ;;
+            esac
             ;;
-        bash-completion) echo "bash-completion" ;;
-        net-tools) echo "net-tools" ;;
+        gnupg)
+            # RHEL 系包名是 gnupg2
+            case "$PKG_MANAGER" in
+                dnf|yum)   echo "gnupg2" ;;
+                *)         echo "gnupg" ;;
+            esac
+            ;;
         *) echo "$cmd" ;;
+    esac
+}
+
+# 开发工具组的包名（各发行版不同）
+dev_tools_pkg() {
+    case "$PKG_MANAGER" in
+        apt-get) echo "build-essential" ;;
+        dnf|yum) echo "" ;;              # 用组：@development tools（单独处理）
+        pacman)  echo "base-devel" ;;
+        apk)     echo "build-base" ;;
+        zypper)  echo "patterns-devel_basis" ;;
+        *)       echo "" ;;
     esac
 }
 
@@ -51,52 +73,39 @@ install_pkgs() {
     fi
 
     detect_pkg_manager
-    local all_pkgs=()
-    local t
+    ensure_epel
+    local missing_pkgs=()
+    local t pkg
+
+    # 逐个安装（容错：个别包缺失不中断）
+    info "安装必备工具（包管理器：$PKG_MANAGER）..."
     for t in "${ESSENTIAL_TOOLS[@]}" "${LINUX_EXTRA[@]}"; do
         if ! command_exists "$t" 2>/dev/null; then
-            all_pkgs+=("$(pkg_name_for "$t")")
+            pkg=$(pkg_name_for "$t")
+            if ! pkg_install "$pkg" >/dev/null 2>&1; then
+                missing_pkgs+=("$pkg")
+            fi
         fi
     done
 
-    # build-essential / 开发工具组
+    # 开发工具组
     case "$PKG_MANAGER" in
-        apt-get) all_pkgs+=(build-essential) ;;
-        dnf|yum) all_pkgs+=("@development tools") ;;
-    esac
-
-    if [[ ${#all_pkgs[@]} -eq 0 ]]; then
-        success "所有必备工具均已安装"
-        return
-    fi
-
-    info "将安装：${all_pkgs[*]}"
-    case "$PKG_MANAGER" in
-        apt-get)
-            sudo apt-get update -y
-            sudo apt-get install -y "${all_pkgs[@]}"
-            ;;
         dnf|yum)
-            # RHEL/CentOS 系：先确保 EPEL（htop/screen 等在 EPEL 仓库）
-            if ! rpm -q epel-release >/dev/null 2>&1; then
-                info "安装 EPEL 仓库（提供 htop/screen 等）..."
-                sudo "$PKG_MANAGER" install -y epel-release 2>/dev/null || warn "EPEL 安装失败，部分包可能不可用"
-                sudo "$PKG_MANAGER" makecache 2>/dev/null || true
-            fi
-            # 逐包安装并容错：个别包在当前仓库/EPEL 仍缺失时，记录但不中断
-            local missing_pkgs=()
-            for p in "${all_pkgs[@]}"; do
-                if ! sudo "$PKG_MANAGER" install -y "$p" >/dev/null 2>&1; then
-                    missing_pkgs+=("$p")
-                    warn "包 '$p' 安装失败（可能需要额外仓库），已跳过"
-                fi
-            done
-            if [[ ${#missing_pkgs[@]} -gt 0 ]]; then
-                warn "以下包未能安装：${missing_pkgs[*]}"
+            # dnf/yum 用组安装
+            local sudo_prefix=""; [[ $EUID -ne 0 ]] && sudo_prefix="sudo"
+            $sudo_prefix "$PKG_MANAGER" groupinstall -y "Development Tools" 2>/dev/null || missing_pkgs+=("Development Tools")
+            ;;
+        *)
+            pkg=$(dev_tools_pkg)
+            if [[ -n "$pkg" ]]; then
+                pkg_install "$pkg" >/dev/null 2>&1 || missing_pkgs+=("$pkg")
             fi
             ;;
-        *)       error "不支持的包管理器"; exit 1 ;;
     esac
+
+    if [[ ${#missing_pkgs[@]} -gt 0 ]]; then
+        warn "以下包未能安装：${missing_pkgs[*]}"
+    fi
     success "装机必备工具安装完成"
     echo
     info "已安装工具：${ESSENTIAL_TOOLS[*]}"

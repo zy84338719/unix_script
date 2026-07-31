@@ -30,12 +30,10 @@ install_deskflow() {
 
     # 1. 安装 flatpak 与 curl
     info "==== 1. 安装 flatpak 与 curl ===="
-    case "$PKG_MANAGER" in
-        apt-get) sudo apt-get update -y; sudo apt-get install -y flatpak curl ;;
-        dnf)     sudo dnf install -y flatpak curl ;;
-        yum)     sudo yum install -y flatpak curl ;;
-        *) error "不支持的包管理器，请手动安装 flatpak"; exit 1 ;;
-    esac
+    if ! pkg_install flatpak curl; then
+        error "flatpak/curl 安装失败（包管理器：$PKG_MANAGER）"
+        exit 1
+    fi
 
     # 2. 添加 Flathub 仓库
     info "==== 2. 添加 Flathub 仓库（如已存在则跳过） ===="

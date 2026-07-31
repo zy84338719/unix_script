@@ -75,11 +75,99 @@ detect_pkg_manager() {
         PKG_MANAGER="dnf"
     elif command -v yum >/dev/null 2>&1; then
         PKG_MANAGER="yum"
+    elif command -v zypper >/dev/null 2>&1; then
+        PKG_MANAGER="zypper"          # openSUSE
+    elif command -v pacman >/dev/null 2>&1; then
+        PKG_MANAGER="pacman"          # Arch / Manjaro
+    elif command -v apk >/dev/null 2>&1; then
+        PKG_MANAGER="apk"             # Alpine
     elif command -v brew >/dev/null 2>&1; then
         PKG_MANAGER="brew"
     else
         return 1
     fi
+}
+
+# 统一包安装：pkg_install <包名...>
+# 自动选择当前发行版的包管理器；已经是 root 则直接执行，否则用 sudo。
+# 返回包管理器的退出码。各发行版标志差异在此封装。
+pkg_install() {
+    detect_pkg_manager || { error "无法识别包管理器"; return 1; }
+    local sudo_prefix=""
+    [[ $EUID -ne 0 ]] && sudo_prefix="sudo"
+    case "$PKG_MANAGER" in
+        apt-get) $sudo_prefix apt-get install -y "$@" ;;
+        dnf)     $sudo_prefix dnf install -y "$@" ;;
+        yum)     $sudo_prefix yum install -y "$@" ;;
+        zypper)  $sudo_prefix zypper --non-interactive install "$@" ;;
+        pacman)  $sudo_prefix pacman -S --noconfirm --needed "$@" ;;
+        apk)     $sudo_prefix apk add --no-cache "$@" ;;
+        brew)    brew install "$@" ;;
+        *)       error "不支持的包管理器: $PKG_MANAGER"; return 1 ;;
+    esac
+}
+
+# 统一包更新元数据（安装前刷新索引）：pkg_update
+pkg_update() {
+    detect_pkg_manager || return 1
+    local sudo_prefix=""
+    [[ $EUID -ne 0 ]] && sudo_prefix="sudo"
+    case "$PKG_MANAGER" in
+        apt-get) $sudo_prefix apt-get update -y ;;
+        dnf)     $sudo_prefix dnf makecache ;;
+        yum)     $sudo_prefix yum makecache ;;
+        zypper)  $sudo_prefix zypper --non-interactive refresh ;;
+        pacman)  $sudo_prefix pacman -Sy ;;
+        apk)     $sudo_prefix apk update ;;
+        brew)    brew update ;;
+    esac
+}
+
+# 统一包卸载：pkg_remove <包名...>
+pkg_remove() {
+    detect_pkg_manager || return 1
+    local sudo_prefix=""
+    [[ $EUID -ne 0 ]] && sudo_prefix="sudo"
+    case "$PKG_MANAGER" in
+        apt-get) $sudo_prefix apt-get remove --purge -y "$@" ;;
+        dnf)     $sudo_prefix dnf remove -y "$@" ;;
+        yum)     $sudo_prefix yum remove -y "$@" ;;
+        zypper)  $sudo_prefix zypper --non-interactive remove "$@" ;;
+        pacman)  $sudo_prefix pacman -Rns --noconfirm "$@" ;;
+        apk)     $sudo_prefix apk del "$@" ;;
+        brew)    brew uninstall "$@" ;;
+    esac
+}
+
+# 查询某包是否已安装：pkg_installed <包名>
+pkg_installed() {
+    detect_pkg_manager || return 1
+    local pkg="$1"
+    case "$PKG_MANAGER" in
+        apt-get) dpkg -s "$pkg" >/dev/null 2>&1 ;;
+        dnf|yum) rpm -q "$pkg" >/dev/null 2>&1 ;;
+        zypper)  rpm -q "$pkg" >/dev/null 2>&1 ;;
+        pacman)  pacman -Qi "$pkg" >/dev/null 2>&1 ;;
+        apk)     apk info -e "$pkg" >/dev/null 2>&1 ;;
+        brew)    brew list "$pkg" >/dev/null 2>&1 ;;
+    esac
+}
+
+# 确保 EPEL 仓库可用（仅 RHEL 系：dnf/yum；其他发行版为空操作）。
+# fail2ban/cockpit 等包在 CentOS/RHEL 上位于 EPEL。
+ensure_epel() {
+    detect_pkg_manager || return 0
+    case "$PKG_MANAGER" in
+        dnf|yum)
+            if ! rpm -q epel-release >/dev/null 2>&1; then
+                info "安装 EPEL 仓库..."
+                local sudo_prefix=""
+                [[ $EUID -ne 0 ]] && sudo_prefix="sudo"
+                $sudo_prefix "$PKG_MANAGER" install -y epel-release 2>/dev/null || warn "EPEL 安装失败"
+                $sudo_prefix "$PKG_MANAGER" makecache 2>/dev/null || true
+            fi
+            ;;
+    esac
 }
 
 # ---------------- 通用辅助 ----------------

@@ -71,18 +71,11 @@ install_fail2ban() {
     fi
 
     info "安装 fail2ban..."
-    case "$PKG_MANAGER" in
-        apt-get) sudo apt-get update -y; sudo apt-get install -y fail2ban ;;
-        dnf)     sudo dnf install -y fail2ban ;;
-        yum)
-            if ! rpm -q epel-release >/dev/null 2>&1; then
-                info "安装 EPEL 仓库..."
-                sudo yum install -y epel-release
-            fi
-            sudo yum install -y fail2ban
-            ;;
-        *) error "不支持的包管理器，请手动安装 fail2ban"; exit 1 ;;
-    esac
+    ensure_epel
+    if ! pkg_install fail2ban; then
+        error "fail2ban 安装失败（包管理器：$PKG_MANAGER）"
+        exit 1
+    fi
 
     if ! command_exists fail2ban-client; then
         error "安装失败：找不到 fail2ban-client"
@@ -134,11 +127,7 @@ uninstall_fail2ban() {
     fi
 
     sudo systemctl disable --now fail2ban 2>/dev/null || true
-    case "$PKG_MANAGER" in
-        apt-get) sudo apt-get remove --purge -y fail2ban ;;
-        dnf)     sudo dnf remove -y fail2ban ;;
-        yum)     sudo yum remove -y fail2ban ;;
-    esac
+    pkg_remove fail2ban 2>/dev/null || warn "fail2ban 包移除失败，请手动卸载"
 
     if [[ -f "$JAIL_LOCAL" ]]; then
         if yes_no "是否删除 $JAIL_LOCAL（保留 .bak.* 备份）？"; then
