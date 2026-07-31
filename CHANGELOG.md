@@ -2,6 +2,15 @@
 
 本文件记录 unix_script 项目的显著变更。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
 
+## [1.3.1] - 2026-07-31
+
+### 新增
+- **一键安装引导脚本 `bootstrap.sh`**：无需手动 clone，`curl -fsSL .../bootstrap.sh | bash` 一行命令即可下载并启动安装菜单；自动克隆到 `~/.local/share/unix_script`，再次运行自动 `git pull` 更新；支持透传参数（`bash -s -- docker`）。
+
+### 变更
+- README 与代码中的仓库克隆地址统一改为 HTTPS（原 SSH 地址外部用户无法 clone）。
+- `do_self_update` 的重新克隆提示改为 HTTPS 地址。
+
 ## [Unreleased]
 
 ### 新增
