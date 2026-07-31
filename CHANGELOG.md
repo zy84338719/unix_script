@@ -15,13 +15,18 @@
 ### 修复
 - routing 测试 `install.sh update` 断言不再依赖工作区是否 clean（改用 `</dev/null` 取消 + 对比 HEAD 前后），根治间歇性误报。
 
-## [Unreleased]
+## [1.4.0] - 2026-07-31
 
 ### 新增
 - **`dev-mirror` 模块**：开发换源加速统一入口，覆盖 npm（+ yarn/pnpm）、Go（GOPROXY）、Rust（cargo）、Python（pip）四大生态；每生态内置多个国内镜像（默认推荐：淘宝/goproxy.cn/清华/清华），支持交互选择、`install all default` 一键批量、自定义 URL；写用户级配置无需 sudo；接入主菜单（选项 15）、状态页、卸载菜单、非交互 CLI。
 
 ### 变更
 - **合并并删除 `npm-mirror` 模块**：其能力已并入 `dev-mirror` 的 npm 分支。`install.sh npm-mirror` 别名保留以向后兼容（路由到 dev-mirror）。
+
+### 修复
+- 修复 CI ubuntu 静态检查（shellcheck 0.8.0）报错：`lib/common.sh` SC2002（useless cat）、`check_dependencies.sh` SC2086（未引用变量）。本地 0.11.0 不报，CI ubuntu 0.8.0 报，已用 docker 复现并验证修复。
+
+## [Unreleased]
 
 ## [1.3.0] - 2026-07-31
 
