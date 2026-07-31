@@ -129,12 +129,26 @@ jobs:
           # 容器内只做路由级验证（不触发真实安装）
           ./tests/ci_run.sh --phase routing --out routing-report.md
 
+      # dnf/yum 系容器（centos/fedora）额外做 essential-pkgs 实装，
+      # 验证模块的 dnf/yum 分支真实可用（纯包安装，容器内可行）。
+      - name: dnf/yum 系实装测试（centos/fedora）
+        shell: bash
+        run: |
+          if command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1; then
+            echo ">>> 检测到 dnf/yum，运行 essential-pkgs 实装测试"
+            ./tests/ci_run.sh --phase install --module essential-pkgs --out install-report.md
+          else
+            echo ">>> apt 系容器，跳过 dnf 实装（apt 实装由 install-vm 覆盖）"
+          fi
+
       - name: 上传报告
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: install-container-${{ matrix.distro }}
-          path: routing-report.md
+          path: |
+            routing-report.md
+            install-report.md
           if-no-files-found: warn
 
   install-vm:
