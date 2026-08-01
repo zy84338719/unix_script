@@ -67,22 +67,23 @@ show_main_menu() {
     echo "  20) Deno             - 安全的 JavaScript/TypeScript 运行时"
     echo "  21) pnpm             - 快速节省磁盘的 Node.js 包管理器"
     echo "  22) Go               - Go 语言环境 (官方二进制)"
-    echo "  23) 开发工具增强     - Neovim+LazyVim / git增强(delta) / tmux配置"
-    echo "  24) 现代 CLI 工具    - bat/eza/rg/fd/fzf/zoxide/starship"
+    echo "  23) Rust             - Rust 语言环境 (rustup, macOS+Linux)"
+    echo "  24) 开发工具增强     - Neovim+LazyVim / git增强(delta) / tmux配置"
+    echo "  25) 现代 CLI 工具    - bat/eza/rg/fd/fzf/zoxide/starship"
     echo
     echo "  --- AI 工具 ---"
-    echo "  25) OpenCode         - 终端 AI 编程助手 (sst/opencode)"
-    echo "  26) Ollama           - 本地大模型运行时 (跑 Llama/Qwen/DeepSeek)"
-    echo "  27) Pi               - AI 编程代理框架 (pi.dev, 多模型/可扩展)"
+    echo "  26) OpenCode         - 终端 AI 编程助手 (sst/opencode)"
+    echo "  27) Ollama           - 本地大模型运行时 (跑 Llama/Qwen/DeepSeek)"
+    echo "  28) Pi               - AI 编程代理框架 (pi.dev, 多模型/可扩展)"
     echo
     echo "  --- 系统工具 ---"
-    echo "  28) 自动关机管理     - 设置临时或每日定时关机"
-    echo "  29) 进程管理工具     - 智能搜索和管理系统进程"
-    echo "  30) Deskflow         - 键鼠共享 (Flatpak, 仅 Linux 图形环境)"
-    echo "  31) safe-rm 回收站   - 安全删除替代 rm，防误删灾难"
-    echo "  32) Clash (mihomo)   - 代理核心 + 快速配置 + TUN 透明代理"
-    echo "  33) 多网卡策略路由   - 指定服务/用户/端口走指定网卡"
-    echo "  34) Docker 镜像导出   - 拉取公网镜像并导出为 .tar.gz（离线分发/备份）"
+    echo "  29) 自动关机管理     - 设置临时或每日定时关机"
+    echo "  30) 进程管理工具     - 智能搜索和管理系统进程"
+    echo "  31) Deskflow         - 键鼠共享 (Flatpak, 仅 Linux 图形环境)"
+    echo "  32) safe-rm 回收站   - 安全删除替代 rm，防误删灾难"
+    echo "  33) Clash (mihomo)   - 代理核心 + 快速配置 + TUN 透明代理"
+    echo "  34) 多网卡策略路由   - 指定服务/用户/端口走指定网卡"
+    echo "  35) Docker 镜像导出   - 拉取公网镜像并导出为 .tar.gz（离线分发/备份）"
     echo
     echo "  --- 管理 ---"
     echo "  s) 查看已安装状态    - 检查服务和环境的安装情况"
@@ -159,6 +160,7 @@ status_pi_module()        { run_in_dir pi install.sh status; }
 status_deno_module()      { run_in_dir deno install.sh status; }
 status_pnpm_module()      { run_in_dir pnpm install.sh status; }
 status_go_module()        { run_in_dir go install.sh status; }
+status_rust_module()      { run_in_dir rust install.sh status; }
 status_dev_enhance_module() { run_in_dir dev-enhance install.sh status; }
 status_modern_cli_module() { run_in_dir modern-cli install.sh status; }
 
@@ -194,6 +196,8 @@ show_installed_services() {
     echo "Deno:           $(status_deno_module)"
     echo "pnpm:           $(status_pnpm_module)"
     echo "Go:             $(status_go_module)"
+    echo "Rust:           $(status_rust_module)"
+status_rust_module()      { run_in_dir rust install.sh status; }
     echo "开发工具增强:   $(status_dev_enhance_module)"
     echo "现代 CLI 工具:  $(status_modern_cli_module)"
     echo
@@ -204,6 +208,7 @@ show_installed_services() {
 status_deno_module()      { run_in_dir deno install.sh status; }
 status_pnpm_module()      { run_in_dir pnpm install.sh status; }
 status_go_module()        { run_in_dir go install.sh status; }
+status_rust_module()      { run_in_dir rust install.sh status; }
     echo
     echo "--- 系统工具 ---"
     echo "自动关机任务:   $(check_shutdown_timer_status)"
@@ -725,6 +730,7 @@ dispatch_module() {
         deno)                       run_in_dir deno install.sh install ;;
         pnpm)                       run_in_dir pnpm install.sh install ;;
         go|golang)                  run_in_dir go install.sh install ;;
+        rust|rustup)                run_in_dir rust install.sh install ;;
         dev-enhance)                run_in_dir dev-enhance install.sh install ;;
         modern-cli|modern_cli|moderncli) run_in_dir modern-cli install.sh install ;;
         opencode)                   run_in_dir opencode install.sh install ;;
@@ -778,7 +784,7 @@ show_usage() {
   node_exporter | ddns-go | wireguard | tailscale | docker |
   fail2ban | openlist | uptime-kuma | cockpit |
   essential-pkgs | sys-setup | swap | bbr | nvm | dev-mirror |
-  zsh | minikube | dev-tui | bun | pi | deno | pnpm | go | dev-enhance | modern-cli | opencode | ollama | docker-image | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net
+  zsh | minikube | dev-tui | bun | pi | deno | pnpm | go | rust | dev-enhance | modern-cli | opencode | ollama | docker-image | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net
 
 示例:
   $0                       # 进入交互式主菜单
@@ -987,7 +993,7 @@ main() {
         -v|--version) echo "unix_script $(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"; exit 0 ;;
         -s|--status)  INTERACTIVE=false; show_installed_services; exit 0 ;;
         --list)
-            echo "node_exporter ddns-go wireguard tailscale docker fail2ban openlist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm dev-mirror zsh minikube dev-tui bun pi deno pnpm go dev-enhance modern-cli opencode ollama deskflow shutdown_timer process_manager safe-rm clash multi-net docker-image"
+            echo "node_exporter ddns-go wireguard tailscale docker fail2ban openlist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm dev-mirror zsh minikube dev-tui bun pi deno pnpm go rust dev-enhance modern-cli opencode ollama deskflow shutdown_timer process_manager safe-rm clash multi-net docker-image"
             exit 0
             ;;
         --list-modules)
@@ -1067,18 +1073,19 @@ interactive_main() {
             20) run_in_dir deno install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             21) run_in_dir pnpm install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             22) run_in_dir go install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            23) run_in_dir dev-enhance install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            24) run_in_dir modern-cli install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            25) run_in_dir opencode install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            26) run_in_dir ollama install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            27) run_in_dir pi install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            28) manage_shutdown_timer ;;
-            29) manage_process_tool ;;
-            30) run_in_dir deskflow install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            31) run_in_dir safe-rm install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            32) manage_clash ;;
-            33) manage_multinet ;;
-            34) run_in_dir docker-image install.sh save; echo; read -r -p "按回车键返回主菜单..." ;;
+            23) run_in_dir rust install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            24) run_in_dir dev-enhance install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            25) run_in_dir modern-cli install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            26) run_in_dir opencode install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            27) run_in_dir ollama install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            28) run_in_dir pi install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            29) manage_shutdown_timer ;;
+            30) manage_process_tool ;;
+            31) run_in_dir deskflow install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            32) run_in_dir safe-rm install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            33) manage_clash ;;
+            34) manage_multinet ;;
+            35) run_in_dir docker-image install.sh save; echo; read -r -p "按回车键返回主菜单..." ;;
             s|S) show_installed_services ;;
             u|U)
                 while true; do
