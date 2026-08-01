@@ -229,6 +229,72 @@ status_go_module()        { run_in_dir go install.sh status; }
     if $INTERACTIVE; then read -r -p "按回车键返回主菜单..."; fi
 }
 
+# ---------------- 机器可读输出（供 AI agent / 脚本解析）----------------
+
+# --list-modules: TSV 输出模块名 + 支持的子命令
+show_list_modules() {
+    # 遍历所有模块目录，从 install.sh 的 usage 或 case 提取子命令
+    local mod
+    for mod_dir in "$SCRIPT_DIR"/*/; do
+        mod=$(basename "$mod_dir")
+        local script="$mod_dir/install.sh"
+        [[ -f "$script" ]] || continue
+        # 跳过非模块目录
+        case "$mod" in lib|tests|process_manager_tool) continue ;; esac
+        # 提取子命令：从 usage 行的 {install|...} 或 case 分支
+        local subs=""
+        local usage_line
+        usage_line=$(grep -m1 '用法:' "$script" 2>/dev/null)
+        if [[ "$usage_line" == *"{"*"}"* ]]; then
+            subs=$(echo "$usage_line" | sed 's/.*{//;s/}.*//' | tr '|' ' ')
+        fi
+        # 若 usage 没提取到，尝试从 case 分支提取
+        if [[ -z "$subs" ]]; then
+            subs=$(grep -oE '^\s+(install|uninstall|status|help|mirror|unmirror|start|stop|restart|enable|disable|pull|all|config|example|tun-on|tun-off|clear|list|setup|route-user|route-port|save)\)' "$script" 2>/dev/null | tr -d ' )' | sort -u | tr '\n' ' ')
+        fi
+        [[ -z "$subs" ]] && subs="install"
+        printf '%s\t%s\n' "$mod" "$subs"
+    done
+}
+
+# --status-json: key:value 格式输出各模块状态（无颜色、无 emoji）
+show_status_json() {
+    detect_os
+    detect_arch
+    echo "os:$OS_TYPE"
+    echo "arch:$ARCH_TYPE"
+    echo "version:$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"
+    # 遍历模块取 status（去 ANSI + emoji）
+    local mod
+    for mod_dir in "$SCRIPT_DIR"/*/; do
+        mod=$(basename "$mod_dir")
+        local script="$mod_dir/install.sh"
+        [[ -f "$script" ]] || continue
+        case "$mod" in lib|tests|process_manager_tool) continue ;; esac
+        # 调模块 status，去 ANSI 颜色码
+        local raw
+        raw=$(bash "$script" status 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' | head -1 || echo "unknown")
+        # 归一化：提取关键字
+        local val="unknown"
+        if echo "$raw" | grep -qiE '✅|已安装并运行'; then
+            val="installed:running"
+        elif echo "$raw" | grep -qiE '已安装但未运行|已安装，但|已安装但服务'; then
+            val="installed:stopped"
+        elif echo "$raw" | grep -qiE '已安装'; then
+            val="installed"
+        elif echo "$raw" | grep -qiE '未安装'; then
+            val="not_installed"
+        elif echo "$raw" | grep -qiE '不适用|仅 Linux'; then
+            val="n/a"
+        elif echo "$raw" | grep -qiE '已配置'; then
+            val="configured"
+        elif echo "$raw" | grep -qiE '未配置'; then
+            val="not_configured"
+        fi
+        printf '%s:%s\n' "$mod" "$val"
+    done
+}
+
 # ---------------- 执行安装脚本 ----------------
 run_install_script() {
     local script_path="$1"
@@ -697,6 +763,12 @@ show_usage() {
   -v, --version     显示版本
   -s, --status      查看所有模块的安装状态后退出（非交互）
   --list            列出可用模块名后退出
+  --list-modules    机器可读：模块名 + 支持子命令（TSV，供 AI/脚本）
+  --status-json     机器可读：模块状态 key:value（无颜色，供 AI/脚本）
+  check-update      检查远端是否有新版本（不修改本地）
+  update            安全检查 + 确认后执行 git pull 更新本地仓库
+  cli               安装全局命令 uxs 到 ~/.tools/bin（之后可在任意目录 uxs <子命令>）
+  uninstall-cli     卸载全局命令 uxs
   check-update      检查远端是否有新版本（不修改本地）
   update            安全检查 + 确认后执行 git pull 更新本地仓库
   cli               安装全局命令 uxs 到 ~/.tools/bin（之后可在任意目录 uxs <子命令>）
@@ -916,6 +988,14 @@ main() {
         -s|--status)  INTERACTIVE=false; show_installed_services; exit 0 ;;
         --list)
             echo "node_exporter ddns-go wireguard tailscale docker fail2ban openlist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm dev-mirror zsh minikube dev-tui bun pi deno pnpm go dev-enhance modern-cli opencode ollama deskflow shutdown_timer process_manager safe-rm clash multi-net docker-image"
+            exit 0
+            ;;
+        --list-modules)
+            show_list_modules
+            exit 0
+            ;;
+        --status-json)
+            show_status_json
             exit 0
             ;;
         check-update)
