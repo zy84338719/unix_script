@@ -749,7 +749,7 @@ dispatch_module() {
         pnpm)                       run_in_dir pnpm install.sh install ;;
         go|golang)                  run_in_dir go install.sh install ;;
         rust|rustup)                run_in_dir rust install.sh install ;;
-        sys-cmd|sys_cmd|syscmd)    run_in_dir sys-cmd install.sh all ;;
+        sys-cmd|sys_cmd|syscmd)    run_in_dir sys-cmd install.sh menu ;;
         dev-enhance)                run_in_dir dev-enhance install.sh install ;;
         modern-cli|modern_cli|moderncli) run_in_dir modern-cli install.sh install ;;
         opencode)                   run_in_dir opencode install.sh install ;;
@@ -1105,7 +1105,7 @@ interactive_main() {
             33) manage_clash ;;
             34) manage_multinet ;;
             35) run_in_dir docker-image install.sh save; echo; read -r -p "按回车键返回主菜单..." ;;
-            36) run_in_dir sys-cmd install.sh all; echo; read -r -p "按回车键返回主菜单..." ;;
+            36) run_in_dir sys-cmd install.sh menu; echo; read -r -p "按回车键返回主菜单..." ;;
             s|S) show_installed_services ;;
             u|U)
                 while true; do
