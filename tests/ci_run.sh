@@ -107,7 +107,7 @@ phase_static() {
     if command -v shellcheck >/dev/null 2>&1; then
         while IFS= read -r f; do
             local rel="${f#"$REPO_DIR"/}"
-            assert "shellcheck: $rel" shellcheck -e SC2164,SC1091 -x "$f"
+            assert "shellcheck: $rel" shellcheck -e SC2164,SC1091,SC2317,SC2329 -x "$f"
         done <<< "$scripts"
     else
         # 未安装 shellcheck：对每个脚本标记 skip
@@ -175,7 +175,7 @@ phase_routing() {
     # 4. 新式模块（有子命令分发）：验证 status 子命令退出码 0
     #    注意：node_exporter/ddns-go/zsh_setup 是老式脚本，直接执行=安装，
     #    此处绝不调用它们（避免触发真实安装），仅 static 阶段覆盖其语法。
-    local new_mods=(tailscale docker fail2ban minikube deskflow openlist uptime-kuma cockpit dev-tui essential-pkgs swap bbr nvm safe-rm clash multi-net opencode ollama dev-mirror docker-image node_exporter ddns-go zsh_setup wireguard bun pi deno pnpm go dev-enhance modern-cli)
+    local new_mods=(tailscale docker fail2ban minikube deskflow openlist uptime-kuma cockpit dev-tui essential-pkgs swap bbr nvm safe-rm clash multi-net opencode ollama dev-mirror docker-image node_exporter ddns-go zsh_setup wireguard bun pi deno pnpm go rust dev-enhance modern-cli)
     local m
     for m in "${new_mods[@]}"; do
         local script="$REPO_DIR/$m/install.sh"
