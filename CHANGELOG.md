@@ -4,6 +4,17 @@
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-08-01
+
+### 新增
+- **sys-cmd 模块**：系统诊断命令集（cpu/mem/port/ports/disk/du/net/top/logs/all），纯函数封装，自动适配 Linux（ss/netstat/ps/free）与 macOS（lsof/ps/vm_stat/sysctl）。
+- **交互菜单版本信息**：菜单头部显示当前版本 + 后台检查远端版本，有更新时醒目提示。
+- **菜单管理段 `c) 检查更新`**：显示版本对比，有更新时可一键 `do_self_update`。
+- **bootstrap 自动安装 uxs**：`curl|bash` 无参数时自动安装全局命令 uxs 到 `~/.tools/bin`。
+
+### 修复
+- **bootstrap `set -u`**：去掉 `set -u`，修复 `curl|bash` 管道模式下偶发 `unbound variable` 报错。
+
 ## [1.6.0] - 2026-08-01
 
 ### 新增
