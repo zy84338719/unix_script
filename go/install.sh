@@ -123,7 +123,9 @@ uninstall_go() {
     # 清理 shell rc 中的 Go PATH
     local rc
     for rc in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile"; do
-        [[ -f "$rc" ]] && sed -i.bak '/Go 环境\|\/usr\/local\/go\/bin\|GOPATH.\/bin/d' "$rc" 2>/dev/null || true
+        if [[ -f "$rc" ]]; then
+            sed -i.bak '/Go 环境\|\/usr\/local\/go\/bin\|GOPATH.\/bin/d' "$rc" 2>/dev/null || true
+        fi
     done
     success "Go 已卸载（$GO_DIR 已删除）"
     warn "GOPATH 数据保留在 ~/go，可手动删除"
