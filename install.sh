@@ -96,6 +96,7 @@ show_main_menu() {
     echo "  34) 多网卡策略路由   - 指定服务/用户/端口走指定网卡"
     echo "  35) Docker 镜像导出   - 拉取公网镜像并导出为 .tar.gz（离线分发/备份）"
     echo "  36) 系统诊断命令     - CPU/内存/端口/磁盘/网络 一眼看清系统状态"
+    echo "  37) upftp            - 轻量 FTP 文件分享（一条命令分享目录）"
     echo
     echo "  --- 管理 ---"
     echo "  s) 查看已安装状态    - 检查服务和环境的安装情况"
@@ -175,6 +176,7 @@ status_pnpm_module()      { run_in_dir pnpm install.sh status; }
 status_go_module()        { run_in_dir go install.sh status; }
 status_rust_module()      { run_in_dir rust install.sh status; }
 status_sys_cmd_module()  { run_in_dir sys-cmd install.sh status; }
+status_upftp_module()    { run_in_dir upftp install.sh status; }
 status_dev_enhance_module() { run_in_dir dev-enhance install.sh status; }
 status_modern_cli_module() { run_in_dir modern-cli install.sh status; }
 
@@ -212,9 +214,13 @@ show_installed_services() {
     echo "Go:             $(status_go_module)"
     echo "Rust:           $(status_rust_module)"
     echo "系统诊断命令:   $(status_sys_cmd_module)"
+    echo "upftp:          $(status_upftp_module)"
+status_upftp_module()    { run_in_dir upftp install.sh status; }
 status_sys_cmd_module()  { run_in_dir sys-cmd install.sh status; }
+status_upftp_module()    { run_in_dir upftp install.sh status; }
 status_rust_module()      { run_in_dir rust install.sh status; }
 status_sys_cmd_module()  { run_in_dir sys-cmd install.sh status; }
+status_upftp_module()    { run_in_dir upftp install.sh status; }
     echo "开发工具增强:   $(status_dev_enhance_module)"
     echo "现代 CLI 工具:  $(status_modern_cli_module)"
     echo
@@ -227,6 +233,7 @@ status_pnpm_module()      { run_in_dir pnpm install.sh status; }
 status_go_module()        { run_in_dir go install.sh status; }
 status_rust_module()      { run_in_dir rust install.sh status; }
 status_sys_cmd_module()  { run_in_dir sys-cmd install.sh status; }
+status_upftp_module()    { run_in_dir upftp install.sh status; }
     echo
     echo "--- 系统工具 ---"
     echo "自动关机任务:   $(check_shutdown_timer_status)"
@@ -750,6 +757,7 @@ dispatch_module() {
         go|golang)                  run_in_dir go install.sh install ;;
         rust|rustup)                run_in_dir rust install.sh install ;;
         sys-cmd|sys_cmd|syscmd)    run_in_dir sys-cmd install.sh menu ;;
+        upftp)                      run_in_dir upftp install.sh install ;;
         dev-enhance)                run_in_dir dev-enhance install.sh install ;;
         modern-cli|modern_cli|moderncli) run_in_dir modern-cli install.sh install ;;
         opencode)                   run_in_dir opencode install.sh install ;;
@@ -803,7 +811,7 @@ show_usage() {
   node_exporter | ddns-go | wireguard | tailscale | docker |
   fail2ban | openlist | uptime-kuma | cockpit |
   essential-pkgs | sys-setup | swap | bbr | nvm | dev-mirror |
-  zsh | minikube | dev-tui | bun | pi | deno | pnpm | go | rust | sys-cmd | dev-enhance | modern-cli | opencode | ollama | docker-image | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net
+  zsh | minikube | dev-tui | bun | pi | deno | pnpm | go | rust | sys-cmd | upftp | dev-enhance | modern-cli | opencode | ollama | docker-image | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net
 
 示例:
   $0                       # 进入交互式主菜单
@@ -1012,7 +1020,7 @@ main() {
         -v|--version) echo "unix_script $(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"; exit 0 ;;
         -s|--status)  INTERACTIVE=false; show_installed_services; exit 0 ;;
         --list)
-            echo "node_exporter ddns-go wireguard tailscale docker fail2ban openlist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm dev-mirror zsh minikube dev-tui bun pi deno pnpm go rust sys-cmd dev-enhance modern-cli opencode ollama deskflow shutdown_timer process_manager safe-rm clash multi-net docker-image"
+            echo "node_exporter ddns-go wireguard tailscale docker fail2ban openlist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm dev-mirror zsh minikube dev-tui bun pi deno pnpm go rust sys-cmd upftp dev-enhance modern-cli opencode ollama deskflow shutdown_timer process_manager safe-rm clash multi-net docker-image"
             exit 0
             ;;
         --list-modules)
@@ -1106,6 +1114,7 @@ interactive_main() {
             34) manage_multinet ;;
             35) run_in_dir docker-image install.sh save; echo; read -r -p "按回车键返回主菜单..." ;;
             36) run_in_dir sys-cmd install.sh menu; echo; read -r -p "按回车键返回主菜单..." ;;
+            37) run_in_dir upftp install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             s|S) show_installed_services ;;
             u|U)
                 while true; do
