@@ -914,7 +914,17 @@ main() {
             exit $?
             ;;
         -*) error "未知选项: $1"; show_usage; exit 1 ;;
-        *)  dispatch_module "$1" ;;
+        *)
+            # 支持透传模块子命令：如 `install.sh bun mirror`、`install.sh clash start`
+            # 当第一个参数是已知的模块目录、且第二个参数存在时，转发给该模块的 install.sh
+            if [[ $# -ge 2 ]] && [[ -d "$SCRIPT_DIR/$1" ]] && [[ -f "$SCRIPT_DIR/$1/install.sh" ]]; then
+                local mod="$1"; shift
+                info "执行模块 $mod: install.sh $*"
+                run_in_dir "$mod" install.sh "$@"
+            else
+                dispatch_module "$1"
+            fi
+            ;;
     esac
 }
 
