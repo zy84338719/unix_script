@@ -19,7 +19,9 @@
 #   UNIX_SCRIPT_REPO_URL     仓库地址（默认 HTTPS）
 #
 
-set -u
+set -e
+# 注意：不使用 set -u —— curl|bash 管道模式下，命令替换中的变量
+# 在子 shell 求值时可能偶发触发 unbound variable，导致用户看到报错。
 
 # ---------------- 配置 ----------------
 REPO_URL="${UNIX_SCRIPT_REPO_URL:-https://github.com/zy84338719/unix_script.git}"
