@@ -61,19 +61,20 @@ show_main_menu() {
     echo "  16) Zsh & Oh My Zsh  - 自动配置 Zsh 开发环境"
     echo "  17) minikube         - 本地 Kubernetes 开发环境 (kubectl + minikube)"
     echo "  18) 终端 TUI 工具    - lazydocker + lazygit"
+    echo "  19) Bun              - JavaScript/TypeScript 运行时与工具链"
     echo
     echo "  --- AI 工具 ---"
-    echo "  19) OpenCode         - 终端 AI 编程助手 (sst/opencode)"
-    echo "  20) Ollama           - 本地大模型运行时 (跑 Llama/Qwen/DeepSeek)"
+    echo "  20) OpenCode         - 终端 AI 编程助手 (sst/opencode)"
+    echo "  21) Ollama           - 本地大模型运行时 (跑 Llama/Qwen/DeepSeek)"
     echo
     echo "  --- 系统工具 ---"
-    echo "  21) 自动关机管理     - 设置临时或每日定时关机"
-    echo "  22) 进程管理工具     - 智能搜索和管理系统进程"
-    echo "  23) Deskflow         - 键鼠共享 (Flatpak, 仅 Linux 图形环境)"
-    echo "  24) safe-rm 回收站   - 安全删除替代 rm，防误删灾难"
-    echo "  25) Clash (mihomo)   - 代理核心 + 快速配置 + TUN 透明代理"
-    echo "  26) 多网卡策略路由   - 指定服务/用户/端口走指定网卡"
-    echo "  27) Docker 镜像导出   - 拉取公网镜像并导出为 .tar.gz（离线分发/备份）"
+    echo "  22) 自动关机管理     - 设置临时或每日定时关机"
+    echo "  23) 进程管理工具     - 智能搜索和管理系统进程"
+    echo "  24) Deskflow         - 键鼠共享 (Flatpak, 仅 Linux 图形环境)"
+    echo "  25) safe-rm 回收站   - 安全删除替代 rm，防误删灾难"
+    echo "  26) Clash (mihomo)   - 代理核心 + 快速配置 + TUN 透明代理"
+    echo "  27) 多网卡策略路由   - 指定服务/用户/端口走指定网卡"
+    echo "  28) Docker 镜像导出   - 拉取公网镜像并导出为 .tar.gz（离线分发/备份）"
     echo
     echo "  --- 管理 ---"
     echo "  s) 查看已安装状态    - 检查服务和环境的安装情况"
@@ -145,6 +146,7 @@ status_multinet_module()  { run_in_dir multi-net install.sh status; }
 status_docker_image_module() { run_in_dir docker-image install.sh status; }
 status_opencode_module()  { run_in_dir opencode install.sh status; }
 status_ollama_module()    { run_in_dir ollama install.sh status; }
+status_bun_module()       { run_in_dir bun install.sh status; }
 
 # ---------------- 已安装状态总览 ----------------
 show_installed_services() {
@@ -174,6 +176,7 @@ show_installed_services() {
     echo "Zsh 环境:       $(status_zsh_module)"
     echo "minikube:       $(status_minikube_module)"
     echo "终端 TUI 工具:  $(status_dev_tui_module)"
+    echo "Bun:            $(status_bun_module)"
     echo
     echo "--- AI 工具 ---"
     echo "OpenCode:       $(status_opencode_module)"
@@ -626,6 +629,7 @@ dispatch_module() {
         uptime-kuma|uptime_kuma)    run_in_dir uptime-kuma install.sh install ;;
         cockpit)                    run_in_dir cockpit install.sh install ;;
         dev-tui|dev_tui|tui)        run_in_dir dev-tui install.sh install ;;
+        bun)                        run_in_dir bun install.sh install ;;
         opencode)                   run_in_dir opencode install.sh install ;;
         ollama)                     run_in_dir ollama install.sh install ;;
         essential-pkgs|essential_pkgs|essential) run_in_dir essential-pkgs install.sh install ;;
@@ -671,7 +675,7 @@ show_usage() {
   node_exporter | ddns-go | wireguard | tailscale | docker |
   fail2ban | openlist | uptime-kuma | cockpit |
   essential-pkgs | sys-setup | swap | bbr | nvm | dev-mirror |
-  zsh | minikube | dev-tui | opencode | ollama | docker-image | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net
+  zsh | minikube | dev-tui | bun | opencode | ollama | docker-image | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net
 
 示例:
   $0                       # 进入交互式主菜单
@@ -880,7 +884,7 @@ main() {
         -v|--version) echo "unix_script $(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"; exit 0 ;;
         -s|--status)  INTERACTIVE=false; show_installed_services; exit 0 ;;
         --list)
-            echo "node_exporter ddns-go wireguard tailscale docker fail2ban openlist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm dev-mirror zsh minikube dev-tui opencode ollama deskflow shutdown_timer process_manager safe-rm clash multi-net docker-image"
+            echo "node_exporter ddns-go wireguard tailscale docker fail2ban openlist uptime-kuma cockpit essential-pkgs sys-setup swap bbr nvm dev-mirror zsh minikube dev-tui bun opencode ollama deskflow shutdown_timer process_manager safe-rm clash multi-net docker-image"
             exit 0
             ;;
         check-update)
@@ -938,15 +942,16 @@ interactive_main() {
             16) run_in_dir zsh_setup install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             17) run_in_dir minikube install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             18) run_in_dir dev-tui install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            19) run_in_dir opencode install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            20) run_in_dir ollama install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            21) manage_shutdown_timer ;;
-            22) manage_process_tool ;;
-            23) run_in_dir deskflow install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            24) run_in_dir safe-rm install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
-            25) manage_clash ;;
-            26) manage_multinet ;;
-            27) run_in_dir docker-image install.sh save; echo; read -r -p "按回车键返回主菜单..." ;;
+            19) run_in_dir bun install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            20) run_in_dir opencode install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            21) run_in_dir ollama install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            22) manage_shutdown_timer ;;
+            23) manage_process_tool ;;
+            24) run_in_dir deskflow install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            25) run_in_dir safe-rm install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            26) manage_clash ;;
+            27) manage_multinet ;;
+            28) run_in_dir docker-image install.sh save; echo; read -r -p "按回车键返回主菜单..." ;;
             s|S) show_installed_services ;;
             u|U)
                 while true; do
