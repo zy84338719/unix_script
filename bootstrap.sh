@@ -161,15 +161,22 @@ main() {
     check_deps
     clone_or_update
 
-    # 无参数时：默认安装 uxs 全局命令，然后进交互菜单
+    # 无参数时：更新仓库 + 确保 uxs 已装 + 打印状态摘要（不进交互菜单）
     if [[ $# -eq 0 ]]; then
         ensure_cli
-        run_install
-        local rc=$?
-        if [[ $rc -eq 0 ]]; then
-            show_alias_hint
+        # 打印安装状态摘要（而非进交互菜单，因为管道模式无法交互）
+        local install_script="$INSTALL_DIR/install.sh"
+        if [[ -f "$install_script" ]]; then
+            b_info "已安装模块状态："
+            bash "$install_script" --status-json 2>/dev/null | grep -vE '^(os|arch|version):' | head -20
+            echo "    （完整状态：uxs --status）"
+            echo
+            local ver
+            ver=$(bash "$install_script" --version 2>/dev/null | awk '{print $2}')
+            b_success "unix_script v${ver} 已就绪！"
         fi
-        exit $rc
+        show_alias_hint
+        exit 0
     fi
 
     # 有参数时：透传给 install.sh
