@@ -16,6 +16,10 @@ source "$SCRIPT_DIR/../lib/common.sh"
 
 OFFICIAL_INSTALLER="https://bun.sh/install"
 BUN_DIR="$HOME/.bun"
+BUNFIG="$HOME/.bunfig.toml"
+# 国内镜像（淘宝 npmmirror）
+MIRROR_REGISTRY="https://registry.npmmirror.com"
+OFFICIAL_REGISTRY="https://registry.npmjs.org"
 
 preflight() {
     detect_os
@@ -100,15 +104,84 @@ status_bun() {
     else
         echo -e "${RED}❌ 未安装${NC}"
     fi
+    # 显示当前 registry
+    local cur_reg="(默认官方源)"
+    if [[ -f "$BUNFIG" ]] && grep -q "registry" "$BUNFIG" 2>/dev/null; then
+        cur_reg=$(grep -E "^registry" "$BUNFIG" | head -1 | sed 's/.*= *"\?\([^"]*\)"\?.*/\1/')
+    fi
+    echo "   registry: $cur_reg"
+}
+
+# 跨平台设置 bunfig.toml 的 registry（兼容 macOS BSD sed 与 Linux GNU sed）。
+# 重建 [install] 段：保留其他段，[install] 段只保留 registry（覆盖）。
+# 参数: <registry_url>
+_set_registry() {
+    local reg="$1"
+    local tmp
+    tmp=$(mktemp)
+    # 备份
+    [[ -f "$BUNFIG" ]] && cp -a "$BUNFIG" "$BUNFIG.bak.$(date +%s)"
+    # 提取 [install] 段之外的行（即不在 [install] 段的内容），用 awk 跨平台
+    if [[ -f "$BUNFIG" ]]; then
+        awk -v inst=0 '
+            /^\[install\]/ { inst=1; next }
+            /^\[/ { inst=0 }
+            inst==0 { print }
+        ' "$BUNFIG" > "$tmp"
+    fi
+    # 追加新的 [install] 段（含 registry）
+    {
+        # 若提取后有内容且不以空行结尾，补一个空行
+        if [[ -s "$tmp" ]]; then
+            cat "$tmp"
+            tail -1 "$tmp" | grep -q '.' && echo ""
+        fi
+        printf '[install]\nregistry = "%s"\n' "$reg"
+    } > "$BUNFIG"
+    rm -f "$tmp"
+}
+
+# 换国内镜像源（写入 ~/.bunfig.toml）
+mirror_bun() {
+    detect_os
+    info "🌐 为 Bun 配置国内镜像源（$MIRROR_REGISTRY）"
+    _set_registry "$MIRROR_REGISTRY"
+    success "已配置 registry = $MIRROR_REGISTRY（写入 $BUNFIG）"
+    # 清理 bun 缓存使新源生效
+    if command_exists bun; then
+        info "清理 Bun 安装缓存..."
+        bun pm cache rm >/dev/null 2>&1 || true
+    fi
+    info "验证：bun install 时将从国内镜像拉取"
+}
+
+# 还原官方源
+unmirror_bun() {
+    detect_os
+    if [[ ! -f "$BUNFIG" ]]; then
+        info "无 $BUNFIG，已是官方源"; return 0
+    fi
+    info "还原 Bun 官方源（$OFFICIAL_REGISTRY）"
+    _set_registry "$OFFICIAL_REGISTRY"
+    success "已还原 registry = $OFFICIAL_REGISTRY"
+    if command_exists bun; then
+        bun pm cache rm >/dev/null 2>&1 || true
+    fi
+    success "已还原 registry = $OFFICIAL_REGISTRY"
+    if command_exists bun; then
+        bun pm cache rm >/dev/null 2>&1 || true
+    fi
 }
 
 usage() {
     cat <<EOF
-用法: $0 {install|uninstall|status|help}
+用法: $0 {install|mirror|unmirror|uninstall|status|help}
 
   install     安装 Bun（JavaScript/TypeScript 运行时，默认动作）
+  mirror      配置国内镜像源（淘宝 npmmirror，加速 bun install）
+  unmirror    还原官方源
   uninstall   卸载
-  status      查看状态
+  status      查看状态（含当前 registry）
 EOF
 }
 
@@ -117,6 +190,8 @@ main() {
     detect_os
     case "$action" in
         install)   install_bun ;;
+        mirror)    mirror_bun ;;
+        unmirror)  unmirror_bun ;;
         uninstall) uninstall_bun ;;
         status)    status_bun ;;
         help|--help|-h) usage ;;
