@@ -4,6 +4,30 @@
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-08-01
+
+### 新增
+- **deno 模块**：Deno 运行时（包装 deno.land/install.sh，macOS 优先 brew）
+- **pnpm 模块**：Node.js 包管理器（包装 get.pnpm.io/install.sh，macOS 优先 brew）
+- **go 模块**：Go 语言环境（官方二进制 tarball，macOS 优先 brew）
+- **rust 模块**：Rust 语言环境（rustup 安装器，macOS 优先 brew install rustup）
+- **pi 模块**：Pi AI 编程代理框架（pi.dev，多模型/可扩展）
+- **dev-enhance 模块**：开发工具增强（Neovim+LazyVim / git 增强 delta diff 高亮 / tmux 配置+tpm）
+- **modern-cli 模块**：现代 CLI 工具集（bat/eza/ripgrep/fd/fzf/zoxide/starship + shell 集成）
+- **AI agent 友好**：`AGENTS.md`（AI agent 使用说明）+ `--list-modules`（TSV 机器可读模块清单）+ `--status-json`（key:value 状态）+ `NO_COLOR` 环境变量支持
+- **模块子命令透传**：`install.sh bun mirror`、`install.sh clash start` 等
+- **新服务器一键配置教程**：`docs/NEW_SERVER_GUIDE.md`
+- **bun 国内镜像加速**：`bun mirror` / `bun unmirror` 子命令
+
+### 变更
+- **macOS brew 优先**：rust/go/node_exporter/dev-tui 在 macOS 上优先用 brew 安装（统一版本/服务/卸载管理）
+- **清理 docs/superpowers**：移除无引用的设计笔记遗留
+- **CI 排除 SC2317/SC2329**：status 函数间接调用导致的 shellcheck 误报
+
+### 修复
+- bootstrap.sh `old_ver` 初始化防御（curl|bash 管道模式偶发 unbound variable）
+- bun status registry 解析改用 Parameter Expansion（跨平台兼容 macOS BSD sed）
+
 ## [1.5.1] - 2026-08-01
 
 ### 新增
