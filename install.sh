@@ -84,42 +84,6 @@ show_main_menu() {
 }
 
 # ---------------- 状态检查函数 ----------------
-check_service_status() {
-    local service_name="$1"
-    local binary_path="$2"
-    local service_file="$3"
-
-    local is_installed=false
-    local is_running=false
-    local version=""
-
-    if command -v "$service_name" &> /dev/null || [ -f "$binary_path" ]; then
-        is_installed=true
-        if command -v "$service_name" &> /dev/null; then
-            version=$("$service_name" --version 2>/dev/null | head -1 || echo "未知版本")
-        fi
-    fi
-
-    if [[ "$OS_TYPE" == "linux" ]]; then
-        if systemctl is-active --quiet "$service_name" 2>/dev/null; then
-            is_running=true
-        fi
-    elif [[ "$OS_TYPE" == "darwin" ]]; then
-        if sudo launchctl list | grep -q "$service_file" 2>/dev/null; then
-            is_running=true
-        fi
-    fi
-
-    if $is_installed; then
-        if $is_running; then
-            echo -e "${GREEN}✅ 已安装并运行${NC} ($version)"
-        else
-            echo -e "${YELLOW}⚠️  已安装但未运行${NC} ($version)"
-        fi
-    else
-        echo -e "${RED}❌ 未安装${NC}"
-    fi
-}
 
 check_shutdown_timer_status() {
     local is_configured=false
@@ -137,40 +101,7 @@ check_shutdown_timer_status() {
     fi
 }
 
-check_wireguard_status() {
-    local wg_installed=false
-    local service_running=false
-    local interface="wg0"
-    command -v wg &> /dev/null && wg_installed=true
-    if [[ "$OS_TYPE" == "linux" ]]; then
-        systemctl is-active --quiet "wg-quick@${interface}" 2>/dev/null && service_running=true
-    elif [[ "$OS_TYPE" == "darwin" ]]; then
-        sudo launchctl list | grep -q "com.wireguard.${interface}" 2>/dev/null && service_running=true
-    fi
-    if $wg_installed; then
-        if $service_running; then
-            echo -e "${GREEN}✅ 已安装并运行${NC} (接口: ${interface})"
-        else
-            echo -e "${YELLOW}⚠️  已安装但服务未运行${NC}"
-        fi
-    else
-        echo -e "${RED}❌ 未安装${NC}"
-    fi
-}
 
-check_zsh_status() {
-    local zsh_installed=false
-    local omz_installed=false
-    command -v zsh &> /dev/null && zsh_installed=true
-    [ -d "$HOME/.oh-my-zsh" ] && omz_installed=true
-    if $zsh_installed && $omz_installed; then
-        echo -e "${GREEN}✅ Zsh & Oh My Zsh 已安装${NC}"
-    elif $zsh_installed; then
-        echo -e "${YELLOW}⚠️  已安装 Zsh，但未安装 Oh My Zsh${NC}"
-    else
-        echo -e "${RED}❌ 未安装${NC}"
-    fi
-}
 
 check_process_manager_status() {
     local is_installed=false
@@ -190,6 +121,10 @@ check_process_manager_status() {
 
 # Tailscale / Docker / Fail2ban / minikube / deskflow 状态委托给各模块的 status 子命令
 status_tailscale_module() { run_in_dir tailscale install.sh status; }
+status_node_exporter_module() { run_in_dir node_exporter install.sh status; }
+status_ddns_go_module()    { run_in_dir ddns-go install.sh status; }
+status_wireguard_module()  { run_in_dir wireguard install.sh status; }
+status_zsh_module()        { run_in_dir zsh_setup install.sh status; }
 status_docker_module()    { run_in_dir docker install.sh status; }
 status_fail2ban_module()  { run_in_dir fail2ban install.sh status; }
 status_minikube_module()  { run_in_dir minikube install.sh status; }
@@ -218,9 +153,9 @@ show_installed_services() {
     echo "========================================"
 
     echo "--- 服务 ---"
-    echo "Node Exporter:  $(check_service_status "node_exporter" "/usr/local/bin/node_exporter" "com.prometheus.node_exporter")"
-    echo "DDNS-GO:        $(check_service_status "ddns-go" "/opt/ddns-go/ddns-go" "jeessy.ddns-go")"
-    echo "WireGuard:      $(check_wireguard_status)"
+    echo "Node Exporter:  $(status_node_exporter_module)"
+    echo "DDNS-GO:        $(status_ddns_go_module)"
+    echo "WireGuard:      $(status_wireguard_module)"
     echo "Tailscale:      $(status_tailscale_module)"
     echo "Docker:         $(status_docker_module)"
     echo "Fail2ban:       $(status_fail2ban_module)"
@@ -236,7 +171,7 @@ show_installed_services() {
     echo "dev-mirror:     $(status_dev_mirror_module)"
     echo
     echo "--- 开发环境 ---"
-    echo "Zsh 环境:       $(check_zsh_status)"
+    echo "Zsh 环境:       $(status_zsh_module)"
     echo "minikube:       $(status_minikube_module)"
     echo "终端 TUI 工具:  $(status_dev_tui_module)"
     echo
@@ -294,52 +229,6 @@ run_install_script() {
 }
 
 # ---------------- WireGuard 子菜单 ----------------
-manage_wireguard() {
-    local script_path="$SCRIPT_DIR/wireguard/install.sh"
-    if [ ! -f "$script_path" ]; then
-        error "脚本不存在: $script_path"
-        sleep 2
-        return
-    fi
-    chmod +x "$script_path"
-
-    while true; do
-        clear
-        header "🔧 WireGuard 管理"
-        echo "========================================"
-        echo "当前状态:"
-        local wg_tool_state
-        if command -v wg &>/dev/null; then
-            wg_tool_state="${GREEN}✅ 已安装${NC}"
-        else
-            wg_tool_state="${RED}❌ 未安装${NC}"
-        fi
-        echo "  - WireGuard 工具: $wg_tool_state"
-        local wg_status_output
-        wg_status_output=$(check_wireguard_status)
-        if [[ $wg_status_output == *"运行"* ]]; then
-            echo -e "  - 开机自启服务: ${GREEN}✅ 已配置并运行${NC}"
-        elif [[ $wg_status_output == *"未运行"* ]]; then
-            echo -e "  - 开机自启服务: ${YELLOW}⚠️  已配置但未运行${NC}"
-        else
-            echo -e "  - 开机自启服务: ${RED}❌ 未配置${NC}"
-        fi
-        echo
-        menu "请选择操作:"
-        echo "  1) 安装/更新 WireGuard 工具"
-        echo "  2) 配置/重置开机自启服务"
-        echo "  0) 返回主菜单"
-        echo "========================================"
-        read -r -p "请输入选项 [0-2]: " wg_choice
-
-        case $wg_choice in
-            1) info "正在调用 WireGuard 工具安装脚本..."; "$script_path" install_tools; echo; read -r -p "按回车键继续..." ;;
-            2) info "正在调用 WireGuard 服务配置脚本..."; "$script_path" configure_service; echo; read -r -p "按回车键继续..." ;;
-            0) break ;;
-            *) error "无效选项，请重新输入！"; sleep 1 ;;
-        esac
-    done
-}
 
 # ---------------- Docker 管理（含国内镜像源） ----------------
 manage_docker() {
@@ -641,73 +530,10 @@ manage_process_tool() {
 # ============================================================
 # 卸载相关
 # ============================================================
-uninstall_node_exporter() {
-    info "正在卸载 Node Exporter..."
-    if [[ "$OS_TYPE" == "linux" ]]; then
-        sudo systemctl stop node_exporter &>/dev/null || true
-        sudo systemctl disable node_exporter &>/dev/null || true
-        sudo rm -f /etc/systemd/system/node_exporter.service
-        sudo systemctl daemon-reload &>/dev/null || true
-        sudo rm -f /usr/local/bin/node_exporter
-        id "node_exporter" &>/dev/null && sudo userdel node_exporter
-    elif [[ "$OS_TYPE" == "darwin" ]]; then
-        sudo launchctl bootout system /Library/LaunchDaemons/com.prometheus.node_exporter.plist &>/dev/null || true
-        sudo rm -f /Library/LaunchDaemons/com.prometheus.node_exporter.plist
-        sudo rm -f /usr/local/bin/node_exporter
-        sudo rm -f /var/log/node_exporter.log /var/log/node_exporter.err
-    fi
-    success "Node Exporter 已成功卸载！"
-}
 
-uninstall_ddns_go() {
-    info "正在卸载 DDNS-GO..."
-    if [[ "$OS_TYPE" == "linux" ]]; then
-        sudo systemctl stop ddns-go &>/dev/null || true
-        sudo systemctl disable ddns-go &>/dev/null || true
-        sudo rm -rf /opt/ddns-go
-        sudo systemctl daemon-reload
-    elif [[ "$OS_TYPE" == "darwin" ]]; then
-        sudo launchctl bootout system /Library/LaunchDaemons/jeessy.ddns-go.plist &>/dev/null || true
-        sudo rm -f /Library/LaunchDaemons/jeessy.ddns-go.plist
-        sudo rm -rf /opt/ddns-go
-    fi
-    success "DDNS-GO 已成功卸载！"
-}
 
-uninstall_wireguard() {
-    local script_path="$SCRIPT_DIR/wireguard/install.sh"
-    [ -f "$script_path" ] || { error "脚本不存在: $script_path"; return; }
-    info "正在卸载 WireGuard 开机自启服务..."
-    "$script_path" uninstall_service
-    echo
-    if yes_no "是否删除 wireguard 目录下的 .conf 配置文件？"; then
-        if [[ "$OS_TYPE" == "linux" ]]; then
-            sudo rm -f /etc/wireguard/*.conf
-        elif [[ "$OS_TYPE" == "darwin" ]]; then
-            sudo rm -f /usr/local/etc/wireguard/*.conf
-        fi
-        success "配置文件已删除。"
-    fi
-    warn "服务已移除。要完全卸载，请使用包管理器 (apt/brew 等) 手动移除 'wireguard-tools'。"
-    success "WireGuard 卸载完成！"
-}
 
 # 卸载 Zsh & Oh My Zsh（显示说明）
-uninstall_zsh_omz() {
-    warn "卸载 Zsh 和 Oh My Zsh 是一个敏感操作，建议手动执行以避免风险。"
-    info "Oh My Zsh 官方提供了一个卸载脚本，您可以运行它："
-    echo "  uninstall_oh_my_zsh"
-    echo
-    info "卸载 Zsh 本身，请使用系统的包管理器，例如："
-    echo "  - Ubuntu/Debian: sudo apt-get remove --purge zsh"
-    echo "  - CentOS/RHEL:   sudo yum remove zsh"
-    echo "  - macOS (Homebrew): brew uninstall zsh"
-    echo
-    warn "在卸载 Zsh 之前，请务必将您的默认 shell 切换回 bash 或其他 shell！"
-    echo "  chsh -s /bin/bash"
-    echo
-    info "更多详细信息，请参考项目的 README.md 文档。"
-}
 
 # 卸载菜单
 show_uninstall_menu() {
@@ -749,16 +575,16 @@ show_uninstall_menu() {
 do_uninstall() {
     local choice="$1"
     case $choice in
-        1) if yes_no "确认卸载 Node Exporter？"; then uninstall_node_exporter; fi ;;
-        2) if yes_no "确认卸载 DDNS-GO？"; then uninstall_ddns_go; fi ;;
-        3) if yes_no "确认卸载 WireGuard 服务和相关配置？"; then uninstall_wireguard; fi ;;
+        1) if yes_no "确认卸载 Node Exporter？"; then run_in_dir node_exporter install.sh uninstall; fi ;;
+        2) if yes_no "确认卸载 DDNS-GO？"; then run_in_dir ddns-go install.sh uninstall; fi ;;
+        3) if yes_no "确认卸载 WireGuard 服务和相关配置？"; then run_in_dir wireguard install.sh uninstall; fi ;;
         4) run_in_dir tailscale install.sh uninstall ;;
         5) run_in_dir docker install.sh uninstall ;;
         6) run_in_dir fail2ban install.sh uninstall ;;
         7) run_in_dir openlist install.sh uninstall ;;
         8) run_in_dir uptime-kuma install.sh uninstall ;;
         9) run_in_dir cockpit install.sh uninstall ;;
-        10) uninstall_zsh_omz ;;
+        10) run_in_dir zsh_setup install.sh uninstall ;;
         11) run_in_dir minikube install.sh uninstall ;;
         12) run_in_dir dev-tui install.sh uninstall ;;
         13) uninstall_shutdown_timer ;;
@@ -790,9 +616,9 @@ do_uninstall() {
 dispatch_module() {
     local name="$1"
     case "$name" in
-        node_exporter|nodeexporter) run_install_script "$SCRIPT_DIR/node_exporter/install.sh" "Node Exporter" ;;
-        ddns-go|ddnsgo|ddns)        run_install_script "$SCRIPT_DIR/ddns-go/install.sh" "DDNS-GO" ;;
-        wireguard|wg)               "$SCRIPT_DIR/wireguard/install.sh" install_tools ;;
+        node_exporter|nodeexporter) run_in_dir node_exporter install.sh install ;;
+        ddns-go|ddnsgo|ddns)        run_in_dir ddns-go install.sh install ;;
+        wireguard|wg)               run_in_dir wireguard install.sh install ;;
         tailscale|ts)               run_in_dir tailscale install.sh install ;;
         docker)                     run_in_dir docker install.sh install ;;
         fail2ban|f2b)               run_in_dir fail2ban install.sh install ;;
@@ -813,7 +639,7 @@ dispatch_module() {
         clash|mihomo)               run_in_dir clash install.sh install ;;
         multi-net|multinet|multi_net) run_in_dir multi-net install.sh list ;;
         docker-image|docker_image|dockerimage) run_in_dir docker-image install.sh save ;;
-        zsh)                        run_install_script "$SCRIPT_DIR/zsh_setup/install.sh" "Zsh & Oh My Zsh" ;;
+        zsh)                        run_in_dir zsh_setup install.sh install ;;
         minikube)                   run_in_dir minikube install.sh install ;;
         deskflow)                   run_in_dir deskflow install.sh install ;;
         shutdown|shutdown_timer)    manage_shutdown_timer ;;
@@ -1094,9 +920,9 @@ interactive_main() {
         show_main_menu
         read -r -p "请输入选项: " choice
         case $choice in
-            1) run_install_script "$SCRIPT_DIR/node_exporter/install.sh" "Node Exporter" ;;
-            2) run_install_script "$SCRIPT_DIR/ddns-go/install.sh" "DDNS-GO" ;;
-            3) manage_wireguard ;;
+            1) run_in_dir node_exporter install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            2) run_in_dir ddns-go install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
+            3) run_in_dir wireguard install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             4) run_in_dir tailscale install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             5) manage_docker ;;
             6) run_in_dir fail2ban install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
@@ -1109,7 +935,7 @@ interactive_main() {
             13) run_in_dir bbr install.sh enable; echo; read -r -p "按回车键返回主菜单..." ;;
             14) run_in_dir nvm install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             15) manage_dev_mirror ;;
-            16) run_install_script "$SCRIPT_DIR/zsh_setup/install.sh" "Zsh & Oh My Zsh" ;;
+            16) run_in_dir zsh_setup install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             17) run_in_dir minikube install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             18) run_in_dir dev-tui install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;
             19) run_in_dir opencode install.sh install; echo; read -r -p "按回车键返回主菜单..." ;;

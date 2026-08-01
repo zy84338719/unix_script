@@ -175,7 +175,7 @@ phase_routing() {
     # 4. 新式模块（有子命令分发）：验证 status 子命令退出码 0
     #    注意：node_exporter/ddns-go/zsh_setup 是老式脚本，直接执行=安装，
     #    此处绝不调用它们（避免触发真实安装），仅 static 阶段覆盖其语法。
-    local new_mods=(tailscale docker fail2ban minikube deskflow openlist uptime-kuma cockpit dev-tui essential-pkgs swap bbr nvm safe-rm clash multi-net opencode ollama dev-mirror docker-image)
+    local new_mods=(tailscale docker fail2ban minikube deskflow openlist uptime-kuma cockpit dev-tui essential-pkgs swap bbr nvm safe-rm clash multi-net opencode ollama dev-mirror docker-image node_exporter ddns-go zsh_setup wireguard)
     local m
     for m in "${new_mods[@]}"; do
         local script="$REPO_DIR/$m/install.sh"
@@ -184,25 +184,10 @@ phase_routing() {
         assert "$m: help (exit 0)" bash "$script" help
     done
 
-    # 5. 老式模块：仅验证脚本存在与可执行性（不触发安装）
-    local legacy_mods=(node_exporter ddns-go zsh_setup)
-    for m in "${legacy_mods[@]}"; do
-        local script="$REPO_DIR/$m/install.sh"
-        if [[ -f "$script" ]]; then
-            report_row "$m: 脚本存在" pass
-        else
-            report_row "$m: 脚本存在" fail "缺失"
-        fi
-    done
-
-    # 6. wireguard：验证其支持的子命令路由（install_tools/configure_service/uninstall_service）
-    assert "wireguard: 不带参数显示菜单 (exit 0)" bash -c "echo '4' | \"$REPO_DIR/wireguard/install.sh\" >/dev/null 2>&1"
-    assert "wireguard: 非法子命令报错 (exit 1)" bash -c "! \"$REPO_DIR/wireguard/install.sh\" __bad__ >/dev/null 2>&1"
-
-    # 7. shutdown_timer 的非交互入口存在且可调用（取消接口）
+    # 5. shutdown_timer 的非交互入口存在且可调用（取消接口）
     assert "shutdown_timer: cancel 接口存在" bash -c "grep -q cancel_daily_shutdown_internal \"$REPO_DIR/shutdown_timer/shutdown_timer.sh\""
 
-    # 8. process_manager_tool 脚本就绪
+    # 6. process_manager_tool 脚本就绪
     assert "pm_wrapper: --version (exit 0)" bash "$REPO_DIR/process_manager_tool/pm_wrapper.sh" --version
 
     # 9. dev-mirror 模块集成断言
