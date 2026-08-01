@@ -4,12 +4,20 @@
 
 ## [Unreleased]
 
-### 修复
-- **修复 `curl|bash` 无参数时菜单卡死/刷屏的 bug**：stdin 来自管道（非 TTY）时，`interactive_main` 的 `read` 收到 EOF 导致无限循环。现改为检测非 TTY 无参场景，优雅打印帮助+使用提示后退出 0，并引导用户「带参数运行」或「先 clone 再交互运行」。
+## [1.5.1] - 2026-08-01
+
+### 新增
+- **`bun` 模块**：安装 Bun（JavaScript/TypeScript 运行时与工具链），包装官方脚本 `bun.sh/install`（macOS 优先 brew），用户态安装无需 sudo；接入主菜单开发环境段（选项 19）。
+- **Bun 国内镜像加速**：`bun mirror` 一键配置淘宝 npmmirror（写入 `~/.bunfig.toml` + 清缓存），`unmirror` 还原官方源，`status` 显示当前 registry。跨平台实现（awk 重建 `[install]` 段，兼容 macOS BSD 与 Linux GNU sed）。
 
 ### 变更
+- **4 个遗留模块统一为标准子命令接口**（`install/uninstall/status/help`）：node_exporter、ddns-go、zsh_setup、wireguard。卸载/状态逻辑从 `install.sh` 搬入各模块，删除 `install.sh` 中 178 行内联代码（8 个搬走的函数 + manage_wireguard 子菜单）；`ci_run.sh` 将这 4 个模块从 legacy_mods 移入 new_mods，至此全部 24 个模块统一走标准测试。
+- **审计修复**：README 与 show_usage 模块名列表补齐 `docker-image`；CHANGELOG 按 Keep a Changelog 规范重组（版本严格降序）；ci_run.sh "9 模块"过时标签改为动态断言；minikube `print_*` 别名迁移为 common 的 `info/success/warn/error`（全库命名统一）。
+
+### 修复
+- **修复 `curl|bash` 无参数时菜单卡死/刷屏的 bug**：stdin 来自管道（非 TTY）时，`interactive_main` 的 `read` 收到 EOF 导致无限循环。现改为检测非 TTY 无参场景，优雅打印帮助+使用提示后退出 0，并引导用户「带参数运行」或「先 clone 再交互运行」。
 - **`bootstrap.sh` 完善幂等与日常使用提示**：更新分支增加版本号对比（显示「已是最新 / 已更新 X→Y」）；重写「日常使用」提示，明确「首次与更新同一条 `curl|bash` 命令」+ 常用非交互参数速查。
-- **README 新增「日常使用（幂等）」小节**：讲清 curl|bash 的幂等语义、参数透传、以及「管道模式无法进交互菜单」的限制与替代方案。
+- README 新增「日常使用（幂等）」小节。
 - `install.sh` show_usage 模块名列表补齐 `dev-mirror`。
 
 ## [1.5.0] - 2026-07-31
