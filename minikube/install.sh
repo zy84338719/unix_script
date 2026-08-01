@@ -1,17 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
-# 引入公共函数库（颜色码与打印函数统一）
+# 引入公共函数库（颜色码与打印函数统一：info/success/warn/error/header）
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../lib/common.sh
 source "$SCRIPT_DIR/../lib/common.sh"
-
-# 适配别名：本模块内部沿用 print_* 命名，映射到 common 的统一函数
-print_info()    { info "$1"; }
-print_success() { success "$1"; }
-print_warning() { warn "$1"; }
-print_error()   { error "$1"; }
-print_header()  { header "=== $1 ==="; }
 
 # 全局变量
 OS_TYPE=""
@@ -26,19 +19,19 @@ PREFERRED_DRIVER="auto"
 
 # 检查操作系统和架构
 check_system() {
-    print_info "检测系统信息..."
+    info "检测系统信息..."
     
     case "$(uname -s)" in
         Darwin*)
             OS_TYPE="darwin"
-            print_info "检测到 macOS 系统"
+            info "检测到 macOS 系统"
             ;;
         Linux*)
             OS_TYPE="linux"
-            print_info "检测到 Linux 系统"
+            info "检测到 Linux 系统"
             ;;
         *)
-            print_error "不支持的操作系统: $(uname -s)"
+            error "不支持的操作系统: $(uname -s)"
             exit 1
             ;;
     esac
@@ -51,12 +44,12 @@ check_system() {
             ARCH="arm64"
             ;;
         *)
-            print_error "不支持的架构: $(uname -m)"
+            error "不支持的架构: $(uname -m)"
             exit 1
             ;;
     esac
     
-    print_success "系统: $OS_TYPE-$ARCH"
+    success "系统: $OS_TYPE-$ARCH"
 }
 
 # 解析参数（支持 --yes 和 --driver）
@@ -86,7 +79,7 @@ parse_args() {
 
 # 检查依赖
 check_dependencies() {
-    print_info "检查依赖项..."
+    info "检查依赖项..."
     
     local missing_deps=()
     
@@ -98,21 +91,21 @@ check_dependencies() {
     done
     
     if [[ ${#missing_deps[@]} -gt 0 ]]; then
-        print_error "缺少依赖项: ${missing_deps[*]}"
-        print_info "请先安装这些工具"
+        error "缺少依赖项: ${missing_deps[*]}"
+        info "请先安装这些工具"
         
         if [[ "$OS_TYPE" == "darwin" ]]; then
-            print_info "在 macOS 上，您可以使用 Homebrew 安装："
-            print_info "brew install ${missing_deps[*]}"
+            info "在 macOS 上，您可以使用 Homebrew 安装："
+            info "brew install ${missing_deps[*]}"
         elif [[ "$OS_TYPE" == "linux" ]]; then
-            print_info "在 Linux 上，您可以使用包管理器安装："
-            print_info "sudo apt update && sudo apt install -y ${missing_deps[*]}"
-            print_info "或者: sudo yum install -y ${missing_deps[*]}"
+            info "在 Linux 上，您可以使用包管理器安装："
+            info "sudo apt update && sudo apt install -y ${missing_deps[*]}"
+            info "或者: sudo yum install -y ${missing_deps[*]}"
         fi
         exit 1
     fi
     
-    print_success "所有依赖项都已安装"
+    success "所有依赖项都已安装"
 }
 
 # 自动检测可用驱动
@@ -146,7 +139,7 @@ detect_driver() {
 
 # 获取最新版本号
 get_latest_versions() {
-    print_info "获取最新版本信息..."
+    info "获取最新版本信息..."
     
     # 获取 kubectl 最新版本
     if command -v curl >/dev/null 2>&1; then
@@ -156,7 +149,7 @@ get_latest_versions() {
     fi
     
     if [[ -z "$KUBECTL_VERSION" ]]; then
-        print_warning "无法获取 kubectl 最新版本，使用默认版本 v1.28.0"
+        warn "无法获取 kubectl 最新版本，使用默认版本 v1.28.0"
         KUBECTL_VERSION="v1.28.0"
     fi
     
@@ -168,32 +161,32 @@ get_latest_versions() {
     fi
     
     if [[ -z "$MINIKUBE_VERSION" ]]; then
-        print_warning "无法获取 minikube 最新版本，使用默认版本 v1.32.0"
+        warn "无法获取 minikube 最新版本，使用默认版本 v1.32.0"
         MINIKUBE_VERSION="v1.32.0"
     fi
     
-    print_success "kubectl 版本: $KUBECTL_VERSION"
-    print_success "minikube 版本: $MINIKUBE_VERSION"
+    success "kubectl 版本: $KUBECTL_VERSION"
+    success "minikube 版本: $MINIKUBE_VERSION"
 }
 
 # 创建安装目录
 create_install_dir() {
-    print_info "创建安装目录..."
+    info "创建安装目录..."
     
     mkdir -p "$INSTALL_DIR/bin"
     mkdir -p "$INSTALL_DIR/config"
     
-    print_success "安装目录已创建: $INSTALL_DIR"
+    success "安装目录已创建: $INSTALL_DIR"
 }
 
 # 安装 kubectl
 install_kubectl() {
-    print_header "安装 kubectl"
+    header "安装 kubectl"
     
     local kubectl_url="https://dl.k8s.io/release/$KUBECTL_VERSION/bin/$OS_TYPE/$ARCH/kubectl"
     local kubectl_path="$INSTALL_DIR/bin/kubectl"
     
-    print_info "下载 kubectl $KUBECTL_VERSION..."
+    info "下载 kubectl $KUBECTL_VERSION..."
     
     if command -v curl >/dev/null 2>&1; then
         curl -L "$kubectl_url" -o "$kubectl_path"
@@ -205,20 +198,20 @@ install_kubectl() {
     
     # 验证安装
     if "$kubectl_path" version --client >/dev/null 2>&1; then
-        print_success "kubectl 安装成功"
+        success "kubectl 安装成功"
     else
-        print_error "kubectl 安装失败"
+        error "kubectl 安装失败"
         exit 1
     fi
 }
 
 # 安装 minikube
 install_minikube() {
-    print_header "安装 minikube"
+    header "安装 minikube"
     local minikube_url="https://github.com/kubernetes/minikube/releases/download/$MINIKUBE_VERSION/minikube-$OS_TYPE-$ARCH"
     local minikube_path="$INSTALL_DIR/bin/minikube"
 
-    print_info "下载 minikube $MINIKUBE_VERSION..."
+    info "下载 minikube $MINIKUBE_VERSION..."
 
     if command -v curl >/dev/null 2>&1; then
         curl -L "$minikube_url" -o "$minikube_path"
@@ -230,21 +223,21 @@ install_minikube() {
 
     # 验证安装
     if "$minikube_path" version >/dev/null 2>&1; then
-        print_success "minikube 安装成功"
+        success "minikube 安装成功"
     else
-        print_error "minikube 安装失败"
+        error "minikube 安装失败"
         exit 1
     fi
 
     # 如果指定或检测到驱动，建议用户在启动时使用该驱动
     local detected_driver
     detected_driver=$(detect_driver)
-    print_info "建议的驱动: $detected_driver (可使用 --driver 参数覆盖)"
+    info "建议的驱动: $detected_driver (可使用 --driver 参数覆盖)"
 }
 
 # 配置环境变量
 setup_environment() {
-    print_header "配置环境变量"
+    header "配置环境变量"
     
     local shell_rc=""
     case "$SHELL" in
@@ -261,7 +254,7 @@ setup_environment() {
     
     # 检查 PATH 是否已经包含安装目录
     if ! echo "$PATH" | grep -q "$INSTALL_DIR/bin"; then
-        print_info "添加 $INSTALL_DIR/bin 到 PATH..."
+        info "添加 $INSTALL_DIR/bin 到 PATH..."
         
         {
             echo ""
@@ -269,16 +262,16 @@ setup_environment() {
             echo "export PATH=\"$INSTALL_DIR/bin:\$PATH\""
         } >> "$shell_rc"
         
-        print_success "环境变量已添加到 $shell_rc"
-        print_warning "请运行 'source $shell_rc' 或重新打开终端以生效"
+        success "环境变量已添加到 $shell_rc"
+        warn "请运行 'source $shell_rc' 或重新打开终端以生效"
     else
-        print_info "PATH 中已包含 minikube 安装目录"
+        info "PATH 中已包含 minikube 安装目录"
     fi
 }
 
 # 创建启动脚本
 create_start_script() {
-    print_header "创建启动脚本"
+    header "创建启动脚本"
     
     cat > "$INSTALL_DIR/start-minikube.sh" << 'EOF'
 #!/usr/bin/env bash
