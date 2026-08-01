@@ -107,7 +107,12 @@ status_bun() {
     # 显示当前 registry
     local cur_reg="(默认官方源)"
     if [[ -f "$BUNFIG" ]] && grep -q "registry" "$BUNFIG" 2>/dev/null; then
-        cur_reg=$(grep -E "^registry" "$BUNFIG" | head -1 | sed 's/.*= *"\?\([^"]*\)"\?.*/\1/')
+        # 从 "registry = \"url\"" 提取 url（用 Parameter Expansion 避免 sed 跨平台问题）
+        local reg_line
+        reg_line=$(grep -E "^registry" "$BUNFIG" | head -1)
+        cur_reg=${reg_line#*=}
+        cur_reg=${cur_reg//\"/}
+        cur_reg=${cur_reg// /}
     fi
     echo "   registry: $cur_reg"
 }

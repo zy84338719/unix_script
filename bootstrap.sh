@@ -55,11 +55,11 @@ clone_or_update() {
     if [[ -d "$INSTALL_DIR/.git" ]]; then
         # 已存在：尝试更新（幂等——第二次运行即更新）
         b_info "发现已有安装：$INSTALL_DIR"
-        local old_ver
+        local old_ver="未知"
         old_ver=$(cat "$INSTALL_DIR/VERSION" 2>/dev/null || echo "未知")
         b_info "当前版本：$old_ver，拉取最新更新..."
         if git -C "$INSTALL_DIR" pull --ff-only origin 2>/dev/null; then
-            local new_ver
+            local new_ver="未知"
             new_ver=$(cat "$INSTALL_DIR/VERSION" 2>/dev/null || echo "未知")
             if [[ "$old_ver" == "$new_ver" ]]; then
                 b_success "已是最新版本（$new_ver）"
