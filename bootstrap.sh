@@ -126,10 +126,32 @@ show_alias_hint() {
     echo "    ./install.sh                # 交互式菜单"
     echo "    ./install.sh update         # 更新到最新版本（需确认）"
     echo
-    b_info "可选：安装为全局命令 uxs，免去每次进目录："
-    echo "    \"$INSTALL_DIR/install.sh\" cli        # 安装到 ~/.tools/bin（自动配置 PATH）"
-    echo "    # source ~/.zshrc 后即可在任意目录：uxs --status / uxs docker-image"
-    echo "    # 卸载：\"$INSTALL_DIR/install.sh\" uninstall-cli"
+    b_info "全局命令 uxs 已安装，重新加载 shell 后可在任意目录使用："
+    echo "    source ~/.zshrc 2>/dev/null || source ~/.bashrc 2>/dev/null"
+    echo "    uxs --status        # 查看安装状态"
+    echo "    uxs docker          # 安装某模块"
+    echo "    uxs --list-modules  # 列出模块（AI 友好）"
+    echo
+    b_info "日后更新仍用同一条命令："
+    echo "    curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstrap.sh | bash"
+}
+
+# ---------------- 安装全局命令 uxs ----------------
+ensure_cli() {
+    local install_script="$INSTALL_DIR/install.sh"
+    if [[ ! -f "$install_script" ]]; then
+        return 0
+    fi
+    # 如果 uxs 尚未安装，自动安装
+    if ! command -v uxs >/dev/null 2>&1; then
+        b_info "正在安装全局命令 uxs（之后可在任意目录使用 uxs）..."
+        bash "$install_script" cli >/dev/null 2>&1 || true
+        if command -v uxs >/dev/null 2>&1; then
+            b_success "uxs 已安装！重新加载 shell 后即可使用"
+        else
+            b_info "uxs 安装到 ~/.tools/bin，请重新加载 shell：source ~/.zshrc（或 ~/.bashrc）"
+        fi
+    fi
 }
 
 # ---------------- 主函数 ----------------
@@ -138,8 +160,20 @@ main() {
     echo "───────────────────────────────"
     check_deps
     clone_or_update
+
+    # 无参数时：默认安装 uxs 全局命令，然后进交互菜单
+    if [[ $# -eq 0 ]]; then
+        ensure_cli
+        run_install
+        local rc=$?
+        if [[ $rc -eq 0 ]]; then
+            show_alias_hint
+        fi
+        exit $rc
+    fi
+
+    # 有参数时：透传给 install.sh
     run_install "$@"
-    # 安装脚本退出码非 0 时不显示别名提示（避免干扰错误信息）
     local rc=$?
     if [[ $rc -eq 0 ]]; then
         show_alias_hint
