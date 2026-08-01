@@ -107,7 +107,7 @@ phase_static() {
     if command -v shellcheck >/dev/null 2>&1; then
         while IFS= read -r f; do
             local rel="${f#"$REPO_DIR"/}"
-            assert "shellcheck: $rel" shellcheck -e SC2164,SC1091 -x "$f"
+            assert "shellcheck: $rel" shellcheck -e SC2164,SC1091,SC2317,SC2329 -x "$f"
         done <<< "$scripts"
     else
         # 未安装 shellcheck：对每个脚本标记 skip

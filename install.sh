@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
-# status_*_module 函数通过 $(...) 命令替换被间接调用，SC2329 为误报
-# shellcheck disable=SC2329
+# status_*_module 函数通过 $(...) 命令替换被间接调用，SC2329/SC2317 为误报
+# shellcheck disable=SC2329,SC2317
 
 # 引入公共函数库
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
