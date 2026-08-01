@@ -37,6 +37,17 @@ show_main_menu() {
     header "🚀 一键安装脚本 - 服务与环境管理工具"
     echo "========================================"
     show_system_info
+    # 版本信息 + 更新检查
+    local current_ver; current_ver=$(get_local_version 2>/dev/null || echo unknown)
+    echo "脚本版本:      v${current_ver}"
+    # 后台检查更新（不阻塞菜单）
+    check_for_update 2>/dev/null || true
+    if [[ "${UPDATE_AVAILABLE:-}" == "true" ]]; then
+        echo -e "最新版本:      ${YELLOW}v${REMOTE_LATEST}${NC} ${YELLOW}(有更新！输入 c 检查/更新)${NC}"
+    else
+        echo "最新版本:      v${current_ver}（已是最新）"
+    fi
+    echo "───────────────────────────────"
 
     menu "请选择要安装的服务或配置环境："
     echo
@@ -88,6 +99,7 @@ show_main_menu() {
     echo "  --- 管理 ---"
     echo "  s) 查看已安装状态    - 检查服务和环境的安装情况"
     echo "  u) 卸载服务/环境     - 移除已安装的服务或环境"
+    echo "  c) 检查更新          - 检查并更新到最新版本"
     echo "  q) 退出"
     echo
     echo "========================================"
@@ -1095,6 +1107,26 @@ interactive_main() {
                         break
                     fi
                 done
+                ;;
+            c|C)
+                clear
+                header "🔄 检查更新"
+                echo "========================================"
+                info "当前版本：v$(get_local_version)"
+                if check_for_update 2>/dev/null; then
+                    warn "检测到新版本：v$(get_local_version) → v${REMOTE_LATEST}"
+                    if yes_no "是否立即更新？"; then
+                        do_self_update
+                    fi
+                else
+                    if [[ -n "${REMOTE_LATEST:-}" ]]; then
+                        success "已是最新版本：v$(get_local_version)"
+                    else
+                        warn "无法获取远端版本（网络问题或未发布 release）"
+                    fi
+                fi
+                echo
+                read -r -p "按回车键返回主菜单..."
                 ;;
             q|Q|0) info "感谢使用！再见！"; exit 0 ;;
             *) error "无效选项，请重新输入！"; sleep 1 ;;
