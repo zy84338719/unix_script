@@ -2,11 +2,32 @@
 
 本文件记录 unix_script 项目的显著变更。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
 
+## [Unreleased]
+
+### 修复
+- **修复 `curl|bash` 无参数时菜单卡死/刷屏的 bug**：stdin 来自管道（非 TTY）时，`interactive_main` 的 `read` 收到 EOF 导致无限循环。现改为检测非 TTY 无参场景，优雅打印帮助+使用提示后退出 0，并引导用户「带参数运行」或「先 clone 再交互运行」。
+
+### 变更
+- **`bootstrap.sh` 完善幂等与日常使用提示**：更新分支增加版本号对比（显示「已是最新 / 已更新 X→Y」）；重写「日常使用」提示，明确「首次与更新同一条 `curl|bash` 命令」+ 常用非交互参数速查。
+- **README 新增「日常使用（幂等）」小节**：讲清 curl|bash 的幂等语义、参数透传、以及「管道模式无法进交互菜单」的限制与替代方案。
+- `install.sh` show_usage 模块名列表补齐 `dev-mirror`。
+
 ## [1.5.0] - 2026-07-31
 
 ### 新增
 - **`docker-image` 模块**：从公网拉取 Docker 镜像并导出为 gzip 压缩 `.tar.gz`（离线分发/备份）；交互式逐步引导（镜像名→目录→文件名），支持批量循环、本地已有时询问、导出摘要（digest/大小/耗时）；接入主菜单（选项 27）。
 - **`uxs` 全局命令**：`install.sh cli` 将脚本库安装为全局命令 `uxs`（位于 `~/.tools/bin`，自动配置 bash/zsh/fish 的 PATH），之后可在任意目录 `uxs docker-image` / `uxs --status` 等；`install.sh uninstall-cli` 卸载。
+
+## [1.4.0] - 2026-07-31
+
+### 新增
+- **`dev-mirror` 模块**：开发换源加速统一入口，覆盖 npm（+ yarn/pnpm）、Go（GOPROXY）、Rust（cargo）、Python（pip）四大生态；每生态内置多个国内镜像（默认推荐：淘宝/goproxy.cn/清华/清华），支持交互选择、`install all default` 一键批量、自定义 URL；写用户级配置无需 sudo；接入主菜单（选项 15）、状态页、卸载菜单、非交互 CLI。
+
+### 变更
+- **合并并删除 `npm-mirror` 模块**：其能力已并入 `dev-mirror` 的 npm 分支。`install.sh npm-mirror` 别名保留以向后兼容（路由到 dev-mirror）。
+
+### 修复
+- 修复 CI ubuntu 静态检查（shellcheck 0.8.0）报错：`lib/common.sh` SC2002（useless cat）、`check_dependencies.sh` SC2086（未引用变量）。本地 0.11.0 不报，CI ubuntu 0.8.0 报，已用 docker 复现并验证修复。
 
 ## [1.3.1] - 2026-07-31
 
@@ -20,27 +41,6 @@
 
 ### 修复
 - routing 测试 `install.sh update` 断言不再依赖工作区是否 clean（改用 `</dev/null` 取消 + 对比 HEAD 前后），根治间歇性误报。
-
-## [1.4.0] - 2026-07-31
-
-### 新增
-- **`dev-mirror` 模块**：开发换源加速统一入口，覆盖 npm（+ yarn/pnpm）、Go（GOPROXY）、Rust（cargo）、Python（pip）四大生态；每生态内置多个国内镜像（默认推荐：淘宝/goproxy.cn/清华/清华），支持交互选择、`install all default` 一键批量、自定义 URL；写用户级配置无需 sudo；接入主菜单（选项 15）、状态页、卸载菜单、非交互 CLI。
-
-### 变更
-- **合并并删除 `npm-mirror` 模块**：其能力已并入 `dev-mirror` 的 npm 分支。`install.sh npm-mirror` 别名保留以向后兼容（路由到 dev-mirror）。
-
-### 修复
-- 修复 CI ubuntu 静态检查（shellcheck 0.8.0）报错：`lib/common.sh` SC2002（useless cat）、`check_dependencies.sh` SC2086（未引用变量）。本地 0.11.0 不报，CI ubuntu 0.8.0 报，已用 docker 复现并验证修复。
-
-## [Unreleased]
-
-### 修复
-- **修复 `curl|bash` 无参数时菜单卡死/刷屏的 bug**：stdin 来自管道（非 TTY）时，`interactive_main` 的 `read` 收到 EOF 导致无限循环。现改为检测非 TTY 无参场景，优雅打印帮助+使用提示后退出 0，并引导用户「带参数运行」或「先 clone 再交互运行」。
-
-### 变更
-- **`bootstrap.sh` 完善幂等与日常使用提示**：更新分支增加版本号对比（显示「已是最新 / 已更新 X→Y」）；重写「日常使用」提示，明确「首次与更新同一条 `curl|bash` 命令」+ 常用非交互参数速查。
-- **README 新增「日常使用（幂等）」小节**：讲清 curl|bash 的幂等语义、参数透传、以及「管道模式无法进交互菜单」的限制与替代方案。
-- `install.sh` show_usage 模块名列表补齐 `dev-mirror`。
 
 ## [1.3.0] - 2026-07-31
 

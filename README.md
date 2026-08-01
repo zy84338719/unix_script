@@ -122,7 +122,7 @@ chmod +x install.sh
 ./install.sh update         # 安全检查 + 确认后 git pull 更新
 ```
 
-可用模块名：`node_exporter | ddns-go | wireguard | tailscale | docker | fail2ban | openlist | uptime-kuma | cockpit | essential-pkgs | sys-setup | swap | bbr | nvm | dev-mirror | zsh | minikube | dev-tui | opencode | ollama | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net`
+可用模块名：`node_exporter | ddns-go | wireguard | tailscale | docker | fail2ban | openlist | uptime-kuma | cockpit | essential-pkgs | sys-setup | swap | bbr | nvm | dev-mirror | zsh | minikube | dev-tui | opencode | ollama | docker-image | deskflow | shutdown_timer | process_manager | safe-rm | clash | multi-net`
 
 ### 单独安装某模块
 

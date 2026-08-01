@@ -133,7 +133,8 @@ phase_routing() {
     # 2. install.sh CLI
     assert "install.sh --help (exit 0)" bash "$REPO_DIR/install.sh" --help
     assert "install.sh --version (含版本号)" bash -c "\"$REPO_DIR/install.sh\" --version | grep -q 'unix_script'"
-    assert "install.sh --list (列出 9 模块)" bash -c "\"$REPO_DIR/install.sh\" --list | grep -q tailscale && \"$REPO_DIR/install.sh\" --list | grep -q fail2ban"
+    assert "install.sh --list (含关键模块)" bash -c "\"$REPO_DIR/install.sh\" --list | grep -q tailscale && \"$REPO_DIR/install.sh\" --list | grep -q fail2ban"
+    assert "install.sh --list (模块数 >= 20)" bash -c "[ \$($REPO_DIR/install.sh --list | wc -w) -ge 20 ]"
     # --status 会调用 sudo launchctl/systemctl；仅在有免密 sudo 时断言（CI runner 满足）
     if sudo -n true 2>/dev/null; then
         assert "install.sh --status (非交互正常退出)" bash -c "\"$REPO_DIR/install.sh\" --status >/dev/null 2>&1"
