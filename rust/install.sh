@@ -40,11 +40,17 @@ install_rust() {
         return 0
     fi
 
-    info "通过官方 rustup 安装（$RUSTUP_INSTALLER）..."
-    # rustup 安装器：-y 跳过所有交互确认，使用默认配置
-    if ! curl --proto '=https' --tlsv1.2 -sSf "$RUSTUP_INSTALLER" | bash -s -- -y; then
-        error "rustup 安装失败，请检查网络或参考 https://rustup.rs"
-        exit 1
+    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+        info "通过 Homebrew 安装 rustup..."
+        brew install rustup
+        rustup-init -y --no-modify-path 2>/dev/null || true
+    else
+        info "通过官方 rustup 安装（$RUSTUP_INSTALLER）..."
+        # rustup 安装器：-y 跳过所有交互确认，使用默认配置
+        if ! curl --proto '=https' --tlsv1.2 -sSf "$RUSTUP_INSTALLER" | bash -s -- -y; then
+            error "rustup 安装失败，请检查网络或参考 https://rustup.rs"
+            exit 1
+        fi
     fi
 
     # rustup 装到 ~/.cargo/bin，当前 session 可能不在 PATH

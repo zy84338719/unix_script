@@ -46,8 +46,19 @@ arch_suffix() {
 
 install_go() {
     preflight
-    require_sudo
     info "🐹 安装 Go（Golang）"
+
+    # macOS 优先 brew（无需 sudo，自动管理）
+    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+        info "通过 Homebrew 安装 Go..."
+        brew install go
+        success "Go 安装完成（brew 管理版本）"
+        echo "  go version          # 查看版本"
+        echo "  go env GOPATH       # 查看 GOPATH"
+        return 0
+    fi
+
+    require_sudo
 
     if [[ -x "$GO_BIN" ]]; then
         local cur

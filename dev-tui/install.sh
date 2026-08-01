@@ -85,8 +85,17 @@ install_one() {
 install_dev_tui() {
     preflight
     info "🚀 开始安装终端 TUI 工具（lazydocker + lazygit）"
-    mkdir -p "$INSTALL_DIR"
 
+    # macOS 优先 brew
+    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+        info "通过 Homebrew 安装..."
+        brew install lazydocker lazygit
+        success "lazydocker + lazygit 安装完成（brew 管理）"
+        info "使用：lazydocker / lazygit"
+        return 0
+    fi
+
+    mkdir -p "$INSTALL_DIR"
     install_one "jesseduffield/lazydocker" "lazydocker" || warn "lazydocker 安装失败"
     install_one "jesseduffield/lazygit" "lazygit" || warn "lazygit 安装失败"
 

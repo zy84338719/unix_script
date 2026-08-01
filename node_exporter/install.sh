@@ -67,12 +67,25 @@ check_existing_installation() {
 # 安装
 install_node_exporter() {
     check_os
-    check_permissions
     check_dependencies
     check_existing_installation
 
     info "🚀 Node Exporter 跨平台安装脚本"
     echo "=========================================="
+
+    # macOS 优先 brew（含 launchd 服务管理）
+    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+        info "通过 Homebrew 安装 node_exporter..."
+        brew install node_exporter
+        brew services start node_exporter 2>/dev/null || true
+        local ip_addr; ip_addr=$(get_local_ip)
+        success "🎉 Node Exporter 安装完成！（brew 管理）"
+        info "指标地址：http://${ip_addr}:9100/metrics"
+        info "常用命令：brew services info node_exporter"
+        return 0
+    fi
+
+    check_permissions
 
     # 获取最新版本号
     info "正在获取最新版本信息..."
