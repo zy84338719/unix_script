@@ -26,6 +26,18 @@ bunx prettier --version # 执行本地/远程 CLI（替代 npx）
 
 若 `~/.bun/bin` 不在 PATH，脚本会提示添加：`export PATH="$HOME/.bun/bin:$PATH"`
 
+## 🇨🇳 国内镜像加速
+
+`bun install` 默认从 npm 官方源拉包，国内较慢。一键切换国内镜像（淘宝 npmmirror）：
+
+```bash
+./bun/install.sh mirror      # 切换到国内镜像源（写入 ~/.bunfig.toml）
+./bun/install.sh unmirror    # 还原官方源
+./bun/install.sh status      # 查看当前 registry
+```
+
+实现：写入 `~/.bunfig.toml` 的 `[install]` 段 `registry = "https://registry.npmmirror.com"`，并清空 Bun 缓存使新源立即生效。切换前自动备份原 bunfig。
+
 ## 状态与卸载
 
 ```bash
