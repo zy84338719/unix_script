@@ -205,11 +205,51 @@ status_sys_cmd() {
     echo -e "${GREEN}✅ 可用${NC}（纯命令封装，无需安装）"
 }
 
+# ---- 交互式菜单 ----
+interactive_menu() {
+    while true; do
+        clear
+        header "🔍 系统诊断命令"
+        echo "========================================"
+        echo "  1) 系统概览        - 负载/内存/CPU核心"
+        echo "  2) CPU 占用 TOP10"
+        echo "  3) 内存占用 TOP10"
+        echo "  4) 磁盘空间        - df -h"
+        echo "  5) 目录占用 TOP10  - du（当前目录）"
+        echo "  6) 网络连接统计"
+        echo "  7) 监听端口一览"
+        echo "  8) 查端口占用      - 需输入端口号"
+        echo "  9) 系统日志入口提示"
+        echo "  a) 全部展示"
+        echo "  0) 返回主菜单"
+        echo "========================================"
+        read -r -p "请选择 [0-9/a]: " choice
+        echo
+        case "$choice" in
+            1) cmd_top ;;
+            2) cmd_cpu ;;
+            3) cmd_mem ;;
+            4) cmd_disk ;;
+            5) cmd_du ;;
+            6) cmd_net ;;
+            7) cmd_ports ;;
+            8) read -r -p "输入端口号: " p; cmd_port "$p" ;;
+            9) cmd_logs ;;
+            a|A) cmd_all ;;
+            0) break ;;
+            *) error "无效选项"; sleep 1; continue ;;
+        esac
+        echo
+        read -r -p "按回车键继续..."
+    done
+}
+
 usage() {
     cat <<EOF
-用法: $0 {cpu|mem|port|ports|disk|du|net|top|logs|all|status|help}
+用法: $0 {cpu|mem|port|ports|disk|du|net|top|logs|all|menu|status|help}
 
 系统诊断命令集（Linux + macOS）:
+  menu        交互式菜单（默认动作）
   cpu         CPU 占用 TOP10 进程
   mem         内存占用 TOP10 进程
   port <端口> 占用指定端口的进程（如 port 8080）
@@ -224,7 +264,7 @@ EOF
 }
 
 main() {
-    local action="${1:-help}"
+    local action="${1:-menu}"
     detect_os
     case "$action" in
         cpu)    cmd_cpu ;;
@@ -237,6 +277,7 @@ main() {
         top)    cmd_top ;;
         logs)   cmd_logs ;;
         all)    cmd_all ;;
+        menu)   interactive_menu ;;
         status) status_sys_cmd ;;
         help|--help|-h) usage ;;
         *) error "未知操作: $action"; usage; exit 1 ;;
