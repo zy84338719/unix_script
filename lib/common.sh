@@ -33,6 +33,12 @@ CYAN='\033[0;36m'
 PURPLE='\033[0;35m'
 NC='\033[0m' # No Color
 
+# NO_COLOR 支持：设置 NO_COLOR=1 或管道（非 TTY）时清除颜色码
+# 遵循 https://no-color.org 标准
+if [[ -n "${NO_COLOR:-}" ]] || [[ ! -t 1 ]]; then
+    RED='' GREEN='' YELLOW='' BLUE='' CYAN='' PURPLE='' NC=''
+fi
+
 # ---------------- 打印函数（统一命名：info/success/warn/error/header/menu） ----------------
 info()    { echo -e "${BLUE}[INFO]${NC} $1"; }
 success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
