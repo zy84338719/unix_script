@@ -185,13 +185,65 @@ uninstall_service() {
     fi
 }
 
+# --- 状态 ---
+status_wireguard() {
+    local wg_installed=false service_running=false interface="wg0"
+    command_exists wg && wg_installed=true
+    if [[ "$OS" == "Linux" ]]; then
+        systemctl is-active --quiet "wg-quick@${interface}" 2>/dev/null && service_running=true
+    elif [[ "$OS" == "Darwin" ]]; then
+        sudo launchctl list 2>/dev/null | grep -q "com.wireguard.${interface}" && service_running=true
+    fi
+    if $wg_installed; then
+        if $service_running; then
+            echo -e "${GREEN}✅ 已安装并运行${NC} (接口: ${interface})"
+        else
+            echo -e "${YELLOW}⚠️  已安装但服务未运行${NC}"
+        fi
+    else
+        echo -e "${RED}❌ 未安装${NC}"
+    fi
+}
+
+# --- 完整卸载（服务 + 配置） ---
+uninstall_wireguard_full() {
+    detect_os
+    check_privileges
+    uninstall_service
+    echo
+    if yes_no "是否删除 wireguard 目录下的 .conf 配置文件？"; then
+        if [[ "$OS" == "Linux" ]]; then
+            sudo rm -f /etc/wireguard/*.conf
+        elif [[ "$OS" == "Darwin" ]]; then
+            sudo rm -f /usr/local/etc/wireguard/*.conf
+        fi
+        success "配置文件已删除。"
+    fi
+    warn "服务已移除。要完全卸载，请使用包管理器 (apt/brew 等) 手动移除 'wireguard-tools'。"
+    success "WireGuard 卸载完成！"
+}
+
+usage() {
+    cat <<EOF
+用法: $0 {install|uninstall|status|help}  (兼容旧词 install_tools/configure_service/uninstall_service)
+
+  install              安装 WireGuard 工具（同 install_tools）
+  uninstall            卸载服务 + 询问删除 .conf（完整卸载）
+  status               查看安装与运行状态
+  configure_service    配置开机自启（保留旧名）
+EOF
+}
+
 # --- Main Execution ---
 main() {
     # If an argument is provided, execute the corresponding function non-interactively.
     if [ -n "$1" ]; then
         case "$1" in
-            install_tools)
+            install|install_tools)
                 install_tools
+                ;;
+            uninstall)
+                uninstall_wireguard_full
                 ;;
             configure_service)
                 configure_service
@@ -199,9 +251,15 @@ main() {
             uninstall_service)
                 uninstall_service
                 ;;
+            status)
+                status_wireguard
+                ;;
+            help|--help|-h)
+                usage
+                ;;
             *)
                 error "Invalid action: $1"
-                echo "Usage: $0 {install_tools|configure_service|uninstall_service}"
+                usage
                 exit 1
                 ;;
         esac
@@ -211,28 +269,20 @@ main() {
         echo "Select an option:"
         echo "  1. Install WireGuard Tools"
         echo "  2. Configure Auto-start Service"
-        echo "  3. Uninstall Auto-start Service"
-        echo "  4. Exit"
-        
+        echo "  3. Uninstall (service + config)"
+        echo "  4. Status"
+        echo "  5. Exit"
+
         local choice
-        read -r -p "Enter choice [1-4]: " choice
+        read -r -p "Enter choice [1-5]: " choice
 
         case $choice in
-            1)
-                install_tools
-                ;;
-            2)
-                configure_service
-                ;;
-            3)
-                uninstall_service
-                ;;
-            4)
-                info "Exiting."
-                ;;
-            *)
-                error "Invalid option. Please try again."
-                ;;
+            1) install_tools ;;
+            2) configure_service ;;
+            3) uninstall_wireguard_full ;;
+            4) status_wireguard ;;
+            5) info "Exiting." ;;
+            *) error "Invalid option. Please try again." ;;
         esac
     fi
 }

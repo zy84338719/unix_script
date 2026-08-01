@@ -145,8 +145,8 @@ change_default_shell() {
 }
 
 
-# --- Main Execution ---
-main() {
+# --- 安装流程 ---
+install_zsh_setup() {
     info "Starting Zsh & Oh My Zsh environment setup..."
 
     # Check for required tools
@@ -166,5 +166,56 @@ main() {
     warn "Please restart your terminal or log out and log back in to apply all changes."
 }
 
-# Run the main function
-main
+# --- 状态 ---
+status_zsh_setup() {
+    local zsh_installed=false omz_installed=false
+    command_exists zsh && zsh_installed=true
+    [ -d "$HOME/.oh-my-zsh" ] && omz_installed=true
+    if $zsh_installed && $omz_installed; then
+        echo -e "${GREEN}✅ Zsh & Oh My Zsh 已安装${NC}"
+    elif $zsh_installed; then
+        echo -e "${YELLOW}⚠️  已安装 Zsh，但未安装 Oh My Zsh${NC}"
+    else
+        echo -e "${RED}❌ 未安装${NC}"
+    fi
+}
+
+# --- 卸载说明（敏感操作，仅给出指引） ---
+uninstall_zsh_setup() {
+    warn "卸载 Zsh 和 Oh My Zsh 是一个敏感操作，建议手动执行以避免风险。"
+    info "Oh My Zsh 官方提供了一个卸载脚本，您可以运行它："
+    echo "  uninstall_oh_my_zsh"
+    echo
+    info "卸载 Zsh 本身，请使用系统的包管理器，例如："
+    echo "  - Ubuntu/Debian: sudo apt-get remove --purge zsh"
+    echo "  - CentOS/RHEL:   sudo yum remove zsh"
+    echo "  - macOS (Homebrew): brew uninstall zsh"
+    echo
+    warn "在卸载 Zsh 之前，请务必将您的默认 shell 切换回 bash 或其他 shell！"
+    echo "  chsh -s /bin/bash"
+}
+
+usage() {
+    cat <<EOF
+用法: $0 {install|uninstall|status|help}
+
+  install     安装 Zsh + Oh My Zsh + 插件（默认动作）
+  uninstall   显示卸载说明（敏感操作，手动执行）
+  status      查看安装状态
+EOF
+}
+
+main() {
+    local action="${1:-install}"
+    case "$action" in
+        install)   install_zsh_setup ;;
+        uninstall) uninstall_zsh_setup ;;
+        status)    status_zsh_setup ;;
+        help|--help|-h) usage ;;
+        *) error "未知操作: $action"; usage; exit 1 ;;
+    esac
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
