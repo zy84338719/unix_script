@@ -49,8 +49,9 @@ uxs --status
 ./install.sh doctor
 
 # Tab 补全（bash / zsh）
-source completions/uxs.bash   # bash
-source completions/uxs.zsh    # zsh
+./install.sh completions       # 一键安装到 shell 配置
+source completions/uxs.bash    # 或手动 source（bash）
+source completions/uxs.zsh     # 或手动 source（zsh）
 ```
 
 ## 模块列表

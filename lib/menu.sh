@@ -337,6 +337,7 @@ show_usage() {
   doctor            环境诊断：检查运行 unix_script 所需的前提条件
   cli               安装全局命令 uxs 到 ~/.tools/bin（之后可在任意目录 uxs <子命令>）
   uninstall-cli     卸载全局命令 uxs
+  completions       安装 Tab 自动补全到当前 shell 配置
 
 模块名（用于非交互安装）:
   $mod_list

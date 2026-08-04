@@ -172,6 +172,10 @@ main() {
             uninstall_cli
             exit $?
             ;;
+        completions)
+            install_completions
+            exit $?
+            ;;
         scaffold)
             if [[ $# -lt 2 ]]; then
                 error "用法: ./install.sh scaffold <module_name> [--category <分类>] [--label <标签>]"

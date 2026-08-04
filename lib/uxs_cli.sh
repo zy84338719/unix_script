@@ -145,3 +145,73 @@ uninstall_cli() {
         warn "无需清理的内容"
     fi
 }
+
+# ---------------- Tab 补全安装 ----------------
+install_completions() {
+    detect_os
+    detect_shell_rc
+
+    header "🔧 安装 Tab 补全"
+    echo "───────────────────────────────"
+
+    local comp_dir="$SCRIPT_DIR/completions"
+    local installed=false
+
+    # Bash 补全
+    if [[ "$UXS_USER_SHELL" == "bash" ]]; then
+        local bash_comp="$comp_dir/uxs.bash"
+        if [[ ! -f "$bash_comp" ]]; then
+            error "未找到 $bash_comp"
+            return 1
+        fi
+        local source_line="source \"$bash_comp\""
+        if grep -qF "$bash_comp" "$UXS_SHELL_RC" 2>/dev/null; then
+            info "Bash 补全已在 $UXS_SHELL_RC 中配置"
+        else
+            {
+                echo ""
+                echo "# unix_script Tab 补全（由 install.sh completions 添加）"
+                echo "$source_line"
+            } >> "$UXS_SHELL_RC"
+            success "已添加 Bash 补全到 $UXS_SHELL_RC"
+            installed=true
+        fi
+    # Zsh 补全
+    elif [[ "$UXS_USER_SHELL" == "zsh" ]]; then
+        local zsh_comp="$comp_dir/uxs.zsh"
+        if [[ ! -f "$zsh_comp" ]]; then
+            error "未找到 $zsh_comp"
+            return 1
+        fi
+        local source_line="source \"$zsh_comp\""
+        if grep -qF "$zsh_comp" "$UXS_SHELL_RC" 2>/dev/null; then
+            info "Zsh 补全已在 $UXS_SHELL_RC 中配置"
+        else
+            {
+                echo ""
+                echo "# unix_script Tab 补全（由 install.sh completions 添加）"
+                echo "$source_line"
+            } >> "$UXS_SHELL_RC"
+            success "已添加 Zsh 补全到 $UXS_SHELL_RC"
+            installed=true
+        fi
+    else
+        warn "当前 shell ($UXS_USER_SHELL) 暂不支持自动安装补全"
+        info "请手动 source 对应补全文件："
+        echo "  bash: source $comp_dir/uxs.bash"
+        echo "  zsh:  source $comp_dir/uxs.zsh"
+        return 0
+    fi
+
+    echo
+    if $installed; then
+        header "✅ 补全安装完成"
+        info "请执行以下操作使补全生效："
+        echo "    source $UXS_SHELL_RC      # 当前终端立即生效"
+        echo "    # 或重新打开终端"
+    else
+        success "补全已安装，无需重复配置"
+    fi
+    echo
+    info "补全范围：模块名 + 子命令（如 uxs doc<Tab> → uxs docker）"
+}
