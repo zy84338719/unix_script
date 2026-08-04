@@ -26,6 +26,8 @@ source "$SCRIPT_DIR/lib/status.sh"
 source "$SCRIPT_DIR/lib/submenus.sh"
 source "$SCRIPT_DIR/lib/uxs_cli.sh"
 source "$SCRIPT_DIR/lib/menu.sh"
+source "$SCRIPT_DIR/lib/scaffold.sh"
+source "$SCRIPT_DIR/lib/doctor.sh"
 
 # 是否处于交互模式
 INTERACTIVE=true
@@ -120,6 +122,18 @@ main() {
 
     # 处理参数
     case "$1" in
+        --dry-run)
+            export UNIX_SCRIPT_DRY_RUN=1
+            info "启用 dry-run 模式（仅预览，不实际执行）"
+            shift
+            if [[ $# -eq 0 ]]; then
+                show_usage
+                exit 0
+            fi
+            # 继续处理剩余参数
+            dispatch_module_or_passthrough "$@"
+            exit $?
+            ;;
         -h|--help)    show_usage; exit 0 ;;
         -v|--version) echo "unix_script $(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"; exit 0 ;;
         -s|--status)  INTERACTIVE=false; show_installed_services; exit 0 ;;
@@ -129,8 +143,9 @@ main() {
             echo
             exit 0
             ;;
-        --list-modules) show_list_modules; exit 0 ;;
-        --status-json)  show_status_json; exit 0 ;;
+        --list-modules)    show_list_modules; exit 0 ;;
+        --list-categories) show_list_categories; exit 0 ;;
+        --status-json)     show_status_json; exit 0 ;;
         check-update)
             info "检查远端最新版本..."
             if check_for_update 2>/dev/null; then
@@ -155,6 +170,27 @@ main() {
             ;;
         uninstall-cli|remove-cli)
             uninstall_cli
+            exit $?
+            ;;
+        scaffold)
+            if [[ $# -lt 2 ]]; then
+                error "用法: ./install.sh scaffold <module_name> [--category <分类>] [--label <标签>]"
+                exit 1
+            fi
+            local mod_name="$2"; shift 2
+            local mod_cat="" mod_label=""
+            while [[ $# -gt 0 ]]; do
+                case "$1" in
+                    --category) mod_cat="$2"; shift 2 ;;
+                    --label)    mod_label="$2"; shift 2 ;;
+                    *) shift ;;
+                esac
+            done
+            scaffold_module "$mod_name" "$mod_cat" "$mod_label"
+            exit $?
+            ;;
+        doctor)
+            run_doctor
             exit $?
             ;;
         -*) error "未知选项: $1"; show_usage; exit 1 ;;

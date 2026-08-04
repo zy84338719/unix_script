@@ -3,7 +3,7 @@
 [![CI](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml/badge.svg)](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-macOS / Linux 服务与环境一键管理脚本库 — 37 个模块，统一子命令接口，支持 x86_64 / ARM64 / ARMv7。
+macOS / Linux 服务与环境一键管理脚本库 — 47 个模块，统一子命令接口，支持 x86_64 / ARM64 / ARMv7。
 
 > 版本：[VERSION](VERSION) · 更新日志：[CHANGELOG.md](CHANGELOG.md)
 
@@ -39,6 +39,20 @@ uxs docker                    # 任意目录可用
 uxs --status
 ```
 
+### 开发者工具
+
+```bash
+# 模块脚手架：一键生成新模块模板
+./install.sh scaffold my-module --category 服务 --label "我的服务"
+
+# 环境诊断：检查运行前提条件
+./install.sh doctor
+
+# Tab 补全（bash / zsh）
+source completions/uxs.bash   # bash
+source completions/uxs.zsh    # zsh
+```
+
 ## 模块列表
 
 | 分类 | 模块 | 说明 | Linux | macOS |
@@ -52,6 +66,14 @@ uxs --status
 | | [uptime-kuma](uptime-kuma) | 服务可用性监控面板 (Docker) | ✅ | ✅ |
 | | [cockpit](cockpit) | Linux Web 管理面板 | ✅ | ❌ |
 | | [upftp](upftp) | 轻量级 FTP 文件分享工具 | ✅ | ✅ |
+| | [nginx](nginx) | Web 服务器 / 反向代理 | ✅ | ✅ |
+| | [caddy](caddy) | 现代 Web 服务器（自动 HTTPS） | ✅ | ✅ |
+| | [certbot](certbot) | Let's Encrypt 免费 SSL 证书 | ✅ | ✅ |
+| | [redis](redis) | 内存数据库 / 缓存 | ✅ | ✅ |
+| | [postgres](postgres) | PostgreSQL 数据库 | ✅ | ✅ |
+| | [prometheus](prometheus) | 监控系统（时间序列数据库） | ✅ | ✅ |
+| | [grafana](grafana) | 监控可视化面板 | ✅ | ✅ |
+| | [gitea](gitea) | 自托管 Git 服务 | ✅ | ✅ |
 | **网络** | [wireguard](wireguard) | 现代、快速、安全的 VPN | ✅ | ✅ |
 | | [tailscale](tailscale) | 免公网 IP 的组网 VPN | ✅ | ✅ |
 | | [clash](clash) | 代理核心 + TUN 透明代理 (mihomo) | ✅ | ✅ |
@@ -65,6 +87,8 @@ uxs --status
 | | [safe-rm](safe-rm) | 安全删除替代 rm，防误删 | ✅ | ✅ |
 | | [shutdown_timer](shutdown_timer) | 定时/倒计时关机管理 | ✅ | ✅ |
 | | [process_manager_tool](process_manager_tool) | 智能搜索和管理系统进程 | ✅ | ✅ |
+| | [ufw](ufw) | UFW 防火墙管理 | ✅ | ❌ |
+| | [restic](restic) | 增量加密备份工具 | ✅ | ✅ |
 | | [deskflow](deskflow) | 键鼠共享 (Flatpak) | ✅ | ❌ |
 | **开发环境** | [nvm](nvm) | Node.js 多版本管理 | ✅ | ✅ |
 | | [bun](bun) | Bun 运行时（含国内镜像加速） | ✅ | ✅ |
@@ -100,6 +124,7 @@ uxs --status
 
 ```bash
 ./install.sh --list-modules     # TSV：模块名\t子命令列表
+./install.sh --list-categories  # 按分类列出模块
 ./install.sh --status-json      # key:value 状态（无颜色无 emoji）
 NO_COLOR=1 ./install.sh --status  # 去除颜色
 ```
@@ -154,6 +179,11 @@ lib/
   submenus.sh              # 子菜单回调
   uxs_cli.sh               # 全局命令 uxs 管理
   menu.sh                  # 主菜单 / 交互循环 / 机器可读输出
+  scaffold.sh              # 模块脚手架（生成新模块模板）
+  doctor.sh                # 环境诊断
+completions/
+  uxs.bash                 # Bash 自动补全
+  uxs.zsh                  # Zsh 自动补全
 <模块目录>/
   install.sh               # 模块入口
   .manifest                # 元数据（名称/描述/子命令/默认动作）

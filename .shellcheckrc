@@ -1,0 +1,12 @@
+# unix_script shellcheck 配置
+# https://github.com/koalaman/shellcheck/wiki/Directive
+
+# 全局排除：
+# SC2034 - 变量看似未使用（common.sh 中定义的全局变量供 source 它的脚本读取）
+# SC2317 - 命令看似不可达（函数通过变量间接调用，shellcheck 无法追踪）
+# SC2329 - 函数看似未调用（同上，间接调用）
+disable=SC2034,SC2317,SC2329
+
+# 源文件路径（让 shellcheck 解析 source 指令）
+source-path=lib
+source-path=.

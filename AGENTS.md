@@ -4,7 +4,7 @@
 
 ## 这是什么
 
-unix_script 是一个 macOS/Linux 脚本库，提供 30+ 模块的安装、配置与管理。每个模块支持统一的子命令接口。
+unix_script 是一个 macOS/Linux 脚本库，提供 47 个模块的安装、配置与管理。每个模块支持统一的子命令接口。
 
 ## 快速调用（AI agent 友好）
 
@@ -23,6 +23,13 @@ unix_script 是一个 macOS/Linux 脚本库，提供 30+ 模块的安装、配�
 # 输出 TSV：模块名\t支持子命令
 # node_exporter  install uninstall status help
 # bun            install mirror unmirror uninstall status help
+```
+
+### 按分类列出模块
+
+```bash
+./install.sh --list-categories
+# 输出：按分类分组的模块列表（服务/网络/系统/开发环境/AI工具）
 ```
 
 ### 机器可读状态

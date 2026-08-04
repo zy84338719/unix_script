@@ -413,6 +413,33 @@ service_start() {
     fi
 }
 
+# ---------------- Dry-run 模式 ----------------
+# 设置 UNIX_SCRIPT_DRY_RUN=1 或传入 --dry-run 启用。
+# 启用后，所有 sudo/pkg_install/service 操作仅打印不执行。
+UNIX_SCRIPT_DRY_RUN="${UNIX_SCRIPT_DRY_RUN:-0}"
+
+# dry_run_exec <描述> <命令...>
+# dry-run 模式打印命令，否则执行。
+dry_run_exec() {
+    local desc="$1"; shift
+    if [[ "$UNIX_SCRIPT_DRY_RUN" == "1" ]]; then
+        info "[dry-run] $desc: $*"
+        return 0
+    fi
+    "$@"
+}
+
+# dry_run_sudo <描述> <命令...>
+# dry-run 模式打印 sudo 命令，否则执行。
+dry_run_sudo() {
+    local desc="$1"; shift
+    if [[ "$UNIX_SCRIPT_DRY_RUN" == "1" ]]; then
+        info "[dry-run] $desc: sudo $*"
+        return 0
+    fi
+    sudo "$@"
+}
+
 # ---------------- 交互工具 ----------------
 # yes_no <prompt>  -> 输入 y/Y 返回 0，否则 1
 yes_no() {

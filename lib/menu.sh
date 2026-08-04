@@ -183,6 +183,29 @@ show_list_modules() {
     done
 }
 
+# --list-categories: 按分类列出所有模块
+show_list_categories() {
+    local cat mod label
+    for cat in $CATEGORY_ORDER; do
+        local has_any=false
+        local items=""
+        for mod in $_REGISTRY_MODULES; do
+            [[ "$(_reg_get "$mod" CATEGORY)" == "$cat" ]] || continue
+            has_any=true
+            label=$(_reg_get "$mod" LABEL)
+            items="$items $mod($label)"
+        done
+        $has_any || continue
+        echo "[$cat]"
+        for mod in $_REGISTRY_MODULES; do
+            [[ "$(_reg_get "$mod" CATEGORY)" == "$cat" ]] || continue
+            label=$(_reg_get "$mod" LABEL)
+            echo "  $mod	$label"
+        done
+        echo
+    done
+}
+
 # --status-json: key:value 格式输出各模块状态（无颜色、无 emoji）
 show_status_json() {
     detect_os
@@ -303,11 +326,15 @@ show_usage() {
   -h, --help        显示本帮助
   -v, --version     显示版本
   -s, --status      查看所有模块的安装状态后退出（非交互）
+  --dry-run         预览模式：仅打印将执行的操作，不实际执行
   --list            列出可用模块名后退出
   --list-modules    机器可读：模块名 + 支持子命令（TSV，供 AI/脚本）
+  --list-categories 按分类列出所有模块
   --status-json     机器可读：模块状态 key:value（无颜色，供 AI/脚本）
   check-update      检查远端是否有新版本（不修改本地）
   update            安全检查 + 确认后执行 git pull 更新本地仓库
+  scaffold <名称>   生成新模块脚手架（--category <分类> --label <标签>）
+  doctor            环境诊断：检查运行 unix_script 所需的前提条件
   cli               安装全局命令 uxs 到 ~/.tools/bin（之后可在任意目录 uxs <子命令>）
   uninstall-cli     卸载全局命令 uxs
 
@@ -321,6 +348,9 @@ show_usage() {
   $0 tailscale             # 直接安装 tailscale
   $0 check-update          # 检查是否有新版本
   $0 update                # 更新到最新版本（需确认）
+  $0 scaffold my-tool      # 生成名为 my-tool 的新模块脚手架
+  $0 doctor                # 环境诊断
+  $0 --dry-run docker      # 预览安装 docker 的操作（不实际执行）
   $0 cli                   # 安装全局命令 uxs（之后可 uxs docker-image 等）
 EOF
 }

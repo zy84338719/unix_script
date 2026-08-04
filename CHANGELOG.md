@@ -4,6 +4,20 @@
 
 ## [Unreleased]
 
+### 新增
+- **10 个新模块**：nginx、caddy、certbot、redis、postgres、prometheus、grafana、gitea、ufw、restic
+- **模块脚手架命令**：`./install.sh scaffold <name>` 一键生成新模块模板（含 .manifest、install.sh、README.md）
+- **环境诊断命令**：`./install.sh doctor` 检查 Bash 版本、必要工具、包管理器、磁盘空间、网络连通性、sudo 权限
+- **`--list-categories` 命令**：按分类列出所有模块
+- **`--dry-run` 预览模式**：仅打印将执行的操作，不实际执行（`./install.sh --dry-run docker`）
+- **Bash / Zsh 自动补全**：`completions/uxs.bash` 和 `completions/uxs.zsh`，支持模块名和子命令补全
+- **GitHub Issue 模板**：Bug 报告 + 功能建议模板
+- **GitHub PR 模板**：含变更类型、测试矩阵、关联 Issue
+- **`.shellcheckrc`**：项目级 shellcheck 配置（统一排除 SC2034/SC2317/SC2329）
+
+### 文档
+- 补全 5 个模块的 README：ddns-go、k7s、node_exporter、wireguard、zsh_setup
+
 ## [1.6.2] - 2026-08-01
 
 ### 修复

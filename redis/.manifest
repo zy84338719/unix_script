@@ -1,0 +1,3 @@
+LABEL=Redis
+CATEGORY=服务
+DEFAULT_ACTION=install

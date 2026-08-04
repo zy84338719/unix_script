@@ -1,0 +1,4 @@
+LABEL=Certbot (Let's Encrypt)
+CATEGORY=服务
+ALIASES=letsencrypt
+DEFAULT_ACTION=install

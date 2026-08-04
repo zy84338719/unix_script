@@ -18,6 +18,16 @@
 
 ## 新增一个服务模块
 
+**推荐方式**：使用脚手架命令自动生成模板：
+
+```bash
+./install.sh scaffold myservice --category 服务 --label "我的服务"
+```
+
+生成后编辑 `myservice/install.sh` 实现具体逻辑即可。
+
+**手动方式**：
+
 1. 在仓库根创建模块目录，例如 `myservice/`。
 2. 编写 `myservice/install.sh`：
    - 顶部 `set -e`，并 `source` 公共库：

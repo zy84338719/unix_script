@@ -1,0 +1,4 @@
+LABEL=Nginx
+CATEGORY=服务
+ALIASES=nginx
+DEFAULT_ACTION=install
