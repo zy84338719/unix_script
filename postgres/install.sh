@@ -76,22 +76,24 @@ install_postgres() {
         fi
     fi
 
-    local pkgs
-    pkgs=$(pg_pkg_names)
+    local pkgs_str
+    pkgs_str=$(pg_pkg_names)
+    local -a pkgs
+    read -ra pkgs <<< "$pkgs_str"
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
         info "通过 Homebrew 安装 $PG_BREW_VERSION..."
         # 若已有旧版本 postgresql，先 unlink 避免冲突
         brew unlink postgresql 2>/dev/null || true
-        pkg_install $pkgs
+        pkg_install "${pkgs[@]}"
         brew link --force "$PG_BREW_VERSION" 2>/dev/null || true
         info "启动 PostgreSQL 服务..."
         brew services start "$PG_BREW_VERSION"
     else
         require_sudo
-        info "通过 $PKG_MANAGER 安装 $pkgs..."
+        info "通过 $PKG_MANAGER 安装 ${pkgs[*]}..."
         pkg_update
-        pkg_install $pkgs
+        pkg_install "${pkgs[@]}"
 
         detect_pkg_manager
         case "$PKG_MANAGER" in
@@ -166,9 +168,11 @@ uninstall_postgres() {
         require_sudo
         sudo systemctl stop postgresql 2>/dev/null || true
         sudo systemctl disable postgresql 2>/dev/null || true
-        local pkgs
-        pkgs=$(pg_pkg_names)
-        pkg_remove $pkgs
+        local pkgs_str
+        pkgs_str=$(pg_pkg_names)
+        local -a pkgs
+        read -ra pkgs <<< "$pkgs_str"
+        pkg_remove "${pkgs[@]}"
         success "PostgreSQL 已卸载"
     fi
 

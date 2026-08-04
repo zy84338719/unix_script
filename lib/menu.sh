@@ -132,7 +132,8 @@ interactive_main() {
                     [[ "$(_reg_get "$mod" CATEGORY)" == "$cat" ]] || continue
                     if [[ $num -eq $choice ]]; then
                         # 找到模块
-                        local submenu=$(_reg_get "$mod" HAS_SUBMENU)
+                        local submenu
+                        submenu=$(_reg_get "$mod" HAS_SUBMENU)
                         local default_action
                         default_action=$(_reg_get "$mod" DEFAULT_ACTION)
                         default_action="${default_action:-install}"
@@ -141,7 +142,8 @@ interactive_main() {
                             "manage_${submenu}"
                         elif [[ -n "$default_action" ]]; then
                             # 直接执行默认动作
-                            local action_args=($default_action)
+                            local -a action_args
+                            read -ra action_args <<< "$default_action"
                             run_in_dir "$mod" install.sh "${action_args[@]}"
                             echo; read -r -p "按回车键返回主菜单..."
                         fi
@@ -280,7 +282,8 @@ do_uninstall() {
     local num=1 mod
     for mod in $_REGISTRY_MODULES; do
         if [[ $num -eq $choice ]]; then
-            local label=$(_reg_get "$mod" LABEL)
+            local label
+            label=$(_reg_get "$mod" LABEL)
             # 特殊模块处理
             case "$mod" in
                 shutdown_timer)

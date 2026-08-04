@@ -104,6 +104,7 @@ setup_environment() {
         return 0
     fi
 
+    # shellcheck disable=SC2016  # 单引号有意为之：$HOME 在 source 时才展开
     local path_export='export PATH="$HOME/.tools/bin:$PATH"'
     local alias_pmc="alias pmc='source \$HOME/.tools/bin/$CONFIG_NAME.sh && quick_search'"
 

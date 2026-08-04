@@ -75,7 +75,8 @@ dispatch_module() {
             ;;
     esac
 
-    local action_args=($default_action)
+    local -a action_args
+    read -ra action_args <<< "$default_action"
     run_in_dir "$resolved" install.sh "${action_args[@]}"
 }
 

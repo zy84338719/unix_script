@@ -54,18 +54,22 @@ install_macos() {
     hdiutil attach "$tmpdir/$dmg_name" -nobrowse -quiet 2>/dev/null || true
     sleep 1
     if [[ -d "$volume/k7s.app" ]]; then
-        cp -R "$volume/k7s.app" /Applications/ 2>/dev/null && \
-            success "已安装 k7s.app 到 /Applications" || \
-            { sudo cp -R "$volume/k7s.app" /Applications/ && success "已安装 k7s.app 到 /Applications（sudo）"; }
+        if cp -R "$volume/k7s.app" /Applications/ 2>/dev/null; then
+            success "已安装 k7s.app 到 /Applications"
+        else
+            sudo cp -R "$volume/k7s.app" /Applications/ && success "已安装 k7s.app 到 /Applications（sudo）"
+        fi
         hdiutil detach "$volume" -quiet 2>/dev/null || true
     else
         # 尝试查找挂载的 app
         local app_path
         app_path=$(find "$volume" -name "k7s.app" -maxdepth 2 2>/dev/null | head -1)
         if [[ -n "$app_path" ]]; then
-            cp -R "$app_path" /Applications/ 2>/dev/null && \
-                success "已安装 k7s.app 到 /Applications" || \
-                { sudo cp -R "$app_path" /Applications/ && success "已安装 k7s.app 到 /Applications（sudo）"; }
+            if cp -R "$app_path" /Applications/ 2>/dev/null; then
+                success "已安装 k7s.app 到 /Applications"
+            else
+                sudo cp -R "$app_path" /Applications/ && success "已安装 k7s.app 到 /Applications（sudo）"
+            fi
             hdiutil detach "$volume" -quiet 2>/dev/null || true
         else
             error "未在挂载的 DMG 中找到 k7s.app"
@@ -148,7 +152,7 @@ install_linux() {
 
     # 确保 ~/.local/bin 在 PATH 中
     if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
-        warn "~/.local/bin 不在 PATH 中，请添加到 shell 配置："
+        warn "$HOME/.local/bin 不在 PATH 中，请添加到 shell 配置："
         echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
     fi
 }
