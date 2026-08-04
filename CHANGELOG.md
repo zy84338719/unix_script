@@ -5,7 +5,7 @@
 ## [Unreleased]
 
 ### 新增
-- **10 个新模块**：nginx、caddy、certbot、redis、postgres、prometheus、grafana、gitea、ufw、restic
+- **10 个新模块**（38 → 48）：nginx、caddy、certbot、redis、postgres、prometheus、grafana、gitea、ufw、restic
 - **模块脚手架命令**：`./install.sh scaffold <name>` 一键生成新模块模板（含 .manifest、install.sh、README.md）
 - **环境诊断命令**：`./install.sh doctor` 检查 Bash 版本、必要工具、包管理器、磁盘空间、网络连通性、sudo 权限
 - **`--list-categories` 命令**：按分类列出所有模块

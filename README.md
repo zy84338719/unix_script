@@ -3,7 +3,7 @@
 [![CI](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml/badge.svg)](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-macOS / Linux 服务与环境一键管理脚本库 — 47 个模块，统一子命令接口，支持 x86_64 / ARM64 / ARMv7。
+macOS / Linux 服务与环境一键管理脚本库 — 48 个模块，统一子命令接口，支持 x86_64 / ARM64 / ARMv7。
 
 > 版本：[VERSION](VERSION) · 更新日志：[CHANGELOG.md](CHANGELOG.md)
 
