@@ -1,0 +1,5 @@
+LABEL=Clash (mihomo)
+CATEGORY=系统工具
+ALIASES=mihomo
+DEFAULT_ACTION=install
+HAS_SUBMENU=clash

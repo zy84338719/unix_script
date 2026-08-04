@@ -1,0 +1,4 @@
+LABEL=WireGuard
+CATEGORY=服务
+ALIASES=wg
+DEFAULT_ACTION=install

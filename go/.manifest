@@ -1,0 +1,4 @@
+LABEL=Go
+CATEGORY=开发环境
+ALIASES=golang
+DEFAULT_ACTION=install

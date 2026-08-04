@@ -1,0 +1,4 @@
+LABEL=Node Exporter
+CATEGORY=服务
+ALIASES=nodeexporter
+DEFAULT_ACTION=install

@@ -1,0 +1,4 @@
+LABEL=Tailscale
+CATEGORY=服务
+ALIASES=ts
+DEFAULT_ACTION=install

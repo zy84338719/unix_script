@@ -1,0 +1,3 @@
+LABEL=Swap 虚拟内存
+CATEGORY=装机必备
+DEFAULT_ACTION=install

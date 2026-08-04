@@ -1,0 +1,4 @@
+LABEL=Docker
+CATEGORY=服务
+DEFAULT_ACTION=install
+HAS_SUBMENU=docker

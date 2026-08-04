@@ -1,0 +1,166 @@
+#!/usr/bin/env bash
+#
+# lib/registry.sh
+#
+# 模块注册表引擎：扫描各模块目录下的 .manifest 文件，
+# 提供统一的元数据查询 API。
+#
+# Manifest 格式（纯文本 key=value）：
+#   LABEL=显示名称          （必填）
+#   CATEGORY=分类           （必填：服务/装机必备/开发环境/AI工具/系统工具）
+#   ALIASES=别名1,别名2     （可选，逗号分隔）
+#   DEFAULT_ACTION=install  （可选，默认 install）
+#   HAS_SUBMENU=docker      （可选，非空则交互菜单进入子菜单）
+#
+# 实现：用 eval 创建动态变量（兼容 bash 3.2，macOS 默认版本）。
+#
+
+# 幂等保护
+if [[ -n "${_REGISTRY_LOADED:-}" ]]; then return 0 2>/dev/null || exit 0; fi
+_REGISTRY_LOADED=1
+
+# 模块名的有序列表（按发现顺序）
+_REGISTRY_MODULES=""
+
+# 分类顺序（用于菜单展示排序）
+CATEGORY_ORDER="服务 装机必备 开发环境 AI工具 系统工具"
+
+# --- 内部：设置/获取模块字段 ---
+# 模块名中的连字符替换为下划线（bash 变量名不允许连字符）
+_reg_varname() {
+    local mod="$1" key="$2"
+    local safe_mod="${mod//-/_}"
+    echo "_REG_${key}_${safe_mod}"
+}
+
+_reg_set() {
+    local mod="$1" key="$2" value="$3"
+    local varname
+    varname=$(_reg_varname "$mod" "$key")
+    # printf '%q' 转义特殊字符，防止 eval 注入
+    eval "${varname}=$(printf '%q' "$value")"
+}
+
+_reg_get() {
+    local mod="$1" key="$2"
+    local varname
+    varname=$(_reg_varname "$mod" "$key")
+    eval "echo \"\${${varname}:-}\""
+}
+
+# --- 扫描所有 .manifest 文件 ---
+registry_scan() {
+    _REGISTRY_MODULES=""
+    local dir manifest key value mod
+    for dir in "$SCRIPT_DIR"/*/; do
+        [[ -d "$dir" ]] || continue
+        mod=$(basename "$dir")
+        # 跳过非模块目录
+        case "$mod" in lib|tests|docs|.git|.tools|.zcode) continue ;; esac
+        manifest="$dir/.manifest"
+        [[ -f "$manifest" ]] || continue
+
+        # 初始化默认值
+        _reg_set "$mod" LABEL ""
+        _reg_set "$mod" CATEGORY ""
+        _reg_set "$mod" ALIASES ""
+        _reg_set "$mod" DEFAULT_ACTION "install"
+        _reg_set "$mod" HAS_SUBMENU ""
+        _reg_set "$mod" ENTRY_SCRIPT "install.sh"
+
+        # 解析 key=value
+        while IFS='=' read -r key value; do
+            [[ -z "$key" || "$key" == \#* ]] && continue
+            key=$(echo "$key" | tr -d '[:space:]')
+            value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            case "$key" in
+                LABEL)            _reg_set "$mod" LABEL "$value" ;;
+                CATEGORY)         _reg_set "$mod" CATEGORY "$value" ;;
+                ALIASES)          _reg_set "$mod" ALIASES "$value" ;;
+                DEFAULT_ACTION)   _reg_set "$mod" DEFAULT_ACTION "$value" ;;
+                HAS_SUBMENU)      _reg_set "$mod" HAS_SUBMENU "$value" ;;
+                ENTRY_SCRIPT)     _reg_set "$mod" ENTRY_SCRIPT "$value" ;;
+            esac
+        done < "$manifest"
+
+        # 必填字段校验
+        local lbl cat
+        lbl=$(_reg_get "$mod" LABEL)
+        cat=$(_reg_get "$mod" CATEGORY)
+        if [[ -z "$lbl" || -z "$cat" ]]; then
+            warn "manifest 缺少必填字段: $manifest" >&2
+            continue
+        fi
+
+        _REGISTRY_MODULES="$_REGISTRY_MODULES $mod"
+    done
+    _REGISTRY_MODULES="${_REGISTRY_MODULES# }"
+}
+
+# --- 查询 API ---
+registry_label()           { _reg_get "$1" LABEL; }
+registry_category()        { _reg_get "$1" CATEGORY; }
+registry_aliases()         { _reg_get "$1" ALIASES; }
+registry_default_action()  { local v; v=$(_reg_get "$1" DEFAULT_ACTION); echo "${v:-install}"; }
+registry_has_submenu()     { _reg_get "$1" HAS_SUBMENU; }
+registry_entry_script()    { local v; v=$(_reg_get "$1" ENTRY_SCRIPT); echo "${v:-install.sh}"; }
+
+# 所有已注册模块名（空格分隔）
+registry_all_modules() { echo "$_REGISTRY_MODULES"; }
+
+# 某分类下的模块名（空格分隔，保持注册顺序）
+registry_modules_in_category() {
+    local want="$1" mod result=""
+    for mod in $_REGISTRY_MODULES; do
+        if [[ "$(_reg_get "$mod" CATEGORY)" == "$want" ]]; then
+            result="$result $mod"
+        fi
+    done
+    echo "${result# }"
+}
+
+# 别名解析：输入别名或正式名，输出正式名。无匹配返回原值。
+registry_resolve_alias() {
+    local name="$1" mod aliases alias
+    for mod in $_REGISTRY_MODULES; do
+        if [[ "$mod" == "$name" ]]; then
+            echo "$mod"; return 0
+        fi
+        aliases=$(_reg_get "$mod" ALIASES)
+        if [[ -n "$aliases" ]]; then
+            IFS=',' read -ra _alias_arr <<< "$aliases"
+            for alias in "${_alias_arr[@]}"; do
+                if [[ "$alias" == "$name" ]]; then
+                    echo "$mod"; return 0
+                fi
+            done
+        fi
+    done
+    echo "$name"
+    return 1
+}
+
+# 模块是否有子菜单
+registry_has_submenu_flag() {
+    [[ -n "$(_reg_get "$1" HAS_SUBMENU)" ]]
+}
+
+# 分类列表（去重，保持 CATEGORY_ORDER 顺序）
+registry_categories() {
+    local seen="" cat mod result=""
+    for cat in $CATEGORY_ORDER; do
+        for mod in $_REGISTRY_MODULES; do
+            if [[ "$(_reg_get "$mod" CATEGORY)" == "$cat" ]]; then
+                result="$result $cat"
+                break
+            fi
+        done
+    done
+    for mod in $_REGISTRY_MODULES; do
+        cat=$(_reg_get "$mod" CATEGORY)
+        if [[ -n "$cat" ]] && ! echo "$result" | grep -qw "$cat"; then
+            result="$result $cat"
+        fi
+    done
+    echo "${result# }"
+}

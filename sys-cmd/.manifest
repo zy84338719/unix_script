@@ -1,0 +1,4 @@
+LABEL=系统诊断命令
+CATEGORY=系统工具
+ALIASES=sys_cmd,syscmd
+DEFAULT_ACTION=menu

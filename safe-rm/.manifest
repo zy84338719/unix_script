@@ -1,0 +1,4 @@
+LABEL=safe-rm 回收站
+CATEGORY=系统工具
+ALIASES=safe_rm,safesrm
+DEFAULT_ACTION=install

@@ -1,0 +1,4 @@
+LABEL=Rust
+CATEGORY=开发环境
+ALIASES=rustup
+DEFAULT_ACTION=install

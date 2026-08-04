@@ -1,0 +1,6 @@
+LABEL=进程管理工具
+CATEGORY=系统工具
+ALIASES=process_manager,pm
+DEFAULT_ACTION=
+HAS_SUBMENU=process_manager_tool
+ENTRY_SCRIPT=install_process_manager.sh

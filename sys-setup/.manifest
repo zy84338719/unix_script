@@ -1,0 +1,5 @@
+LABEL=系统初始化配置
+CATEGORY=装机必备
+ALIASES=sys_setup
+DEFAULT_ACTION=all
+HAS_SUBMENU=sys-setup

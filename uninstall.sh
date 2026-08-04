@@ -2,7 +2,7 @@
 #
 # uninstall.sh
 #
-# 一键卸载入口：遍历所有模块，逐个询问是否卸载。
+# 一键卸载入口：委托各模块的 install.sh uninstall 执行卸载。
 #
 # 用法:
 #   ./uninstall.sh             # 交互式逐项询问
@@ -17,6 +17,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/common.sh
 source "$SCRIPT_DIR/lib/common.sh"
 
+# 在子 shell 中执行某目录下的脚本（避免 cd 污染当前工作目录）
+run_in_dir() {
+    local dir="$1"; shift
+    ( cd "$SCRIPT_DIR/$dir" && bash "$@" )
+}
+
 # 卸载单个模块（封装确认）
 ask_and_uninstall() {
     local label="$1"; shift
@@ -30,71 +36,96 @@ ask_and_uninstall() {
     echo
 }
 
+# --- 各模块卸载委托 ---
+uninstall_node_exporter_mod() { run_in_dir node_exporter install.sh uninstall; }
+uninstall_ddns_mod()          { run_in_dir ddns-go install.sh uninstall; }
+uninstall_wireguard_mod()     { run_in_dir wireguard install.sh uninstall; }
+uninstall_tailscale_mod()     { run_in_dir tailscale install.sh uninstall; }
+uninstall_docker_mod()        { run_in_dir docker install.sh uninstall; }
+uninstall_fail2ban_mod()      { run_in_dir fail2ban install.sh uninstall; }
+uninstall_openlist_mod()      { run_in_dir openlist install.sh uninstall; }
+uninstall_uptime_kuma_mod()   { run_in_dir uptime-kuma install.sh uninstall; }
+uninstall_cockpit_mod()       { run_in_dir cockpit install.sh uninstall; }
+uninstall_zsh_mod()           { run_in_dir zsh_setup install.sh uninstall; }
+uninstall_minikube_mod()      { run_in_dir minikube install.sh uninstall; }
+uninstall_dev_tui_mod()       { run_in_dir dev-tui install.sh uninstall; }
+uninstall_deskflow_mod()      { run_in_dir deskflow install.sh uninstall; }
+uninstall_bbr_mod()           { run_in_dir bbr install.sh disable; }
+uninstall_swap_mod()          { run_in_dir swap install.sh uninstall; }
+uninstall_nvm_mod()           { run_in_dir nvm install.sh uninstall; }
+uninstall_safe_rm_mod()       { run_in_dir safe-rm install.sh uninstall; }
+uninstall_clash_mod()         { run_in_dir clash install.sh uninstall; }
+uninstall_multinet_mod()      { run_in_dir multi-net install.sh clear; }
+uninstall_opencode_mod()      { run_in_dir opencode install.sh uninstall; }
+uninstall_ollama_mod()        { run_in_dir ollama install.sh uninstall; }
+uninstall_bun_mod()           { run_in_dir bun install.sh uninstall; }
+uninstall_pi_mod()            { run_in_dir pi install.sh uninstall; }
+uninstall_deno_mod()          { run_in_dir deno install.sh uninstall; }
+uninstall_pnpm_mod()          { run_in_dir pnpm install.sh uninstall; }
+uninstall_go_mod()            { run_in_dir go install.sh uninstall; }
+uninstall_rust_mod()          { run_in_dir rust install.sh uninstall; }
+uninstall_dev_mirror_mod()    { run_in_dir dev-mirror install.sh uninstall all <<< "y"; }
+uninstall_docker_image_mod()  { run_in_dir docker-image install.sh uninstall; }
+uninstall_essential_mod()     { run_in_dir essential-pkgs install.sh uninstall; }
+uninstall_dev_enhance_mod()   { run_in_dir dev-enhance install.sh uninstall; }
+uninstall_modern_cli_mod()    { run_in_dir modern-cli install.sh uninstall; }
+uninstall_sys_cmd_mod()       { run_in_dir sys-cmd install.sh uninstall; }
+uninstall_upftp_mod()         { run_in_dir upftp install.sh uninstall; }
+uninstall_pm_mod()            { run_in_dir process_manager_tool install_process_manager.sh uninstall; }
+
+uninstall_shutdown_mod() {
+    local sp="$SCRIPT_DIR/shutdown_timer/shutdown_timer.sh"
+    if [ -f "$sp" ]; then
+        chmod +x "$sp"
+        "$sp" cancel_daily_shutdown_internal
+    fi
+}
+
+# --- 卸载全部 ---
 uninstall_all() {
     warn "⚠️  即将卸载所有已安装的服务与环境！此操作不可逆。"
     if ! yes_no "再次确认卸载全部？"; then
         info "已取消"
         exit 0
     fi
-    uninstall_node_exporter_all
-    uninstall_ddns_all
-    uninstall_wireguard_all
-    uninstall_tailscale_all
-    uninstall_docker_all
-    uninstall_fail2ban_all
-    uninstall_shutdown_all
-    uninstall_pm_all
+    uninstall_node_exporter_mod
+    uninstall_ddns_mod
+    uninstall_wireguard_mod
+    uninstall_tailscale_mod
+    uninstall_docker_mod
+    uninstall_fail2ban_mod
+    uninstall_openlist_mod
+    uninstall_uptime_kuma_mod
+    uninstall_cockpit_mod
+    uninstall_zsh_mod
+    uninstall_minikube_mod
+    uninstall_dev_tui_mod
+    uninstall_shutdown_mod
+    uninstall_pm_mod
+    uninstall_deskflow_mod
+    uninstall_bbr_mod
+    uninstall_swap_mod
+    uninstall_nvm_mod
+    uninstall_safe_rm_mod
+    uninstall_clash_mod
+    uninstall_multinet_mod
+    uninstall_docker_image_mod
+    uninstall_essential_mod
+    uninstall_dev_enhance_mod
+    uninstall_modern_cli_mod
+    uninstall_sys_cmd_mod
+    uninstall_upftp_mod
+    uninstall_opencode_mod
+    uninstall_ollama_mod
+    uninstall_bun_mod
+    uninstall_pi_mod
+    uninstall_deno_mod
+    uninstall_pnpm_mod
+    uninstall_go_mod
+    uninstall_rust_mod
+    uninstall_dev_mirror_mod
     echo
     success "全部卸载流程结束。"
-    info "Zsh & Oh My Zsh 为敏感操作，未自动卸载，请参考 README 手动处理。"
-}
-
-# 复用各模块/主菜单的卸载逻辑
-uninstall_node_exporter_all() {
-    if command -v node_exporter >/dev/null 2>&1 || [ -f /usr/local/bin/node_exporter ]; then
-        # 通过主菜单 install.sh 的卸载函数不可直接调用，这里内联精简逻辑
-        info "卸载 Node Exporter..."
-        if [[ "$OS_TYPE" == "linux" ]]; then
-            sudo systemctl stop node_exporter &>/dev/null || true
-            sudo systemctl disable node_exporter &>/dev/null || true
-            sudo rm -f /etc/systemd/system/node_exporter.service
-            sudo systemctl daemon-reload &>/dev/null || true
-            sudo rm -f /usr/local/bin/node_exporter
-            id "node_exporter" &>/dev/null && sudo userdel node_exporter
-        else
-            sudo launchctl bootout system /Library/LaunchDaemons/com.prometheus.node_exporter.plist &>/dev/null || true
-            sudo rm -f /Library/LaunchDaemons/com.prometheus.node_exporter.plist
-            sudo rm -f /usr/local/bin/node_exporter /var/log/node_exporter.log /var/log/node_exporter.err
-        fi
-    fi
-}
-
-uninstall_ddns_all() {
-    if [ -f /opt/ddns-go/ddns-go ]; then
-        info "卸载 DDNS-GO..."
-        if [[ "$OS_TYPE" == "linux" ]]; then
-            sudo systemctl stop ddns-go &>/dev/null || true
-            sudo systemctl disable ddns-go &>/dev/null || true
-            sudo systemctl daemon-reload
-        else
-            sudo launchctl bootout system /Library/LaunchDaemons/jeessy.ddns-go.plist &>/dev/null || true
-            sudo rm -f /Library/LaunchDaemons/jeessy.ddns-go.plist
-        fi
-        sudo rm -rf /opt/ddns-go
-    fi
-}
-
-uninstall_wireguard_all() { [ -f "$SCRIPT_DIR/wireguard/install.sh" ] && bash "$SCRIPT_DIR/wireguard/install.sh" uninstall_service; }
-uninstall_tailscale_all() { [ -f "$SCRIPT_DIR/tailscale/install.sh" ] && ask_and_uninstall "Tailscale" bash "$SCRIPT_DIR/tailscale/install.sh" uninstall; }
-uninstall_docker_all()    { [ -f "$SCRIPT_DIR/docker/install.sh" ]    && ask_and_uninstall "Docker"    bash "$SCRIPT_DIR/docker/install.sh" uninstall; }
-uninstall_fail2ban_all()  { [ -f "$SCRIPT_DIR/fail2ban/install.sh" ]  && ask_and_uninstall "Fail2ban"  bash "$SCRIPT_DIR/fail2ban/install.sh" uninstall; }
-uninstall_shutdown_all()  {
-    local sp="$SCRIPT_DIR/shutdown_timer/shutdown_timer.sh"
-    [ -f "$sp" ] && chmod +x "$sp" && "$sp" cancel_daily_shutdown_internal
-}
-uninstall_pm_all() {
-    [ -f "$SCRIPT_DIR/process_manager_tool/install_process_manager.sh" ] && \
-        run_in_dir process_manager_tool install_process_manager.sh uninstall
 }
 
 show_usage() {
@@ -107,7 +138,12 @@ show_usage() {
 
 模块名:
   node_exporter | ddns-go | wireguard | tailscale | docker |
-  fail2ban | shutdown_timer | process_manager
+  fail2ban | openlist | uptime-kuma | cockpit | docker-image |
+  essential-pkgs | zsh | minikube | dev-tui | bun | deno | pnpm |
+  go | rust | dev-mirror | dev-enhance | modern-cli |
+  opencode | ollama | pi |
+  deskflow | bbr | swap | nvm | safe-rm | clash | multi-net |
+  sys-cmd | upftp | shutdown_timer | process_manager
 
 示例:
   $0                  # 逐项交互询问
@@ -116,40 +152,99 @@ show_usage() {
 EOF
 }
 
-run_in_dir() { ( cd "$SCRIPT_DIR/$1" && shift && bash "$@" ); }
-
 dispatch() {
     local name="$1"
     case "$name" in
-        node_exporter|nodeexporter) uninstall_node_exporter_all ;;
-        ddns-go|ddnsgo|ddns)        uninstall_ddns_all ;;
-        wireguard|wg)               uninstall_wireguard_all ;;
-        tailscale|ts)               ask_and_uninstall "Tailscale" bash "$SCRIPT_DIR/tailscale/install.sh" uninstall ;;
-        docker)                     ask_and_uninstall "Docker"    bash "$SCRIPT_DIR/docker/install.sh" uninstall ;;
-        fail2ban|f2b)               ask_and_uninstall "Fail2ban"  bash "$SCRIPT_DIR/fail2ban/install.sh" uninstall ;;
-        shutdown|shutdown_timer)    uninstall_shutdown_all ;;
-        process_manager|pm)         uninstall_pm_all ;;
+        node_exporter|nodeexporter) ask_and_uninstall "Node Exporter" uninstall_node_exporter_mod ;;
+        ddns-go|ddnsgo|ddns)        ask_and_uninstall "DDNS-GO"       uninstall_ddns_mod ;;
+        wireguard|wg)               ask_and_uninstall "WireGuard"     uninstall_wireguard_mod ;;
+        tailscale|ts)               ask_and_uninstall "Tailscale"     uninstall_tailscale_mod ;;
+        docker)                     ask_and_uninstall "Docker"        uninstall_docker_mod ;;
+        fail2ban|f2b)               ask_and_uninstall "Fail2ban"      uninstall_fail2ban_mod ;;
+        openlist)                    ask_and_uninstall "OpenList"      uninstall_openlist_mod ;;
+        uptime-kuma|uptime_kuma)    ask_and_uninstall "Uptime Kuma"   uninstall_uptime_kuma_mod ;;
+        cockpit)                    ask_and_uninstall "Cockpit"       uninstall_cockpit_mod ;;
+        zsh)                        ask_and_uninstall "Zsh"           uninstall_zsh_mod ;;
+        minikube)                   ask_and_uninstall "minikube"      uninstall_minikube_mod ;;
+        dev-tui|dev_tui|tui)        ask_and_uninstall "终端 TUI"      uninstall_dev_tui_mod ;;
+        shutdown|shutdown_timer)    uninstall_shutdown_mod ;;
+        process_manager|pm)         ask_and_uninstall "进程管理工具"  uninstall_pm_mod ;;
+        deskflow)                   ask_and_uninstall "Deskflow"      uninstall_deskflow_mod ;;
+        bbr)                        ask_and_uninstall "BBR"           uninstall_bbr_mod ;;
+        swap)                       ask_and_uninstall "Swap"          uninstall_swap_mod ;;
+        nvm)                        ask_and_uninstall "nvm"           uninstall_nvm_mod ;;
+        safe-rm|safe_rm)            ask_and_uninstall "safe-rm"       uninstall_safe_rm_mod ;;
+        clash|mihomo)               ask_and_uninstall "Clash"         uninstall_clash_mod ;;
+        multi-net|multinet)         ask_and_uninstall "多网卡路由"    uninstall_multinet_mod ;;
+        opencode)                   ask_and_uninstall "OpenCode"      uninstall_opencode_mod ;;
+        ollama)                     ask_and_uninstall "Ollama"        uninstall_ollama_mod ;;
+        bun)                        ask_and_uninstall "Bun"           uninstall_bun_mod ;;
+        pi)                         ask_and_uninstall "Pi"            uninstall_pi_mod ;;
+        deno)                       ask_and_uninstall "Deno"          uninstall_deno_mod ;;
+        pnpm)                       ask_and_uninstall "pnpm"          uninstall_pnpm_mod ;;
+        go|golang)                  ask_and_uninstall "Go"            uninstall_go_mod ;;
+        rust|rustup)                ask_and_uninstall "Rust"          uninstall_rust_mod ;;
+        dev-mirror|dev_mirror)      ask_and_uninstall "dev-mirror"    uninstall_dev_mirror_mod ;;
+        docker-image|docker_image)  ask_and_uninstall "Docker 镜像导出" uninstall_docker_image_mod ;;
+        essential-pkgs|essential)   ask_and_uninstall "装机必备"      uninstall_essential_mod ;;
+        dev-enhance)                ask_and_uninstall "开发工具增强"  uninstall_dev_enhance_mod ;;
+        modern-cli|modern_cli)      ask_and_uninstall "现代 CLI"      uninstall_modern_cli_mod ;;
+        sys-cmd|sys_cmd)            ask_and_uninstall "系统诊断命令"  uninstall_sys_cmd_mod ;;
+        upftp)                      ask_and_uninstall "upftp"         uninstall_upftp_mod ;;
         *) error "未知模块: $name"; show_usage; exit 1 ;;
     esac
 }
 
+# 交互式逐项询问（按分类展示）
 interactive_all() {
     detect_os
     header "🗑️  一键卸载（逐项询问）"
     echo "========================================"
     echo
-    if command -v node_exporter >/dev/null 2>&1 || [ -f /usr/local/bin/node_exporter ]; then
-        ask_and_uninstall "Node Exporter" uninstall_node_exporter_all
-    fi
-    if [ -f /opt/ddns-go/ddns-go ]; then
-        ask_and_uninstall "DDNS-GO" uninstall_ddns_all
-    fi
-    ask_and_uninstall "WireGuard 服务"  bash "$SCRIPT_DIR/wireguard/install.sh" uninstall_service
-    ask_and_uninstall "Tailscale"       bash "$SCRIPT_DIR/tailscale/install.sh" uninstall
-    ask_and_uninstall "Docker"          bash "$SCRIPT_DIR/docker/install.sh" uninstall
-    ask_and_uninstall "Fail2ban"        bash "$SCRIPT_DIR/fail2ban/install.sh" uninstall
-    uninstall_shutdown_all
-    ask_and_uninstall "进程管理工具"    bash "$SCRIPT_DIR/process_manager_tool/install_process_manager.sh" uninstall
+
+    echo "--- 服务 ---"
+    ask_and_uninstall "Node Exporter" uninstall_node_exporter_mod
+    ask_and_uninstall "DDNS-GO"       uninstall_ddns_mod
+    ask_and_uninstall "WireGuard"     uninstall_wireguard_mod
+    ask_and_uninstall "Tailscale"     uninstall_tailscale_mod
+    ask_and_uninstall "Docker"        uninstall_docker_mod
+    ask_and_uninstall "Fail2ban"      uninstall_fail2ban_mod
+    ask_and_uninstall "OpenList"      uninstall_openlist_mod
+    ask_and_uninstall "Uptime Kuma"   uninstall_uptime_kuma_mod
+    ask_and_uninstall "Cockpit"       uninstall_cockpit_mod
+    ask_and_uninstall "Docker 镜像导出" uninstall_docker_image_mod
+
+    echo "--- 开发环境 ---"
+    ask_and_uninstall "Zsh"           uninstall_zsh_mod
+    ask_and_uninstall "minikube"      uninstall_minikube_mod
+    ask_and_uninstall "终端 TUI"      uninstall_dev_tui_mod
+    ask_and_uninstall "Bun"           uninstall_bun_mod
+    ask_and_uninstall "Deno"          uninstall_deno_mod
+    ask_and_uninstall "pnpm"          uninstall_pnpm_mod
+    ask_and_uninstall "Go"            uninstall_go_mod
+    ask_and_uninstall "Rust"          uninstall_rust_mod
+    ask_and_uninstall "dev-mirror"    uninstall_dev_mirror_mod
+    ask_and_uninstall "开发工具增强"  uninstall_dev_enhance_mod
+    ask_and_uninstall "现代 CLI"      uninstall_modern_cli_mod
+
+    echo "--- AI 工具 ---"
+    ask_and_uninstall "OpenCode"      uninstall_opencode_mod
+    ask_and_uninstall "Ollama"        uninstall_ollama_mod
+    ask_and_uninstall "Pi"            uninstall_pi_mod
+
+    echo "--- 系统工具 ---"
+    ask_and_uninstall "Deskflow"      uninstall_deskflow_mod
+    ask_and_uninstall "BBR"           uninstall_bbr_mod
+    ask_and_uninstall "Swap"          uninstall_swap_mod
+    ask_and_uninstall "nvm"           uninstall_nvm_mod
+    ask_and_uninstall "safe-rm"       uninstall_safe_rm_mod
+    ask_and_uninstall "Clash"         uninstall_clash_mod
+    ask_and_uninstall "多网卡路由"    uninstall_multinet_mod
+    ask_and_uninstall "系统诊断命令"  uninstall_sys_cmd_mod
+    ask_and_uninstall "upftp"         uninstall_upftp_mod
+    uninstall_shutdown_mod
+    ask_and_uninstall "进程管理工具"  uninstall_pm_mod
+
     echo
     success "卸载流程结束。"
 }

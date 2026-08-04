@@ -194,13 +194,241 @@ EOF
 }
 
 # -------- 2. 时区 + 时间同步 --------
+# 预设 NTP 服务器
+NTP_PRESET_ALIYUN="ntp.aliyun.com ntp1.aliyun.com ntp2.aliyun.com"
+NTP_PRESET_TUNA="ntp.tuna.tsinghua.edu.cn"
+NTP_PRESET_NTPPOOL="0.pool.ntp.org 1.pool.ntp.org 2.pool.ntp.org"
+NTP_PRESET_CSTTIME="cn.ntp.org.cn"
+NTP_PRESET_GOOGLE="time1.google.com time2.google.com"
+NTP_PRESET_HUAWEI="ntp.huaweicloud.com"
+
+# 配置 systemd-timesyncd 的 NTP 服务器
+_configure_timesyncd() {
+    local servers="$1"
+    local conf="/etc/systemd/timesyncd.conf"
+    sudo mkdir -p /etc/systemd
+
+    # 备份原配置
+    [[ -f "$conf" ]] && sudo cp -a "$conf" "${conf}.bak.$(date +%s)" 2>/dev/null || true
+
+    # 构建 NTP= 行（空格分隔）
+    local ntp_line
+    ntp_line=$(echo "$servers" | tr ' ' '\n' | sed '/^$/d' | tr '\n' ' ' | sed 's/ *$//')
+
+    # 写入配置（保留其他设置，只更新 [Time] 段的 NTP 和 FallbackNTP）
+    if [[ -f "$conf" ]] && grep -q '^\[Time\]' "$conf" 2>/dev/null; then
+        # 已有 [Time] 段：替换或追加 NTP=
+        if grep -q '^NTP=' "$conf"; then
+            sudo sed -i "s|^NTP=.*|NTP=${ntp_line}|" "$conf"
+        else
+            sudo sed -i "/^\[Time\]/a NTP=${ntp_line}" "$conf"
+        fi
+    else
+        # 没有 [Time] 段：追加
+        {
+            echo ""
+            echo "[Time]"
+            echo "NTP=${ntp_line}"
+        } | sudo tee -a "$conf" >/dev/null
+    fi
+
+    # 重启 timesyncd 使配置生效
+    sudo systemctl restart systemd-timesyncd 2>/dev/null || true
+}
+
+# 配置 chrony 的 NTP 服务器
+_configure_chrony() {
+    local servers="$1"
+    local conf=""
+    for conf in /etc/chrony/chrony.conf /etc/chrony.conf; do
+        [[ -f "$conf" ]] && break
+    done
+    [[ -f "$conf" ]] || { warn "未找到 chrony 配置文件"; return 1; }
+
+    sudo cp -a "$conf" "${conf}.bak.$(date +%s)" 2>/dev/null || true
+
+    # 注释掉原有的 server/pool 行（含缩进）
+    sudo sed -i 's/^\([[:space:]]*\(server\|pool\)\) /# &/' "$conf"
+
+    # 追加新的 server 行
+    local s
+    for s in $servers; do
+        echo "server $s iburst" | sudo tee -a "$conf" >/dev/null
+    done
+
+    sudo systemctl restart chrony 2>/dev/null || sudo systemctl restart chronyd 2>/dev/null || true
+}
+
+# 配置 ntpd 的 NTP 服务器
+_configure_ntpd() {
+    local servers="$1"
+    local conf="/etc/ntp.conf"
+    [[ -f "$conf" ]] || { warn "未找到 ntp.conf"; return 1; }
+
+    sudo cp -a "$conf" "${conf}.bak.$(date +%s)" 2>/dev/null || true
+
+    # 注释掉原有的 server 行（含缩进）
+    sudo sed -i 's/^\([[:space:]]*server\) /# &/' "$conf"
+
+    # 追加新的 server 行
+    local s
+    for s in $servers; do
+        echo "server $s iburst" | sudo tee -a "$conf" >/dev/null
+    done
+
+    sudo systemctl restart ntpd 2>/dev/null || true
+}
+
+# 设置 NTP 服务器（自动检测后端）
+set_ntp_servers() {
+    local servers="$1"
+
+    # 检测使用哪个 NTP 后端
+    if systemctl is-active --quiet systemd-timesyncd 2>/dev/null || \
+       systemctl list-unit-files 2>/dev/null | grep -q systemd-timesyncd; then
+        if _configure_timesyncd "$servers"; then
+            success "已配置 systemd-timesyncd: $servers"
+        else
+            error "配置 systemd-timesyncd 失败"; return 1
+        fi
+    elif systemctl is-active --quiet chrony 2>/dev/null || \
+         systemctl is-active --quiet chronyd 2>/dev/null || \
+         command_exists chronyc; then
+        if _configure_chrony "$servers"; then
+            success "已配置 chrony: $servers"
+        else
+            error "配置 chrony 失败"; return 1
+        fi
+    elif systemctl is-active --quiet ntpd 2>/dev/null || \
+         command_exists ntpd; then
+        if _configure_ntpd "$servers"; then
+            success "已配置 ntpd: $servers"
+        else
+            error "配置 ntpd 失败"; return 1
+        fi
+    else
+        # 没有 NTP 服务，尝试安装
+        warn "未检测到 NTP 服务，尝试安装..."
+        detect_pkg_manager
+        local install_ok=false
+        case "$PKG_MANAGER" in
+            apt-get) sudo apt-get install -y chrony && sudo systemctl enable --now chrony && install_ok=true ;;
+            dnf)     sudo dnf install -y chrony && sudo systemctl enable --now chronyd && install_ok=true ;;
+            yum)     sudo yum install -y chrony && sudo systemctl enable --now chronyd && install_ok=true ;;
+            *)       warn "无法自动安装 NTP 服务（不支持的包管理器）"; return 1 ;;
+        esac
+        if $install_ok && command_exists chronyc; then
+            _configure_chrony "$servers"
+            success "已安装 chrony 并配置: $servers"
+        else
+            error "chrony 安装失败，请手动安装: sudo apt-get install chrony"
+            return 1
+        fi
+    fi
+}
+
+# 查看当前 NTP 状态
+show_ntp_status() {
+    echo "当前 NTP 状态："
+    if command_exists timedatectl; then
+        timedatectl status 2>/dev/null | grep -E 'Local time|Time zone|NTP|synchronized' | sed 's/^/  /'
+    fi
+    # 显示实际使用的 NTP 服务器
+    if systemctl is-active --quiet systemd-timesyncd 2>/dev/null; then
+        echo "  后端: systemd-timesyncd"
+        local conf="/etc/systemd/timesyncd.conf"
+        if [[ -f "$conf" ]] && grep -q '^NTP=' "$conf"; then
+            echo "  配置: $(grep '^NTP=' "$conf")"
+        else
+            echo "  配置: (默认)"
+        fi
+    elif command_exists chronyc 2>/dev/null; then
+        echo "  后端: chrony"
+        chronyc sources 2>/dev/null | head -8 | sed 's/^/  /'
+    elif command_exists ntpq 2>/dev/null; then
+        echo "  后端: ntpd"
+        ntpq -p 2>/dev/null | head -8 | sed 's/^/  /'
+    else
+        echo "  (未检测到 NTP 服务)"
+    fi
+}
+
+# NTP 交互式设置
+do_ntp() {
+    preflight
+    info "🕐 配置 NTP 时间同步服务器"
+    echo
+
+    show_ntp_status
+    echo
+
+    menu "请选择 NTP 服务器方案："
+    echo "  1) 阿里云     ($NTP_PRESET_ALIYUN)"
+    echo "  2) 清华 TUNA  ($NTP_PRESET_TUNA)"
+    echo "  3) 华为云     ($NTP_PRESET_HUAWEI)"
+    echo "  4) 中国 NTP   ($NTP_PRESET_CSTTIME)"
+    echo "  5) NTP Pool   ($NTP_PRESET_NTPPOOL)"
+    echo "  6) Google     ($NTP_PRESET_GOOGLE)"
+    echo "  7) 自定义（手动输入 NTP 服务器地址）"
+    echo "  0) 取消"
+    echo "========================================"
+
+    local choice
+    read -r -p "请输入选项 [0-7]: " choice
+
+    local servers=""
+    case "$choice" in
+        1) servers="$NTP_PRESET_ALIYUN" ;;
+        2) servers="$NTP_PRESET_TUNA" ;;
+        3) servers="$NTP_PRESET_HUAWEI" ;;
+        4) servers="$NTP_PRESET_CSTTIME" ;;
+        5) servers="$NTP_PRESET_NTPPOOL" ;;
+        6) servers="$NTP_PRESET_GOOGLE" ;;
+        7)
+            echo
+            info "请输入 NTP 服务器地址（多个用空格分隔）："
+            info "示例: ntp.aliyun.com ntp1.aliyun.com"
+            read -r -p "> " servers
+            # 去除首尾空白
+            servers=$(echo "$servers" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            if [[ -z "$servers" ]]; then
+                warn "未输入任何服务器，已取消"
+                return 0
+            fi
+            # 基本校验：每个词应像合法主机名（含字母/数字/点/连字符）
+            local word
+            for word in $servers; do
+                if [[ ! "$word" =~ ^[a-zA-Z0-9._:-]+$ ]]; then
+                    error "无效的服务器地址: $word"
+                    info "地址应只包含字母、数字、点、连字符，例如: ntp.aliyun.com"
+                    return 1
+                fi
+            done
+            ;;
+        0|*) info "已取消"; return 0 ;;
+    esac
+
+    echo
+    info "即将配置 NTP 服务器: $servers"
+    if ! yes_no "确认继续？"; then
+        info "已取消"; return 0
+    fi
+
+    set_ntp_servers "$servers"
+
+    echo
+    show_ntp_status
+}
+
+# 设置时区（支持参数，默认 Asia/Shanghai）
 do_timezone() {
     preflight
-    info "🕐 设置时区为 Asia/Shanghai 并启用时间同步"
+    local tz="${1:-Asia/Shanghai}"
+    info "🕐 设置时区为 $tz 并启用时间同步"
 
     if command_exists timedatectl; then
-        sudo timedatectl set-timezone Asia/Shanghai
-        success "时区已设置为 Asia/Shanghai"
+        sudo timedatectl set-timezone "$tz"
+        success "时区已设置为 $tz"
         # 优先启用 systemd-timesyncd
         if systemctl list-unit-files 2>/dev/null | grep -q systemd-timesyncd; then
             sudo systemctl enable --now systemd-timesyncd 2>/dev/null || true
@@ -208,8 +436,8 @@ do_timezone() {
             success "已启用 systemd-timesyncd (NTP)"
         fi
     else
-        sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-        success "时区已设置为 Asia/Shanghai（符号链接）"
+        sudo ln -sf "/usr/share/zoneinfo/$tz" /etc/localtime
+        success "时区已设置为 $tz（符号链接）"
     fi
 
     # 没有 timesyncd 时回退装 chrony/ntp
@@ -365,6 +593,19 @@ status_sys_setup() {
     fi
     echo "时区: $(timedatectl show -p Timezone --value 2>/dev/null || cat /etc/timezone 2>/dev/null || echo '未知')"
     echo "NTP 同步: $(timedatectl show -p NTP --value 2>/dev/null || echo '未知')"
+    # 显示 NTP 服务器配置
+    if systemctl is-active --quiet systemd-timesyncd 2>/dev/null; then
+        local ntp_conf="/etc/systemd/timesyncd.conf"
+        local ntp_servers="(系统默认)"
+        if [[ -f "$ntp_conf" ]] && grep -q '^NTP=' "$ntp_conf" 2>/dev/null; then
+            ntp_servers=$(grep '^NTP=' "$ntp_conf" | sed 's/^NTP=//')
+        fi
+        echo "NTP 服务器: $ntp_servers (timesyncd)"
+    elif command_exists chronyc 2>/dev/null; then
+        echo "NTP 服务器: (chrony，用 chronyc sources 查看)"
+    elif command_exists ntpq 2>/dev/null; then
+        echo "NTP 服务器: (ntpd，用 ntpq -p 查看)"
+    fi
     local fd_state ssh_state
     if [[ -f /etc/security/limits.d/99-unix-script.conf ]]; then fd_state="✅ 已优化"; else fd_state="默认"; fi
     if [[ -f /etc/ssh/sshd_config.d/99-unix-script.conf ]]; then ssh_state="✅ 已加固"; else ssh_state="默认"; fi
@@ -374,10 +615,11 @@ status_sys_setup() {
 
 usage() {
     cat <<EOF
-用法: $0 {mirror|timezone|optimize|ssh|autoupdate|all|status|help}  (仅 Linux)
+用法: $0 {mirror|timezone|ntp|optimize|ssh|autoupdate|all|status|help}  (仅 Linux)
 
   mirror      更换软件源为国内镜像（Debian/Ubuntu/CentOS）
-  timezone    设置时区 Asia/Shanghai 并启用 NTP 时间同步
+  timezone    设置时区并启用 NTP 时间同步（默认 Asia/Shanghai）
+  ntp         配置自定义 NTP 服务器（阿里云/清华/华为/Google/自定义）
   optimize    优化系统参数（文件描述符、TCP、内核）
   ssh         SSH 加固（禁用密码登录、禁用 root 直登，需先配好密钥）
   autoupdate  启用自动安全更新
@@ -392,6 +634,7 @@ main() {
     case "$action" in
         mirror)     do_mirror ;;
         timezone)   do_timezone ;;
+        ntp)        do_ntp ;;
         optimize)   do_optimize ;;
         ssh)        do_ssh ;;
         autoupdate) do_autoupdate ;;

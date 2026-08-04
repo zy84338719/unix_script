@@ -1,0 +1,3 @@
+LABEL=upftp
+CATEGORY=系统工具
+DEFAULT_ACTION=install

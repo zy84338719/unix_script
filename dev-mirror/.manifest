@@ -1,0 +1,5 @@
+LABEL=dev-mirror
+CATEGORY=开发环境
+ALIASES=dev_mirror,devmirror
+DEFAULT_ACTION=install all default
+HAS_SUBMENU=dev-mirror

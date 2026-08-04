@@ -1,0 +1,4 @@
+LABEL=装机必备工具包
+CATEGORY=装机必备
+ALIASES=essential,essential_pkgs
+DEFAULT_ACTION=install

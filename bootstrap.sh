@@ -142,15 +142,17 @@ ensure_cli() {
     if [[ ! -f "$install_script" ]]; then
         return 0
     fi
-    # 如果 uxs 尚未安装，自动安装
-    if ! command -v uxs >/dev/null 2>&1; then
-        b_info "正在安装全局命令 uxs（之后可在任意目录使用 uxs）..."
-        bash "$install_script" cli >/dev/null 2>&1 || true
-        if command -v uxs >/dev/null 2>&1; then
-            b_success "uxs 已安装！重新加载 shell 后即可使用"
-        else
-            b_info "uxs 安装到 ~/.tools/bin，请重新加载 shell：source ~/.zshrc（或 ~/.bashrc）"
-        fi
+    # 检查 wrapper 文件是否存在（比 command -v 更可靠，因为 ~/.tools/bin 可能不在当前 PATH）
+    local wrapper="$HOME/.tools/bin/uxs"
+    if [[ -x "$wrapper" ]]; then
+        return 0
+    fi
+    b_info "正在安装全局命令 uxs（之后可在任意目录使用 uxs）..."
+    bash "$install_script" cli >/dev/null 2>&1 || true
+    if [[ -x "$wrapper" ]]; then
+        b_success "uxs 已安装！重新加载 shell 后即可使用"
+    else
+        b_info "uxs 安装到 ~/.tools/bin，请重新加载 shell：source ~/.zshrc（或 ~/.bashrc）"
     fi
 }
 

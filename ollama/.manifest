@@ -1,0 +1,3 @@
+LABEL=Ollama
+CATEGORY=AI工具
+DEFAULT_ACTION=install

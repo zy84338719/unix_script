@@ -1,0 +1,3 @@
+LABEL=开发工具增强
+CATEGORY=开发环境
+DEFAULT_ACTION=install

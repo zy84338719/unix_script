@@ -1,0 +1,4 @@
+LABEL=Zsh & Oh My Zsh
+CATEGORY=开发环境
+ALIASES=zsh
+DEFAULT_ACTION=install

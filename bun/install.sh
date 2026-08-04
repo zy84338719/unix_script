@@ -124,6 +124,7 @@ _set_registry() {
     local reg="$1"
     local tmp
     tmp=$(mktemp)
+    trap 'rm -f "$tmp"' EXIT
     # 备份
     [[ -f "$BUNFIG" ]] && cp -a "$BUNFIG" "$BUNFIG.bak.$(date +%s)"
     # 提取 [install] 段之外的行（即不在 [install] 段的内容），用 awk 跨平台
@@ -168,10 +169,6 @@ unmirror_bun() {
     fi
     info "还原 Bun 官方源（$OFFICIAL_REGISTRY）"
     _set_registry "$OFFICIAL_REGISTRY"
-    success "已还原 registry = $OFFICIAL_REGISTRY"
-    if command_exists bun; then
-        bun pm cache rm >/dev/null 2>&1 || true
-    fi
     success "已还原 registry = $OFFICIAL_REGISTRY"
     if command_exists bun; then
         bun pm cache rm >/dev/null 2>&1 || true

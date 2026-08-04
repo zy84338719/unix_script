@@ -1,0 +1,4 @@
+LABEL=Fail2ban
+CATEGORY=服务
+ALIASES=f2b
+DEFAULT_ACTION=install

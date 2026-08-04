@@ -126,7 +126,7 @@ GUARDEOF
     local rc
     for rc in "$HOME/.bashrc" "$HOME/.zshrc"; do
         if [[ -f "$rc" ]] && ! grep -q "alias rm='_safe_rm_guard'" "$rc" 2>/dev/null; then
-            echo "alias rm='_safe_rm_guard' 2>/dev/null" >> "$rc"
+            echo "alias rm='_safe_rm_guard'" >> "$rc"
         fi
     done
     success "已启用 rm 危险路径保护（重新加载 shell 生效）"

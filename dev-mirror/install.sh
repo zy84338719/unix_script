@@ -292,12 +292,13 @@ config_rust() {
 
     # 拼接：用户配置 + 本模块标记段
     local block
-    block=$(printf '%s\n%s\n[source.crates-io]\nreplace-with = "dev-mirror"\n\n[source.dev-mirror]\nregistry = "sparse+%s"\n%s\n' \
-        "$MIRROR_BEGIN" "$MIRROR_BEGIN" "$url" "$MIRROR_END")
+    block=$(printf '%s\n[source.crates-io]\nreplace-with = "dev-mirror"\n\n[source.dev-mirror]\nregistry = "sparse+%s"\n%s\n' \
+        "$MIRROR_BEGIN" "$url" "$MIRROR_END")
 
     # 原子写入：先写临时文件再 mv
     local tmp
     tmp=$(mktemp)
+    trap 'rm -f "$tmp"' EXIT
     {
         [[ -n "$other" ]] && printf '%s\n\n' "$other"
         printf '%s\n' "$block"
@@ -315,6 +316,7 @@ uninstall_rust() {
         if grep -qF "$MIRROR_BEGIN" "$cfg"; then
             local tmp
             tmp=$(mktemp)
+            trap 'rm -f "$tmp"' EXIT
             awk -v b="$MIRROR_BEGIN" -v e="$MIRROR_END" '
                 $0==b {inblk=1; next}
                 $0==e {inblk=0; next}

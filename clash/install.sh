@@ -72,6 +72,7 @@ install_clash() {
     url="https://github.com/${REPO}/releases/download/${version}/mihomo-linux-${suffix}-compatible-${version}.gz"
     info "下载：$url"
     tmpdir=$(mktemp -d)
+    trap 'rm -rf "$tmpdir"' EXIT
     if ! curl -fSL "$url" -o "$tmpdir/mihomo.gz" 2>/dev/null; then
         url="https://github.com/${REPO}/releases/download/${version}/mihomo-linux-${suffix}-${version}.gz"
         info "compatible 版下载失败，尝试标准版：$url"

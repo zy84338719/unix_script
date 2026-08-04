@@ -1,0 +1,4 @@
+LABEL=DDNS-GO
+CATEGORY=服务
+ALIASES=ddnsgo,ddns
+DEFAULT_ACTION=install

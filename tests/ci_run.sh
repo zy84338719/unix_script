@@ -172,10 +172,14 @@ phase_routing() {
     # 3. uninstall.sh
     assert "uninstall.sh --help (exit 0)" bash "$REPO_DIR/uninstall.sh" --help
 
-    # 4. 新式模块（有子命令分发）：验证 status 子命令退出码 0
-    #    注意：node_exporter/ddns-go/zsh_setup 是老式脚本，直接执行=安装，
-    #    此处绝不调用它们（避免触发真实安装），仅 static 阶段覆盖其语法。
-    local new_mods=(tailscale docker fail2ban minikube deskflow openlist uptime-kuma cockpit dev-tui essential-pkgs swap bbr nvm safe-rm clash multi-net opencode ollama dev-mirror docker-image node_exporter ddns-go zsh_setup wireguard bun pi deno pnpm go rust sys-cmd upftp dev-enhance modern-cli)
+    # 4. 模块（有子命令分发）：验证 status 子命令退出码 0
+    #    从各模块的 .manifest 文件动态发现，不再硬编码。
+    #    注意：此处绝不调用 install（避免触发真实安装），仅 static 阶段覆盖其语法。
+    local new_mods=()
+    for manifest in "$REPO_DIR"/*/.manifest; do
+        [[ -f "$manifest" ]] || continue
+        new_mods+=("$(basename "$(dirname "$manifest")")")
+    done
     local m
     for m in "${new_mods[@]}"; do
         local script="$REPO_DIR/$m/install.sh"
@@ -191,10 +195,10 @@ phase_routing() {
     assert "pm_wrapper: --version (exit 0)" bash "$REPO_DIR/process_manager_tool/pm_wrapper.sh" --version
 
     # 9. dev-mirror 模块集成断言
-    #    主菜单含 dev-mirror 项、install.sh 含 manage_dev_mirror 与 status_dev_mirror_module 函数
-    assert "install.sh 主菜单含 dev-mirror 项" bash -c "grep -q 'dev-mirror' \"$REPO_DIR/install.sh\""
-    assert "install.sh 含 manage_dev_mirror 函数" bash -c "grep -q 'manage_dev_mirror()' \"$REPO_DIR/install.sh\""
-    assert "install.sh 含 status_dev_mirror_module 函数" bash -c "grep -q 'status_dev_mirror_module()' \"$REPO_DIR/install.sh\""
+    #    注册表驱动：dev-mirror 有 manifest，子菜单在 lib/submenus.sh
+    assert "dev-mirror 有 .manifest" bash -c "test -f \"$REPO_DIR/dev-mirror/.manifest\""
+    assert "lib/submenus.sh 含 manage_dev_mirror 函数" bash -c "grep -q 'manage_dev_mirror()' \"$REPO_DIR/lib/submenus.sh\""
+    assert "lib/status.sh 含 module_status 函数" bash -c "grep -q 'module_status()' \"$REPO_DIR/lib/status.sh\""
     # dev-mirror 子命令路由：非法生态应报错退出 1
     assert "dev-mirror: 非法生态报错 (exit 1)" bash -c "! \"$REPO_DIR/dev-mirror/install.sh\" install __bad_eco__ >/dev/null 2>&1"
     # dev-mirror: 非法源标识应报错退出 1

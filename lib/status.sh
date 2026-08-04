@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+#
+# lib/status.sh
+#
+# 注册表驱动的状态检查函数。
+# 用 module_status() 替代 36 个独立的 status_*_module() 函数。
+#
+
+# 幂等保护
+if [[ -n "${_STATUS_SH_LOADED:-}" ]]; then return 0 2>/dev/null || exit 0; fi
+_STATUS_SH_LOADED=1
+
+# --- 通用模块状态查询（注册表驱动）---
+# 用法: module_status <模块目录名>
+# 调用该模块的 install.sh status 子命令，输出一行状态。
+module_status() {
+    local mod="$1"
+    local entry_script
+    entry_script=$(registry_entry_script "$mod")
+    local script="$SCRIPT_DIR/$mod/$entry_script"
+    if [[ -f "$script" ]]; then
+        bash "$script" status 2>/dev/null || echo "查询失败"
+    else
+        echo -e "${RED}❌ 脚本不存在${NC}"
+    fi
+}
+
+# --- 特殊模块状态（非标准接口）---
+check_shutdown_timer_status() {
+    local is_configured=false
+    if [[ "$OS_TYPE" == "darwin" ]]; then
+        [ -f "/Library/LaunchDaemons/com.user.dailyshutdown.plist" ] && is_configured=true
+    elif [[ "$OS_TYPE" == "linux" ]]; then
+        if crontab -l 2>/dev/null | grep -q "# AUTO_SHUTDOWN_SCRIPT"; then
+            is_configured=true
+        fi
+    fi
+    if $is_configured; then
+        echo -e "${GREEN}✅ 已配置每日定时关机${NC}"
+    else
+        echo -e "${RED}❌ 未配置${NC}"
+    fi
+}
+
+check_process_manager_status() {
+    local is_installed=false
+    if [ -f "$HOME/.tools/bin/process_manager" ] && [ -f "$HOME/.tools/bin/pm" ]; then
+        is_installed=true
+    fi
+    if $is_installed; then
+        if echo "$PATH" | grep -q "$HOME/.tools/bin"; then
+            echo -e "${GREEN}✅ 已安装并配置${NC}"
+        else
+            echo -e "${YELLOW}⚠️  已安装但 PATH 未配置${NC}"
+        fi
+    else
+        echo -e "${RED}❌ 未安装${NC}"
+    fi
+}
+
+# --- 已安装状态总览（注册表驱动）---
+show_installed_services() {
+    if $INTERACTIVE; then clear; fi
+    header "📊 已安装状态"
+    echo "========================================"
+
+    local cat mod label
+    for cat in $CATEGORY_ORDER; do
+        local has_module=false
+        for mod in $_REGISTRY_MODULES; do
+            [[ "$(_reg_get "$mod" CATEGORY)" == "$cat" ]] && { has_module=true; break; }
+        done
+        $has_module || continue
+
+        echo
+        echo "--- $cat ---"
+        for mod in $_REGISTRY_MODULES; do
+            [[ "$(_reg_get "$mod" CATEGORY)" == "$cat" ]] || continue
+            label=$(_reg_get "$mod" LABEL)
+            # 特殊模块用自定义状态函数
+            case "$mod" in
+                shutdown_timer)  printf "  %-16s %s\n" "$label:" "$(check_shutdown_timer_status)" ;;
+                process_manager_tool) printf "  %-16s %s\n" "$label:" "$(check_process_manager_status)" ;;
+                *)               printf "  %-16s %s\n" "$label:" "$(module_status "$mod")" ;;
+            esac
+        done
+    done
+
+    echo
+    echo "========================================"
+    if [[ "$OS_TYPE" == "linux" ]]; then
+        info "Linux 服务管理命令："
+        echo "  查看状态: sudo systemctl status <service-name>"
+        echo "  查看日志: sudo journalctl -u <service-name> -f"
+    elif [[ "$OS_TYPE" == "darwin" ]]; then
+        info "macOS 服务管理命令："
+        echo "  查看状态: sudo launchctl list | grep <service>"
+        echo "  查看日志: tail -f /var/log/<service>.log"
+    fi
+    echo
+    if $INTERACTIVE; then read -r -p "按回车键返回主菜单..."; fi
+}
