@@ -287,10 +287,19 @@ main() {
     esac
 
     # 处理非交互式参数
-    if [[ "$1" == "cancel_daily_shutdown_internal" ]]; then
-        cancel_daily_shutdown
-        exit 0
-    fi
+    case "${1:-}" in
+        cancel_daily_shutdown_internal)
+            cancel_daily_shutdown; exit 0 ;;
+        status)
+            check_shutdown_status; exit 0 ;;
+        help|--help|-h)
+            echo "用法: $0 [status|cancel_daily_shutdown_internal|help]"
+            echo "  status                        查看当前关机状态"
+            echo "  cancel_daily_shutdown_internal 取消每日关机（内部接口）"
+            echo "  help                          显示此帮助"
+            echo "  (无参数)                      进入交互式菜单"
+            exit 0 ;;
+    esac
 
     while true; do
         echo ""

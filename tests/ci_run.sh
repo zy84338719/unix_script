@@ -93,26 +93,25 @@ report_footer() {
 phase_static() {
     report_header "静态检查 (static) — bash -n + shellcheck"
 
-    local scripts
+    local scripts f rel
     scripts=$(find "$REPO_DIR" -type f -name "*.sh" \
               -not -path "*/.git/*" -not -path "*/node_modules/*" \
               -not -path "*/.tools/*" | sort)
 
-    local f
     while IFS= read -r f; do
-        local rel="${f#"$REPO_DIR"/}"
+        rel="${f#"$REPO_DIR"/}"
         assert "bash -n: $rel" bash -n "$f"
     done <<< "$scripts"
 
     if command -v shellcheck >/dev/null 2>&1; then
         while IFS= read -r f; do
-            local rel="${f#"$REPO_DIR"/}"
+            rel="${f#"$REPO_DIR"/}"
             assert "shellcheck: $rel" shellcheck -e SC2164,SC1091,SC2317,SC2329 -x "$f"
         done <<< "$scripts"
     else
         # 未安装 shellcheck：对每个脚本标记 skip
         while IFS= read -r f; do
-            local rel="${f#"$REPO_DIR"/}"
+            rel="${f#"$REPO_DIR"/}"
             report_row "shellcheck: $rel" skip "shellcheck 未安装"
         done <<< "$scripts"
     fi
@@ -153,8 +152,8 @@ phase_routing() {
     assert "关闭自动检查开关后 --help 正常" bash -c "UNIX_SCRIPT_NO_UPDATE_CHECK=1 \"$REPO_DIR/install.sh\" --help >/dev/null"
     # common.sh 新函数存在
     assert "common.sh 含更新检查函数" bash -c "source \"$REPO_DIR/lib/common.sh\" && type get_local_version >/dev/null && type version_gt >/dev/null && type check_for_update >/dev/null && type do_self_update >/dev/null"
-    # cli 子命令：install.sh 含 install_cli / uninstall_cli 函数（不实际安装，避免污染 CI 环境）
-    assert "install.sh 含 cli 安装/卸载函数" bash -c "grep -q 'install_cli()' \"$REPO_DIR/install.sh\" && grep -q 'uninstall_cli()' \"$REPO_DIR/install.sh\""
+    # cli 子命令：lib/uxs_cli.sh 含 install_cli / uninstall_cli 函数（不实际安装，避免污染 CI 环境）
+    assert "lib/uxs_cli.sh 含 cli 安装/卸载函数" bash -c "grep -q 'install_cli()' \"$REPO_DIR/lib/uxs_cli.sh\" && grep -q 'uninstall_cli()' \"$REPO_DIR/lib/uxs_cli.sh\""
 
     # 2c. bootstrap.sh 引导脚本：存在、可执行、语法正确、含关键函数
     #     （不在此做真实 git clone，避免 CI 增加网络依赖与耗时；实装由本地端到端覆盖）
@@ -180,10 +179,15 @@ phase_routing() {
         [[ -f "$manifest" ]] || continue
         new_mods+=("$(basename "$(dirname "$manifest")")")
     done
-    local m
+    local m entry_script script
     for m in "${new_mods[@]}"; do
-        local script="$REPO_DIR/$m/install.sh"
-        [[ -f "$script" ]] || { report_row "$m: 脚本存在" fail "缺失"; continue; }
+        # 从 manifest 读取入口脚本名（默认 install.sh）
+        entry_script="install.sh"
+        if grep -q '^ENTRY_SCRIPT=' "$REPO_DIR/$m/.manifest" 2>/dev/null; then
+            entry_script=$(grep '^ENTRY_SCRIPT=' "$REPO_DIR/$m/.manifest" | head -1 | cut -d= -f2)
+        fi
+        script="$REPO_DIR/$m/$entry_script"
+        [[ -f "$script" ]] || { report_row "$m: 脚本存在 ($entry_script)" fail "缺失"; continue; }
         assert "$m: status (exit 0)" bash "$script" status
         assert "$m: help (exit 0)" bash "$script" help
     done
