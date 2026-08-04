@@ -3,6 +3,7 @@
 # uninstall.sh
 #
 # 一键卸载入口：委托各模块的 install.sh uninstall 执行卸载。
+# 注册表驱动，自动发现所有 .manifest 模块。
 #
 # 用法:
 #   ./uninstall.sh             # 交互式逐项询问
@@ -16,6 +17,8 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/common.sh
 source "$SCRIPT_DIR/lib/common.sh"
+# shellcheck source=lib/registry.sh
+source "$SCRIPT_DIR/lib/registry.sh"
 
 # 在子 shell 中执行某目录下的脚本（避免 cd 污染当前工作目录）
 run_in_dir() {
@@ -36,49 +39,42 @@ ask_and_uninstall() {
     echo
 }
 
-# --- 各模块卸载委托 ---
-uninstall_node_exporter_mod() { run_in_dir node_exporter install.sh uninstall; }
-uninstall_ddns_mod()          { run_in_dir ddns-go install.sh uninstall; }
-uninstall_wireguard_mod()     { run_in_dir wireguard install.sh uninstall; }
-uninstall_tailscale_mod()     { run_in_dir tailscale install.sh uninstall; }
-uninstall_docker_mod()        { run_in_dir docker install.sh uninstall; }
-uninstall_fail2ban_mod()      { run_in_dir fail2ban install.sh uninstall; }
-uninstall_openlist_mod()      { run_in_dir openlist install.sh uninstall; }
-uninstall_uptime_kuma_mod()   { run_in_dir uptime-kuma install.sh uninstall; }
-uninstall_cockpit_mod()       { run_in_dir cockpit install.sh uninstall; }
-uninstall_zsh_mod()           { run_in_dir zsh_setup install.sh uninstall; }
-uninstall_minikube_mod()      { run_in_dir minikube install.sh uninstall; }
-uninstall_dev_tui_mod()       { run_in_dir dev-tui install.sh uninstall; }
-uninstall_deskflow_mod()      { run_in_dir deskflow install.sh uninstall; }
-uninstall_bbr_mod()           { run_in_dir bbr install.sh disable; }
-uninstall_swap_mod()          { run_in_dir swap install.sh uninstall; }
-uninstall_nvm_mod()           { run_in_dir nvm install.sh uninstall; }
-uninstall_safe_rm_mod()       { run_in_dir safe-rm install.sh uninstall; }
-uninstall_clash_mod()         { run_in_dir clash install.sh uninstall; }
-uninstall_multinet_mod()      { run_in_dir multi-net install.sh clear; }
-uninstall_opencode_mod()      { run_in_dir opencode install.sh uninstall; }
-uninstall_ollama_mod()        { run_in_dir ollama install.sh uninstall; }
-uninstall_bun_mod()           { run_in_dir bun install.sh uninstall; }
-uninstall_pi_mod()            { run_in_dir pi install.sh uninstall; }
-uninstall_deno_mod()          { run_in_dir deno install.sh uninstall; }
-uninstall_pnpm_mod()          { run_in_dir pnpm install.sh uninstall; }
-uninstall_go_mod()            { run_in_dir go install.sh uninstall; }
-uninstall_rust_mod()          { run_in_dir rust install.sh uninstall; }
-uninstall_dev_mirror_mod()    { run_in_dir dev-mirror install.sh uninstall all <<< "y"; }
-uninstall_docker_image_mod()  { run_in_dir docker-image install.sh uninstall; }
-uninstall_essential_mod()     { run_in_dir essential-pkgs install.sh uninstall; }
-uninstall_dev_enhance_mod()   { run_in_dir dev-enhance install.sh uninstall; }
-uninstall_modern_cli_mod()    { run_in_dir modern-cli install.sh uninstall; }
-uninstall_sys_cmd_mod()       { run_in_dir sys-cmd install.sh uninstall; }
-uninstall_upftp_mod()         { run_in_dir upftp install.sh uninstall; }
-uninstall_pm_mod()            { run_in_dir process_manager_tool install_process_manager.sh uninstall; }
+# --- 通用模块卸载（注册表驱动） ---
+# 绝大多数模块只需调用 install.sh uninstall
+uninstall_module() {
+    local mod="$1"
+    local entry_script
+    entry_script=$(registry_entry_script "$mod")
+    run_in_dir "$mod" "$entry_script" uninstall
+}
 
-uninstall_shutdown_mod() {
-    local sp="$SCRIPT_DIR/shutdown_timer/shutdown_timer.sh"
-    if [ -f "$sp" ]; then
-        chmod +x "$sp"
-        "$sp" cancel_daily_shutdown_internal
-    fi
+# --- 特殊模块卸载（需要非标准命令） ---
+uninstall_special() {
+    local mod="$1"
+    case "$mod" in
+        bbr)
+            run_in_dir bbr install.sh disable
+            ;;
+        multi-net)
+            run_in_dir multi-net install.sh clear
+            ;;
+        shutdown_timer)
+            local sp="$SCRIPT_DIR/shutdown_timer/shutdown_timer.sh"
+            if [ -f "$sp" ]; then
+                chmod +x "$sp"
+                "$sp" cancel_daily_shutdown_internal
+            fi
+            ;;
+        process_manager_tool)
+            run_in_dir process_manager_tool install_process_manager.sh uninstall
+            ;;
+        dev-mirror)
+            run_in_dir dev-mirror install.sh uninstall all <<< "y"
+            ;;
+        *)
+            uninstall_module "$mod"
+            ;;
+    esac
 }
 
 # --- 卸载全部 ---
@@ -88,47 +84,26 @@ uninstall_all() {
         info "已取消"
         exit 0
     fi
-    uninstall_node_exporter_mod
-    uninstall_ddns_mod
-    uninstall_wireguard_mod
-    uninstall_tailscale_mod
-    uninstall_docker_mod
-    uninstall_fail2ban_mod
-    uninstall_openlist_mod
-    uninstall_uptime_kuma_mod
-    uninstall_cockpit_mod
-    uninstall_zsh_mod
-    uninstall_minikube_mod
-    uninstall_dev_tui_mod
-    uninstall_shutdown_mod
-    uninstall_pm_mod
-    uninstall_deskflow_mod
-    uninstall_bbr_mod
-    uninstall_swap_mod
-    uninstall_nvm_mod
-    uninstall_safe_rm_mod
-    uninstall_clash_mod
-    uninstall_multinet_mod
-    uninstall_docker_image_mod
-    uninstall_essential_mod
-    uninstall_dev_enhance_mod
-    uninstall_modern_cli_mod
-    uninstall_sys_cmd_mod
-    uninstall_upftp_mod
-    uninstall_opencode_mod
-    uninstall_ollama_mod
-    uninstall_bun_mod
-    uninstall_pi_mod
-    uninstall_deno_mod
-    uninstall_pnpm_mod
-    uninstall_go_mod
-    uninstall_rust_mod
-    uninstall_dev_mirror_mod
+
+    local mod
+    for mod in $_REGISTRY_MODULES; do
+        local label
+        label=$(registry_label "$mod")
+        info "卸载 $label ($mod) ..."
+        uninstall_special "$mod" || warn "$mod 卸载失败，继续..."
+    done
+
     echo
     success "全部卸载流程结束。"
 }
 
 show_usage() {
+    local mod_list=""
+    for mod in $_REGISTRY_MODULES; do
+        mod_list="$mod_list | $mod"
+    done
+    mod_list="${mod_list# | }"
+
     cat <<EOF
 用法: $0 [选项] [模块名]
 
@@ -137,13 +112,7 @@ show_usage() {
   --all         卸载全部已安装项（需二次确认）
 
 模块名:
-  node_exporter | ddns-go | wireguard | tailscale | docker |
-  fail2ban | openlist | uptime-kuma | cockpit | docker-image |
-  essential-pkgs | zsh | minikube | dev-tui | bun | deno | pnpm |
-  go | rust | dev-mirror | dev-enhance | modern-cli |
-  opencode | ollama | pi |
-  deskflow | bbr | swap | nvm | safe-rm | clash | multi-net |
-  sys-cmd | upftp | shutdown_timer | process_manager
+  $mod_list
 
 示例:
   $0                  # 逐项交互询问
@@ -152,105 +121,54 @@ show_usage() {
 EOF
 }
 
+# --- 按模块名卸载（注册表驱动，支持别名） ---
 dispatch() {
     local name="$1"
-    case "$name" in
-        node_exporter|nodeexporter) ask_and_uninstall "Node Exporter" uninstall_node_exporter_mod ;;
-        ddns-go|ddnsgo|ddns)        ask_and_uninstall "DDNS-GO"       uninstall_ddns_mod ;;
-        wireguard|wg)               ask_and_uninstall "WireGuard"     uninstall_wireguard_mod ;;
-        tailscale|ts)               ask_and_uninstall "Tailscale"     uninstall_tailscale_mod ;;
-        docker)                     ask_and_uninstall "Docker"        uninstall_docker_mod ;;
-        fail2ban|f2b)               ask_and_uninstall "Fail2ban"      uninstall_fail2ban_mod ;;
-        openlist)                    ask_and_uninstall "OpenList"      uninstall_openlist_mod ;;
-        uptime-kuma|uptime_kuma)    ask_and_uninstall "Uptime Kuma"   uninstall_uptime_kuma_mod ;;
-        cockpit)                    ask_and_uninstall "Cockpit"       uninstall_cockpit_mod ;;
-        zsh)                        ask_and_uninstall "Zsh"           uninstall_zsh_mod ;;
-        minikube)                   ask_and_uninstall "minikube"      uninstall_minikube_mod ;;
-        dev-tui|dev_tui|tui)        ask_and_uninstall "终端 TUI"      uninstall_dev_tui_mod ;;
-        shutdown|shutdown_timer)    uninstall_shutdown_mod ;;
-        process_manager|pm)         ask_and_uninstall "进程管理工具"  uninstall_pm_mod ;;
-        deskflow)                   ask_and_uninstall "Deskflow"      uninstall_deskflow_mod ;;
-        bbr)                        ask_and_uninstall "BBR"           uninstall_bbr_mod ;;
-        swap)                       ask_and_uninstall "Swap"          uninstall_swap_mod ;;
-        nvm)                        ask_and_uninstall "nvm"           uninstall_nvm_mod ;;
-        safe-rm|safe_rm)            ask_and_uninstall "safe-rm"       uninstall_safe_rm_mod ;;
-        clash|mihomo)               ask_and_uninstall "Clash"         uninstall_clash_mod ;;
-        multi-net|multinet)         ask_and_uninstall "多网卡路由"    uninstall_multinet_mod ;;
-        opencode)                   ask_and_uninstall "OpenCode"      uninstall_opencode_mod ;;
-        ollama)                     ask_and_uninstall "Ollama"        uninstall_ollama_mod ;;
-        bun)                        ask_and_uninstall "Bun"           uninstall_bun_mod ;;
-        pi)                         ask_and_uninstall "Pi"            uninstall_pi_mod ;;
-        deno)                       ask_and_uninstall "Deno"          uninstall_deno_mod ;;
-        pnpm)                       ask_and_uninstall "pnpm"          uninstall_pnpm_mod ;;
-        go|golang)                  ask_and_uninstall "Go"            uninstall_go_mod ;;
-        rust|rustup)                ask_and_uninstall "Rust"          uninstall_rust_mod ;;
-        dev-mirror|dev_mirror)      ask_and_uninstall "dev-mirror"    uninstall_dev_mirror_mod ;;
-        docker-image|docker_image)  ask_and_uninstall "Docker 镜像导出" uninstall_docker_image_mod ;;
-        essential-pkgs|essential)   ask_and_uninstall "装机必备"      uninstall_essential_mod ;;
-        dev-enhance)                ask_and_uninstall "开发工具增强"  uninstall_dev_enhance_mod ;;
-        modern-cli|modern_cli)      ask_and_uninstall "现代 CLI"      uninstall_modern_cli_mod ;;
-        sys-cmd|sys_cmd)            ask_and_uninstall "系统诊断命令"  uninstall_sys_cmd_mod ;;
-        upftp)                      ask_and_uninstall "upftp"         uninstall_upftp_mod ;;
-        *) error "未知模块: $name"; show_usage; exit 1 ;;
-    esac
+    local resolved
+    resolved=$(registry_resolve_alias "$name")
+
+    if [[ "$resolved" == "$name" ]] && ! echo "$_REGISTRY_MODULES" | grep -qw "$name"; then
+        error "未知模块: $name"
+        show_usage
+        exit 1
+    fi
+
+    local label
+    label=$(registry_label "$resolved")
+    ask_and_uninstall "$label" uninstall_special "$resolved"
 }
 
-# 交互式逐项询问（按分类展示）
+# --- 交互式逐项询问（注册表驱动，按分类展示） ---
 interactive_all() {
     detect_os
     header "🗑️  一键卸载（逐项询问）"
     echo "========================================"
     echo
 
-    echo "--- 服务 ---"
-    ask_and_uninstall "Node Exporter" uninstall_node_exporter_mod
-    ask_and_uninstall "DDNS-GO"       uninstall_ddns_mod
-    ask_and_uninstall "WireGuard"     uninstall_wireguard_mod
-    ask_and_uninstall "Tailscale"     uninstall_tailscale_mod
-    ask_and_uninstall "Docker"        uninstall_docker_mod
-    ask_and_uninstall "Fail2ban"      uninstall_fail2ban_mod
-    ask_and_uninstall "OpenList"      uninstall_openlist_mod
-    ask_and_uninstall "Uptime Kuma"   uninstall_uptime_kuma_mod
-    ask_and_uninstall "Cockpit"       uninstall_cockpit_mod
-    ask_and_uninstall "Docker 镜像导出" uninstall_docker_image_mod
+    local cat mod label
+    for cat in $CATEGORY_ORDER; do
+        local has_any=false
+        for mod in $_REGISTRY_MODULES; do
+            [[ "$(_reg_get "$mod" CATEGORY)" == "$cat" ]] && { has_any=true; break; }
+        done
+        $has_any || continue
 
-    echo "--- 开发环境 ---"
-    ask_and_uninstall "Zsh"           uninstall_zsh_mod
-    ask_and_uninstall "minikube"      uninstall_minikube_mod
-    ask_and_uninstall "终端 TUI"      uninstall_dev_tui_mod
-    ask_and_uninstall "Bun"           uninstall_bun_mod
-    ask_and_uninstall "Deno"          uninstall_deno_mod
-    ask_and_uninstall "pnpm"          uninstall_pnpm_mod
-    ask_and_uninstall "Go"            uninstall_go_mod
-    ask_and_uninstall "Rust"          uninstall_rust_mod
-    ask_and_uninstall "dev-mirror"    uninstall_dev_mirror_mod
-    ask_and_uninstall "开发工具增强"  uninstall_dev_enhance_mod
-    ask_and_uninstall "现代 CLI"      uninstall_modern_cli_mod
+        echo "--- $cat ---"
+        for mod in $_REGISTRY_MODULES; do
+            [[ "$(_reg_get "$mod" CATEGORY)" == "$cat" ]] || continue
+            label=$(registry_label "$mod")
+            ask_and_uninstall "$label" uninstall_special "$mod"
+        done
+        echo
+    done
 
-    echo "--- AI 工具 ---"
-    ask_and_uninstall "OpenCode"      uninstall_opencode_mod
-    ask_and_uninstall "Ollama"        uninstall_ollama_mod
-    ask_and_uninstall "Pi"            uninstall_pi_mod
-
-    echo "--- 系统工具 ---"
-    ask_and_uninstall "Deskflow"      uninstall_deskflow_mod
-    ask_and_uninstall "BBR"           uninstall_bbr_mod
-    ask_and_uninstall "Swap"          uninstall_swap_mod
-    ask_and_uninstall "nvm"           uninstall_nvm_mod
-    ask_and_uninstall "safe-rm"       uninstall_safe_rm_mod
-    ask_and_uninstall "Clash"         uninstall_clash_mod
-    ask_and_uninstall "多网卡路由"    uninstall_multinet_mod
-    ask_and_uninstall "系统诊断命令"  uninstall_sys_cmd_mod
-    ask_and_uninstall "upftp"         uninstall_upftp_mod
-    uninstall_shutdown_mod
-    ask_and_uninstall "进程管理工具"  uninstall_pm_mod
-
-    echo
     success "卸载流程结束。"
 }
 
 main() {
     detect_os
+    registry_scan
+
     if [[ $# -eq 0 ]]; then
         interactive_all
         exit 0

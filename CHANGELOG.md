@@ -15,6 +15,9 @@
 - **GitHub PR 模板**：含变更类型、测试矩阵、关联 Issue
 - **`.shellcheckrc`**：项目级 shellcheck 配置（统一排除 SC2034/SC2317/SC2329）
 
+### 变更
+- **重构 `uninstall.sh` 为注册表驱动**：去掉硬编码模块列表，自动发现所有 .manifest 模块，新增模块无需手动修改卸载脚本
+
 ### 文档
 - 补全 5 个模块的 README：ddns-go、k7s、node_exporter、wireguard、zsh_setup
 
