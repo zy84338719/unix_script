@@ -64,7 +64,8 @@ config_restore() {
     # 列出可用备份
     local backups=("$BACKUP_DIR"/zsh-backup-*.tar.gz)
 
-    if [ ${#backups[@]} -eq 0 ]; then
+    # bash 3.2 does not expand globs when no files match; check for actual file
+    if [ ! -f "${backups[0]}" ]; then
         warn "没有找到备份文件"
         return 0
     fi
@@ -76,7 +77,7 @@ config_restore() {
 
     read -r -p "请选择备份 (1-${#backups[@]}): " choice
 
-    if [ -z "$choice" ] || [ "$choice" -lt 1 ] || [ "$choice" -gt ${#backups[@]} ]; then
+    if [ -z "$choice" ] || [ "$choice" -lt 1 ] || [ "$choice" -gt "${#backups[@]}" ]; then
         error "无效选择"
         return 1
     fi
@@ -203,7 +204,8 @@ config_import() {
     # 备份当前配置
     config_backup
 
-    # 导入配置
+    # 导入配置（目前为占位实现，仅验证文件并备份当前配置）
+    info "导入功能暂为占位实现，已完成文件验证和当前配置备份"
     success "配置已导入"
     info "请根据需要手动调整配置"
 }
