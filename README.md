@@ -3,7 +3,7 @@
 [![CI](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml/badge.svg)](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-macOS / Linux 服务与环境一键管理脚本库 — 48 个模块，统一子命令接口，支持 x86_64 / ARM64 / ARMv7。
+macOS / Linux 服务与环境一键管理脚本库 — 51 个模块，统一子命令接口，支持 x86_64 / ARM64 / ARMv7。
 
 > 版本：[VERSION](VERSION) · 更新日志：[CHANGELOG.md](CHANGELOG.md)
 
@@ -79,6 +79,7 @@ source completions/uxs.zsh     # 或手动 source（zsh）
 | | [tailscale](tailscale) | 免公网 IP 的组网 VPN | ✅ | ✅ |
 | | [clash](clash) | 代理核心 + TUN 透明代理 (mihomo) | ✅ | ✅ |
 | | [multi-net](multi-net) | 多网卡策略路由 | ✅ | ❌ |
+| | [nat](nat) | NAT 端口转发 | ✅ | ✅ |
 | **系统** | [essential-pkgs](essential-pkgs) | curl/git/vim/htop/tmux/jq 等一键装齐 | ✅ | ✅ |
 | | [sys-setup](sys-setup) | 换源/时区/NTP/优化/SSH 加固/自动更新 | ✅ | ✅ |
 | | [sys-cmd](sys-cmd) | 系统诊断命令集（cpu/mem/port/disk/net） | ✅ | ✅ |
@@ -91,6 +92,9 @@ source completions/uxs.zsh     # 或手动 source（zsh）
 | | [ufw](ufw) | UFW 防火墙管理 | ✅ | ❌ |
 | | [restic](restic) | 增量加密备份工具 | ✅ | ✅ |
 | | [deskflow](deskflow) | 键鼠共享 (Flatpak) | ✅ | ❌ |
+| | [disk-usage](disk-usage) | 磁盘空间管理 | ✅ | ✅ |
+| | [brew](brew) | Homebrew 包管理器 | ❌ | ✅ |
+| | [k7s](k7s) | k7s 工具 | ✅ | ✅ |
 | **开发环境** | [nvm](nvm) | Node.js 多版本管理 | ✅ | ✅ |
 | | [bun](bun) | Bun 运行时（含国内镜像加速） | ✅ | ✅ |
 | | [deno](deno) | Deno 运行时 | ✅ | ✅ |
