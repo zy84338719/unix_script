@@ -45,7 +45,7 @@ Zsh 环境配置管理工具 v${VERSION}
     export               导出配置
     import <file>        导入配置
 
-  status                 查看状态
+  status [--json]          查看状态 (--json 输出 JSON 格式)
   help                   显示帮助信息
   version                显示版本
 
@@ -55,6 +55,7 @@ Zsh 环境配置管理工具 v${VERSION}
   $0 theme p10k            # 安装 Powerlevel10k
   $0 config backup         # 备份配置
   $0 status                # 查看状态
+  $0 status --json         # 查看状态 (JSON 格式)
 EOF
 }
 
@@ -64,55 +65,106 @@ show_version() {
 }
 
 # 显示状态
+# 用法: show_status [--json|--text]
+#   --json  输出 JSON 格式
+#   --text  输出纯文本格式（默认）
 show_status() {
-    info "Zsh 环境状态:"
-    echo ""
+    local format="${1:---text}"
 
-    # Zsh 状态
-    if command_exists zsh; then
-        success "Zsh: 已安装 ($(zsh --version | head -1))"
+    if [ "$format" == "--json" ]; then
+        # JSON 格式输出
+        local zsh_installed="false"
+        local zsh_version=""
+        if command_exists zsh; then
+            zsh_installed="true"
+            zsh_version=$(zsh --version | head -1)
+        fi
+
+        local framework_json
+        framework_json=$(framework_status --json)
+
+        local theme="none"
+        local fw
+        fw=$(detect_framework)
+        if [ "$fw" != "none" ]; then
+            case "$fw" in
+                oh-my-zsh)
+                    if [ -f "$HOME/.zshrc" ]; then
+                        theme=$(grep "^ZSH_THEME=" "$HOME/.zshrc" | cut -d'"' -f2)
+                    fi
+                    ;;
+                prezto)
+                    if [ -f "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
+                        theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}')
+                    fi
+                    ;;
+            esac
+        fi
+
+        local backup_count=0
+        if [ -d "$BACKUP_DIR" ]; then
+            backup_count=$(ls -1 "$BACKUP_DIR"/zsh-backup-*.tar.gz 2>/dev/null | wc -l)
+        fi
+
+        cat <<EOF
+{
+  "zsh": {"installed": ${zsh_installed}, "version": "${zsh_version}"},
+  "framework": ${framework_json},
+  "theme": "${theme:-none}",
+  "backups": ${backup_count}
+}
+EOF
     else
-        warn "Zsh: 未安装"
-    fi
+        # 纯文本格式输出
+        info "Zsh 环境状态:"
+        echo ""
 
-    echo ""
+        # Zsh 状态
+        if command_exists zsh; then
+            success "Zsh: 已安装 ($(zsh --version | head -1))"
+        else
+            warn "Zsh: 未安装"
+        fi
 
-    # 框架状态
-    framework_status
+        echo ""
 
-    echo ""
+        # 框架状态
+        framework_status "$format"
 
-    # 主题状态
-    local framework
-    framework=$(detect_framework)
-    if [ "$framework" != "none" ]; then
-        case "$framework" in
-            oh-my-zsh)
-                if [ -f "$HOME/.zshrc" ]; then
-                    local theme
-                    theme=$(grep "^ZSH_THEME=" "$HOME/.zshrc" | cut -d'"' -f2)
-                    info "当前主题: ${theme:-未设置}"
-                fi
-                ;;
-            prezto)
-                if [ -f "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
-                    local theme
-                    theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}')
-                    info "当前主题: ${theme:-未设置}"
-                fi
-                ;;
-        esac
-    fi
+        echo ""
 
-    echo ""
+        # 主题状态
+        local framework
+        framework=$(detect_framework)
+        if [ "$framework" != "none" ]; then
+            case "$framework" in
+                oh-my-zsh)
+                    if [ -f "$HOME/.zshrc" ]; then
+                        local theme
+                        theme=$(grep "^ZSH_THEME=" "$HOME/.zshrc" | cut -d'"' -f2)
+                        info "当前主题: ${theme:-未设置}"
+                    fi
+                    ;;
+                prezto)
+                    if [ -f "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
+                        local theme
+                        theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}')
+                        info "当前主题: ${theme:-未设置}"
+                    fi
+                    ;;
+            esac
+        fi
 
-    # 配置备份状态
-    if [ -d "$BACKUP_DIR" ]; then
-        local backup_count
-        backup_count=$(ls -1 "$BACKUP_DIR"/zsh-backup-*.tar.gz 2>/dev/null | wc -l)
-        info "配置备份: ${backup_count} 个"
-    else
-        info "配置备份: 无"
+        echo ""
+
+        # 配置备份状态
+        if [ -d "$BACKUP_DIR" ]; then
+            local backup_count
+            backup_count=$(ls -1 "$BACKUP_DIR"/zsh-backup-*.tar.gz 2>/dev/null | wc -l)
+            info "配置备份: ${backup_count} 个"
+        else
+            info "配置备份: 无"
+        fi
     fi
 }
 
@@ -162,7 +214,7 @@ main() {
             esac
             ;;
         status)
-            show_status
+            show_status "$1"
             ;;
         help|--help|-h)
             show_help
