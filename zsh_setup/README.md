@@ -1,41 +1,123 @@
-# Zsh & Oh My Zsh
+# zsh_setup - Zsh 环境配置管理工具
 
-一键配置 Zsh + [Oh My Zsh](https://ohmyz.sh/) + 常用插件（zsh-autosuggestions、zsh-syntax-highlighting）。Linux + macOS。
+多框架 Zsh 环境配置管理工具，支持 Oh My Zsh、Prezto、Zinit、sheldon 四大框架。
 
-## 支持平台
+## 功能特性
 
-| 平台 | 安装方式 |
-|------|----------|
-| Linux (apt/yum) | 包管理器安装 Zsh |
-| macOS | Homebrew 安装 Zsh（macOS 自带 Zsh 但版本较旧） |
+- 🎯 **多框架支持** - 支持 Oh My Zsh、Prezto、Zinit、sheldon
+- 🔌 **插件管理** - 统一的插件安装、卸载、同步接口
+- 🎨 **主题管理** - 主题切换、Powerlevel10k 安装
+- ⚙️ **配置管理** - 配置备份、恢复、导出、导入
 
-## 安装
-
-```bash
-chmod +x zsh_setup/install.sh
-./zsh_setup/install.sh            # 安装（默认动作）
-./zsh_setup/install.sh install    # 显式安装
-```
-
-安装内容：
-1. Zsh（如未安装）
-2. Oh My Zsh（装到 `~/.oh-my-zsh`）
-3. 插件：`zsh-autosuggestions`（命令建议）、`zsh-syntax-highlighting`（语法高亮）
-4. 自动配置 `~/.zshrc` 启用上述插件
-5. 可选：将 Zsh 设为默认 shell
-
-## 状态与卸载
+## 快速开始
 
 ```bash
-./zsh_setup/install.sh status      # 查看安装状态
-./zsh_setup/install.sh uninstall   # 显示卸载说明（手动执行）
+# 查看帮助
+./zsh_setup/install.sh help
+
+# 安装框架（交互式选择）
+./zsh_setup/install.sh framework
+
+# 直接安装 Oh My Zsh
+./zsh_setup/install.sh framework oh-my-zsh
+
+# 查看状态
+./zsh_setup/install.sh status
 ```
 
-## 说明
+## 子命令
 
-- 需要 `git` 和 `curl`，脚本会自动检测。
-- Oh My Zsh 安装器会备份已有的 `~/.zshrc`。
-- 更换默认 shell 后需重新登录生效。
-- Oh My Zsh 官方卸载命令：`uninstall_oh_my_zsh`
-- 切回 bash：`chsh -s /bin/bash`
-- 官方文档：https://ohmyz.sh/docs
+### 框架管理
+
+```bash
+./zsh_setup/install.sh framework              # 交互式选择框架
+./zsh_setup/install.sh framework oh-my-zsh    # 安装 Oh My Zsh
+./zsh_setup/install.sh framework prezto       # 安装 Prezto
+./zsh_setup/install.sh framework zinit        # 安装 Zinit
+./zsh_setup/install.sh framework sheldon      # 安装 sheldon
+```
+
+### 插件管理
+
+```bash
+./zsh_setup/install.sh plugin list            # 列出已安装插件
+./zsh_setup/install.sh plugin add <name>      # 添加插件
+./zsh_setup/install.sh plugin remove <name>   # 移除插件
+./zsh_setup/install.sh plugin sync            # 同步插件更新
+```
+
+### 主题管理
+
+```bash
+./zsh_setup/install.sh theme list             # 列出可用主题
+./zsh_setup/install.sh theme set <name>       # 设置主题
+./zsh_setup/install.sh theme p10k             # 安装 Powerlevel10k
+```
+
+### 配置管理
+
+```bash
+./zsh_setup/install.sh config backup          # 备份配置
+./zsh_setup/install.sh config restore         # 恢复配置
+./zsh_setup/install.sh config export          # 导出配置
+./zsh_setup/install.sh config import <file>   # 导入配置
+```
+
+## 支持的框架
+
+| 框架 | 特点 | 适合人群 |
+|------|------|----------|
+| **Oh My Zsh** | 最流行，插件丰富，社区活跃 | 新手，喜欢丰富功能 |
+| **Prezto** | 轻量级，模块化，性能好 | 追求简洁，有一定经验 |
+| **Zinit** | 性能极佳，异步加载，Turbo 模式 | 追求速度，高级用户 |
+| **sheldon** | Rust 编写，速度快，配置简洁 | 现代化，喜欢简洁配置 |
+
+## 支持的插件
+
+- zsh-autosuggestions - 命令自动建议
+- zsh-syntax-highlighting - 语法高亮
+- zsh-completions - 额外补全
+- zsh-history-substring-search - 历史子串搜索
+- zsh-autopair - 自动括号配对
+- zsh-bat - bat 集成
+- zsh-fzf - fzf 集成
+- zsh-eza - eza 替代 ls
+
+## 目录结构
+
+```
+zsh_setup/
+├── install.sh              # 主入口
+├── lib/
+│   ├── common.sh          # 公共函数库
+│   ├── framework.sh       # 框架抽象层
+│   ├── plugins.sh         # 插件管理
+│   ├── themes.sh          # 主题管理
+│   └── config.sh          # 配置管理
+├── frameworks/
+│   ├── oh-my-zsh.sh       # Oh My Zsh 适配器
+│   ├── prezto.sh          # Prezto 适配器
+│   ├── zinit.sh           # Zinit 适配器
+│   └── sheldon.sh         # sheldon 适配器
+└── templates/
+    ├── aliases.zsh        # 别名模板
+    ├── env.zsh            # 环境变量模板
+    └── p10k.zsh           # Powerlevel10k 模板
+```
+
+## 常见问题
+
+### 如何切换框架？
+
+1. 备份当前配置：`./zsh_setup/install.sh config backup`
+2. 安装新框架：`./zsh_setup/install.sh framework <name>`
+
+### 如何迁移配置？
+
+1. 在旧机器导出配置：`./zsh_setup/install.sh config export`
+2. 复制导出文件到新机器
+3. 在新机器导入配置：`./zsh_setup/install.sh config import <file>`
+
+### 插件安装后不生效？
+
+请运行 `source ~/.zshrc` 或重启终端以加载新插件。

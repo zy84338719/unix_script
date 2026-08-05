@@ -1,221 +1,239 @@
 #!/bin/bash
-
 #
 # zsh_setup/install.sh
-#
-# This script automates the installation and configuration of Zsh, Oh My Zsh,
-# and essential plugins (zsh-autosuggestions, zsh-syntax-highlighting).
+# Zsh 环境配置管理工具
 #
 
-# 引入公共函数库（颜色 / 打印 / command_exists / detect_pkg_manager 等）
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=../lib/common.sh
-source "$SCRIPT_DIR/../lib/common.sh"
+_INSTALL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Detect OS and package manager
-detect_os() {
-    OS="$(uname -s)"
-    if [[ "$OS" == "Linux" ]]; then
-        if command_exists apt-get; then
-            PKG_MANAGER="apt-get"
-        elif command_exists yum; then
-            PKG_MANAGER="yum"
-        else
-            error "Unsupported Linux distribution. Please install Zsh manually."
-            exit 1
-        fi
-    elif [[ "$OS" != "Darwin" ]]; then
-        error "Unsupported operating system: $OS"
-        exit 1
-    fi
-}
+# 加载公共库
+source "$_INSTALL_DIR/lib/common.sh"
+source "$_INSTALL_DIR/lib/framework.sh"
+source "$_INSTALL_DIR/lib/plugins.sh"
+source "$_INSTALL_DIR/lib/themes.sh"
+source "$_INSTALL_DIR/lib/config.sh"
 
-# Install Zsh if not present
-install_zsh() {
-    if command_exists zsh; then
-        info "Zsh is already installed."
-        return
-    fi
+# 版本
+VERSION="2.0.0"
 
-    info "Zsh not found. Attempting to install..."
-    if [[ "$OS" == "Linux" ]]; then
-        sudo "$PKG_MANAGER" update -y
-        sudo "$PKG_MANAGER" install -y zsh
-    elif [[ "$OS" == "Darwin" ]]; then
-        if ! command_exists brew; then
-            error "Homebrew is not installed. Please install it first: https://brew.sh/"
-            exit 1
-        fi
-        brew install zsh
-    fi
+# 显示帮助
+show_help() {
+    cat << EOF
+Zsh 环境配置管理工具 v${VERSION}
 
-    if ! command_exists zsh; then
-        error "Zsh installation failed. Please install it manually."
-        exit 1
-    fi
-    success "Zsh has been installed successfully."
-}
+用法: $0 <command> [options]
 
-# Install Oh My Zsh
-install_oh_my_zsh() {
-    if [ -d "$HOME/.oh-my-zsh" ]; then
-        info "Oh My Zsh is already installed."
-        return
-    fi
+命令:
+  framework              框架管理
+    [name]               安装指定框架 (oh-my-zsh, prezto, zinit, sheldon)
+    select               交互式选择框架
 
-    info "Installing Oh My Zsh..."
-    # The installer will back up existing .zshrc and create a new one
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+  plugin                 插件管理
+    list                 列出已安装插件
+    add <name> [repo]    添加插件
+    remove <name>        移除插件
+    sync                 同步插件更新
 
-    if [ ! -d "$HOME/.oh-my-zsh" ]; then
-        error "Oh My Zsh installation failed."
-        exit 1
-    fi
-    success "Oh My Zsh has been installed successfully."
-}
+  theme                  主题管理
+    list                 列出可用主题
+    set <name>           设置主题
+    p10k                 安装 Powerlevel10k
 
-# Install Zsh plugins
-install_plugins() {
-    ZSH_CUSTOM_PLUGINS_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins"
-    AUTOSUGGESTIONS_DIR="$ZSH_CUSTOM_PLUGINS_DIR/zsh-autosuggestions"
-    SYNTAX_HIGHLIGHTING_DIR="$ZSH_CUSTOM_PLUGINS_DIR/zsh-syntax-highlighting"
+  config                 配置管理
+    backup               备份配置
+    restore              恢复配置
+    export               导出配置
+    import <file>        导入配置
 
-    info "Installing Zsh plugins..."
+  status [--json]          查看状态 (--json 输出 JSON 格式)
+  help                   显示帮助信息
+  version                显示版本
 
-    # Install zsh-autosuggestions
-    if [ ! -d "$AUTOSUGGESTIONS_DIR" ]; then
-        info "Cloning zsh-autosuggestions..."
-        git clone https://github.com/zsh-users/zsh-autosuggestions "$AUTOSUGGESTIONS_DIR"
-    else
-        info "zsh-autosuggestions is already installed. Skipping."
-    fi
-
-    # Install zsh-syntax-highlighting
-    if [ ! -d "$SYNTAX_HIGHLIGHTING_DIR" ]; then
-        info "Cloning zsh-syntax-highlighting..."
-        git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$SYNTAX_HIGHLIGHTING_DIR"
-    else
-        info "zsh-syntax-highlighting is already installed. Skipping."
-    fi
-    success "Plugins installed."
-}
-
-# Configure .zshrc to enable plugins
-configure_zshrc() {
-    ZSHRC_FILE="$HOME/.zshrc"
-    PLUGINS_LINE="plugins=(git zsh-autosuggestions zsh-syntax-highlighting)"
-
-    if ! grep -q "plugins=(git)" "$ZSHRC_FILE"; then
-        warn "Could not find the default plugin line in .zshrc. Manual configuration may be needed."
-        echo "Please add the following line to your $ZSHRC_FILE:"
-        echo "$PLUGINS_LINE"
-        return
-    fi
-
-    if grep -q "zsh-autosuggestions" "$ZSHRC_FILE"; then
-        info "Plugins seem to be already configured in .zshrc."
-        return
-    fi
-
-    info "Configuring .zshrc to enable plugins..."
-    sed -i.bak 's/^plugins=(git)$/'"$PLUGINS_LINE"'/' "$ZSHRC_FILE"
-    success ".zshrc has been configured."
-}
-
-# Offer to change the default shell
-change_default_shell() {
-    if [[ "$SHELL" == */zsh ]]; then
-        info "Your default shell is already Zsh."
-        return
-    fi
-
-    info "Your current default shell is $SHELL."
-    read -r -p "Do you want to change your default shell to Zsh? (y/N) "
-    echo
-    if [[ "$REPLY" =~ ^[Yy]$ ]]; then
-        if chsh -s "$(command -v zsh)"; then
-            success "Default shell changed to Zsh."
-            info "You will need to log out and log back in for the change to take effect."
-        else
-            error "Failed to change the default shell. Please do it manually."
-        fi
-    else
-        info "Skipping default shell change."
-    fi
-}
-
-
-# --- 安装流程 ---
-install_zsh_setup() {
-    info "Starting Zsh & Oh My Zsh environment setup..."
-
-    # Check for required tools
-    if ! command_exists git || ! command_exists curl; then
-        error "'git' and 'curl' are required for this script. Please install them first."
-        exit 1
-    fi
-
-    detect_os
-    install_zsh
-    install_oh_my_zsh
-    install_plugins
-    configure_zshrc
-    change_default_shell
-
-    success "Zsh setup is complete!"
-    warn "Please restart your terminal or log out and log back in to apply all changes."
-}
-
-# --- 状态 ---
-status_zsh_setup() {
-    local zsh_installed=false omz_installed=false
-    command_exists zsh && zsh_installed=true
-    [ -d "$HOME/.oh-my-zsh" ] && omz_installed=true
-    if $zsh_installed && $omz_installed; then
-        echo -e "${GREEN}✅ Zsh & Oh My Zsh 已安装${NC}"
-    elif $zsh_installed; then
-        echo -e "${YELLOW}⚠️  已安装 Zsh，但未安装 Oh My Zsh${NC}"
-    else
-        echo -e "${RED}❌ 未安装${NC}"
-    fi
-}
-
-# --- 卸载说明（敏感操作，仅给出指引） ---
-uninstall_zsh_setup() {
-    warn "卸载 Zsh 和 Oh My Zsh 是一个敏感操作，建议手动执行以避免风险。"
-    info "Oh My Zsh 官方提供了一个卸载脚本，您可以运行它："
-    echo "  uninstall_oh_my_zsh"
-    echo
-    info "卸载 Zsh 本身，请使用系统的包管理器，例如："
-    echo "  - Ubuntu/Debian: sudo apt-get remove --purge zsh"
-    echo "  - CentOS/RHEL:   sudo yum remove zsh"
-    echo "  - macOS (Homebrew): brew uninstall zsh"
-    echo
-    warn "在卸载 Zsh 之前，请务必将您的默认 shell 切换回 bash 或其他 shell！"
-    echo "  chsh -s /bin/bash"
-}
-
-usage() {
-    cat <<EOF
-用法: $0 {install|uninstall|status|help}
-
-  install     安装 Zsh + Oh My Zsh + 插件（默认动作）
-  uninstall   显示卸载说明（敏感操作，手动执行）
-  status      查看安装状态
+示例:
+  $0 framework oh-my-zsh   # 安装 Oh My Zsh
+  $0 plugin add zsh-autosuggestions
+  $0 theme p10k            # 安装 Powerlevel10k
+  $0 config backup         # 备份配置
+  $0 status                # 查看状态
+  $0 status --json         # 查看状态 (JSON 格式)
 EOF
 }
 
+# 显示版本
+show_version() {
+    echo "zsh_setup v${VERSION}"
+}
+
+# 显示状态
+# 用法: show_status [--json|--text]
+#   --json  输出 JSON 格式
+#   --text  输出纯文本格式（默认）
+show_status() {
+    local format="${1:---text}"
+
+    if [ "$format" == "--json" ]; then
+        # JSON 格式输出
+        local zsh_installed="false"
+        local zsh_version=""
+        if command_exists zsh; then
+            zsh_installed="true"
+            zsh_version=$(zsh --version | head -1)
+        fi
+
+        local framework_json
+        framework_json=$(framework_status --json)
+
+        local theme="none"
+        local fw
+        fw=$(detect_framework)
+        if [ "$fw" != "none" ]; then
+            case "$fw" in
+                oh-my-zsh)
+                    if [ -f "$HOME/.zshrc" ]; then
+                        theme=$(grep "^ZSH_THEME=" "$HOME/.zshrc" | cut -d'"' -f2)
+                    fi
+                    ;;
+                prezto)
+                    if [ -f "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
+                        theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}')
+                    fi
+                    ;;
+            esac
+        fi
+
+        local backup_count=0
+        if [ -d "$BACKUP_DIR" ]; then
+            backup_count=$(ls -1 "$BACKUP_DIR"/zsh-backup-*.tar.gz 2>/dev/null | wc -l)
+        fi
+
+        local esc_version esc_theme
+        esc_version=$(json_escape "$zsh_version")
+        esc_theme=$(json_escape "${theme:-none}")
+        cat <<EOF
+{
+  "zsh": {"installed": ${zsh_installed}, "version": "${esc_version}"},
+  "framework": ${framework_json},
+  "theme": "${esc_theme}",
+  "backups": ${backup_count}
+}
+EOF
+    else
+        # 纯文本格式输出
+        info "Zsh 环境状态:"
+        echo ""
+
+        # Zsh 状态
+        if command_exists zsh; then
+            success "Zsh: 已安装 ($(zsh --version | head -1))"
+        else
+            warn "Zsh: 未安装"
+        fi
+
+        echo ""
+
+        # 框架状态
+        framework_status "$format"
+
+        echo ""
+
+        # 主题状态
+        local framework
+        framework=$(detect_framework)
+        if [ "$framework" != "none" ]; then
+            case "$framework" in
+                oh-my-zsh)
+                    if [ -f "$HOME/.zshrc" ]; then
+                        local theme
+                        theme=$(grep "^ZSH_THEME=" "$HOME/.zshrc" | cut -d'"' -f2)
+                        info "当前主题: ${theme:-未设置}"
+                    fi
+                    ;;
+                prezto)
+                    if [ -f "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
+                        local theme
+                        theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}')
+                        info "当前主题: ${theme:-未设置}"
+                    fi
+                    ;;
+            esac
+        fi
+
+        echo ""
+
+        # 配置备份状态
+        if [ -d "$BACKUP_DIR" ]; then
+            local backup_count
+            backup_count=$(ls -1 "$BACKUP_DIR"/zsh-backup-*.tar.gz 2>/dev/null | wc -l)
+            info "配置备份: ${backup_count} 个"
+        else
+            info "配置备份: 无"
+        fi
+    fi
+}
+
+# 主函数
 main() {
-    local action="${1:-install}"
-    case "$action" in
-        install)   install_zsh_setup ;;
-        uninstall) uninstall_zsh_setup ;;
-        status)    status_zsh_setup ;;
-        help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+    local command="${1:-help}"
+    shift || true
+
+    case "$command" in
+        framework)
+            if [ -z "$1" ] || [ "$1" == "select" ]; then
+                framework_select
+            else
+                framework_install "$1"
+            fi
+            ;;
+        plugin)
+            local subcommand="${1:-list}"
+            shift || true
+            case "$subcommand" in
+                list) plugin_list ;;
+                add) plugin_add "$1" "$2" ;;
+                remove) plugin_remove "$1" ;;
+                sync) plugin_sync ;;
+                *) error "未知命令: plugin $subcommand"; show_help; exit 1 ;;
+            esac
+            ;;
+        theme)
+            local subcommand="${1:-list}"
+            shift || true
+            case "$subcommand" in
+                list) theme_list ;;
+                set) theme_set "$1" ;;
+                p10k) theme_install_p10k ;;
+                *) error "未知命令: theme $subcommand"; show_help; exit 1 ;;
+            esac
+            ;;
+        config)
+            local subcommand="${1:-help}"
+            shift || true
+            case "$subcommand" in
+                backup) config_backup ;;
+                restore) config_restore ;;
+                export) config_export ;;
+                import) config_import "$1" ;;
+                *) error "未知命令: config $subcommand"; show_help; exit 1 ;;
+            esac
+            ;;
+        status)
+            show_status "$1"
+            ;;
+        help|--help|-h)
+            show_help
+            ;;
+        version|--version|-v)
+            show_version
+            ;;
+        *)
+            error "未知命令: $command"
+            show_help
+            exit 1
+            ;;
     esac
 }
 
+# 如果直接运行脚本（非 source）
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi
