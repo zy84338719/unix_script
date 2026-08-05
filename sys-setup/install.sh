@@ -209,7 +209,9 @@ _configure_timesyncd() {
     sudo mkdir -p /etc/systemd
 
     # 备份原配置
-    [[ -f "$conf" ]] && sudo cp -a "$conf" "${conf}.bak.$(date +%s)" 2>/dev/null || true
+    if [[ -f "$conf" ]]; then
+        sudo cp -a "$conf" "${conf}.bak.$(date +%s)" 2>/dev/null || true
+    fi
 
     # 构建 NTP= 行（空格分隔）
     local ntp_line
@@ -421,6 +423,7 @@ do_ntp() {
 }
 
 # 设置时区（支持参数，默认 Asia/Shanghai）
+# shellcheck disable=SC2120  # 函数签名预留参数，当前未使用
 do_timezone() {
     preflight
     local tz="${1:-Asia/Shanghai}"

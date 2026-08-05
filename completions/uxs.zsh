@@ -9,6 +9,7 @@ _uxs() {
 
     modules=(
         'bbr:BBR 网络加速'
+        'brew:Homebrew 包管理器'
         'bun:Bun 运行时'
         'clash:Clash (mihomo) 代理'
         'cockpit:Cockpit 管理面板'
@@ -84,6 +85,7 @@ _uxs() {
         second_arg)
             case $words[2] in
                 bbr)              subcmds=('enable' 'disable' 'status' 'help') ;;
+                brew)             subcmds=('install' 'uninstall' 'mirror' 'unmirror' 'status' 'help') ;;
                 bun)              subcmds=('install' 'mirror' 'unmirror' 'uninstall' 'status' 'help') ;;
                 clash)            subcmds=('config' 'example' 'install' 'restart' 'start' 'status' 'stop' 'tun-off' 'tun-on' 'uninstall') ;;
                 docker)           subcmds=('install' 'mirror' 'registry' 'uninstall' 'status' 'help') ;;

@@ -1,0 +1,4 @@
+LABEL=Homebrew
+CATEGORY=装机必备
+ALIASES=homebrew
+DEFAULT_ACTION=install

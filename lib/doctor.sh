@@ -116,5 +116,5 @@ run_doctor() {
         warn "发现 $issues 个问题，请根据上述提示修复"
     fi
 
-    return $issues
+    return "$issues"
 }

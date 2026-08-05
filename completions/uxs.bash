@@ -11,7 +11,7 @@ _uxs_completions() {
 
     # 第一个参数：模块名 + 全局选项
     if [[ $COMP_CWORD -eq 1 ]]; then
-        modules="bbr bun clash cockpit ddns-go deno deskflow dev-enhance dev-mirror dev-tui docker docker-image essential-pkgs fail2ban go grafana gitea k7s minikube modern-cli multi-net nginx node_exporter nvm ollama opencode openlist pi pnpm postgres prometheus process_manager_tool redis restic caddy rust safe-rm shutdown_timer swap sys-cmd sys-setup tailscale ufw upftp uptime-kuma wireguard zsh_setup"
+        modules="bbr brew bun clash cockpit ddns-go deno deskflow dev-enhance dev-mirror dev-tui docker docker-image essential-pkgs fail2ban go grafana gitea k7s minikube modern-cli multi-net nginx node_exporter nvm ollama opencode openlist pi pnpm postgres prometheus process_manager_tool redis restic caddy rust safe-rm shutdown_timer swap sys-cmd sys-setup tailscale ufw upftp uptime-kuma wireguard zsh_setup"
         local globals="--status --status-json --list --list-modules --list-categories --version --help update cli doctor scaffold"
         COMPREPLY=( $(compgen -W "$modules $globals" -- "$cur") )
         return 0
@@ -23,6 +23,7 @@ _uxs_completions() {
         local subcmds=""
         case "$mod" in
             bbr)              subcmds="enable disable status help" ;;
+            brew)             subcmds="install uninstall mirror unmirror status help" ;;
             bun)              subcmds="install mirror unmirror uninstall status help" ;;
             clash)            subcmds="config example install restart start status stop tun-off tun-on uninstall" ;;
             cockpit)          subcmds="install uninstall status help" ;;
