@@ -62,18 +62,52 @@ framework_uninstall() {
 }
 
 # 框架状态
+# 用法: framework_status [--json|--text]
+#   --json  输出 JSON 格式
+#   --text  输出纯文本格式（默认）
 framework_status() {
+    local format="${1:---text}"
     local framework
     framework=$(detect_framework)
 
     if [ "$framework" == "none" ]; then
-        echo "未安装框架"
+        if [ "$format" == "--json" ]; then
+            echo '{"framework": "none", "status": "not_installed"}'
+        else
+            echo "未安装框架"
+        fi
         return 0
     fi
 
     load_framework "$framework" || return 1
 
-    "status_${framework//-/_}"
+    if [ "$format" == "--json" ]; then
+        local status_text
+        status_text=$("status_${framework//-/_}")
+        echo "{\"framework\": \"${framework}\", \"status\": \"${status_text}\"}"
+    else
+        "status_${framework//-/_}"
+    fi
+}
+
+# 帮助信息
+framework_help() {
+    cat <<'EOF'
+用法: framework <command> [options]
+
+可用命令:
+  install <framework>    安装指定框架 (oh-my-zsh, prezto, zinit, sheldon)
+  uninstall              卸载当前框架
+  status [--json|--text] 显示当前框架状态
+  list-plugins           列出当前框架的插件
+  select                 交互式选择并安装框架
+  help                   显示此帮助信息
+
+示例:
+  framework install oh-my-zsh
+  framework status --json
+  framework help
+EOF
 }
 
 # 列出框架插件
