@@ -4,6 +4,16 @@
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-08-05
+
+### 变更
+- **目录结构重构**：52 个模块从根目录平铺迁移到分类子目录（`services/`、`essentials/`、`dev-tools/`、`ai-tools/`、`sys-tools/`），根目录从 ~70 项精简到 ~15 项
+- **框架路径解析**：`registry.sh` 新增 `PHYSICAL_PATH` 字段和 `registry_path()` API，支持嵌套目录的模块发现与调度
+- **杂项脚本归拢**：`check_issues.sh`、`setup_project_shortcuts.sh` 等移入 `scripts/`
+- **删除 `npm-mirror` 兼容别名**：不再路由到 `dev-mirror`，直接使用 `./install.sh dev-mirror`
+- **删除 `FEATURE_ENHANCEMENT_SUMMARY.md`**（历史文件，信息已在 CHANGELOG 中）
+- **模块数更新**：51 → 52（code-lint 纳入 git 跟踪）
+
 ## [1.8.0] - 2026-08-05
 
 ### 新增

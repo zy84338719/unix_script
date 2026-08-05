@@ -143,8 +143,10 @@ interactive_main() {
                         elif [[ -n "$default_action" ]]; then
                             # 直接执行默认动作
                             local -a action_args
+                            local mod_path
+                            mod_path=$(registry_path "$mod")
                             read -ra action_args <<< "$default_action"
-                            run_in_dir "$mod" install.sh "${action_args[@]}"
+                            run_in_dir "$mod_path" install.sh "${action_args[@]}"
                             echo; read -r -p "按回车键返回主菜单..."
                         fi
                         continue 3
@@ -167,9 +169,10 @@ interactive_main() {
 show_list_modules() {
     local mod
     for mod in $_REGISTRY_MODULES; do
-        local entry_script
+        local entry_script mod_path
         entry_script=$(registry_entry_script "$mod")
-        local script="$SCRIPT_DIR/$mod/$entry_script"
+        mod_path=$(registry_path "$mod")
+        local script="$SCRIPT_DIR/$mod_path/$entry_script"
         [[ -f "$script" ]] || continue
         local subs=""
         local usage_line
@@ -218,9 +221,10 @@ show_status_json() {
 
     local mod
     for mod in $_REGISTRY_MODULES; do
-        local entry_script
+        local entry_script mod_path
         entry_script=$(registry_entry_script "$mod")
-        local script="$SCRIPT_DIR/$mod/$entry_script"
+        mod_path=$(registry_path "$mod")
+        local script="$SCRIPT_DIR/$mod_path/$entry_script"
         [[ -f "$script" ]] || continue
         local raw
         raw=$(bash "$script" status 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' | head -1 || echo "unknown")
@@ -285,6 +289,8 @@ do_uninstall() {
             local label
             label=$(_reg_get "$mod" LABEL)
             # 特殊模块处理
+            local mod_path
+            mod_path=$(registry_path "$mod")
             case "$mod" in
                 shutdown_timer)
                     uninstall_shutdown_timer
@@ -292,12 +298,12 @@ do_uninstall() {
                 process_manager_tool)
                     if yes_no "确认卸载 $label？"; then
                         info "开始卸载..."
-                        run_in_dir process_manager_tool install_process_manager.sh uninstall
+                        run_in_dir "$mod_path" install_process_manager.sh uninstall
                     fi
                     ;;
                 *)
                     if yes_no "确认卸载 $label？"; then
-                        run_in_dir "$mod" install.sh uninstall
+                        run_in_dir "$mod_path" install.sh uninstall
                     fi
                     ;;
             esac

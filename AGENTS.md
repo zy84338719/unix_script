@@ -4,7 +4,17 @@
 
 ## 这是什么
 
-unix_script 是一个 macOS/Linux 脚本库，提供 51 个模块的安装、配置与管理。每个模块支持统一的子命令接口。
+unix_script 是一个 macOS/Linux 脚本库，提供 52 个模块的安装、配置与管理。每个模块支持统一的子命令接口。
+
+模块按功能分类组织在子目录中：
+
+| 分类目录 | 说明 | 模块数 |
+|----------|------|--------|
+| `services/` | 服务类（Web/数据库/监控/VPN 等） | 17 |
+| `essentials/` | 装机必备（基础工具/系统初始化） | 6 |
+| `dev-tools/` | 开发环境（语言/编辑器/工具链） | 12 |
+| `ai-tools/` | AI 工具（大模型/编程助手） | 3 |
+| `sys-tools/` | 系统工具（安全/网络/备份/进程管理） | 14 |
 
 ## 快速调用（AI agent 友好）
 
@@ -29,7 +39,7 @@ unix_script 是一个 macOS/Linux 脚本库，提供 51 个模块的安装、配
 
 ```bash
 ./install.sh --list-categories
-# 输出：按分类分组的模块列表（服务/网络/系统/开发环境/AI工具）
+# 输出：按分类分组的模块列表（服务/装机必备/开发环境/AI工具/系统工具）
 ```
 
 ### 机器可读状态
@@ -82,9 +92,10 @@ NO_COLOR=1 ./install.sh --status
 ## 直接调用模块（绕过 install.sh）
 
 ```bash
-./<模块目录>/install.sh <子命令>
-# 例：./bun/install.sh status
-#     ./clash/install.sh start
+./<分类目录>/<模块目录>/install.sh <子命令>
+# 例：./dev-tools/bun/install.sh status
+#     ./sys-tools/clash/install.sh start
+#     ./services/docker/install.sh install
 ```
 
 ## 一行安装（bootstrap）

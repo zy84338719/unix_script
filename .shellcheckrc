@@ -10,3 +10,8 @@ disable=SC2034,SC2317,SC2329
 # 源文件路径（让 shellcheck 解析 source 指令）
 source-path=lib
 source-path=.
+source-path=services
+source-path=essentials
+source-path=dev-tools
+source-path=ai-tools
+source-path=sys-tools

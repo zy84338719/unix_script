@@ -27,6 +27,24 @@ usage() {
     sed -n '2,18p' "$0"
 }
 
+# ---------------- 模块路径解析 ----------------
+# 分类目录列表
+CATEGORY_DIRS="services essentials dev-tools ai-tools sys-tools"
+
+# 解析模块名到物理相对路径（如 "docker" → "services/docker"）
+resolve_module_path() {
+    local mod="$1"
+    local cat_dir
+    for cat_dir in $CATEGORY_DIRS; do
+        if [[ -d "$REPO_DIR/$cat_dir/$mod" ]]; then
+            echo "$cat_dir/$mod"
+            return 0
+        fi
+    done
+    echo "$mod"
+    return 1
+}
+
 # ---------------- 报告辅助 ----------------
 PASS_COUNT=0
 FAIL_COUNT=0
@@ -172,43 +190,51 @@ phase_routing() {
     assert "uninstall.sh --help (exit 0)" bash "$REPO_DIR/uninstall.sh" --help
 
     # 4. 模块（有子命令分发）：验证 status 子命令退出码 0
-    #    从各模块的 .manifest 文件动态发现，不再硬编码。
+    #    从各分类子目录的 .manifest 文件动态发现，不再硬编码。
     #    注意：此处绝不调用 install（避免触发真实安装），仅 static 阶段覆盖其语法。
     local new_mods=()
-    for manifest in "$REPO_DIR"/*/.manifest; do
-        [[ -f "$manifest" ]] || continue
-        new_mods+=("$(basename "$(dirname "$manifest")")")
+    local cat_dir
+    for cat_dir in $CATEGORY_DIRS; do
+        for manifest in "$REPO_DIR/$cat_dir"/*/.manifest; do
+            [[ -f "$manifest" ]] || continue
+            new_mods+=("$(basename "$(dirname "$manifest")")")
+        done
     done
-    local m entry_script script
+    local m entry_script script mod_path
     for m in "${new_mods[@]}"; do
+        mod_path=$(resolve_module_path "$m")
         # 从 manifest 读取入口脚本名（默认 install.sh）
         entry_script="install.sh"
-        if grep -q '^ENTRY_SCRIPT=' "$REPO_DIR/$m/.manifest" 2>/dev/null; then
-            entry_script=$(grep '^ENTRY_SCRIPT=' "$REPO_DIR/$m/.manifest" | head -1 | cut -d= -f2)
+        if grep -q '^ENTRY_SCRIPT=' "$REPO_DIR/$mod_path/.manifest" 2>/dev/null; then
+            entry_script=$(grep '^ENTRY_SCRIPT=' "$REPO_DIR/$mod_path/.manifest" | head -1 | cut -d= -f2)
         fi
-        script="$REPO_DIR/$m/$entry_script"
+        script="$REPO_DIR/$mod_path/$entry_script"
         [[ -f "$script" ]] || { report_row "$m: 脚本存在 ($entry_script)" fail "缺失"; continue; }
         assert "$m: status (exit 0)" bash "$script" status
         assert "$m: help (exit 0)" bash "$script" help
     done
 
     # 5. shutdown_timer 的非交互入口存在且可调用（取消接口）
-    assert "shutdown_timer: cancel 接口存在" bash -c "grep -q cancel_daily_shutdown_internal \"$REPO_DIR/shutdown_timer/shutdown_timer.sh\""
+    local st_path
+    st_path=$(resolve_module_path shutdown_timer)
+    assert "shutdown_timer: cancel 接口存在" bash -c "grep -q cancel_daily_shutdown_internal \"$REPO_DIR/$st_path/shutdown_timer.sh\""
 
     # 6. process_manager_tool 脚本就绪
-    assert "pm_wrapper: --version (exit 0)" bash "$REPO_DIR/process_manager_tool/pm_wrapper.sh" --version
+    local pm_path
+    pm_path=$(resolve_module_path process_manager_tool)
+    assert "pm_wrapper: --version (exit 0)" bash "$REPO_DIR/$pm_path/pm_wrapper.sh" --version
 
     # 9. dev-mirror 模块集成断言
     #    注册表驱动：dev-mirror 有 manifest，子菜单在 lib/submenus.sh
-    assert "dev-mirror 有 .manifest" bash -c "test -f \"$REPO_DIR/dev-mirror/.manifest\""
+    local dm_path
+    dm_path=$(resolve_module_path dev-mirror)
+    assert "dev-mirror 有 .manifest" bash -c "test -f \"$REPO_DIR/$dm_path/.manifest\""
     assert "lib/submenus.sh 含 manage_dev_mirror 函数" bash -c "grep -q 'manage_dev_mirror()' \"$REPO_DIR/lib/submenus.sh\""
     assert "lib/status.sh 含 module_status 函数" bash -c "grep -q 'module_status()' \"$REPO_DIR/lib/status.sh\""
     # dev-mirror 子命令路由：非法生态应报错退出 1
-    assert "dev-mirror: 非法生态报错 (exit 1)" bash -c "! \"$REPO_DIR/dev-mirror/install.sh\" install __bad_eco__ >/dev/null 2>&1"
+    assert "dev-mirror: 非法生态报错 (exit 1)" bash -c "! \"$REPO_DIR/$dm_path/install.sh\" install __bad_eco__ >/dev/null 2>&1"
     # dev-mirror: 非法源标识应报错退出 1
-    assert "dev-mirror: 非法源标识报错 (exit 1)" bash -c "! \"$REPO_DIR/dev-mirror/install.sh\" install go __bad_source__ >/dev/null 2>&1"
-    # 旧 npm-mirror 别名仍可路由（向后兼容）
-    assert "install.sh npm-mirror 别名仍可路由" bash -c "grep -q 'npm-mirror|npm_mirror' \"$REPO_DIR/install.sh\""
+    assert "dev-mirror: 非法源标识报错 (exit 1)" bash -c "! \"$REPO_DIR/$dm_path/install.sh\" install go __bad_source__ >/dev/null 2>&1"
 
     report_footer
     [[ $FAIL_COUNT -eq 0 ]]
@@ -223,8 +249,10 @@ phase_install() {
     # 进程管理工具：纯用户态，最稳定，Linux + macOS 都可
     # 注意：install_process_manager.sh 内部按相对路径查找 process_manager.sh，
     # 必须在其所在目录下运行（用子 shell cd）。
+    local pm_path
+    pm_path=$(resolve_module_path process_manager_tool)
     if [[ "${MODULES_OVERRIDE}" == "" || "${MODULES_OVERRIDE}" == *"pm"* ]]; then
-        local pm_dir="$REPO_DIR/process_manager_tool"
+        local pm_dir="$REPO_DIR/$pm_path"
         if ( cd "$pm_dir" && bash install_process_manager.sh ) >/tmp/pm_install.log 2>&1; then
             if "$HOME/.tools/bin/pm" --version >/dev/null 2>&1; then
                 report_row "pm: 安装并运行 pm --version" pass
@@ -251,15 +279,17 @@ phase_install() {
     fi
 
     # Fail2ban 完整实装（需要 systemd，故要求在 VM 而非普通容器）
+    local f2b_path
+    f2b_path=$(resolve_module_path fail2ban)
     if [[ "${MODULES_OVERRIDE}" == "" || "${MODULES_OVERRIDE}" == *"fail2ban"* ]]; then
         if command -v systemctl >/dev/null 2>&1 && [[ -d /run/systemd/system ]]; then
-            if bash "$REPO_DIR/fail2ban/install.sh" install >/tmp/f2b_install.log 2>&1; then
+            if bash "$REPO_DIR/$f2b_path/install.sh" install >/tmp/f2b_install.log 2>&1; then
                 if systemctl is-active --quiet fail2ban 2>/dev/null; then
                     report_row "fail2ban: 安装并运行" pass
                 else
                     report_row "fail2ban: 安装并运行" fail "服务未 active"
                 fi
-                if bash "$REPO_DIR/fail2ban/install.sh" uninstall >/tmp/f2b_uninstall.log 2>&1; then
+                if bash "$REPO_DIR/$f2b_path/install.sh" uninstall >/tmp/f2b_uninstall.log 2>&1; then
                     report_row "fail2ban: 卸载" pass
                 else
                     report_row "fail2ban: 卸载" fail "见 f2b_uninstall.log"
@@ -273,6 +303,8 @@ phase_install() {
     fi
 
     # Node Exporter 完整实装（注入 GITHUB_TOKEN 规避 API 限速）
+    local ne_path
+    ne_path=$(resolve_module_path node_exporter)
     if [[ "${MODULES_OVERRIDE}" == "" || "${MODULES_OVERRIDE}" == *"node_exporter"* ]]; then
         if command -v systemctl >/dev/null 2>&1 && [[ -d /run/systemd/system ]]; then
             # 通过 env 把 token 暴露给 curl：用 GH_TOKEN，并在安装脚本外预取版本以减少 API 调用
@@ -281,7 +313,7 @@ phase_install() {
             fi
             # node_exporter install.sh 是交互式脚本（有"确认继续安装"提示），
             # 用 yes y | 喂入确认，避免 </dev/null 导致 read 收到 EOF 而取消安装。
-            if yes y | bash "$REPO_DIR/node_exporter/install.sh" >/tmp/ne_install.log 2>&1; then
+            if yes y | bash "$REPO_DIR/$ne_path/install.sh" >/tmp/ne_install.log 2>&1; then
                 if systemctl is-active --quiet node_exporter 2>/dev/null || curl -sf http://localhost:9100 >/dev/null 2>&1; then
                     report_row "node_exporter: 安装并运行" pass
                 else
@@ -306,11 +338,13 @@ phase_install() {
     fi
 
     # essential-pkgs 实装：纯包安装，容器内也可行，能验证 dnf/yum/apt 各分支
+    local epkg_path
+    epkg_path=$(resolve_module_path essential-pkgs)
     if [[ "${MODULES_OVERRIDE}" == "" || "${MODULES_OVERRIDE}" == *"essential-pkgs"* || "${MODULES_OVERRIDE}" == *"essential_pkgs"* ]]; then
         if command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1 || command -v apt-get >/dev/null 2>&1 || command -v zypper >/dev/null 2>&1 || command -v pacman >/dev/null 2>&1 || command -v apk >/dev/null 2>&1; then
             local epkg_log=/tmp/essential_install.log
             # essential-pkgs 在容器里需用 sudo（容器内 root 直接跑 sudo 可能无此命令，已装）
-            if bash "$REPO_DIR/essential-pkgs/install.sh" install >"$epkg_log" 2>&1; then
+            if bash "$REPO_DIR/$epkg_path/install.sh" install >"$epkg_log" 2>&1; then
                 # 验证至少装上几个关键工具
                 local got=0 need="curl git vim"
                 for c in $need; do command -v "$c" >/dev/null 2>&1 && got=$((got+1)); done

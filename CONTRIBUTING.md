@@ -6,17 +6,30 @@
 
 ```
 .
-├── install.sh              # 统一安装菜单（交互 + 非交互）
-├── uninstall.sh            # 一键卸载入口
-├── check_issues.sh         # 本地质量检查（shellcheck + bash -n）
-├── lib/common.sh           # 公共函数库（颜色/打印/检测/服务管理）
-├── <service>/install.sh    # 各服务模块安装脚本
-├── <service>/README.md     # 各服务模块文档
-├── process_manager_tool/   # 进程管理工具（独立子项目）
+├── install.sh                  # 统一安装菜单（交互 + 非交互）
+├── uninstall.sh                # 一键卸载入口
+├── bootstrap.sh                # 一行安装引导
+├── lib/
+│   ├── common.sh               # 公共函数库（颜色/打印/检测/服务管理）
+│   ├── core.sh                 # 框架核心（run_in_dir / run_submenu）
+│   ├── registry.sh             # 模块注册表（.manifest 扫描/查询）
+│   └── ...
+├── services/                   # 服务类模块（17 个）
+├── essentials/                 # 装机必备模块（6 个）
+├── dev-tools/                  # 开发环境模块（12 个）
+├── ai-tools/                   # AI 工具模块（3 个）
+├── sys-tools/                  # 系统工具模块（14 个）
+│   └── <模块名>/
+│       ├── install.sh          # 模块入口
+│       ├── .manifest           # 元数据
+│       └── README.md           # 模块文档
+├── scripts/                    # 辅助脚本（check_issues.sh 等）
+├── tests/                      # CI 测试
+├── completions/                # Shell 自动补全
 └── .github/workflows/ci.yml
 ```
 
-## 新增一个服务模块
+## 新增一个模块
 
 **推荐方式**：使用脚手架命令自动生成模板：
 
@@ -24,30 +37,37 @@
 ./install.sh scaffold myservice --category 服务 --label "我的服务"
 ```
 
-生成后编辑 `myservice/install.sh` 实现具体逻辑即可。
+生成后编辑 `services/myservice/install.sh` 实现具体逻辑即可。
 
 **手动方式**：
 
-1. 在仓库根创建模块目录，例如 `myservice/`。
-2. 编写 `myservice/install.sh`：
+1. 在对应分类目录下创建模块目录，例如 `services/myservice/`。
+   - `services/` — 服务类
+   - `essentials/` — 装机必备
+   - `dev-tools/` — 开发环境
+   - `ai-tools/` — AI 工具
+   - `sys-tools/` — 系统工具
+2. 编写 `services/myservice/install.sh`：
    - 顶部 `set -e`，并 `source` 公共库：
      ```bash
      SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-     # shellcheck source=../lib/common.sh
-     source "$SCRIPT_DIR/../lib/common.sh"
+     # shellcheck source=../../lib/common.sh
+     source "$SCRIPT_DIR/../../lib/common.sh"
      ```
    - 使用统一的打印函数：`info` / `success` / `warn` / `error`（**不要**自定义颜色或重复定义）。
    - 实现 `install`、`uninstall`、`status`、`help` 子命令，并通过 `main "$@"` 分发。
    - 做平台检测（`detect_os`）、依赖检查（`check_commands`）、权限检查（`require_sudo`）。
    - Linux 用 systemd、macOS 用 launchd 管理服务（可复用 `service_start`/`service_stop`）。
-3. 编写 `myservice/README.md`，说明支持平台、安装/卸载/常用命令。
-4. 在 `install.sh` 中接入：
-   - 主菜单新增一项（保持编号连续）。
-   - 卸载菜单新增对应项。
-   - 状态页新增 `status_<name>_module` 并在 `show_installed_services` 调用。
-   - `dispatch_module` 新增模块名映射。
-5. 在 `uninstall.sh` 的 `dispatch` 中新增映射（如有独立卸载逻辑）。
-6. 更新 `README.md` 的服务表格、平台矩阵、CHANGELOG。
+3. 创建 `services/myservice/.manifest`：
+   ```
+   LABEL=我的服务
+   CATEGORY=服务
+   DEFAULT_ACTION=install
+   ```
+4. 编写 `services/myservice/README.md`，说明支持平台、安装/卸载/常用命令。
+5. 更新 `README.md` 的模块表格和 CHANGELOG。
+
+> 注：框架通过 `.manifest` 自动发现模块，无需手动修改 `install.sh` 的菜单或分发逻辑。
 
 ## 代码规范
 
@@ -55,7 +75,8 @@
 - 所有脚本须通过 `bash -n` 语法检查；CI 使用 shellcheck（排除 SC2164）。
 - 本地提交前请运行：
   ```bash
-  ./check_issues.sh
+  ./scripts/check_issues.sh
+  ./tests/ci_run.sh --phase static
   ```
 - 优先复用 `lib/common.sh` 中的函数，避免重复造轮子。
 - 用户可见提示使用中文，与现有脚本风格一致。

@@ -3,7 +3,7 @@
 [![CI](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml/badge.svg)](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-macOS / Linux 服务与环境一键管理脚本库 — 51 个模块，统一子命令接口，支持 x86_64 / ARM64 / ARMv7。
+macOS / Linux 服务与环境一键管理脚本库 — 52 个模块，统一子命令接口，支持 x86_64 / ARM64 / ARMv7。
 
 > 版本：[VERSION](VERSION) · 更新日志：[CHANGELOG.md](CHANGELOG.md)
 
@@ -58,57 +58,58 @@ source completions/uxs.zsh     # 或手动 source（zsh）
 
 | 分类 | 模块 | 说明 | Linux | macOS |
 |------|------|------|:-----:|:-----:|
-| **服务** | [node_exporter](node_exporter) | Prometheus 系统监控数据收集器 | ✅ | ✅ |
-| | [ddns-go](ddns-go) | 动态域名解析服务 | ✅ | ✅ |
-| | [docker](docker) | 容器引擎 (Engine / Desktop) | ✅ | ✅* |
-| | [docker-image](docker-image) | 镜像导出为 .tar.gz（离线分发） | ✅ | ✅ |
-| | [fail2ban](fail2ban) | SSH 暴力破解防护 | ✅ | ❌ |
-| | [openlist](openlist) | 文件列表 / 网盘聚合（原 Alist） | ✅ | ✅ |
-| | [uptime-kuma](uptime-kuma) | 服务可用性监控面板 (Docker) | ✅ | ✅ |
-| | [cockpit](cockpit) | Linux Web 管理面板 | ✅ | ❌ |
-| | [upftp](upftp) | 轻量级 FTP 文件分享工具 | ✅ | ✅ |
-| | [nginx](nginx) | Web 服务器 / 反向代理 | ✅ | ✅ |
-| | [caddy](caddy) | 现代 Web 服务器（自动 HTTPS） | ✅ | ✅ |
-| | [certbot](certbot) | Let's Encrypt 免费 SSL 证书 | ✅ | ✅ |
-| | [redis](redis) | 内存数据库 / 缓存 | ✅ | ✅ |
-| | [postgres](postgres) | PostgreSQL 数据库 | ✅ | ✅ |
-| | [prometheus](prometheus) | 监控系统（时间序列数据库） | ✅ | ✅ |
-| | [grafana](grafana) | 监控可视化面板 | ✅ | ✅ |
-| | [gitea](gitea) | 自托管 Git 服务 | ✅ | ✅ |
-| **网络** | [wireguard](wireguard) | 现代、快速、安全的 VPN | ✅ | ✅ |
-| | [tailscale](tailscale) | 免公网 IP 的组网 VPN | ✅ | ✅ |
-| | [clash](clash) | 代理核心 + TUN 透明代理 (mihomo) | ✅ | ✅ |
-| | [multi-net](multi-net) | 多网卡策略路由 | ✅ | ❌ |
-| | [nat](nat) | NAT 端口转发 | ✅ | ✅ |
-| **系统** | [essential-pkgs](essential-pkgs) | curl/git/vim/htop/tmux/jq 等一键装齐 | ✅ | ✅ |
-| | [sys-setup](sys-setup) | 换源/时区/NTP/优化/SSH 加固/自动更新 | ✅ | ✅ |
-| | [sys-cmd](sys-cmd) | 系统诊断命令集（cpu/mem/port/disk/net） | ✅ | ✅ |
-| | [swap](swap) | 创建/调整 swap 虚拟内存 | ✅ | ❌ |
-| | [bbr](bbr) | TCP BBR 拥塞控制加速 | ✅ | ❌ |
-| | [zsh_setup](zsh_setup) | Zsh + Oh My Zsh + 插件配置 | ✅ | ✅ |
-| | [safe-rm](safe-rm) | 安全删除替代 rm，防误删 | ✅ | ✅ |
-| | [shutdown_timer](shutdown_timer) | 定时/倒计时关机管理 | ✅ | ✅ |
-| | [process_manager_tool](process_manager_tool) | 智能搜索和管理系统进程 | ✅ | ✅ |
-| | [ufw](ufw) | UFW 防火墙管理 | ✅ | ❌ |
-| | [restic](restic) | 增量加密备份工具 | ✅ | ✅ |
-| | [deskflow](deskflow) | 键鼠共享 (Flatpak) | ✅ | ❌ |
-| | [disk-usage](disk-usage) | 磁盘空间管理 | ✅ | ✅ |
-| | [brew](brew) | Homebrew 包管理器 | ❌ | ✅ |
-| | [k7s](k7s) | k7s 工具 | ✅ | ✅ |
-| **开发环境** | [nvm](nvm) | Node.js 多版本管理 | ✅ | ✅ |
-| | [bun](bun) | Bun 运行时（含国内镜像加速） | ✅ | ✅ |
-| | [deno](deno) | Deno 运行时 | ✅ | ✅ |
-| | [pnpm](pnpm) | Node.js 包管理器 | ✅ | ✅ |
-| | [go](go) | Go 语言环境 | ✅ | ✅ |
-| | [rust](rust) | Rust 语言环境 | ✅ | ✅ |
-| | [dev-mirror](dev-mirror) | 开发换源加速（npm/Go/Rust/pip） | ✅ | ✅ |
-| | [dev-enhance](dev-enhance) | Neovim+LazyVim / git delta / tmux 配置 | ✅ | ✅ |
-| | [dev-tui](dev-tui) | lazydocker + lazygit | ✅ | ✅ |
-| | [modern-cli](modern-cli) | bat/eza/ripgrep/fd/fzf/zoxide/starship | ✅ | ✅ |
-| | [minikube](minikube) | 本地 Kubernetes 开发环境 | ✅ | ✅ |
-| **AI 工具** | [ollama](ollama) | 本地大模型运行时 | ✅ | ✅ |
-| | [opencode](opencode) | 终端 AI 编程助手 | ✅ | ✅ |
-| | [pi](pi) | Pi AI 编程代理框架 | ✅ | ✅ |
+| **服务** | [node_exporter](services/node_exporter) | Prometheus 系统监控数据收集器 | ✅ | ✅ |
+| | [ddns-go](services/ddns-go) | 动态域名解析服务 | ✅ | ✅ |
+| | [docker](services/docker) | 容器引擎 (Engine / Desktop) | ✅ | ✅* |
+| | [fail2ban](services/fail2ban) | SSH 暴力破解防护 | ✅ | ❌ |
+| | [openlist](services/openlist) | 文件列表 / 网盘聚合（原 Alist） | ✅ | ✅ |
+| | [uptime-kuma](services/uptime-kuma) | 服务可用性监控面板 (Docker) | ✅ | ✅ |
+| | [cockpit](services/cockpit) | Linux Web 管理面板 | ✅ | ❌ |
+| | [nginx](services/nginx) | Web 服务器 / 反向代理 | ✅ | ✅ |
+| | [caddy](services/caddy) | 现代 Web 服务器（自动 HTTPS） | ✅ | ✅ |
+| | [certbot](services/certbot) | Let's Encrypt 免费 SSL 证书 | ✅ | ✅ |
+| | [redis](services/redis) | 内存数据库 / 缓存 | ✅ | ✅ |
+| | [postgres](services/postgres) | PostgreSQL 数据库 | ✅ | ✅ |
+| | [prometheus](services/prometheus) | 监控系统（时间序列数据库） | ✅ | ✅ |
+| | [grafana](services/grafana) | 监控可视化面板 | ✅ | ✅ |
+| | [gitea](services/gitea) | 自托管 Git 服务 | ✅ | ✅ |
+| | [tailscale](services/tailscale) | 免公网 IP 的组网 VPN | ✅ | ✅ |
+| | [wireguard](services/wireguard) | 现代、快速、安全的 VPN | ✅ | ✅ |
+| **装机必备** | [essential-pkgs](essentials/essential-pkgs) | curl/git/vim/htop/tmux/jq 等一键装齐 | ✅ | ✅ |
+| | [sys-setup](essentials/sys-setup) | 换源/时区/NTP/优化/SSH 加固/自动更新 | ✅ | ✅ |
+| | [nvm](essentials/nvm) | Node.js 多版本管理 | ✅ | ✅ |
+| | [brew](essentials/brew) | Homebrew 包管理器 | ❌ | ✅ |
+| | [swap](essentials/swap) | 创建/调整 swap 虚拟内存 | ✅ | ❌ |
+| | [bbr](essentials/bbr) | TCP BBR 拥塞控制加速 | ✅ | ❌ |
+| **开发环境** | [bun](dev-tools/bun) | Bun 运行时（含国内镜像加速） | ✅ | ✅ |
+| | [deno](dev-tools/deno) | Deno 运行时 | ✅ | ✅ |
+| | [go](dev-tools/go) | Go 语言环境 | ✅ | ✅ |
+| | [rust](dev-tools/rust) | Rust 语言环境 | ✅ | ✅ |
+| | [pnpm](dev-tools/pnpm) | Node.js 包管理器 | ✅ | ✅ |
+| | [dev-mirror](dev-tools/dev-mirror) | 开发换源加速（npm/Go/Rust/pip） | ✅ | ✅ |
+| | [dev-enhance](dev-tools/dev-enhance) | Neovim+LazyVim / git delta / tmux 配置 | ✅ | ✅ |
+| | [dev-tui](dev-tools/dev-tui) | lazydocker + lazygit | ✅ | ✅ |
+| | [modern-cli](dev-tools/modern-cli) | bat/eza/ripgrep/fd/fzf/zoxide/starship | ✅ | ✅ |
+| | [minikube](dev-tools/minikube) | 本地 Kubernetes 开发环境 | ✅ | ✅ |
+| | [zsh_setup](dev-tools/zsh_setup) | Zsh + Oh My Zsh + 插件配置 | ✅ | ✅ |
+| | [code-lint](dev-tools/code-lint) | 代码分析工具集 | ✅ | ✅ |
+| **AI 工具** | [ollama](ai-tools/ollama) | 本地大模型运行时 | ✅ | ✅ |
+| | [opencode](ai-tools/opencode) | 终端 AI 编程助手 | ✅ | ✅ |
+| | [pi](ai-tools/pi) | Pi AI 编程代理框架 | ✅ | ✅ |
+| **系统工具** | [docker-image](sys-tools/docker-image) | 镜像导出为 .tar.gz（离线分发） | ✅ | ✅ |
+| | [clash](sys-tools/clash) | 代理核心 + TUN 透明代理 (mihomo) | ✅ | ✅ |
+| | [multi-net](sys-tools/multi-net) | 多网卡策略路由 | ✅ | ❌ |
+| | [nat](sys-tools/nat) | NAT 端口转发 | ✅ | ✅ |
+| | [sys-cmd](sys-tools/sys-cmd) | 系统诊断命令集（cpu/mem/port/disk/net） | ✅ | ✅ |
+| | [safe-rm](sys-tools/safe-rm) | 安全删除替代 rm，防误删 | ✅ | ✅ |
+| | [shutdown_timer](sys-tools/shutdown_timer) | 定时/倒计时关机管理 | ✅ | ✅ |
+| | [process_manager_tool](sys-tools/process_manager_tool) | 智能搜索和管理系统进程 | ✅ | ✅ |
+| | [ufw](sys-tools/ufw) | UFW 防火墙管理 | ✅ | ❌ |
+| | [restic](sys-tools/restic) | 增量加密备份工具 | ✅ | ✅ |
+| | [deskflow](sys-tools/deskflow) | 键鼠共享 (Flatpak) | ✅ | ❌ |
+| | [disk-usage](sys-tools/disk-usage) | 磁盘空间管理 | ✅ | ✅ |
+| | [k7s](sys-tools/k7s) | k7s 工具 | ✅ | ✅ |
+| | [upftp](sys-tools/upftp) | 轻量级 FTP 文件分享工具 | ✅ | ✅ |
 
 \* macOS 上引导安装 Docker Desktop。
 
@@ -154,8 +155,8 @@ NO_COLOR=1 ./install.sh --status  # 去除颜色
 ## 本地质量检查
 
 ```bash
-./check_issues.sh                  # bash -n + shellcheck
-./check_issues.sh --strict         # 严格模式
+./scripts/check_issues.sh                  # bash -n + shellcheck
+./scripts/check_issues.sh --strict         # 严格模式
 ./tests/ci_run.sh --phase static   # 静态检查
 ./tests/ci_run.sh --phase routing  # CLI 路由测试
 ```
@@ -168,7 +169,7 @@ NO_COLOR=1 ./install.sh --status  # 去除颜色
 
 欢迎 Issue 和 PR！详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
-新增模块：创建 `<name>/install.sh`（`source lib/common.sh`，实现 install/uninstall/status）+ `<name>/.manifest`，并接入主菜单与卸载菜单。
+新增模块：在对应分类目录下创建 `<分类>/<name>/install.sh`（`source ../../lib/common.sh`，实现 install/uninstall/status）+ `<分类>/<name>/.manifest`，并接入主菜单与卸载菜单。
 
 ## 架构
 
@@ -186,13 +187,21 @@ lib/
   menu.sh                  # 主菜单 / 交互循环 / 机器可读输出
   scaffold.sh              # 模块脚手架（生成新模块模板）
   doctor.sh                # 环境诊断
+services/                  # 服务类模块（17 个）
+essentials/                # 装机必备模块（6 个）
+dev-tools/                 # 开发环境模块（12 个）
+ai-tools/                  # AI 工具模块（3 个）
+sys-tools/                 # 系统工具模块（14 个）
+  <模块名>/
+    install.sh             # 模块入口
+    .manifest              # 元数据（名称/分类/子命令/默认动作）
+    README.md              # 模块文档
 completions/
   uxs.bash                 # Bash 自动补全
   uxs.zsh                  # Zsh 自动补全
-<模块目录>/
-  install.sh               # 模块入口
-  .manifest                # 元数据（名称/描述/子命令/默认动作）
-  README.md                # 模块文档
+scripts/                   # 辅助脚本
+tests/                     # CI 测试
+docs/                      # 文档
 ```
 
 ## 许可证

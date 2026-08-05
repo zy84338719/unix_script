@@ -22,17 +22,17 @@ _docker_display() {
 }
 _docker_action() {
     case "$1" in
-        1) run_in_dir docker install.sh install ;;
-        2) run_in_dir docker install.sh mirror ;;
-        3) run_in_dir docker install.sh registry ;;
-        4) if yes_no "确认卸载 Docker？"; then run_in_dir docker install.sh uninstall; fi ;;
+        1) run_in_dir services/docker install.sh install ;;
+        2) run_in_dir services/docker install.sh mirror ;;
+        3) run_in_dir services/docker install.sh registry ;;
+        4) if yes_no "确认卸载 Docker？"; then run_in_dir services/docker install.sh uninstall; fi ;;
         *) error "无效选项，请重新输入！"; sleep 1; return 0 ;;
     esac
     echo; read -r -p "按回车键继续..."
     return 0
 }
 manage_docker() {
-    [ -f "$SCRIPT_DIR/docker/install.sh" ] || { error "脚本不存在"; sleep 2; return; }
+    [ -f "$SCRIPT_DIR/services/docker/install.sh" ] || { error "脚本不存在"; sleep 2; return; }
     run_submenu "🐳 Docker 管理（含国内镜像源）" _docker_status _docker_display _docker_action
 }
 
@@ -41,7 +41,7 @@ manage_docker() {
 # ============================================================
 _dev_mirror_status() {
     echo "当前镜像状态："
-    run_in_dir dev-mirror install.sh status 2>/dev/null | sed 's/^/  /'
+    run_in_dir dev-tools/dev-mirror install.sh status 2>/dev/null | sed 's/^/  /'
 }
 _dev_mirror_display() {
     echo "  1) 换源 - 交互选择（生态 + 源）"
@@ -50,16 +50,16 @@ _dev_mirror_display() {
 }
 _dev_mirror_action() {
     case "$1" in
-        1) run_in_dir dev-mirror install.sh install ;;
-        2) run_in_dir dev-mirror install.sh install all default ;;
-        3) run_in_dir dev-mirror install.sh uninstall ;;
+        1) run_in_dir dev-tools/dev-mirror install.sh install ;;
+        2) run_in_dir dev-tools/dev-mirror install.sh install all default ;;
+        3) run_in_dir dev-tools/dev-mirror install.sh uninstall ;;
         *) error "无效选项，请重新输入！"; sleep 1; return 0 ;;
     esac
     echo; read -r -p "按回车键继续..."
     return 0
 }
 manage_dev_mirror() {
-    [ -f "$SCRIPT_DIR/dev-mirror/install.sh" ] || { error "脚本不存在"; sleep 2; return; }
+    [ -f "$SCRIPT_DIR/dev-tools/dev-mirror/install.sh" ] || { error "脚本不存在"; sleep 2; return; }
     run_submenu "📦 dev-mirror 管理（npm/Go/Rust/Python 换源加速）" _dev_mirror_status _dev_mirror_display _dev_mirror_action
 }
 
@@ -68,7 +68,7 @@ manage_dev_mirror() {
 # ============================================================
 _sys_setup_status() {
     echo "当前状态："
-    run_in_dir sys-setup install.sh status 2>/dev/null | sed 's/^/  /'
+    run_in_dir essentials/sys-setup install.sh status 2>/dev/null | sed 's/^/  /'
 }
 _sys_setup_display() {
     echo "  1) all           - 一次性执行全部（推荐）"
@@ -81,20 +81,20 @@ _sys_setup_display() {
 }
 _sys_setup_action() {
     case "$1" in
-        1) run_in_dir sys-setup install.sh all ;;
-        2) run_in_dir sys-setup install.sh mirror ;;
-        3) run_in_dir sys-setup install.sh timezone ;;
-        4) run_in_dir sys-setup install.sh ntp ;;
-        5) run_in_dir sys-setup install.sh optimize ;;
-        6) run_in_dir sys-setup install.sh ssh ;;
-        7) run_in_dir sys-setup install.sh autoupdate ;;
+        1) run_in_dir essentials/sys-setup install.sh all ;;
+        2) run_in_dir essentials/sys-setup install.sh mirror ;;
+        3) run_in_dir essentials/sys-setup install.sh timezone ;;
+        4) run_in_dir essentials/sys-setup install.sh ntp ;;
+        5) run_in_dir essentials/sys-setup install.sh optimize ;;
+        6) run_in_dir essentials/sys-setup install.sh ssh ;;
+        7) run_in_dir essentials/sys-setup install.sh autoupdate ;;
         *) error "无效选项，请重新输入！"; sleep 1; return 0 ;;
     esac
     echo; read -r -p "按回车键继续..."
     return 0
 }
 manage_sys_setup() {
-    [ -f "$SCRIPT_DIR/sys-setup/install.sh" ] || { error "脚本不存在"; sleep 2; return; }
+    [ -f "$SCRIPT_DIR/essentials/sys-setup/install.sh" ] || { error "脚本不存在"; sleep 2; return; }
     run_submenu "⚙️  系统初始化配置（装机必设置，仅 Linux）" _sys_setup_status _sys_setup_display _sys_setup_action
 }
 
@@ -114,25 +114,25 @@ _clash_display() {
 }
 _clash_action() {
     case "$1" in
-        1) run_in_dir clash install.sh install ;;
+        1) run_in_dir sys-tools/clash install.sh install ;;
         2)
             local cl_src
             read -r -p "输入订阅URL或本地文件路径: " cl_src
-            run_in_dir clash install.sh config "$cl_src"
+            run_in_dir sys-tools/clash install.sh config "$cl_src"
             ;;
-        3) run_in_dir clash install.sh example ;;
-        4) run_in_dir clash install.sh tun-on ;;
-        5) run_in_dir clash install.sh tun-off ;;
-        6) run_in_dir clash install.sh start ;;
-        7) run_in_dir clash install.sh stop ;;
-        8) run_in_dir clash install.sh restart ;;
+        3) run_in_dir sys-tools/clash install.sh example ;;
+        4) run_in_dir sys-tools/clash install.sh tun-on ;;
+        5) run_in_dir sys-tools/clash install.sh tun-off ;;
+        6) run_in_dir sys-tools/clash install.sh start ;;
+        7) run_in_dir sys-tools/clash install.sh stop ;;
+        8) run_in_dir sys-tools/clash install.sh restart ;;
         *) error "无效选项"; sleep 1; return 0 ;;
     esac
     echo; read -r -p "按回车键继续..."
     return 0
 }
 manage_clash() {
-    [ -f "$SCRIPT_DIR/clash/install.sh" ] || { error "脚本不存在"; sleep 2; return; }
+    [ -f "$SCRIPT_DIR/sys-tools/clash/install.sh" ] || { error "脚本不存在"; sleep 2; return; }
     run_submenu "🌐 Clash (mihomo) 管理" _clash_status _clash_display _clash_action
 }
 
@@ -154,18 +154,18 @@ _multinet_display() {
 _multinet_action() {
     local mn_if mn_u mn_p
     case "$1" in
-        1) read -r -p "网卡名 (如 eth1): " mn_if; run_in_dir multi-net install.sh setup "$mn_if" ;;
-        2) read -r -p "用户名 网卡名 (空格分隔): " mn_u mn_if; run_in_dir multi-net install.sh route-user "$mn_u" "$mn_if" ;;
-        3) read -r -p "目的端口 网卡名 (空格分隔): " mn_p mn_if; run_in_dir multi-net install.sh route-port "$mn_p" "$mn_if" ;;
-        4) run_in_dir multi-net install.sh list ;;
-        5) run_in_dir multi-net install.sh clear ;;
+        1) read -r -p "网卡名 (如 eth1): " mn_if; run_in_dir sys-tools/multi-net install.sh setup "$mn_if" ;;
+        2) read -r -p "用户名 网卡名 (空格分隔): " mn_u mn_if; run_in_dir sys-tools/multi-net install.sh route-user "$mn_u" "$mn_if" ;;
+        3) read -r -p "目的端口 网卡名 (空格分隔): " mn_p mn_if; run_in_dir sys-tools/multi-net install.sh route-port "$mn_p" "$mn_if" ;;
+        4) run_in_dir sys-tools/multi-net install.sh list ;;
+        5) run_in_dir sys-tools/multi-net install.sh clear ;;
         *) error "无效选项"; sleep 1; return 0 ;;
     esac
     echo; read -r -p "按回车键继续..."
     return 0
 }
 manage_multinet() {
-    [ -f "$SCRIPT_DIR/multi-net/install.sh" ] || { error "脚本不存在"; sleep 2; return; }
+    [ -f "$SCRIPT_DIR/sys-tools/multi-net/install.sh" ] || { error "脚本不存在"; sleep 2; return; }
     run_submenu "🔀 多网卡策略路由管理" _multinet_status _multinet_display _multinet_action
 }
 
@@ -187,21 +187,21 @@ _pm_display() {
     echo "  5) 卸载进程管理工具"
 }
 _pm_action() {
-    local install_script="$SCRIPT_DIR/process_manager_tool/install_process_manager.sh"
-    local process_script="$SCRIPT_DIR/process_manager_tool/process_manager.sh"
-    local wrapper_script="$SCRIPT_DIR/process_manager_tool/pm_wrapper.sh"
+    local install_script="$SCRIPT_DIR/sys-tools/process_manager_tool/install_process_manager.sh"
+    local process_script="$SCRIPT_DIR/sys-tools/process_manager_tool/process_manager.sh"
+    local wrapper_script="$SCRIPT_DIR/sys-tools/process_manager_tool/pm_wrapper.sh"
     local is_installed=false
     [ -f "$HOME/.tools/bin/process_manager" ] && [ -f "$HOME/.tools/bin/pm" ] && is_installed=true
 
     case "$1" in
         1)
             [ -f "$install_script" ] || { error "安装脚本不存在"; sleep 2; return 0; }
-            run_in_dir process_manager_tool install_process_manager.sh
+            run_in_dir sys-tools/process_manager_tool install_process_manager.sh
             ;;
         2)
-            local check_script="$SCRIPT_DIR/process_manager_tool/check_dependencies.sh"
+            local check_script="$SCRIPT_DIR/sys-tools/process_manager_tool/check_dependencies.sh"
             [ -f "$check_script" ] || { error "依赖检查脚本不存在"; sleep 2; return 0; }
-            run_in_dir process_manager_tool check_dependencies.sh
+            run_in_dir sys-tools/process_manager_tool check_dependencies.sh
             ;;
         3)
             if [ "$is_installed" = true ] && command -v pm >/dev/null 2>&1; then
@@ -210,14 +210,14 @@ _pm_action() {
             else
                 info "运行开发版本的进程管理工具..."
                 [ -f "$process_script" ] || { error "脚本不存在"; sleep 2; return 0; }
-                run_in_dir process_manager_tool process_manager.sh
+                run_in_dir sys-tools/process_manager_tool process_manager.sh
             fi
             ;;
         4)
             if [ "$is_installed" = true ] && command -v pm >/dev/null 2>&1; then
                 pm --config
             elif [ -f "$wrapper_script" ]; then
-                run_in_dir process_manager_tool pm_wrapper.sh --config
+                run_in_dir sys-tools/process_manager_tool pm_wrapper.sh --config
             else
                 error "包装脚本不存在: $wrapper_script"
             fi
@@ -226,7 +226,7 @@ _pm_action() {
             if [ "$is_installed" = true ]; then
                 if yes_no "确认卸载进程管理工具？"; then
                     info "开始卸载..."
-                    run_in_dir process_manager_tool install_process_manager.sh uninstall
+                    run_in_dir sys-tools/process_manager_tool install_process_manager.sh uninstall
                 else
                     info "已取消卸载"
                 fi
@@ -247,7 +247,7 @@ manage_process_tool() {
 # 自动关机管理（特殊：直接委托给脚本，无子菜单循环）
 # ============================================================
 manage_shutdown_timer() {
-    local script_path="$SCRIPT_DIR/shutdown_timer/shutdown_timer.sh"
+    local script_path="$SCRIPT_DIR/sys-tools/shutdown_timer/shutdown_timer.sh"
     if [ ! -f "$script_path" ]; then
         error "脚本不存在: $script_path"
         sleep 2
@@ -263,7 +263,7 @@ manage_shutdown_timer() {
 # 取消每日自动关机（供卸载菜单调用）
 uninstall_shutdown_timer() {
     info "正在取消每日自动关机任务..."
-    local script_path="$SCRIPT_DIR/shutdown_timer/shutdown_timer.sh"
+    local script_path="$SCRIPT_DIR/sys-tools/shutdown_timer/shutdown_timer.sh"
     if [ ! -f "$script_path" ]; then
         error "脚本不存在: $script_path"
         return

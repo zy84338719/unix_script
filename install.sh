@@ -46,14 +46,6 @@ dispatch_module() {
     local resolved
     resolved=$(registry_resolve_alias "$name")
 
-    # 特殊模块：需要子菜单或特殊动作
-    case "$name" in
-        npm-mirror|npm_mirror|npmmirror)
-            run_in_dir dev-mirror install.sh install npm taobao
-            return $?
-            ;;
-    esac
-
     if [[ "$resolved" == "$name" ]] && ! echo "$_REGISTRY_MODULES" | grep -qw "$name"; then
         error "未知模块: $name"
         show_noninteractive_usage
@@ -76,19 +68,27 @@ dispatch_module() {
     esac
 
     local -a action_args
+    local mod_path
+    mod_path=$(registry_path "$resolved")
     read -ra action_args <<< "$default_action"
-    run_in_dir "$resolved" install.sh "${action_args[@]}"
+    run_in_dir "$mod_path" install.sh "${action_args[@]}"
 }
 
 # ---------------- 模块透传（如 install.sh bun mirror） ----------------
 dispatch_module_or_passthrough() {
-    if [[ $# -ge 2 ]] && [[ -d "$SCRIPT_DIR/$1" ]] && [[ -f "$SCRIPT_DIR/$1/install.sh" ]]; then
-        local mod="$1"; shift
-        info "执行模块 $mod: install.sh $*"
-        run_in_dir "$mod" install.sh "$@"
-    else
-        dispatch_module "$1"
+    if [[ $# -ge 2 ]]; then
+        # 解析模块名到物理路径
+        local resolved mod_path
+        resolved=$(registry_resolve_alias "$1")
+        mod_path=$(registry_path "$resolved")
+        if [[ -d "$SCRIPT_DIR/$mod_path" ]] && [[ -f "$SCRIPT_DIR/$mod_path/install.sh" ]]; then
+            local mod="$1"; shift
+            info "执行模块 $mod: install.sh $*"
+            run_in_dir "$mod_path" install.sh "$@"
+            return $?
+        fi
     fi
+    dispatch_module "$1"
 }
 
 # ---------------- 主函数 ----------------

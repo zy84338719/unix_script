@@ -2,7 +2,7 @@
 #
 # lib/registry.sh
 #
-# 模块注册表引擎：扫描各模块目录下的 .manifest 文件，
+# 模块注册表引擎：扫描各分类子目录下的 .manifest 文件，
 # 提供统一的元数据查询 API。
 #
 # Manifest 格式（纯文本 key=value）：
@@ -11,6 +11,13 @@
 #   ALIASES=别名1,别名2     （可选，逗号分隔）
 #   DEFAULT_ACTION=install  （可选，默认 install）
 #   HAS_SUBMENU=docker      （可选，非空则交互菜单进入子菜单）
+#
+# 目录结构：模块按分类组织在子目录中：
+#   services/    → 服务
+#   essentials/  → 装机必备
+#   dev-tools/   → 开发环境
+#   ai-tools/    → AI工具
+#   sys-tools/   → 系统工具
 #
 # 实现：用 eval 创建动态变量（兼容 bash 3.2，macOS 默认版本）。
 #
@@ -24,6 +31,9 @@ _REGISTRY_MODULES=""
 
 # 分类顺序（用于菜单展示排序）
 CATEGORY_ORDER="服务 装机必备 开发环境 AI工具 系统工具"
+
+# 分类目录名列表（与 CATEGORY_ORDER 一一对应）
+_CATEGORY_DIRS="services essentials dev-tools ai-tools sys-tools"
 
 # --- 内部：设置/获取模块字段 ---
 # 模块名中的连字符替换为下划线（bash 变量名不允许连字符）
@@ -48,52 +58,69 @@ _reg_get() {
     eval "echo \"\${${varname}:-}\""
 }
 
-# --- 扫描所有 .manifest 文件 ---
+# --- 内部：解析单个 manifest 文件 ---
+_parse_manifest() {
+    local mod="$1" manifest="$2"
+    local key value
+
+    # 初始化默认值
+    _reg_set "$mod" LABEL ""
+    _reg_set "$mod" CATEGORY ""
+    _reg_set "$mod" ALIASES ""
+    _reg_set "$mod" DEFAULT_ACTION "install"
+    _reg_set "$mod" HAS_SUBMENU ""
+    _reg_set "$mod" ENTRY_SCRIPT "install.sh"
+
+    # 解析 key=value
+    while IFS='=' read -r key value; do
+        [[ -z "$key" || "$key" == \#* ]] && continue
+        key=$(echo "$key" | tr -d '[:space:]')
+        value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        case "$key" in
+            LABEL)            _reg_set "$mod" LABEL "$value" ;;
+            CATEGORY)         _reg_set "$mod" CATEGORY "$value" ;;
+            ALIASES)          _reg_set "$mod" ALIASES "$value" ;;
+            DEFAULT_ACTION)   _reg_set "$mod" DEFAULT_ACTION "$value" ;;
+            HAS_SUBMENU)      _reg_set "$mod" HAS_SUBMENU "$value" ;;
+            ENTRY_SCRIPT)     _reg_set "$mod" ENTRY_SCRIPT "$value" ;;
+        esac
+    done < "$manifest"
+
+    # 必填字段校验
+    local lbl cat
+    lbl=$(_reg_get "$mod" LABEL)
+    cat=$(_reg_get "$mod" CATEGORY)
+    if [[ -z "$lbl" || -z "$cat" ]]; then
+        warn "manifest 缺少必填字段: $manifest" >&2
+        return 1
+    fi
+
+    return 0
+}
+
+# --- 扫描所有分类子目录下的 .manifest 文件 ---
 registry_scan() {
     _REGISTRY_MODULES=""
-    local dir manifest key value mod
-    for dir in "$SCRIPT_DIR"/*/; do
-        [[ -d "$dir" ]] || continue
-        mod=$(basename "$dir")
-        # 跳过非模块目录
-        case "$mod" in lib|tests|docs|.git|.tools|.zcode) continue ;; esac
-        manifest="$dir/.manifest"
-        [[ -f "$manifest" ]] || continue
+    local dir manifest mod category_dir
 
-        # 初始化默认值
-        _reg_set "$mod" LABEL ""
-        _reg_set "$mod" CATEGORY ""
-        _reg_set "$mod" ALIASES ""
-        _reg_set "$mod" DEFAULT_ACTION "install"
-        _reg_set "$mod" HAS_SUBMENU ""
-        _reg_set "$mod" ENTRY_SCRIPT "install.sh"
+    # 扫描分类子目录
+    for category_dir in $_CATEGORY_DIRS; do
+        [[ -d "$SCRIPT_DIR/$category_dir" ]] || continue
+        for dir in "$SCRIPT_DIR/$category_dir"/*/; do
+            [[ -d "$dir" ]] || continue
+            mod=$(basename "$dir")
+            manifest="$dir/.manifest"
+            [[ -f "$manifest" ]] || continue
 
-        # 解析 key=value
-        while IFS='=' read -r key value; do
-            [[ -z "$key" || "$key" == \#* ]] && continue
-            key=$(echo "$key" | tr -d '[:space:]')
-            value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-            case "$key" in
-                LABEL)            _reg_set "$mod" LABEL "$value" ;;
-                CATEGORY)         _reg_set "$mod" CATEGORY "$value" ;;
-                ALIASES)          _reg_set "$mod" ALIASES "$value" ;;
-                DEFAULT_ACTION)   _reg_set "$mod" DEFAULT_ACTION "$value" ;;
-                HAS_SUBMENU)      _reg_set "$mod" HAS_SUBMENU "$value" ;;
-                ENTRY_SCRIPT)     _reg_set "$mod" ENTRY_SCRIPT "$value" ;;
-            esac
-        done < "$manifest"
+            # 记录模块的物理相对路径
+            _reg_set "$mod" PHYSICAL_PATH "$category_dir/$mod"
 
-        # 必填字段校验
-        local lbl cat
-        lbl=$(_reg_get "$mod" LABEL)
-        cat=$(_reg_get "$mod" CATEGORY)
-        if [[ -z "$lbl" || -z "$cat" ]]; then
-            warn "manifest 缺少必填字段: $manifest" >&2
-            continue
-        fi
-
-        _REGISTRY_MODULES="$_REGISTRY_MODULES $mod"
+            if _parse_manifest "$mod" "$manifest"; then
+                _REGISTRY_MODULES="$_REGISTRY_MODULES $mod"
+            fi
+        done
     done
+
     _REGISTRY_MODULES="${_REGISTRY_MODULES# }"
 }
 
@@ -104,6 +131,11 @@ registry_aliases()         { _reg_get "$1" ALIASES; }
 registry_default_action()  { local v; v=$(_reg_get "$1" DEFAULT_ACTION); echo "${v:-install}"; }
 registry_has_submenu()     { _reg_get "$1" HAS_SUBMENU; }
 registry_entry_script()    { local v; v=$(_reg_get "$1" ENTRY_SCRIPT); echo "${v:-install.sh}"; }
+
+# 获取模块的物理相对路径（如 "services/docker"）
+registry_path() {
+    _reg_get "$1" PHYSICAL_PATH
+}
 
 # 所有已注册模块名（空格分隔）
 registry_all_modules() { echo "$_REGISTRY_MODULES"; }

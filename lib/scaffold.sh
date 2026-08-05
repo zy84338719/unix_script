@@ -22,7 +22,18 @@ scaffold_module() {
         return 1
     fi
 
-    local dir="${SCRIPT_DIR:-.}/$name"
+    # 根据 category 确定分类目录
+    local cat_dir
+    case "$category" in
+        服务)     cat_dir="services" ;;
+        装机必备) cat_dir="essentials" ;;
+        开发环境) cat_dir="dev-tools" ;;
+        AI工具)   cat_dir="ai-tools" ;;
+        系统工具) cat_dir="sys-tools" ;;
+        *)        cat_dir="sys-tools" ;;
+    esac
+
+    local dir="${SCRIPT_DIR:-.}/$cat_dir/$name"
     if [[ -d "$dir" ]]; then
         error "目录 $name 已存在"
         return 1
@@ -45,8 +56,8 @@ EOF
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=../lib/common.sh
-source "$SCRIPT_DIR/../lib/common.sh"
+# shellcheck source=../../lib/common.sh
+source "$SCRIPT_DIR/../../lib/common.sh"
 
 preflight() {
     detect_os
@@ -138,14 +149,14 @@ TODO: 模块说明
 \`\`\`
 EOF
 
-    success "模块 $name 已创建：$dir/"
+    success "模块 $name 已创建：$cat_dir/$name/"
     info "文件："
-    echo "  $dir/.manifest"
-    echo "  $dir/install.sh"
-    echo "  $dir/README.md"
+    echo "  $cat_dir/$name/.manifest"
+    echo "  $cat_dir/$name/install.sh"
+    echo "  $cat_dir/$name/README.md"
     echo
     info "下一步："
-    echo "  1. 编辑 $dir/install.sh 实现安装逻辑"
+    echo "  1. 编辑 $cat_dir/$name/install.sh 实现安装逻辑"
     echo "  2. 更新 README.md"
-    echo "  3. 运行 ./check_issues.sh 检查语法"
+    echo "  3. 运行 ./tests/ci_run.sh --phase static 检查语法"
 }

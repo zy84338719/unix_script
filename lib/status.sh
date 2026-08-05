@@ -15,9 +15,10 @@ _STATUS_SH_LOADED=1
 # 调用该模块的 install.sh status 子命令，输出一行状态。
 module_status() {
     local mod="$1"
-    local entry_script
+    local entry_script mod_path
     entry_script=$(registry_entry_script "$mod")
-    local script="$SCRIPT_DIR/$mod/$entry_script"
+    mod_path=$(registry_path "$mod")
+    local script="$SCRIPT_DIR/$mod_path/$entry_script"
     if [[ -f "$script" ]]; then
         bash "$script" status 2>/dev/null || echo "查询失败"
     else

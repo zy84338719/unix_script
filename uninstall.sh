@@ -51,25 +51,27 @@ uninstall_module() {
 # --- 特殊模块卸载（需要非标准命令） ---
 uninstall_special() {
     local mod="$1"
+    local mod_path
+    mod_path=$(registry_path "$mod")
     case "$mod" in
         bbr)
-            run_in_dir bbr install.sh disable
+            run_in_dir "$mod_path" install.sh disable
             ;;
         multi-net)
-            run_in_dir multi-net install.sh clear
+            run_in_dir "$mod_path" install.sh clear
             ;;
         shutdown_timer)
-            local sp="$SCRIPT_DIR/shutdown_timer/shutdown_timer.sh"
+            local sp="$SCRIPT_DIR/$mod_path/shutdown_timer.sh"
             if [ -f "$sp" ]; then
                 chmod +x "$sp"
                 "$sp" cancel_daily_shutdown_internal
             fi
             ;;
         process_manager_tool)
-            run_in_dir process_manager_tool install_process_manager.sh uninstall
+            run_in_dir "$mod_path" install_process_manager.sh uninstall
             ;;
         dev-mirror)
-            run_in_dir dev-mirror install.sh uninstall all <<< "y"
+            run_in_dir "$mod_path" install.sh uninstall all <<< "y"
             ;;
         *)
             uninstall_module "$mod"
