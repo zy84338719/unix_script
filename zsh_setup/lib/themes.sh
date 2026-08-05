@@ -117,8 +117,11 @@ theme_install_p10k() {
             local theme_dir="$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
             if [ -d "$theme_dir" ]; then
                 warn "Powerlevel10k 已安装"
-            else
-                git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$theme_dir"
+                return 0
+            fi
+            if ! git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$theme_dir"; then
+                error "Powerlevel10k 克隆失败"
+                return 1
             fi
             theme_set "powerlevel10k/powerlevel10k"
             ;;
@@ -126,8 +129,11 @@ theme_install_p10k() {
             local theme_dir="${ZDOTDIR:-$HOME}/.zprezto/modules/prompt/external/themes/powerlevel10k"
             if [ -d "$theme_dir" ]; then
                 warn "Powerlevel10k 已安装"
-            else
-                git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$theme_dir"
+                return 0
+            fi
+            if ! git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$theme_dir"; then
+                error "Powerlevel10k 克隆失败"
+                return 1
             fi
             theme_set "powerlevel10k"
             ;;
