@@ -69,9 +69,17 @@ clone_or_update() {
                 b_success "已更新：$old_ver → $new_ver"
             fi
         else
-            b_warn "自动更新失败（可能有本地改动或网络问题）。"
-            b_warn "可手动处理：cd \"$INSTALL_DIR\" && git pull"
-            b_warn "继续使用当前本地版本（$old_ver）..."
+            b_warn "fast-forward 更新失败，尝试强制同步..."
+            if git -C "$INSTALL_DIR" fetch origin 2>/dev/null && \
+               git -C "$INSTALL_DIR" reset --hard origin/main 2>/dev/null; then
+                local new_ver="未知"
+                new_ver=$(cat "$INSTALL_DIR/VERSION" 2>/dev/null || echo "未知")
+                b_success "已强制同步：$old_ver → $new_ver"
+            else
+                b_error "更新失败（网络问题），请稍后重试："
+                b_error "  cd \"$INSTALL_DIR\" && git fetch origin && git reset --hard origin/main"
+                b_warn "继续使用当前本地版本（$old_ver）..."
+            fi
         fi
     elif [[ -e "$INSTALL_DIR" ]]; then
         # 目录存在但不是 git 仓库
@@ -170,7 +178,11 @@ main() {
         local install_script="$INSTALL_DIR/install.sh"
         if [[ -f "$install_script" ]]; then
             b_info "已安装模块状态："
-            bash "$install_script" --status-json 2>/dev/null | grep -vE '^(os|arch|version):' | head -20
+            if bash "$install_script" --help 2>/dev/null | grep -q '\-\-status-json'; then
+                bash "$install_script" --status-json 2>/dev/null | grep -vE '^(os|arch|version):' | head -20
+            else
+                bash "$install_script" --status 2>/dev/null | head -20
+            fi
             echo "    （完整状态：uxs --status）"
             echo
             local ver
