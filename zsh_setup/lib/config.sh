@@ -117,8 +117,10 @@ config_export() {
     framework=$(detect_framework)
 
     # 收集配置信息
+    local esc_framework
+    esc_framework=$(json_escape "$framework")
     local config_json="{
-  \"framework\": \"$framework\",
+  \"framework\": \"${esc_framework}\",
   \"plugins\": ["
 
     # 收集插件列表
@@ -127,7 +129,7 @@ config_export() {
             if [ -d "$HOME/.oh-my-zsh/custom/plugins" ]; then
                 local plugins=()
                 for plugin in "$HOME/.oh-my-zsh/custom/plugins/"*/; do
-                    [ -d "$plugin" ] && plugins+=("\"$(basename "$plugin")\"")
+                    [ -d "$plugin" ] && plugins+=("\"$(json_escape "$(basename "$plugin")")\"")
                 done
                 config_json+=$(IFS=,; echo "${plugins[*]}")
             fi
@@ -138,7 +140,7 @@ config_export() {
                 while IFS= read -r line; do
                     local plugin
                     plugin=$(echo "$line" | sed 's/.*zinit light //' | sed 's/["]//g')
-                    [ -n "$plugin" ] && plugins+=("\"$plugin\"")
+                    [ -n "$plugin" ] && plugins+=("\"$(json_escape "$plugin")\"")
                 done < <(grep "zinit light" "$HOME/.zshrc" 2>/dev/null)
                 config_json+=$(IFS=,; echo "${plugins[*]}")
             fi
@@ -154,14 +156,14 @@ config_export() {
             if [ -f "$HOME/.zshrc" ]; then
                 local theme
                 theme=$(grep "^ZSH_THEME=" "$HOME/.zshrc" | cut -d'"' -f2)
-                config_json+="$theme"
+                config_json+=$(json_escape "$theme")
             fi
             ;;
         prezto)
             if [ -f "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
                 local theme
                 theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}' | tr -d "'")
-                config_json+="$theme"
+                config_json+=$(json_escape "$theme")
             fi
             ;;
     esac
@@ -206,6 +208,6 @@ config_import() {
 
     # 导入配置（目前为占位实现，仅验证文件并备份当前配置）
     info "导入功能暂为占位实现，已完成文件验证和当前配置备份"
-    success "配置已导入"
+    info "导入功能暂为占位实现"
     info "请根据需要手动调整配置"
 }

@@ -124,7 +124,10 @@ enable_module_prezto() {
     fi
 
     # 添加模块到 zpreztorc
+    # NOTE: 硬编码锚点 'completion' — 假设默认 prezto 配置包含此行。
+    # 若用户自定义了 zpreztorc 且无 'completion' 行，sed 将不匹配。
     sed -i.bak "s/^\(  'completion'\)/\1\n  '$module_name'/" "$preztorc"
+    rm -f "${preztorc}.bak"
     success "模块 $module_name 已启用"
 }
 
@@ -146,5 +149,6 @@ disable_module_prezto() {
 
     # 删除模块
     sed -i.bak "/'$module_name'/d" "$preztorc"
+    rm -f "${preztorc}.bak"
     success "模块 $module_name 已禁用"
 }

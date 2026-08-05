@@ -19,6 +19,17 @@ ZSH_SETUP_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
 source "${ZSH_SETUP_LIB_DIR}/../../lib/common.sh"
 
+# ---- JSON 安全转义 ----
+# 将字符串转义为可安全嵌入 JSON 字符串的值（不包含外层引号）。
+# 处理：反斜杠、双引号、换行符。
+json_escape() {
+    local s="$1"
+    s="${s//\\/\\\\}"     # escape backslashes
+    s="${s//\"/\\\"}"     # escape double quotes
+    s="${s//$'\n'/\\n}"   # escape newlines
+    printf '%s' "$s"
+}
+
 # ---- zsh-setup 专用：检测当前 zsh 框架 ----
 detect_framework() {
     if [ -d "$HOME/.oh-my-zsh" ]; then

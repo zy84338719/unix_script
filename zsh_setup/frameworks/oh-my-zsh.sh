@@ -82,7 +82,7 @@ list_plugins_oh_my_zsh() {
 
     # 内置插件
     echo "内置插件:"
-    ls "$OH_MY_ZSH_DIR/plugins/" 2>/dev/null | head -20
+    ls "$OH_MY_ZSH_DIR/plugins/" 2>/dev/null
 
     # 自定义插件
     if [ -d "$CUSTOM_DIR/plugins" ]; then

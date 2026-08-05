@@ -84,7 +84,9 @@ framework_status() {
     if [ "$format" == "--json" ]; then
         local status_text
         status_text=$("status_${framework//-/_}")
-        echo "{\"framework\": \"${framework}\", \"status\": \"${status_text}\"}"
+        local escaped_status
+        escaped_status=$(json_escape "$status_text")
+        echo "{\"framework\": \"${framework}\", \"status\": \"${escaped_status}\"}"
     else
         "status_${framework//-/_}"
     fi

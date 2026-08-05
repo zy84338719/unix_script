@@ -59,7 +59,7 @@ uninstall_sheldon() {
 
     # 删除 sheldon 二进制文件
     local sheldon_path
-    sheldon_path=$(which sheldon)
+    sheldon_path=$(command -v sheldon)
     if [ -n "$sheldon_path" ]; then
         rm -f "$sheldon_path"
     fi
@@ -146,5 +146,6 @@ uninstall_plugin_sheldon() {
 
     # 删除插件配置（使用 sed 删除从 [plugins.name] 到下一个 [ 或文件末尾的内容）
     sed -i.bak "/^\[plugins\.$plugin_name\]/,/^\[/{ /^\[plugins\.$plugin_name\]/d; /^\[/!d; }" "$SHELDON_CONFIG"
+    rm -f "${SHELDON_CONFIG}.bak"
     success "插件 $plugin_name 已移除"
 }

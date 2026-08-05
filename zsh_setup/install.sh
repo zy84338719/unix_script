@@ -106,11 +106,14 @@ show_status() {
             backup_count=$(ls -1 "$BACKUP_DIR"/zsh-backup-*.tar.gz 2>/dev/null | wc -l)
         fi
 
+        local esc_version esc_theme
+        esc_version=$(json_escape "$zsh_version")
+        esc_theme=$(json_escape "${theme:-none}")
         cat <<EOF
 {
-  "zsh": {"installed": ${zsh_installed}, "version": "${zsh_version}"},
+  "zsh": {"installed": ${zsh_installed}, "version": "${esc_version}"},
   "framework": ${framework_json},
-  "theme": "${theme:-none}",
+  "theme": "${esc_theme}",
   "backups": ${backup_count}
 }
 EOF

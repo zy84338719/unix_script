@@ -141,27 +141,29 @@ plugin_sync() {
 
     info "正在同步 $framework 插件..."
 
+    local sync_failed=false
+
     case "$framework" in
         oh-my-zsh)
             # 更新 Oh My Zsh
             if [ -d "$HOME/.oh-my-zsh" ]; then
-                (cd "$HOME/.oh-my-zsh" && git pull)
+                (cd "$HOME/.oh-my-zsh" && git pull) || sync_failed=true
             fi
             # 更新自定义插件
             for plugin_dir in "$HOME/.oh-my-zsh/custom/plugins/"*/; do
-                [ -d "$plugin_dir" ] && (cd "$plugin_dir" && git pull)
+                [ -d "$plugin_dir" ] && { (cd "$plugin_dir" && git pull) || sync_failed=true; }
             done
             ;;
         prezto)
             # 更新 Prezto
             if [ -d "${ZDOTDIR:-$HOME}/.zprezto" ]; then
-                (cd "${ZDOTDIR:-$HOME}/.zprezto" && git pull && git submodule update --init --recursive)
+                (cd "${ZDOTDIR:-$HOME}/.zprezto" && git pull && git submodule update --init --recursive) || sync_failed=true
             fi
             ;;
         zinit)
             # 更新 Zinit 插件
             if [ -d "$HOME/.local/share/zinit" ]; then
-                (cd "$HOME/.local/share/zinit/zinit.git" && git pull)
+                (cd "$HOME/.local/share/zinit/zinit.git" && git pull) || sync_failed=true
             fi
             ;;
         sheldon)
@@ -169,6 +171,11 @@ plugin_sync() {
             info "sheldon 插件将在下次加载时更新"
             ;;
     esac
+
+    if [ "$sync_failed" = true ]; then
+        warn "插件同步完成，但部分仓库更新失败"
+        return 1
+    fi
 
     success "插件同步完成"
 }

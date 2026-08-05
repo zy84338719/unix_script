@@ -74,10 +74,11 @@ list_plugins_zinit() {
 }
 
 # 安装插件
+# 参数 plugin_spec 可以是 user/repo 格式或简写
 install_plugin_zinit() {
-    local plugin_name="$1"
+    local plugin_spec="$1"
 
-    if [ -z "$plugin_name" ]; then
+    if [ -z "$plugin_spec" ]; then
         error "请指定插件名称"
         return 1
     fi
@@ -90,14 +91,14 @@ install_plugin_zinit() {
     fi
 
     # 检查插件是否已安装
-    if grep -q "zinit light $plugin_name" "$zshrc"; then
-        warn "插件 $plugin_name 已安装"
+    if grep -q "zinit light $plugin_spec" "$zshrc"; then
+        warn "插件 $plugin_spec 已安装"
         return 0
     fi
 
     # 添加插件到 .zshrc
-    echo "zinit light $plugin_name" >> "$zshrc"
-    success "插件 $plugin_name 已添加"
+    echo "zinit light $plugin_spec" >> "$zshrc"
+    success "插件 $plugin_spec 已添加"
     info "请运行 'source ~/.zshrc' 或重启终端以加载插件"
 }
 
@@ -119,5 +120,6 @@ uninstall_plugin_zinit() {
 
     # 删除插件
     sed -i.bak "/zinit light $plugin_name/d" "$zshrc"
+    rm -f "${zshrc}.bak"
     success "插件 $plugin_name 已移除"
 }
