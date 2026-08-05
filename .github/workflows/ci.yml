@@ -181,7 +181,7 @@ jobs:
             yum install -y bash sudo curl which
           elif command -v zypper >/dev/null 2>&1; then
             zypper --non-interactive refresh
-            zypper --non-interactive install bash sudo curl which
+            zypper --non-interactive install bash sudo curl which gawk
           elif command -v pacman >/dev/null 2>&1; then
             pacman -Sy --noconfirm --needed bash sudo curl which
           elif command -v apk >/dev/null 2>&1; then
