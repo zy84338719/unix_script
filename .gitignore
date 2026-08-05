@@ -35,3 +35,6 @@ dist/
 # 测试报告产物（由 tests/ci_run.sh 本地运行生成）
 tests/*-report.md
 *-report.md
+
+# Git worktrees
+.worktrees/
