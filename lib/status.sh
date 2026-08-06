@@ -30,6 +30,11 @@ module_status() {
 # module_status_machine <模块名> -> 输出 STATE 值（单一状态码）
 module_status_machine() {
     local mod="$1"
+    # P5 特殊模块：状态逻辑在 lib 内的 check_*_status 函数（无标准 install.sh status）
+    case "$mod" in
+        shutdown_timer)       check_shutdown_timer_status | sed -n 's/^STATE=//p' | head -1; return ;;
+        process_manager_tool) check_process_manager_status | sed -n 's/^STATE=//p' | head -1; return ;;
+    esac
     local entry_script mod_path script
     entry_script=$(registry_entry_script "$mod")
     mod_path=$(registry_path "$mod")
@@ -42,6 +47,11 @@ module_status_machine() {
 # module_status_raw <模块名> -> 输出完整机器模式原始输出（STATE=/VERSION=/EXTRA=）
 module_status_raw() {
     local mod="$1"
+    # P5 特殊模块：走 lib 内的 check_*_status（已用 emit_status 输出 STATE=）
+    case "$mod" in
+        shutdown_timer)       UXS_STATUS_MODE=machine check_shutdown_timer_status; return ;;
+        process_manager_tool) UXS_STATUS_MODE=machine check_process_manager_status; return ;;
+    esac
     local entry_script mod_path script
     entry_script=$(registry_entry_script "$mod")
     mod_path=$(registry_path "$mod")
