@@ -124,9 +124,10 @@ status_nvm() {
         # 不污染当前 shell，子 shell 加载后取版本
         local ver
         ver=$(bash -c "source '$NVM_DIR/nvm.sh' && nvm --version" 2>/dev/null || echo "未知")
-        echo -e "${GREEN}✅ 已安装 nvm v${ver}${NC}"
+        emit_status "installed" "${GREEN}✅ 已安装 nvm v${ver}${NC}"
+        emit_version "$ver"
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 
