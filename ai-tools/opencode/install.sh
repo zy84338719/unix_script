@@ -90,9 +90,10 @@ status_opencode() {
     if command_exists opencode || [[ -x "$HOME/.local/bin/opencode" ]]; then
         local ver
         ver=$(opencode --version 2>/dev/null || "$HOME/.local/bin/opencode" --version 2>/dev/null || echo "")
-        echo -e "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+        emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+        emit_version "$ver"
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 

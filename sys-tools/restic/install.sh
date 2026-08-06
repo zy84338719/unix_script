@@ -197,13 +197,17 @@ uninstall_restic() {
 # --- 状态检查 ---
 status_restic() {
     detect_os
-    if ! command_exists restic; then
-        echo -e "${RED}❌ 未安装${NC}"
-        return
+    local installed=false version=""
+    if command_exists restic; then
+        installed=true
+        version=$(restic version 2>/dev/null | head -1 || echo "未知版本")
     fi
-    local version
-    version=$(restic version 2>/dev/null | head -1 || echo "未知版本")
-    echo -e "${GREEN}✅ 已安装${NC} ($version)"
+    if $installed; then
+        emit_status "installed" "${GREEN}✅ 已安装${NC} ($version)"
+        emit_version "$version"
+    else
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+    fi
 }
 
 # --- 用法 ---

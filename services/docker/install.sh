@@ -176,24 +176,25 @@ uninstall_docker() {
 
 status_docker() {
     if ! command_exists docker; then
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
         return
     fi
     local ver
     ver=$(docker --version 2>/dev/null || echo "")
     if [[ "$OS_TYPE" == "linux" ]]; then
         if systemctl is-active --quiet docker 2>/dev/null; then
-            echo -e "${GREEN}✅ 已安装并运行${NC} ($ver)"
+            emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} ($ver)"
         else
-            echo -e "${YELLOW}⚠️  已安装但服务未运行${NC} ($ver)"
+            emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC} ($ver)"
         fi
     else
         if docker info >/dev/null 2>&1; then
-            echo -e "${GREEN}✅ 已安装并运行${NC} ($ver)"
+            emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} ($ver)"
         else
-            echo -e "${YELLOW}⚠️  已安装，但 Docker 守护进程未运行（请启动 Docker Desktop）${NC}"
+            emit_status "installed:stopped" "${YELLOW}⚠️  已安装，但 Docker 守护进程未运行（请启动 Docker Desktop）${NC}"
         fi
     fi
+    emit_version "$ver"
 }
 
 # 仅更换镜像加速器（不重装 Docker）：调用 linuxmirrors 官方脚本 --only-registry

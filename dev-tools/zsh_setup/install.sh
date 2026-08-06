@@ -68,106 +68,125 @@ show_version() {
 # 用法: show_status [--json|--text]
 #   --json  输出 JSON 格式
 #   --text  输出纯文本格式（默认）
+#
+# 机器模式（UXS_STATUS_MODE=machine）契约说明：
+#   - --json 模式：保持原有 JSON 输出不变（不追加 STATE=，否则会破坏 JSON 合法性）。
+#     即 --json 始终输出纯 JSON，无论 UXS_STATUS_MODE 如何。
+#   - --text 模式 + UXS_STATUS_MODE=machine：首行输出 STATE=<installed|not_installed>，
+#     随后 EXTRA=framework=...、EXTRA=theme=...、EXTRA=backups=N；人类详情块被抑制。
+#   - --text 模式 + 人类模式：与原实现字节一致。
 show_status() {
     local format="${1:---text}"
 
-    if [ "$format" == "--json" ]; then
-        # JSON 格式输出
-        local zsh_installed="false"
-        local zsh_version=""
-        if command_exists zsh; then
-            zsh_installed="true"
-            zsh_version=$(zsh --version | head -1)
-        fi
+    # ---- 先计算事实（不输出），供两种格式复用 ----
+    local zsh_installed_bool=false
+    local zsh_version=""
+    if command_exists zsh; then
+        zsh_installed_bool=true
+        zsh_version=$(zsh --version | head -1)
+    fi
 
+    local theme="none"
+    local fw
+    fw=$(detect_framework)
+    if [ "$fw" != "none" ]; then
+        case "$fw" in
+            oh-my-zsh)
+                if [ -f "$HOME/.zshrc" ]; then
+                    theme=$(grep "^ZSH_THEME=" "$HOME/.zshrc" | cut -d'"' -f2)
+                fi
+                ;;
+            prezto)
+                if [ -f "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
+                    theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}')
+                fi
+                ;;
+        esac
+    fi
+
+    local backup_count=0
+    if [ -d "$BACKUP_DIR" ]; then
+        backup_count=$(find "$BACKUP_DIR" -maxdepth 1 -name 'zsh-backup-*.tar.gz' 2>/dev/null | wc -l)
+    fi
+
+    if [ "$format" == "--json" ]; then
+        # JSON 格式输出（保持原有行为；机器模式不追加 STATE=，以保 JSON 合法）
         local framework_json
         framework_json=$(framework_status --json)
-
-        local theme="none"
-        local fw
-        fw=$(detect_framework)
-        if [ "$fw" != "none" ]; then
-            case "$fw" in
-                oh-my-zsh)
-                    if [ -f "$HOME/.zshrc" ]; then
-                        theme=$(grep "^ZSH_THEME=" "$HOME/.zshrc" | cut -d'"' -f2)
-                    fi
-                    ;;
-                prezto)
-                    if [ -f "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
-                        theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}')
-                    fi
-                    ;;
-            esac
-        fi
-
-        local backup_count=0
-        if [ -d "$BACKUP_DIR" ]; then
-            backup_count=$(find "$BACKUP_DIR" -maxdepth 1 -name 'zsh-backup-*.tar.gz' 2>/dev/null | wc -l)
-        fi
 
         local esc_version esc_theme
         esc_version=$(json_escape "$zsh_version")
         esc_theme=$(json_escape "${theme:-none}")
         cat <<EOF
 {
-  "zsh": {"installed": ${zsh_installed}, "version": "${esc_version}"},
+  "zsh": {"installed": ${zsh_installed_bool}, "version": "${esc_version}"},
   "framework": ${framework_json},
   "theme": "${esc_theme}",
   "backups": ${backup_count}
 }
 EOF
+        return 0
+    fi
+
+    # ---- 纯文本格式 ----
+    # 主状态：zsh 已安装→installed；否则 not_installed
+    local state
+    if $zsh_installed_bool; then
+        state="installed"
     else
-        # 纯文本格式输出
-        info "Zsh 环境状态:"
-        echo ""
+        state="not_installed"
+    fi
 
-        # Zsh 状态
-        if command_exists zsh; then
-            success "Zsh: 已安装 ($(zsh --version | head -1))"
-        else
-            warn "Zsh: 未安装"
-        fi
+    # 机器模式：先 emit STATE=，再 emit_extra，抑制人类详情块
+    if uxs_is_machine_mode; then
+        emit_status "$state" ""
+        emit_extra "framework=${fw}"
+        emit_extra "theme=${theme:-none}"
+        emit_extra "backups=${backup_count}"
+        return 0
+    fi
 
-        echo ""
+    # 人类模式：与原实现字节一致
+    info "Zsh 环境状态:"
+    echo ""
 
-        # 框架状态
-        framework_status "$format"
+    # Zsh 状态
+    if command_exists zsh; then
+        success "Zsh: 已安装 ($(zsh --version | head -1))"
+    else
+        warn "Zsh: 未安装"
+    fi
 
-        echo ""
+    echo ""
 
-        # 主题状态
-        local framework
-        framework=$(detect_framework)
-        if [ "$framework" != "none" ]; then
-            case "$framework" in
-                oh-my-zsh)
-                    if [ -f "$HOME/.zshrc" ]; then
-                        local theme
-                        theme=$(grep "^ZSH_THEME=" "$HOME/.zshrc" | cut -d'"' -f2)
-                        info "当前主题: ${theme:-未设置}"
-                    fi
-                    ;;
-                prezto)
-                    if [ -f "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
-                        local theme
-                        theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}')
-                        info "当前主题: ${theme:-未设置}"
-                    fi
-                    ;;
-            esac
-        fi
+    # 框架状态
+    framework_status "$format"
 
-        echo ""
+    echo ""
 
-        # 配置备份状态
-        if [ -d "$BACKUP_DIR" ]; then
-            local backup_count
-            backup_count=$(find "$BACKUP_DIR" -maxdepth 1 -name 'zsh-backup-*.tar.gz' 2>/dev/null | wc -l)
-            info "配置备份: ${backup_count} 个"
-        else
-            info "配置备份: 无"
-        fi
+    # 主题状态
+    if [ "$fw" != "none" ]; then
+        case "$fw" in
+            oh-my-zsh)
+                if [ -f "$HOME/.zshrc" ]; then
+                    info "当前主题: ${theme:-未设置}"
+                fi
+                ;;
+            prezto)
+                if [ -f "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
+                    info "当前主题: ${theme:-未设置}"
+                fi
+                ;;
+        esac
+    fi
+
+    echo ""
+
+    # 配置备份状态
+    if [ -d "$BACKUP_DIR" ]; then
+        info "配置备份: ${backup_count} 个"
+    else
+        info "配置备份: 无"
     fi
 }
 

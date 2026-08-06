@@ -569,12 +569,13 @@ do_status() {
     local install_dir="$HOME/.tools/minikube"
     if [[ -x "$install_dir/bin/minikube" ]] && [[ -x "$install_dir/bin/kubectl" ]]; then
         if echo "$PATH" | grep -q "$install_dir/bin"; then
-            echo -e "${GREEN}✅ 已安装并配置${NC}"
+            emit_status "installed" "${GREEN}✅ 已安装并配置${NC}"
         else
-            echo -e "${YELLOW}⚠️  已安装但 PATH 未配置${NC}"
+            emit_status "installed" "${YELLOW}⚠️  已安装但 PATH 未配置${NC}"
+            emit_extra "path=unconfigured"
         fi
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 

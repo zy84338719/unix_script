@@ -84,9 +84,10 @@ status_deno() {
     if command_exists deno || [[ -x "$DENO_BIN" ]]; then
         local ver
         ver=$(deno --version 2>/dev/null | head -1 || "$DENO_BIN" --version 2>/dev/null | head -1 || echo "")
-        echo -e "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+        emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+        emit_version "$ver"
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 

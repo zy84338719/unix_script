@@ -205,9 +205,10 @@ status_dev_enhance() {
     $tmux_ok && parts="${parts}tmux-configured"
     parts="${parts:-无}"
     if [[ "$parts" != "无" ]]; then
-        echo -e "${GREEN}✅ 已配置${NC} ($parts)"
+        emit_status "configured" "${GREEN}✅ 已配置${NC} ($parts)"
+        emit_extra "configured_parts=$parts"
     else
-        echo -e "${RED}❌ 未配置${NC}"
+        emit_status "not_configured" "${RED}❌ 未配置${NC}"
     fi
 }
 

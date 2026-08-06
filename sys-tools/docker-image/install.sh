@@ -304,16 +304,30 @@ do_save() {
 
 do_status() {
     detect_os
-    echo
+    local state human_msg ver=""
     if command_exists docker; then
+        ver=$(docker --version 2>/dev/null || echo "")
         if docker info >/dev/null 2>&1; then
-            success "Docker 已安装且正在运行"
-            docker --version
+            state="installed:running"
+            human_msg="${GREEN}[SUCCESS]${NC} Docker 已安装且正在运行"
         else
-            warn "Docker 已安装但守护进程未运行"
+            state="installed:stopped"
+            human_msg="${YELLOW}[WARNING]${NC} Docker 已安装但守护进程未运行"
         fi
     else
-        error "Docker 未安装"
+        state="not_installed"
+        human_msg="${RED}[ERROR]${NC} Docker 未安装"
+    fi
+    if ! uxs_is_machine_mode; then
+        echo   # 保留原始首行空行
+    fi
+    emit_status "$state" "$human_msg"
+    [[ -n "$ver" ]] && emit_version "$ver"
+    if ! uxs_is_machine_mode; then
+        # 人类模式：运行态额外打印 docker --version（success 消息已由 emit_status 输出）
+        if [[ "$state" == "installed:running" ]] && [[ -n "$ver" ]]; then
+            echo "$ver"
+        fi
     fi
 }
 

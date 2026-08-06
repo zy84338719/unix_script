@@ -147,9 +147,10 @@ status_go() {
     if [[ -x "$GO_BIN" ]] || command_exists go; then
         local ver
         ver=$("$GO_BIN" version 2>/dev/null | awk '{print $3}' || go version 2>/dev/null | awk '{print $3}' || echo "")
-        echo -e "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+        emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+        emit_version "$ver"
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 

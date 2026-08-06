@@ -586,34 +586,78 @@ do_all() {
 status_sys_setup() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        echo -e "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return
+        emit_status "n/a" "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return
     fi
-    echo "软件源镜像:"
+
+    # ---- 先计算各子项的事实，用于聚合并聚态与 emit_extra ----
+    # 镜像源
+    local mirror_ok=false mirror_val="默认源"
     if grep -q "tuna.tsinghua\|mirrors.aliyun\|mirrors.ustc" /etc/apt/sources.list 2>/dev/null; then
-        echo -e "  ${GREEN}✅ 已换国内源${NC}"
-    else
-        echo -e "  ${YELLOW}⚠️  默认源${NC}"
+        mirror_ok=true; mirror_val="已换国内源"
     fi
-    echo "时区: $(timedatectl show -p Timezone --value 2>/dev/null || cat /etc/timezone 2>/dev/null || echo '未知')"
-    echo "NTP 同步: $(timedatectl show -p NTP --value 2>/dev/null || echo '未知')"
-    # 显示 NTP 服务器配置
+    # 时区
+    local tz_val
+    tz_val=$(timedatectl show -p Timezone --value 2>/dev/null || cat /etc/timezone 2>/dev/null || echo '未知')
+    # NTP 同步开关
+    local ntp_sync
+    ntp_sync=$(timedatectl show -p NTP --value 2>/dev/null || echo '未知')
+    # NTP 服务器（含后端）
+    local ntp_servers="(系统默认)" ntp_backend="" ntp_val=""
     if systemctl is-active --quiet systemd-timesyncd 2>/dev/null; then
+        ntp_backend="timesyncd"
         local ntp_conf="/etc/systemd/timesyncd.conf"
-        local ntp_servers="(系统默认)"
         if [[ -f "$ntp_conf" ]] && grep -q '^NTP=' "$ntp_conf" 2>/dev/null; then
             ntp_servers=$(grep '^NTP=' "$ntp_conf" | sed 's/^NTP=//')
         fi
-        echo "NTP 服务器: $ntp_servers (timesyncd)"
+        ntp_val="$ntp_servers (timesyncd)"
     elif command_exists chronyc 2>/dev/null; then
-        echo "NTP 服务器: (chrony，用 chronyc sources 查看)"
+        ntp_backend="chrony"
+        ntp_val="(chrony，用 chronyc sources 查看)"
     elif command_exists ntpq 2>/dev/null; then
-        echo "NTP 服务器: (ntpd，用 ntpq -p 查看)"
+        ntp_backend="ntpd"
+        ntp_val="(ntpd，用 ntpq -p 查看)"
     fi
-    local fd_state ssh_state
-    if [[ -f /etc/security/limits.d/99-unix-script.conf ]]; then fd_state="✅ 已优化"; else fd_state="默认"; fi
-    if [[ -f /etc/ssh/sshd_config.d/99-unix-script.conf ]]; then ssh_state="✅ 已加固"; else ssh_state="默认"; fi
-    echo "文件描述符上限: $fd_state"
-    echo "SSH 加固: $ssh_state"
+    # 文件描述符（ulimit）
+    local fd_ok=false fd_state="默认"
+    if [[ -f /etc/security/limits.d/99-unix-script.conf ]]; then fd_ok=true; fd_state="✅ 已优化"; fi
+    # SSH 加固
+    local ssh_ok=false ssh_state="默认"
+    if [[ -f /etc/ssh/sshd_config.d/99-unix-script.conf ]]; then ssh_ok=true; ssh_state="✅ 已加固"; fi
+
+    # ---- 聚合主状态：镜像源/fd/ssh 全部 ✅ → configured，否则 not_configured ----
+    if $mirror_ok && $fd_ok && $ssh_ok; then
+        emit_status "configured" "${GREEN}✅ 系统配置已完成${NC}"
+    else
+        emit_status "not_configured" "${YELLOW}⚠️  系统配置未完成${NC}"
+    fi
+
+    # ---- 机器模式 EXTRA 行（每个子项一条）----
+    emit_extra "mirror=$mirror_val"
+    emit_extra "timezone=$tz_val"
+    emit_extra "ntp_sync=$ntp_sync"
+    if [[ -n "$ntp_backend" ]]; then
+        emit_extra "ntp_backend=$ntp_backend"
+        emit_extra "ntp_servers=$ntp_servers"
+    fi
+    emit_extra "ulimit=$($fd_ok && echo optimized || echo default)"
+    emit_extra "ssh=$($ssh_ok && echo hardened || echo default)"
+
+    # ---- 人类模式：保留原始多行配置概览 ----
+    if ! uxs_is_machine_mode; then
+        echo "软件源镜像:"
+        if $mirror_ok; then
+            echo -e "  ${GREEN}✅ 已换国内源${NC}"
+        else
+            echo -e "  ${YELLOW}⚠️  默认源${NC}"
+        fi
+        echo "时区: $tz_val"
+        echo "NTP 同步: $ntp_sync"
+        if [[ -n "$ntp_val" ]]; then
+            echo "NTP 服务器: $ntp_val"
+        fi
+        echo "文件描述符上限: $fd_state"
+        echo "SSH 加固: $ssh_state"
+    fi
 }
 
 usage() {

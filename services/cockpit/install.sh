@@ -105,15 +105,15 @@ uninstall_cockpit() {
 status_cockpit() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        echo -e "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return
+        emit_status "n/a" "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return
     fi
     if ! command_exists cockpit-bridge 2>/dev/null && ! rpm -q cockpit >/dev/null 2>&1 && ! dpkg -s cockpit >/dev/null 2>&1; then
-        echo -e "${RED}❌ 未安装${NC}"; return
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
     fi
     if systemctl is-active --quiet cockpit.socket 2>/dev/null || systemctl is-active --quiet cockpit 2>/dev/null; then
-        echo -e "${GREEN}✅ 已安装并运行${NC}"
+        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
     else
-        echo -e "${YELLOW}⚠️  已安装（socket 模式，访问时激活）${NC}"
+        emit_status "installed:stopped" "${YELLOW}⚠️  已安装（socket 模式，访问时激活）${NC}"
     fi
 }
 

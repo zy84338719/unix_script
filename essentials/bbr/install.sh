@@ -83,15 +83,19 @@ disable_bbr() {
 status_bbr() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        echo -e "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return
+        emit_status "n/a" "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return
     fi
     local algo qdisc
     algo=$(sysctl -n net.ipv4.tcp_congestion_control 2>/dev/null || echo "未知")
     qdisc=$(sysctl -n net.core.default_qdisc 2>/dev/null || echo "未知")
     if [[ "$algo" == "bbr" ]]; then
-        echo -e "${GREEN}✅ BBR 已开启${NC}（qdisc=$qdisc）"
+        emit_status "configured" "${GREEN}✅ BBR 已开启${NC}（qdisc=$qdisc）"
+        emit_extra "qdisc=$qdisc"
+        emit_extra "algorithm=$algo"
     else
-        echo -e "${YELLOW}⚠️  未开启 BBR${NC}（当前算法：$algo）"
+        emit_status "not_configured" "${YELLOW}⚠️  未开启 BBR${NC}（当前算法：$algo）"
+        emit_extra "qdisc=$qdisc"
+        emit_extra "algorithm=$algo"
     fi
 }
 

@@ -23,6 +23,18 @@ CRON_LOG="/var/log/disk-usage-monitor.log"
 # ============================================================
 status_disk() {
     detect_os
+    # disk-usage 是纯命令封装的仪表盘，无安装态。固定 installed + dashboard=yes。
+    emit_status "installed" "${GREEN}✅ 磁盘仪表盘可用${NC}（纯命令封装）"
+    emit_extra "dashboard=yes"
+
+    # 仪表盘多行表格仅在人类模式输出（机器模式只发 STATE=/EXTRA=）
+    if ! uxs_is_machine_mode; then
+        _status_disk_dashboard
+    fi
+}
+
+# 仪表盘实现（人类模式专用）。从 status_disk 抽出，便于人类守卫包裹。
+_status_disk_dashboard() {
     header "═══════════════════════════════════════"
     header "       💾 磁盘空间概况"
     header "═══════════════════════════════════════"

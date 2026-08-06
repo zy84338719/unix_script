@@ -162,7 +162,7 @@ do_uninstall() {
 do_status() {
     detect_os
     if ! command_exists nginx; then
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
         return
     fi
 
@@ -181,10 +181,11 @@ do_status() {
     fi
 
     if $active; then
-        echo -e "${GREEN}✅ 已安装并运行${NC} ($ver)"
+        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} ($ver)"
     else
-        echo -e "${YELLOW}⚠️  已安装但服务未运行${NC} ($ver)"
+        emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC} ($ver)"
     fi
+    emit_version "$ver"
 }
 
 usage() {

@@ -152,18 +152,24 @@ disable_rm_guard() {
 status_safe_rm() {
     detect_os
     if [[ -f "$TARGET_SH" ]]; then
-        local guard="(未启用)"
-        grep -q "_safe_rm_guard" "$TARGET_SH" 2>/dev/null && guard="(已启用 rm 保护)"
-        echo -e "${GREEN}✅ 已安装${NC} $guard"
-        # 顺便显示回收站大小
-        local trash_root="${XDG_DATA_HOME:-$HOME/.local/share}/Trash"
-        if [[ -d "$trash_root/files" ]]; then
-            local sz
-            sz=$(du -sh "$trash_root/files" 2>/dev/null | cut -f1)
-            echo "   回收站占用：$sz"
+        local guard="(未启用)" enabled="no"
+        if grep -q "_safe_rm_guard" "$TARGET_SH" 2>/dev/null; then
+            guard="(已启用 rm 保护)"
+            enabled="yes"
+        fi
+        emit_status "installed" "${GREEN}✅ 已安装${NC} $guard"
+        emit_extra "enabled=$enabled"
+        # 回收站大小（仅人类模式）
+        if ! uxs_is_machine_mode; then
+            local trash_root="${XDG_DATA_HOME:-$HOME/.local/share}/Trash"
+            if [[ -d "$trash_root/files" ]]; then
+                local sz
+                sz=$(du -sh "$trash_root/files" 2>/dev/null | cut -f1)
+                echo "   回收站占用：$sz"
+            fi
         fi
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 

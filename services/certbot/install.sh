@@ -168,7 +168,7 @@ do_uninstall() {
 do_status() {
     detect_os
     if ! command_exists certbot; then
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
         return
     fi
 
@@ -176,26 +176,35 @@ do_status() {
     ver=$(certbot --version 2>&1 || echo "")
 
     # 检查续期定时器
-    local renewal_status=""
+    local renewal_status="" autorenew=""
     if [[ "$OS_TYPE" == "linux" ]]; then
         if systemctl is-active --quiet certbot.timer 2>/dev/null; then
             renewal_status="续期定时器运行中"
+            autorenew="enabled"
         elif systemctl is-active --quiet certbot-renew.timer 2>/dev/null; then
             renewal_status="续期定时器运行中"
+            autorenew="enabled"
         else
             renewal_status="未检测到续期定时器"
+            autorenew="disabled"
         fi
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         if crontab -l 2>/dev/null | grep -q "certbot renew"; then
             renewal_status="cron 续期任务已配置"
+            autorenew="enabled"
         else
             renewal_status="未配置自动续期"
+            autorenew="disabled"
         fi
     fi
 
-    echo -e "${GREEN}✅ 已安装${NC} ($ver)"
+    emit_status "installed" "${GREEN}✅ 已安装${NC} ($ver)"
+    emit_version "$ver"
     if [[ -n "$renewal_status" ]]; then
-        echo "  自动续期: $renewal_status"
+        emit_extra "autorenew=$autorenew"
+        if ! uxs_is_machine_mode; then
+            echo "  自动续期: $renewal_status"
+        fi
     fi
 
     # 显示已有证书数量
@@ -203,7 +212,10 @@ do_status() {
         local cert_count
         cert_count=$(find /etc/letsencrypt/live -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
         if [[ "$cert_count" -gt 0 ]]; then
-            echo "  已申请证书: ${cert_count} 个"
+            emit_extra "certs=$cert_count"
+            if ! uxs_is_machine_mode; then
+                echo "  已申请证书: ${cert_count} 个"
+            fi
         fi
     fi
 }

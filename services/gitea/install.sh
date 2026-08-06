@@ -392,12 +392,13 @@ status_gitea() {
     fi
     if $is_installed; then
         if $is_running; then
-            echo -e "${GREEN}✅ 已安装并运行${NC} ($version)"
+            emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} ($version)"
         else
-            echo -e "${YELLOW}⚠️  已安装但服务未运行${NC} ($version)"
+            emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC} ($version)"
         fi
+        emit_version "$version"
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 

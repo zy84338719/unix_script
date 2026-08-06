@@ -189,7 +189,7 @@ uninstall_caddy() {
 status_caddy() {
     detect_os
     if ! command_exists caddy; then
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
         return
     fi
     local version
@@ -199,10 +199,11 @@ status_caddy() {
         running=true
     fi
     if $running; then
-        echo -e "${GREEN}✅ 已安装并运行${NC} ($version)"
+        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} ($version)"
     else
-        echo -e "${YELLOW}⚠️  已安装但服务未运行${NC} ($version)"
+        emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC} ($version)"
     fi
+    emit_version "$version"
 }
 
 # --- 用法 ---

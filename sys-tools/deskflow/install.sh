@@ -78,13 +78,13 @@ install_deskflow() {
 status_deskflow() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        echo -e "${YELLOW}⚠️  不适用（仅 Linux）${NC}"
+        emit_status "n/a" "${YELLOW}⚠️  不适用（仅 Linux）${NC}"
         return
     fi
     if command -v flatpak >/dev/null 2>&1 && flatpak list 2>/dev/null | grep -q org.deskflow.deskflow; then
-        echo -e "${GREEN}✅ 已安装（Flatpak）${NC}"
+        emit_status "installed" "${GREEN}✅ 已安装（Flatpak）${NC}"
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 

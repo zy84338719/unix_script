@@ -219,32 +219,15 @@ show_status_json() {
     echo "arch:$ARCH_TYPE"
     echo "version:$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"
 
-    local mod
+    local mod raw state version line
     for mod in $_REGISTRY_MODULES; do
-        local entry_script mod_path
-        entry_script=$(registry_entry_script "$mod")
-        mod_path=$(registry_path "$mod")
-        local script="$SCRIPT_DIR/$mod_path/$entry_script"
-        [[ -f "$script" ]] || continue
-        local raw
-        raw=$(bash "$script" status 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' | head -1 || echo "unknown")
-        local val="unknown"
-        if echo "$raw" | grep -qiE '✅|已安装并运行'; then
-            val="installed:running"
-        elif echo "$raw" | grep -qiE '已安装但未运行|已安装，但|已安装但服务'; then
-            val="installed:stopped"
-        elif echo "$raw" | grep -qiE '已安装'; then
-            val="installed"
-        elif echo "$raw" | grep -qiE '未安装'; then
-            val="not_installed"
-        elif echo "$raw" | grep -qiE '不适用|仅 Linux'; then
-            val="n/a"
-        elif echo "$raw" | grep -qiE '已配置'; then
-            val="configured"
-        elif echo "$raw" | grep -qiE '未配置'; then
-            val="not_configured"
-        fi
-        printf '%s:%s\n' "$mod" "$val"
+        raw=$(module_status_raw "$mod")
+        state=$(echo "$raw" | sed -n 's/^STATE=//p' | head -1)
+        version=$(echo "$raw" | sed -n 's/^VERSION=//p' | head -1)
+        [[ -z "$state" ]] && state="unknown"
+        line="$mod:$state"
+        [[ -n "$version" ]] && line="$line:$version"
+        printf '%s\n' "$line"
     done
 }
 

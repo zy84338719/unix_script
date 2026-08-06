@@ -52,6 +52,18 @@ unix_script 是一个 macOS/Linux 脚本库，提供 52 个模块的安装、配
 # bun:installed:v1.3.14
 ```
 
+状态码含义（state 字段）：
+
+| 状态码 | 含义 |
+|--------|------|
+| `not_installed` | 未安装 |
+| `installed` | 已安装（无服务概念，如 CLI 工具） |
+| `installed:running` | 已安装且服务运行中 |
+| `installed:stopped` | 已安装但服务未运行 |
+| `configured` | 已配置（配置类模块） |
+| `not_configured` | 未配置 |
+| `n/a` | 当前平台不适用 |
+
 ### 安装/操作模块
 
 ```bash
@@ -88,6 +100,27 @@ NO_COLOR=1 ./install.sh --status
 | `help` | 用法说明 |
 
 部分模块有额外子命令（如 `bun mirror`、`clash start`、`sys-setup all`），用 `--list-modules` 查询。
+
+### 机器可读 status（模块内部）
+
+模块的 `status` 子命令支持环境变量 `UXS_STATUS_MODE=machine`，输出规范字段（无颜色无 emoji）：
+
+```
+STATE=<状态码>           # 必填，见上表
+VERSION=<版本>           # 可选
+EXTRA=<key=value>        # 可选，附加信息
+```
+
+模块作者使用 `lib/common.sh` 的 `emit_status`/`emit_version`/`emit_extra` helper 输出，人类模式默认向后兼容：
+
+| Helper | 签名 | 说明 |
+|--------|------|------|
+| `emit_status` | `emit_status <state> <human_msg>` | 机器模式输出 `STATE=<state>`；人类模式 `echo -e "<human_msg>"`（含颜色/emoji） |
+| `emit_version` | `emit_version <version>` | 仅机器模式输出 `VERSION=<version>`（人类模式版本已在状态消息里，不重复），始终返回 0 |
+| `emit_extra` | `emit_extra <key=value>` | 仅机器模式输出 `EXTRA=<key=value>`（人类模式额外信息由模块自行 echo），始终返回 0 |
+| `uxs_is_machine_mode` | `uxs_is_machine_mode` | 判断函数：机器模式返回 0，人类模式返回 1，用于包裹纯人类辅助输出 |
+
+详见 `docs/superpowers/specs/2026-08-07-status-contract-deps-profile-design.md`。
 
 ## 直接调用模块（绕过 install.sh）
 

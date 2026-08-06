@@ -129,9 +129,13 @@ status_pkgs() {
         command_exists "$t" 2>/dev/null || missing+=("$t")
     done
     if [[ ${#missing[@]} -eq 0 ]]; then
-        echo -e "${GREEN}✅ 必备工具已安装齐全${NC}"
+        emit_status "installed" "${GREEN}✅ 必备工具已安装齐全${NC}"
     else
-        echo -e "${YELLOW}⚠️  缺少：${missing[*]}${NC}"
+        emit_status "not_installed" "${YELLOW}⚠️  缺少：${missing[*]}${NC}"
+        # 缺少的工具列表：逗号分隔，机器模式 EXTRA 行
+        local missing_csv
+        missing_csv=$(IFS=,; echo "${missing[*]}")
+        emit_extra "missing=$missing_csv"
     fi
 }
 

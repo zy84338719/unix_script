@@ -262,21 +262,17 @@ unmirror_brew() {
 
 status_brew() {
     detect_os
-    if command_exists brew; then
-        local ver
-        ver=$(brew --version 2>/dev/null | head -1 || echo "")
-        echo -e "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
-        # 显示前缀
-        local prefix
-        prefix=$(brew --prefix 2>/dev/null || echo "")
-        [[ -n "$prefix" ]] && echo "   prefix: $prefix"
-    else
-        echo -e "${RED}❌ 未安装${NC}"
+    if ! command_exists brew; then
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
         return 0
     fi
 
-    # 检测当前源（官方 or 镜像）
-    local cur_src="(官方源)"
+    local ver prefix cur_src="(官方源)"
+    ver=$(brew --version 2>/dev/null | head -1 || echo "")
+    # 显示前缀
+    prefix=$(brew --prefix 2>/dev/null || echo "")
+
+    # 检测当前源（官方 or 镜像）—— 计算在 emit_status 之前，但 STATE= 必须是首行
     if [[ -n "${HOMEBREW_BOTTLE_DOMAIN:-}" ]]; then
         if [[ "$HOMEBREW_BOTTLE_DOMAIN" == *"tsinghua"* ]]; then
             cur_src="(清华镜像)"
@@ -290,7 +286,19 @@ status_brew() {
     elif [[ -f "$(_shell_rc)" ]] && grep -qF "# >>> brew-mirror >>>" "$(_shell_rc)" 2>/dev/null; then
         cur_src="(已配置镜像，当前 shell 未加载)"
     fi
-    echo "   source: $cur_src"
+
+    emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+    emit_version "$ver"
+    if [[ -n "$prefix" ]]; then
+        emit_extra "prefix=$prefix"
+        if ! uxs_is_machine_mode; then
+            echo "   prefix: $prefix"
+        fi
+    fi
+    emit_extra "source=$cur_src"
+    if ! uxs_is_machine_mode; then
+        echo "   source: $cur_src"
+    fi
 }
 
 usage() {

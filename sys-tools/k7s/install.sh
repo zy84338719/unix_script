@@ -241,35 +241,45 @@ uninstall_k7s() {
 # --- 状态 ---
 status_k7s() {
     detect_os
-    local found=false
+    local found=false source="" ver=""
 
     if [[ "$OS_TYPE" == "darwin" ]] && [[ -d "/Applications/k7s.app" ]]; then
         found=true
-        local ver
+        source="/Applications/k7s.app"
         ver=$(defaults read "/Applications/k7s.app/Contents/Info" CFBundleShortVersionString 2>/dev/null || echo "未知")
-        echo -e "${GREEN}✅ 已安装${NC} (v$ver, /Applications/k7s.app)"
+        emit_status "installed" "${GREEN}✅ 已安装${NC} (v$ver, /Applications/k7s.app)"
+        emit_extra "source=$source"
+        emit_version "$ver"
     elif command_exists k7s; then
         found=true
-        local ver
+        source=$(command -v k7s)
         ver=$(k7s --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "未知")
-        echo -e "${GREEN}✅ 已安装${NC} (v$ver)"
+        emit_status "installed" "${GREEN}✅ 已安装${NC} (v$ver)"
+        emit_extra "source=$source"
+        emit_version "$ver"
     elif [[ -f "$HOME/.local/bin/k7s" ]]; then
         found=true
-        echo -e "${GREEN}✅ 已安装${NC} (~/.local/bin/k7s)"
+        source="$HOME/.local/bin/k7s"
+        emit_status "installed" "${GREEN}✅ 已安装${NC} (~/.local/bin/k7s)"
+        emit_extra "source=$source"
     fi
 
     if ! $found; then
         # 检查 deb/rpm
         if command_exists dpkg && dpkg -l 2>/dev/null | grep -q k7s; then
             found=true
-            echo -e "${GREEN}✅ 已安装${NC} (deb 包)"
+            source="deb"
+            emit_status "installed" "${GREEN}✅ 已安装${NC} (deb 包)"
+            emit_extra "source=$source"
         elif command_exists rpm && rpm -q k7s >/dev/null 2>&1; then
             found=true
-            echo -e "${GREEN}✅ 已安装${NC} (rpm 包)"
+            source="rpm"
+            emit_status "installed" "${GREEN}✅ 已安装${NC} (rpm 包)"
+            emit_extra "source=$source"
         fi
     fi
 
-    $found || echo -e "${RED}❌ 未安装${NC}"
+    $found || emit_status "not_installed" "${RED}❌ 未安装${NC}"
 }
 
 usage() {
