@@ -4,6 +4,28 @@
 
 ## [Unreleased]
 
+## [1.7.2] - 2026-08-07
+
+### 新增
+- **status 输出契约（双轨）**：所有 52 个模块的 `status` 子命令支持环境变量 `UXS_STATUS_MODE=machine`，输出规范字段 `STATE=`/`VERSION=`/`EXTRA=`（无颜色无 emoji），人类模式默认输出与之前逐字一致
+- **状态码有限集**：`not_installed` / `installed:running` / `installed:stopped` / `installed` / `configured` / `not_configured` / `n/a`
+- **status 辅助函数**：`lib/common.sh` 新增 `emit_status`/`emit_version`/`emit_extra`/`uxs_is_machine_mode`，供模块作者统一输出
+- **机器模式查询 API**：`lib/status.sh` 新增 `module_status_machine()`/`module_status_raw()`，供 status-json / 后续 health / export / apply 复用
+- **CI status 契约校验**：`tests/ci_run.sh` routing 阶段新增 `check_status_contract`，校验每个模块 machine 模式首行是合法 `STATE=`（含 P5 特殊模块覆盖）
+- **deskflow macOS 支持**：`sys-tools/deskflow` 增加 Homebrew cask 安装路径（`brew tap deskflow/tap` + `brew install --cask deskflow`），平台支持 Linux + macOS
+
+### 变更
+- **重写 `show_status_json`**：删除 7 层中文关键词 if-grep 猜测，改为读规范 `STATE=` 字段；输出格式向后兼容（`module:state[:version]`）
+- **52 模块 status 迁移**：services/17 + essentials/6 + dev-tools/12 + ai-tools/3 + sys-tools/12 + P5/2 全部改用 `emit_status`，人类模式抽样字节比对一致
+
+### 修复
+- **`module_status_machine` P5 分支**：补齐 `UXS_STATUS_MODE=machine` 前缀（与 `module_status_raw` 对称），避免 P5 模块（shutdown_timer/process_manager_tool）返回空状态
+- **deskflow SC2015**：`uninstall_deskflow_macos` 里 `A && B || C` 改为 `if` 结构，修复 almalinux-9（shellcheck 0.10.0）CI 静态检查
+
+### 文档
+- **AGENTS.md**：新增状态码表和 `UXS_STATUS_MODE` 机器可读 status 协议说明
+- **README.md**：全面升级（核心特性、命令选项表格、52 模块按分类列表含别名/平台、AI agent 工作流指引）
+
 ## [1.7.1] - 2026-08-05
 
 ### 变更
