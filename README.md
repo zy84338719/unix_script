@@ -215,7 +215,7 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 | [multi-net](sys-tools/multi-net) | 多网卡策略路由 | multinet, multi_net | ✅ | ❌ |
 | [ufw](sys-tools/ufw) | UFW 防火墙管理 | firewall | ✅ | ❌ |
 | [restic](sys-tools/restic) | 增量加密备份工具 | — | ✅ | ✅ |
-| [deskflow](sys-tools/deskflow) | 键鼠共享（Flatpak） | — | ✅ | ❌ |
+| [deskflow](sys-tools/deskflow) | 键鼠共享（Flatpak / Homebrew） | — | ✅ | ✅ |
 | [k7s](sys-tools/k7s) | k7s 工具 | — | ✅ | ✅ |
 | [upftp](sys-tools/upftp) | 轻量级 FTP 文件分享工具 | — | ✅ | ✅ |
 
