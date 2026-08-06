@@ -164,6 +164,25 @@ check_status_contract() {
             report_row "status 契约: $mod" pass
         done
     done
+
+    # P5 特殊模块（shutdown_timer / process_manager_tool）：无 install.sh，
+    # 状态逻辑在 lib/status.sh 的 check_*_status，通过 module_status_raw 验证。
+    # 这两个模块也会出现在 --status-json 里，必须输出合法状态码（不能是 unknown）。
+    local p5_mod
+    for p5_mod in shutdown_timer process_manager_tool; do
+        # 从 --status-json 提取该模块的状态行
+        state=$("$REPO_DIR/install.sh" --status-json 2>/dev/null \
+                 | sed -n "s/^${p5_mod}://p" | head -1)
+        # 状态行可能含 version 后缀（如 installed:running:1.2.3），取第一个字段
+        state="${state%%:*}"
+        if [[ -z "$state" || "$state" == "unknown" ]]; then
+            report_row "status 契约: $p5_mod (P5)" fail "状态为 '$state'（应为合法码）"
+        elif [[ " $valid " != *" $state "* ]]; then
+            report_row "status 契约: $p5_mod (P5)" fail "状态码 '$state' 不在有限集"
+        else
+            report_row "status 契约: $p5_mod (P5)" pass
+        fi
+    done
 }
 
 # ---------------- 阶段: routing ----------------

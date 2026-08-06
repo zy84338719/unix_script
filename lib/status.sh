@@ -31,9 +31,11 @@ module_status() {
 module_status_machine() {
     local mod="$1"
     # P5 特殊模块：状态逻辑在 lib 内的 check_*_status 函数（无标准 install.sh status）
+    # 注意：必须显式注入 UXS_STATUS_MODE=machine，否则 check_*_status 走人类模式输出
+    # 中文/emoji，sed 提取不到 STATE=（与 module_status_raw 的 P5 分支保持一致）。
     case "$mod" in
-        shutdown_timer)       check_shutdown_timer_status | sed -n 's/^STATE=//p' | head -1; return ;;
-        process_manager_tool) check_process_manager_status | sed -n 's/^STATE=//p' | head -1; return ;;
+        shutdown_timer)       UXS_STATUS_MODE=machine check_shutdown_timer_status | sed -n 's/^STATE=//p' | head -1; return ;;
+        process_manager_tool) UXS_STATUS_MODE=machine check_process_manager_status | sed -n 's/^STATE=//p' | head -1; return ;;
     esac
     local entry_script mod_path script
     entry_script=$(registry_entry_script "$mod")
