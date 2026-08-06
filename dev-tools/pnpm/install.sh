@@ -80,9 +80,10 @@ status_pnpm() {
     if command_exists pnpm || [[ -x "$PNPM_DIR/pnpm" ]]; then
         local ver
         ver=$(pnpm --version 2>/dev/null || "$PNPM_DIR/pnpm" --version 2>/dev/null || echo "")
-        echo -e "${GREEN}✅ 已安装${NC} ${ver:+(v$ver)}"
+        emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+(v$ver)}"
+        emit_version "$ver"
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 

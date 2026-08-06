@@ -625,15 +625,106 @@ do_uninstall() {
 
 do_status() {
     detect_os
-    echo
-    info "npm/yarn/pnpm:"
-    status_npm
-    info "Go:"
-    status_go
-    info "Rust:"
-    status_rust
-    info "Python:"
-    status_python
+
+    # ---- 先计算各生态的镜像状态（不输出），用于聚合并 emit STATE= 首行 ----
+    # 每个生态：installed=true/false；mirrored=true/false；value=当前源（用于 EXTRA）
+    local npm_installed=false npm_mirrored=false npm_val=""
+    if command_exists npm; then
+        npm_installed=true
+        npm_val=$(npm config get registry 2>/dev/null || echo "未知")
+        # 官方源判定：含 registry.npmjs.org 视为未换源
+        [[ "$npm_val" == *"registry.npmjs.org"* ]] || npm_mirrored=true
+    fi
+
+    local go_installed=false go_mirrored=false go_val=""
+    if command_exists go; then
+        go_installed=true
+        go_val=$(go env GOPROXY 2>/dev/null || echo "未知")
+        # 官方源判定：含 proxy.golang.org 视为未换源
+        [[ "$go_val" == *"proxy.golang.org"* ]] || go_mirrored=true
+    fi
+
+    local rust_installed=false rust_mirrored=false rust_val="官方 crates.io"
+    if command_exists cargo; then
+        rust_installed=true
+        local _reg=""
+        if [[ -f "$CARGO_CFG" ]]; then
+            _reg=$(grep -A1 '\[source.dev-mirror\]' "$CARGO_CFG" 2>/dev/null \
+                  | grep 'registry' | sed -E 's/.*"(.*)".*/\1/' | head -1)
+        fi
+        if [[ -z "$_reg" ]] && [[ -f "$CARGO_CFG_LEGACY" ]]; then
+            _reg=$(grep -A1 '\[source.dev-mirror\]' "$CARGO_CFG_LEGACY" 2>/dev/null \
+                  | grep 'registry' | sed -E 's/.*"(.*)".*/\1/' | head -1)
+        fi
+        if [[ -n "$_reg" ]]; then
+            rust_val="$_reg"
+            rust_mirrored=true
+        fi
+    fi
+
+    local py_installed=false py_mirrored=false py_val="官方 PyPI"
+    local pip_cmd=""
+    command_exists pip3 && pip_cmd="pip3"
+    [[ -z "$pip_cmd" ]] && command_exists pip && pip_cmd="pip"
+    if [[ -n "$pip_cmd" ]]; then
+        py_installed=true
+        py_val=$("$pip_cmd" config get global.index-url 2>/dev/null || echo "官方 PyPI")
+        # 官方源判定：含 pypi.org 视为未换源
+        [[ "$py_val" == *"pypi.org"* ]] || py_mirrored=true
+    fi
+
+    # ---- 聚合主状态 ----
+    # installed_count：已装语言数；mirrored_count：已换源语言数
+    # 用 if 包裹（而非顶层 && 链）：set -e 下，$var=false 的顶层命令会以 1 退出导致脚本中止。
+    local installed_count=0 mirrored_count=0
+    if $npm_installed;  then installed_count=$((installed_count + 1)); $npm_mirrored  && mirrored_count=$((mirrored_count + 1)); fi
+    if $go_installed;   then installed_count=$((installed_count + 1)); $go_mirrored   && mirrored_count=$((mirrored_count + 1)); fi
+    if $rust_installed; then installed_count=$((installed_count + 1)); $rust_mirrored && mirrored_count=$((mirrored_count + 1)); fi
+    if $py_installed;   then installed_count=$((installed_count + 1)); $py_mirrored   && mirrored_count=$((mirrored_count + 1)); fi
+
+    local agg_state agg_msg
+    if [[ $installed_count -eq 0 ]]; then
+        # 无已装语言工具链：n/a 保留给「平台不适用」；此处用 not_configured（0/0 视为未配置）
+        agg_state="not_configured"
+        agg_msg="${YELLOW}⚠️  无已安装的语言工具链${NC}"
+    elif [[ $mirrored_count -eq $installed_count ]]; then
+        agg_state="configured"
+        agg_msg="${GREEN}✅ 全部已装语言已换源（$mirrored_count/$installed_count）${NC}"
+    elif [[ $mirrored_count -gt 0 ]]; then
+        agg_state="not_configured"
+        agg_msg="${YELLOW}⚠️  部分已换源（$mirrored_count/$installed_count）${NC}"
+    else
+        agg_state="not_configured"
+        agg_msg="${RED}❌ 均未换源（0/$installed_count）${NC}"
+    fi
+    emit_status "$agg_state" "$agg_msg"
+
+    # ---- 每语言 EXTRA（key=value）----
+    if $npm_installed; then
+        emit_extra "npm=$npm_val"
+    fi
+    if $go_installed; then
+        emit_extra "go=$go_val"
+    fi
+    if $rust_installed; then
+        emit_extra "rust=$rust_val"
+    fi
+    if $py_installed; then
+        emit_extra "python=$py_val"
+    fi
+
+    # ---- 人类模式：逐语言详情表（调用既有 status_* 函数）----
+    if ! uxs_is_machine_mode; then
+        echo
+        info "npm/yarn/pnpm:"
+        status_npm
+        info "Go:"
+        status_go
+        info "Rust:"
+        status_rust
+        info "Python:"
+        status_python
+    fi
 }
 
 usage() {

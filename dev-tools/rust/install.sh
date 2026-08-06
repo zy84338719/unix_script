@@ -102,9 +102,10 @@ status_rust() {
     if command_exists rustc || [[ -x "$CARGO_DIR/bin/rustc" ]]; then
         local ver
         ver=$(rustc --version 2>/dev/null || "$CARGO_DIR/bin/rustc" --version 2>/dev/null || echo "")
-        echo -e "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+        emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+        emit_version "$ver"
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 

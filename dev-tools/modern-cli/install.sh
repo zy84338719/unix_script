@@ -179,15 +179,24 @@ uninstall_modern_cli() {
 status_modern_cli() {
     detect_os
     local found=0 total=${#TOOLS[@]}
+    local missing=() t
     for t in bat eza rg fd fzf zoxide starship; do
-        command_exists "$t" && found=$((found + 1))
+        if command_exists "$t"; then
+            found=$((found + 1))
+        else
+            missing+=("$t")
+        fi
     done
     if [[ $found -ge $total ]]; then
-        echo -e "${GREEN}✅ 全部已安装（$found/$total）${NC}"
+        emit_status "installed" "${GREEN}✅ 全部已安装（$found/$total）${NC}"
     elif [[ $found -gt 0 ]]; then
-        echo -e "${YELLOW}⚠️  部分已安装（$found/$total）${NC}"
+        emit_status "installed" "${YELLOW}⚠️  部分已安装（$found/$total）${NC}"
+        emit_extra "installed=$found/$total"
+        local missing_csv
+        missing_csv=$(IFS=,; echo "${missing[*]}")
+        emit_extra "missing=$missing_csv"
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 

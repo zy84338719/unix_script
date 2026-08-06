@@ -337,83 +337,99 @@ uninstall_code_lint() {
 
 status_code_lint() {
     detect_os
+    # 第一阶段：统计（不输出），用于先 emit 聚合 STATE=
     local total=0 installed=0
-
-    header "📊 代码分析工具状态"
-    echo
-
-    # Go
-    printf "  %-8s" "Go:"
-    for t in "${GO_TOOLS[@]}"; do
+    local missing=()
+    local t
+    for t in "${GO_TOOLS[@]}" "${RUST_TOOLS[@]}" "${JAVA_TOOLS[@]}" "${PYTHON_TOOLS[@]}" "${CROSS_TOOLS[@]}"; do
         total=$((total + 1))
         if tool_installed "$t"; then
             installed=$((installed + 1))
-            printf " ${GREEN}%s ✅${NC}" "$t"
         else
-            printf " ${RED}%s ❌${NC}" "$t"
+            missing+=("$t")
         fi
     done
-    echo
 
-    # Rust
-    printf "  %-8s" "Rust:"
-    for t in "${RUST_TOOLS[@]}"; do
-        total=$((total + 1))
-        if tool_installed "$t"; then
-            installed=$((installed + 1))
-            printf " ${GREEN}%s ✅${NC}" "$t"
-        else
-            printf " ${RED}%s ❌${NC}" "$t"
-        fi
-    done
-    echo
-
-    # Java
-    printf "  %-8s" "Java:"
-    for t in "${JAVA_TOOLS[@]}"; do
-        total=$((total + 1))
-        if tool_installed "$t"; then
-            installed=$((installed + 1))
-            printf " ${GREEN}%s ✅${NC}" "$t"
-        else
-            printf " ${RED}%s ❌${NC}" "$t"
-        fi
-    done
-    echo
-
-    # Python
-    printf "  %-8s" "Python:"
-    for t in "${PYTHON_TOOLS[@]}"; do
-        total=$((total + 1))
-        if tool_installed "$t"; then
-            installed=$((installed + 1))
-            printf " ${GREEN}%s ✅${NC}" "$t"
-        else
-            printf " ${RED}%s ❌${NC}" "$t"
-        fi
-    done
-    echo
-
-    # 跨语言
-    printf "  %-8s" "跨语言:"
-    for t in "${CROSS_TOOLS[@]}"; do
-        total=$((total + 1))
-        if tool_installed "$t"; then
-            installed=$((installed + 1))
-            printf " ${GREEN}%s ✅${NC}" "$t"
-        else
-            printf " ${RED}%s ❌${NC}" "$t"
-        fi
-    done
-    echo
-
-    echo
+    # 聚合主状态：全部→installed；部分→installed（extra 标注缺失）；无→not_installed
+    local state human_msg
     if [[ $installed -ge $total ]]; then
-        echo -e "  ${GREEN}✅ 全部已安装 ($installed/$total)${NC}"
+        state="installed"
+        human_msg="  ${GREEN}✅ 全部已安装 ($installed/$total)${NC}"
     elif [[ $installed -gt 0 ]]; then
-        echo -e "  ${YELLOW}⚠️  部分已安装 ($installed/$total)${NC}"
+        state="installed"
+        human_msg="  ${YELLOW}⚠️  部分已安装 ($installed/$total)${NC}"
     else
-        echo -e "  ${RED}❌ 未安装任何工具${NC}"
+        state="not_installed"
+        human_msg="  ${RED}❌ 未安装任何工具${NC}"
+    fi
+    emit_status "$state" "$human_msg"
+    emit_extra "installed=$installed/$total"
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        local missing_csv
+        # shellcheck disable=SC2086
+        missing_csv=$(IFS=,; echo "${missing[*]}")
+        emit_extra "missing=$missing_csv"
+    fi
+
+    # 第二阶段：人类模式详情（逐工具 ✅/❌ 清单）
+    if ! uxs_is_machine_mode; then
+        header "📊 代码分析工具状态"
+        echo
+
+        # Go
+        printf "  %-8s" "Go:"
+        for t in "${GO_TOOLS[@]}"; do
+            if tool_installed "$t"; then
+                printf " ${GREEN}%s ✅${NC}" "$t"
+            else
+                printf " ${RED}%s ❌${NC}" "$t"
+            fi
+        done
+        echo
+
+        # Rust
+        printf "  %-8s" "Rust:"
+        for t in "${RUST_TOOLS[@]}"; do
+            if tool_installed "$t"; then
+                printf " ${GREEN}%s ✅${NC}" "$t"
+            else
+                printf " ${RED}%s ❌${NC}" "$t"
+            fi
+        done
+        echo
+
+        # Java
+        printf "  %-8s" "Java:"
+        for t in "${JAVA_TOOLS[@]}"; do
+            if tool_installed "$t"; then
+                printf " ${GREEN}%s ✅${NC}" "$t"
+            else
+                printf " ${RED}%s ❌${NC}" "$t"
+            fi
+        done
+        echo
+
+        # Python
+        printf "  %-8s" "Python:"
+        for t in "${PYTHON_TOOLS[@]}"; do
+            if tool_installed "$t"; then
+                printf " ${GREEN}%s ✅${NC}" "$t"
+            else
+                printf " ${RED}%s ❌${NC}" "$t"
+            fi
+        done
+        echo
+
+        # 跨语言
+        printf "  %-8s" "跨语言:"
+        for t in "${CROSS_TOOLS[@]}"; do
+            if tool_installed "$t"; then
+                printf " ${GREEN}%s ✅${NC}" "$t"
+            else
+                printf " ${RED}%s ❌${NC}" "$t"
+            fi
+        done
+        echo
     fi
 }
 

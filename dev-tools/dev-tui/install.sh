@@ -136,11 +136,12 @@ status_dev_tui() {
         fi
     done
     if [[ $installed -eq ${#TOOLS[@]} ]]; then
-        echo -e "${GREEN}✅ lazydocker + lazygit 已安装${NC}"
+        emit_status "installed" "${GREEN}✅ lazydocker + lazygit 已安装${NC}"
     elif [[ $installed -gt 0 ]]; then
-        echo -e "${YELLOW}⚠️  部分已安装（$installed/${#TOOLS[@]}）${NC}"
+        emit_status "installed" "${YELLOW}⚠️  部分已安装（$installed/${#TOOLS[@]}）${NC}"
+        emit_extra "installed=$installed/${#TOOLS[@]}"
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 

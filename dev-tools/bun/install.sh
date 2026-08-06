@@ -97,14 +97,12 @@ uninstall_bun() {
 
 status_bun() {
     detect_os
+    # 计算版本与 registry（emit_status 之前完成，保证 STATE= 为首行）
+    local installed=false ver=""
     if command_exists bun || [[ -x "$BUN_DIR/bin/bun" ]]; then
-        local ver
+        installed=true
         ver=$(bun --version 2>/dev/null || "$BUN_DIR/bin/bun" --version 2>/dev/null || echo "")
-        echo -e "${GREEN}✅ 已安装${NC} ${ver:+(v$ver)}"
-    else
-        echo -e "${RED}❌ 未安装${NC}"
     fi
-    # 显示当前 registry
     local cur_reg="(默认官方源)"
     if [[ -f "$BUNFIG" ]] && grep -q "registry" "$BUNFIG" 2>/dev/null; then
         # 从 "registry = \"url\"" 提取 url（用 Parameter Expansion 避免 sed 跨平台问题）
@@ -114,7 +112,17 @@ status_bun() {
         cur_reg=${cur_reg//\"/}
         cur_reg=${cur_reg// /}
     fi
-    echo "   registry: $cur_reg"
+
+    if $installed; then
+        emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+(v$ver)}"
+        emit_version "$ver"
+    else
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+    fi
+    emit_extra "registry=$cur_reg"
+    if ! uxs_is_machine_mode; then
+        echo "   registry: $cur_reg"
+    fi
 }
 
 # 跨平台设置 bunfig.toml 的 registry（兼容 macOS BSD sed 与 Linux GNU sed）。
