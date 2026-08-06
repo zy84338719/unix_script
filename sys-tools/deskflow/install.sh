@@ -162,7 +162,9 @@ uninstall_deskflow_macos() {
     fi
     brew uninstall --cask deskflow 2>/dev/null || warn "Deskflow cask 可能未安装"
     # 残留 .app 也清理一下
-    [[ -d "/Applications/Deskflow.app" ]] && rm -rf "/Applications/Deskflow.app" 2>/dev/null || true
+    if [[ -d "/Applications/Deskflow.app" ]]; then
+        rm -rf "/Applications/Deskflow.app" 2>/dev/null || true
+    fi
     success "Deskflow 已卸载。"
 }
 
