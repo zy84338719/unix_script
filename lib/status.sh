@@ -26,9 +26,33 @@ module_status() {
     fi
 }
 
+# --- 机器模式查询（供 status-json / export / health 复用）---
+# module_status_machine <模块名> -> 输出 STATE 值（单一状态码）
+module_status_machine() {
+    local mod="$1"
+    local entry_script mod_path script
+    entry_script=$(registry_entry_script "$mod")
+    mod_path=$(registry_path "$mod")
+    script="$SCRIPT_DIR/$mod_path/$entry_script"
+    [[ -f "$script" ]] || { echo "not_installed"; return; }
+    UXS_STATUS_MODE=machine bash "$script" status 2>/dev/null \
+        | sed -n 's/^STATE=//p' | head -1
+}
+
+# module_status_raw <模块名> -> 输出完整机器模式原始输出（STATE=/VERSION=/EXTRA=）
+module_status_raw() {
+    local mod="$1"
+    local entry_script mod_path script
+    entry_script=$(registry_entry_script "$mod")
+    mod_path=$(registry_path "$mod")
+    script="$SCRIPT_DIR/$mod_path/$entry_script"
+    [[ -f "$script" ]] || { echo "STATE=not_installed"; return; }
+    UXS_STATUS_MODE=machine bash "$script" status 2>/dev/null
+}
+
 # --- 特殊模块状态（非标准接口）---
 check_shutdown_timer_status() {
-    local is_configured=false
+    local is_configured=false state human
     if [[ "$OS_TYPE" == "darwin" ]]; then
         [ -f "/Library/LaunchDaemons/com.user.dailyshutdown.plist" ] && is_configured=true
     elif [[ "$OS_TYPE" == "linux" ]]; then
@@ -37,26 +61,33 @@ check_shutdown_timer_status() {
         fi
     fi
     if $is_configured; then
-        echo -e "${GREEN}✅ 已配置每日定时关机${NC}"
+        state="configured"
+        human="${GREEN}✅ 已配置每日定时关机${NC}"
     else
-        echo -e "${RED}❌ 未配置${NC}"
+        state="not_configured"
+        human="${RED}❌ 未配置${NC}"
     fi
+    emit_status "$state" "$human"
 }
 
 check_process_manager_status() {
-    local is_installed=false
+    local is_installed=false state human
     if [ -f "$HOME/.tools/bin/process_manager" ] && [ -f "$HOME/.tools/bin/pm" ]; then
         is_installed=true
     fi
     if $is_installed; then
         if echo "$PATH" | grep -q "$HOME/.tools/bin"; then
-            echo -e "${GREEN}✅ 已安装并配置${NC}"
+            state="installed"
+            human="${GREEN}✅ 已安装并配置${NC}"
         else
-            echo -e "${YELLOW}⚠️  已安装但 PATH 未配置${NC}"
+            state="installed"   # 已装但 PATH 未配，仍算 installed（用 EXTRA 标注）
+            human="${YELLOW}⚠️  已安装但 PATH 未配置${NC}"
         fi
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        state="not_installed"
+        human="${RED}❌ 未安装${NC}"
     fi
+    emit_status "$state" "$human"
 }
 
 # --- 已安装状态总览（注册表驱动）---
