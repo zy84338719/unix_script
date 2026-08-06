@@ -138,6 +138,34 @@ phase_static() {
     [[ $FAIL_COUNT -eq 0 ]]
 }
 
+# ---------------- status 契约校验 ----------------
+# 每个模块在 UXS_STATUS_MODE=machine 下首行必须是 STATE= 且值在有限集内。
+# 复用 ci_run.sh 既有的报告 helper：report_row <name> <pass|fail|skip> [short]
+check_status_contract() {
+    local valid=" not_installed installed:running installed:stopped installed configured not_configured n/a "
+    local cat_dirs="services essentials dev-tools ai-tools sys-tools"
+    local cat_dir mod_dir mod first state
+    for cat_dir in $cat_dirs; do
+        [[ -d "$REPO_DIR/$cat_dir" ]] || continue
+        for mod_dir in "$REPO_DIR/$cat_dir"/*/; do
+            [[ -d "$mod_dir" ]] || continue
+            mod=$(basename "$mod_dir")
+            [[ -f "$mod_dir/install.sh" ]] || continue   # P5 模块无 install.sh，跳过
+            first=$(UXS_STATUS_MODE=machine bash "$mod_dir/install.sh" status 2>/dev/null | head -1)
+            if [[ "$first" != STATE=* ]]; then
+                report_row "status 契约: $mod" fail "首行非 STATE=（实际: '$first'）"
+                continue
+            fi
+            state="${first#STATE=}"
+            if [[ " $valid " != *" $state "* ]]; then
+                report_row "status 契约: $mod" fail "状态码 '$state' 不在有限集"
+                continue
+            fi
+            report_row "status 契约: $mod" pass
+        done
+    done
+}
+
 # ---------------- 阶段: routing ----------------
 phase_routing() {
     report_header "路由与子命令测试 (routing)"
@@ -235,6 +263,9 @@ phase_routing() {
     assert "dev-mirror: 非法生态报错 (exit 1)" bash -c "! \"$REPO_DIR/$dm_path/install.sh\" install __bad_eco__ >/dev/null 2>&1"
     # dev-mirror: 非法源标识应报错退出 1
     assert "dev-mirror: 非法源标识报错 (exit 1)" bash -c "! \"$REPO_DIR/$dm_path/install.sh\" install go __bad_source__ >/dev/null 2>&1"
+
+    # 4b. status 契约：machine 模式下每个模块首行必须是合法 STATE=
+    check_status_contract
 
     report_footer
     [[ $FAIL_COUNT -eq 0 ]]
