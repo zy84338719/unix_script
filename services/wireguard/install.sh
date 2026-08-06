@@ -196,12 +196,13 @@ status_wireguard() {
     fi
     if $wg_installed; then
         if $service_running; then
-            echo -e "${GREEN}✅ 已安装并运行${NC} (接口: ${interface})"
+            emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} (接口: ${interface})"
+            emit_extra "interface=${interface}"
         else
-            echo -e "${YELLOW}⚠️  已安装但服务未运行${NC}"
+            emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC}"
         fi
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 

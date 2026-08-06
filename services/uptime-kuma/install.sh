@@ -95,14 +95,14 @@ uninstall_uptime_kuma() {
 status_uptime_kuma() {
     detect_os
     if ! command_exists docker; then
-        echo -e "${RED}❌ 未安装（需 Docker）${NC}"; return
+        emit_status "not_installed" "${RED}❌ 未安装（需 Docker）${NC}"; return
     fi
     if sudo docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
-        echo -e "${GREEN}✅ 已安装并运行${NC}"
+        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
     elif sudo docker ps -a --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
-        echo -e "${YELLOW}⚠️  容器已创建但未运行${NC}"
+        emit_status "installed:stopped" "${YELLOW}⚠️  容器已创建但未运行${NC}"
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 

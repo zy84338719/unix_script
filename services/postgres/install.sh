@@ -187,7 +187,7 @@ uninstall_postgres() {
 
 status_postgres() {
     if ! command_exists psql; then
-        echo -e "${RED}❌ 未安装${NC}"; return
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
     fi
 
     local ver
@@ -199,10 +199,12 @@ status_postgres() {
     fi
 
     if $running; then
-        echo -e "${GREEN}✅ 已安装并运行${NC} ($ver, 端口 $PG_PORT)"
+        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} ($ver, 端口 $PG_PORT)"
+        emit_extra "port=$PG_PORT"
     else
-        echo -e "${YELLOW}⚠️  已安装但服务未运行${NC} ($ver)"
+        emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC} ($ver)"
     fi
+    emit_version "$ver"
 }
 
 usage() {

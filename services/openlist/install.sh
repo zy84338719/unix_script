@@ -196,12 +196,12 @@ uninstall_openlist() {
 status_openlist() {
     detect_os
     if [[ ! -x "$OPENLIST_BIN" ]]; then
-        echo -e "${RED}❌ 未安装${NC}"; return
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
     fi
     if service_is_active "$SERVICE_NAME" "$PLIST_LABEL"; then
-        echo -e "${GREEN}✅ 已安装并运行${NC}"
+        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
     else
-        echo -e "${YELLOW}⚠️  已安装但未运行${NC}"
+        emit_status "installed:stopped" "${YELLOW}⚠️  已安装但未运行${NC}"
     fi
 }
 

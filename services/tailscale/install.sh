@@ -112,7 +112,7 @@ uninstall_tailscale() {
 # 状态检查（供主菜单“查看状态”调用，输出一行结论）
 status_tailscale() {
     if ! command_exists tailscale; then
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
         return
     fi
     local running=false
@@ -122,9 +122,9 @@ status_tailscale() {
         brew services list 2>/dev/null | grep -q "tailscale.*started" && running=true
     fi
     if $running; then
-        echo -e "${GREEN}✅ 已安装并运行${NC}"
+        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
     else
-        echo -e "${YELLOW}⚠️  已安装但服务未运行${NC}"
+        emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC}"
     fi
 }
 
