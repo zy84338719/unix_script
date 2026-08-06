@@ -82,7 +82,7 @@ do_pull() {
 do_status() {
     detect_os
     if ! command_exists ollama; then
-        echo -e "${RED}❌ 未安装${NC}"; return
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
     fi
     local running=false
     if [[ "$OS_TYPE" == "linux" ]]; then
@@ -91,9 +91,9 @@ do_status() {
         pgrep -x ollama >/dev/null 2>&1 && running=true
     fi
     if $running; then
-        echo -e "${GREEN}✅ 已安装并运行${NC}"
+        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
     else
-        echo -e "${YELLOW}⚠️  已安装但服务未运行${NC}"
+        emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC}"
     fi
 }
 

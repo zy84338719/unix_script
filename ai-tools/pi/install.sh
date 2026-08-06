@@ -95,9 +95,10 @@ status_pi() {
     if command_exists pi || [[ -x "$HOME/.pi/bin/pi" ]]; then
         local ver
         ver=$(pi --version 2>/dev/null || "$HOME/.pi/bin/pi" --version 2>/dev/null || echo "")
-        echo -e "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+        emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+        emit_version "$ver"
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 
