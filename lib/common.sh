@@ -449,3 +449,47 @@ yes_no() {
     echo
     [[ $reply =~ ^[Yy]$ ]]
 }
+
+# ---------------- status 输出契约 helper（UXS_STATUS_MODE 双轨）----------------
+# 详见 docs/superpowers/specs/2026-08-07-status-contract-deps-profile-design.md 阶段 A。
+# 人类模式（默认）：输出带颜色/emoji 的中文，向后兼容。
+# 机器模式（UXS_STATUS_MODE=machine）：输出规范字段行，无颜色无 emoji。
+#
+# 规范状态码有限集：not_installed / installed:running / installed:stopped /
+#                   installed / configured / not_configured / n/a
+
+# emit_status <state> <human_msg>
+# 人类模式：echo -e "$human_msg"（含颜色/emoji）
+# 机器模式：printf 'STATE=%s\n' "$state"
+emit_status() {
+    local state="$1" human_msg="$2"
+    if [[ "${UXS_STATUS_MODE:-human}" == "machine" ]]; then
+        printf 'STATE=%s\n' "$state"
+    else
+        echo -e "$human_msg"
+    fi
+}
+
+# emit_version <version>
+# 仅机器模式输出 VERSION= 行（人类模式版本已在状态消息里，不重复）
+# 始终返回 0：模块 status 子命令必须退出 0，不能因 human 模式无输出而返回非零。
+emit_version() {
+    if [[ "${UXS_STATUS_MODE:-human}" == "machine" ]]; then
+        printf 'VERSION=%s\n' "$1"
+    fi
+}
+
+# emit_extra <key=value>
+# 仅机器模式输出 EXTRA= 行（人类模式的额外信息由模块自己 echo，并用 human 守卫包裹）
+# 始终返回 0（同 emit_version）。
+emit_extra() {
+    if [[ "${UXS_STATUS_MODE:-human}" == "machine" ]]; then
+        printf 'EXTRA=%s\n' "$1"
+    fi
+}
+
+# uxs_is_machine_mode — 供模块判断是否需用 human 守卫包裹纯人类辅助输出
+# 返回：机器模式 0，人类模式 1（这是一个判断函数，返回值即其语义）。
+uxs_is_machine_mode() {
+    [[ "${UXS_STATUS_MODE:-human}" == "machine" ]]
+}
