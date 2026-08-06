@@ -202,7 +202,8 @@ cmd_all() {
 
 status_sys_cmd() {
     detect_os
-    echo -e "${GREEN}✅ 可用${NC}（纯命令封装，无需安装）"
+    emit_status "installed" "${GREEN}✅ 可用${NC}（纯命令封装，无需安装）"
+    emit_extra "type=builtin"
 }
 
 # ---- 交互式菜单 ----

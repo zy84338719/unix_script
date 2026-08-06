@@ -130,12 +130,16 @@ uninstall_upftp() {
 
 status_upftp() {
     detect_os
+    local installed=false ver=""
     if command_exists upftp; then
-        local ver
+        installed=true
         ver=$(upftp --version 2>/dev/null || echo "")
-        echo -e "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+    fi
+    if $installed; then
+        emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+        emit_version "$ver"
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
 }
 

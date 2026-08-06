@@ -235,15 +235,15 @@ do_restart() { preflight; require_sudo; sudo systemctl restart "$SERVICE_NAME"; 
 status_clash() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        echo -e "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return
+        emit_status "n/a" "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return
     fi
     if [[ ! -x "$BIN" ]]; then
-        echo -e "${RED}❌ 未安装${NC}"; return
+        emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
     fi
     if systemctl is-active --quiet "$SERVICE_NAME" 2>/dev/null; then
-        echo -e "${GREEN}✅ 已安装并运行${NC}"
+        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
     else
-        echo -e "${YELLOW}⚠️  已安装但未运行${NC}"
+        emit_status "installed:stopped" "${YELLOW}⚠️  已安装但未运行${NC}"
     fi
 }
 

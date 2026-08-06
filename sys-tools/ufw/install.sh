@@ -117,22 +117,26 @@ uninstall_ufw() {
 status_ufw() {
     detect_os
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        echo -e "${YELLOW}不适用（macOS 自带应用程序防火墙）${NC}"
-        echo "配置路径：系统设置 > 网络 > 防火墙"
+        emit_status "n/a" "${YELLOW}不适用（macOS 自带应用程序防火墙）${NC}"
+        if ! uxs_is_machine_mode; then
+            echo "配置路径：系统设置 > 网络 > 防火墙"
+        fi
         return
     fi
     if ! command_exists ufw; then
-        echo -e "${RED}未安装${NC}"
+        emit_status "not_installed" "${RED}未安装${NC}"
         return
     fi
     local ufw_status
     ufw_status=$(sudo ufw status 2>/dev/null | head -1)
     if [[ "$ufw_status" == *"active"* ]]; then
-        echo -e "${GREEN}已安装并启用${NC}"
-        echo
-        sudo ufw status verbose
+        emit_status "configured" "${GREEN}已安装并启用${NC}"
+        if ! uxs_is_machine_mode; then
+            echo
+            sudo ufw status verbose
+        fi
     else
-        echo -e "${YELLOW}已安装但未启用${NC}"
+        emit_status "not_configured" "${YELLOW}已安装但未启用${NC}"
     fi
 }
 

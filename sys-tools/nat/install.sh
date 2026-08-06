@@ -424,20 +424,13 @@ do_uninstall() {
 do_status() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        echo -e "${YELLOW}不适用（仅 Linux）${NC}"
+        emit_status "n/a" "${YELLOW}不适用（仅 Linux）${NC}"
         return
     fi
 
-    # IP forwarding 状态
+    # ---- 先收集事实，用于聚合并计算主状态 ----
     local fwd
     fwd=$(cat /proc/sys/net/ipv4/ip_forward 2>/dev/null || echo "0")
-    if [[ "$fwd" == "1" ]]; then
-        echo -e "IP forwarding: ${GREEN}已开启${NC}"
-    else
-        echo -e "IP forwarding: ${RED}未开启${NC}"
-    fi
-
-    # 规则文件状态
     local rule_count=0 gw_count=0
     if [[ -f "$RULES_FILE" ]]; then
         rule_count=$(grep -cvE '^\s*$|^\s*#' "$RULES_FILE" 2>/dev/null || echo 0)
@@ -445,25 +438,52 @@ do_status() {
     if [[ -f "$GATEWAY_FILE" ]]; then
         gw_count=$(grep -cvE '^\s*$|^\s*#' "$GATEWAY_FILE" 2>/dev/null || echo 0)
     fi
-    echo -e "转发规则: ${rule_count} 条"
-    echo -e "网关配置: ${gw_count} 个"
-
-    # systemd 服务状态
+    local svc_state="未启用"
     if systemctl is-enabled nat-manager.service >/dev/null 2>&1; then
         if systemctl is-active nat-manager.service >/dev/null 2>&1; then
-            echo -e "持久化服务: ${GREEN}已启用并运行${NC}"
+            svc_state="已启用并运行"
         else
-            echo -e "持久化服务: ${YELLOW}已启用但未运行${NC}"
+            svc_state="已启用但未运行"
         fi
-    else
-        echo -e "持久化服务: ${RED}未启用${NC}"
     fi
 
-    # 详细规则
-    echo
-    list_dnat_rules
-    echo
-    list_gateways
+    # ---- 聚合主状态：转发规则数>0 → configured；否则 not_configured ----
+    if [[ ${rule_count:-0} -gt 0 ]]; then
+        emit_status "configured" "${GREEN}✅ NAT 已配置${NC}（转发规则 $rule_count 条）"
+    else
+        emit_status "not_configured" "${YELLOW}⚠️  NAT 未配置${NC}（无转发规则）"
+    fi
+    emit_extra "ip_forward=$fwd"
+    emit_extra "rules=$rule_count"
+    emit_extra "gateways=$gw_count"
+    emit_extra "service=$svc_state"
+
+    # ---- 人类模式：保留原始多行概览 + 详细规则表 ----
+    if ! uxs_is_machine_mode; then
+        # IP forwarding 状态
+        if [[ "$fwd" == "1" ]]; then
+            echo -e "IP forwarding: ${GREEN}已开启${NC}"
+        else
+            echo -e "IP forwarding: ${RED}未开启${NC}"
+        fi
+
+        # 规则文件状态
+        echo -e "转发规则: ${rule_count} 条"
+        echo -e "网关配置: ${gw_count} 个"
+
+        # systemd 服务状态
+        case "$svc_state" in
+            已启用并运行) echo -e "持久化服务: ${GREEN}已启用并运行${NC}" ;;
+            已启用但未运行) echo -e "持久化服务: ${YELLOW}已启用但未运行${NC}" ;;
+            *) echo -e "持久化服务: ${RED}未启用${NC}" ;;
+        esac
+
+        # 详细规则
+        echo
+        list_dnat_rules
+        echo
+        list_gateways
+    fi
 }
 
 # ---------------- 帮助 ----------------
