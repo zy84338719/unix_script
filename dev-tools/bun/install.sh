@@ -8,7 +8,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -33,7 +33,7 @@ install_bun() {
     if command_exists bun; then
         local cur
         cur=$(bun --version 2>/dev/null || echo "已安装")
-        warn "检测到已安装 Bun（$cur）"
+        warn "检测到已安装 Bun（${cur}）"
         if ! yes_no "是否继续并重新安装/更新？"; then
             info "已取消"; return 0
         fi
@@ -43,7 +43,9 @@ install_bun() {
         info "通过 Homebrew 安装 bun..."
         brew install bun
     else
-        info "通过官方脚本安装（$OFFICIAL_INSTALLER）..."
+        info "通过官方脚本安装（${OFFICIAL_INSTALLER}）..."
+        # 信任模型：bun.sh/install 官方脚本会校验下载二进制的 SHA256（oven-sh/bun 发布
+        # SHASUMS256.txt 且安装器内置校验），故二进制完整性已自校验。
         if ! bash -c "$(curl -fsSL "$OFFICIAL_INSTALLER")"; then
             error "官方安装脚本执行失败，请检查网络或参考 https://bun.sh/docs/installation"
             exit 1
@@ -59,6 +61,12 @@ install_bun() {
             error "安装后仍找不到 bun，请重新打开终端或检查 PATH"
             exit 1
         fi
+    fi
+
+    # 阶段 D：apply profile 透传镜像源（UXS_CONFIG_REGISTRY 由 lib/profile.sh 注入）
+    if [[ -n "${UXS_CONFIG_REGISTRY:-}" ]]; then
+        info "应用配置：registry = ${UXS_CONFIG_REGISTRY}"
+        _set_registry "$UXS_CONFIG_REGISTRY"
     fi
 
     success "🎉 Bun 安装完成！"
@@ -81,7 +89,7 @@ uninstall_bun() {
     fi
     # 官方脚本安装的（~/.bun）
     if [[ -d "$BUN_DIR" ]]; then
-        if yes_no "确认删除 $BUN_DIR（含 bun 二进制与全局缓存）？"; then
+        if yes_no "确认删除 ${BUN_DIR}（含 bun 二进制与全局缓存）？"; then
             rm -rf "$BUN_DIR"
             removed=true
             success "已删除 $BUN_DIR"
@@ -158,9 +166,9 @@ _set_registry() {
 # 换国内镜像源（写入 ~/.bunfig.toml）
 mirror_bun() {
     detect_os
-    info "🌐 为 Bun 配置国内镜像源（$MIRROR_REGISTRY）"
+    info "🌐 为 Bun 配置国内镜像源（${MIRROR_REGISTRY}）"
     _set_registry "$MIRROR_REGISTRY"
-    success "已配置 registry = $MIRROR_REGISTRY（写入 $BUNFIG）"
+    success "已配置 registry = ${MIRROR_REGISTRY}（写入 ${BUNFIG}）"
     # 清理 bun 缓存使新源生效
     if command_exists bun; then
         info "清理 Bun 安装缓存..."
@@ -173,9 +181,9 @@ mirror_bun() {
 unmirror_bun() {
     detect_os
     if [[ ! -f "$BUNFIG" ]]; then
-        info "无 $BUNFIG，已是官方源"; return 0
+        info "无 ${BUNFIG}，已是官方源"; return 0
     fi
-    info "还原 Bun 官方源（$OFFICIAL_REGISTRY）"
+    info "还原 Bun 官方源（${OFFICIAL_REGISTRY}）"
     _set_registry "$OFFICIAL_REGISTRY"
     success "已还原 registry = $OFFICIAL_REGISTRY"
     if command_exists bun; then

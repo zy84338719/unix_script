@@ -9,7 +9,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -32,7 +32,7 @@ install_deskflow_linux() {
     # 1. 安装 flatpak 与 curl
     info "==== 1. 安装 flatpak 与 curl ===="
     if ! pkg_install flatpak curl; then
-        error "flatpak/curl 安装失败（包管理器：$PKG_MANAGER）"
+        error "flatpak/curl 安装失败（包管理器：${PKG_MANAGER}）"
         exit 1
     fi
 

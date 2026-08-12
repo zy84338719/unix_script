@@ -8,7 +8,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -28,7 +28,7 @@ install_opencode() {
     if command_exists opencode; then
         local cur
         cur=$(opencode --version 2>/dev/null || echo "已安装")
-        warn "检测到已安装 OpenCode（$cur）"
+        warn "检测到已安装 OpenCode（${cur}）"
         if ! yes_no "是否继续并重新安装/更新？"; then
             info "已取消"; return 0
         fi
@@ -38,7 +38,7 @@ install_opencode() {
         info "通过 Homebrew 安装 opencode..."
         brew install opencode
     else
-        info "通过官方脚本安装（$OFFICIAL_INSTALLER）..."
+        info "通过官方脚本安装（${OFFICIAL_INSTALLER}）..."
         if ! bash -c "$(curl -fsSL "$OFFICIAL_INSTALLER")"; then
             error "官方安装脚本执行失败，请检查网络或参考 https://opencode.ai/docs/"
             exit 1

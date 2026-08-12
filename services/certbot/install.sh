@@ -9,7 +9,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -27,16 +27,16 @@ do_install() {
     if command_exists certbot; then
         local cur
         cur=$(certbot --version 2>&1 || echo "未知版本")
-        warn "检测到已安装 Certbot（$cur）"
+        warn "检测到已安装 Certbot（${cur}）"
         if ! yes_no "是否继续并尝试更新？"; then
             info "已取消"
             return 0
         fi
     fi
 
-    info "安装 Certbot（包管理器：$PKG_MANAGER）..."
+    info "安装 Certbot（包管理器：${PKG_MANAGER}）..."
     if ! pkg_install certbot; then
-        error "Certbot 安装失败（包管理器：$PKG_MANAGER）"
+        error "Certbot 安装失败（包管理器：${PKG_MANAGER}）"
         exit 1
     fi
 

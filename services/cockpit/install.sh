@@ -8,7 +8,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -32,7 +32,7 @@ install_cockpit() {
     preflight
     require_sudo
     detect_pkg_manager
-    info "🚀 开始安装 Cockpit（包管理器：$PKG_MANAGER）"
+    info "🚀 开始安装 Cockpit（包管理器：${PKG_MANAGER}）"
 
     if command_exists cockpit-bridge 2>/dev/null || rpm -q cockpit >/dev/null 2>&1 || dpkg -s cockpit >/dev/null 2>&1; then
         warn "检测到 Cockpit 已安装"
@@ -43,7 +43,7 @@ install_cockpit() {
 
     info "安装 cockpit..."
     if ! pkg_install cockpit; then
-        error "cockpit 安装失败（包管理器：$PKG_MANAGER）"
+        error "cockpit 安装失败（包管理器：${PKG_MANAGER}）"
         exit 1
     fi
 

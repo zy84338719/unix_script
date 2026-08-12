@@ -138,7 +138,7 @@ trash-restore() {
         echo "trash-restore: 序号 $idx 无效" >&2
         return 1
     fi
-    # trashinfo 文件位于 $_TRASH_INFO，文件名 = <回收站文件名>.trashinfo
+    # trashinfo 文件位于 ${_TRASH_INFO}，文件名 = <回收站文件名>.trashinfo
     target_info="$_TRASH_INFO/$(basename -- "$target").trashinfo"
     orig=$(grep '^Path=' "$target_info" 2>/dev/null | cut -d= -f2-)
     if [[ -z "$orig" ]]; then

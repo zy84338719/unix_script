@@ -24,7 +24,7 @@ run_doctor() {
     if (( bash_major >= 4 )); then
         success "Bash $bash_ver ✓"
     else
-        warn "Bash $bash_ver（建议 4.0+，部分功能可能受限）"
+        warn "Bash ${bash_ver}（建议 4.0+，部分功能可能受限）"
         ((issues++))
     fi
 

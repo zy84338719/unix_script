@@ -19,9 +19,10 @@
 #   UNIX_SCRIPT_REPO_URL     仓库地址（默认 HTTPS）
 #
 
-set -e
-# 注意：不使用 set -u —— curl|bash 管道模式下，命令替换中的变量
-# 在子 shell 求值时可能偶发触发 unbound variable，导致用户看到报错。
+set -euo pipefail
+# 历史上不使用 set -u：curl|bash 管道模式下命令替换偶发触发 unbound variable。
+# 现已将所有变量引用加 :- 默认值（old_ver/new_ver/ver/rc 等），可安全启用 nounset。
+# pipefail：展示用 `... | head -N` 管道已加 `|| true` 兜底 SIGPIPE。
 
 # ---------------- 配置 ----------------
 REPO_URL="${UNIX_SCRIPT_REPO_URL:-https://github.com/zy84338719/unix_script.git}"
@@ -59,17 +60,30 @@ clone_or_update() {
         b_info "发现已有安装：$INSTALL_DIR"
         local old_ver="未知"
         old_ver=$(cat "$INSTALL_DIR/VERSION" 2>/dev/null || echo "未知")
-        b_info "当前版本：$old_ver，拉取最新更新..."
+        b_info "当前版本：${old_ver}，拉取最新更新..."
         if git -C "$INSTALL_DIR" pull --ff-only origin 2>/dev/null; then
             local new_ver="未知"
             new_ver=$(cat "$INSTALL_DIR/VERSION" 2>/dev/null || echo "未知")
             if [[ "$old_ver" == "$new_ver" ]]; then
-                b_success "已是最新版本（$new_ver）"
+                b_success "已是最新版本（${new_ver}）"
             else
                 b_success "已更新：$old_ver → $new_ver"
             fi
         else
-            b_warn "fast-forward 更新失败，尝试强制同步..."
+            b_warn "fast-forward 更新失败（可能有本地改动或分叉），尝试强制同步..."
+            # 安全网：与 install.sh 的 do_self_update 纪律对齐——reset --hard 会丢弃本地改动，
+            # 故先 stash create 备份（不改动工作区），给用户一条恢复路径。
+            local dirty backup_ref=""
+            dirty=$(git -C "$INSTALL_DIR" status --porcelain 2>/dev/null || true)
+            if [[ -n "$dirty" ]]; then
+                backup_ref=$(git -C "$INSTALL_DIR" stash create 2>/dev/null || true)
+                if [[ -n "$backup_ref" ]]; then
+                    b_warn "检测到本地改动，已备份为 stash：$backup_ref"
+                    b_warn "  恢复：cd \"$INSTALL_DIR\" && git stash apply $backup_ref"
+                else
+                    b_warn "检测到本地改动但无法创建 stash 备份；强制同步将丢失这些改动"
+                fi
+            fi
             if git -C "$INSTALL_DIR" fetch origin 2>/dev/null && \
                git -C "$INSTALL_DIR" reset --hard origin/main 2>/dev/null; then
                 local new_ver="未知"
@@ -78,7 +92,7 @@ clone_or_update() {
             else
                 b_error "更新失败（网络问题），请稍后重试："
                 b_error "  cd \"$INSTALL_DIR\" && git fetch origin && git reset --hard origin/main"
-                b_warn "继续使用当前本地版本（$old_ver）..."
+                b_warn "继续使用当前本地版本（${old_ver}）..."
             fi
         fi
     elif [[ -e "$INSTALL_DIR" ]]; then
@@ -179,9 +193,10 @@ main() {
         if [[ -f "$install_script" ]]; then
             b_info "已安装模块状态："
             if bash "$install_script" --help 2>/dev/null | grep -q '\-\-status-json'; then
-                bash "$install_script" --status-json 2>/dev/null | grep -vE '^(os|arch|version):' | head -20
+                # pipefail 下 head -20 提前关管道会触发上游 SIGPIPE → 用 || true 兜底（仅展示用）
+                bash "$install_script" --status-json 2>/dev/null | grep -vE '^(os|arch|version):' | head -20 || true
             else
-                bash "$install_script" --status 2>/dev/null | head -20
+                bash "$install_script" --status 2>/dev/null | head -20 || true
             fi
             echo "    （完整状态：uxs --status）"
             echo

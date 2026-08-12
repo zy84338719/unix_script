@@ -21,7 +21,7 @@
 #   help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -127,11 +127,11 @@ add_dnat_rule() {
 
     # 验证端口号
     if ! [[ "$port" =~ ^[0-9]+$ ]] || ((port < 1 || port > 65535)); then
-        error "外部端口无效：$port（应为 1-65535）"
+        error "外部端口无效：${port}（应为 1-65535）"
         exit 1
     fi
     if ! [[ "$target_port" =~ ^[0-9]+$ ]] || ((target_port < 1 || target_port > 65535)); then
-        error "目标端口无效：$target_port（应为 1-65535）"
+        error "目标端口无效：${target_port}（应为 1-65535）"
         exit 1
     fi
 
@@ -408,7 +408,7 @@ do_uninstall() {
 
     # 删除配置文件
     if [[ -d "$CONF_DIR" ]]; then
-        if yes_no "是否删除配置目录 $CONF_DIR？（规则文件也会被删除）"; then
+        if yes_no "是否删除配置目录 ${CONF_DIR}？（规则文件也会被删除）"; then
             sudo rm -rf "$CONF_DIR"
             success "配置目录 $CONF_DIR 已删除"
         else

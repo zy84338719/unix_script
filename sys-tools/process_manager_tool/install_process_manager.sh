@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# nounset + pipefail（不含 -e，避免交互式安装流程中偶发非零退出整体中止）
+set -uo pipefail
 #
 # install_process_manager.sh
 #
@@ -34,7 +36,7 @@ detect_user_shell() {
         zsh)  SHELL_RC="$HOME/.zshrc" ;;
         fish) SHELL_RC="$HOME/.config/fish/config.fish" ;;
         *)
-            warn "未识别的 Shell: $user_shell，使用默认配置"
+            warn "未识别的 Shell: ${user_shell}，使用默认配置"
             if [[ "$OS_TYPE" == "darwin" ]]; then
                 SHELL_RC="$HOME/.bash_profile"
             else
@@ -44,7 +46,7 @@ detect_user_shell() {
             ;;
     esac
     USER_SHELL="$user_shell"
-    info "检测到 Shell: $USER_SHELL，配置文件: $SHELL_RC"
+    info "检测到 Shell: ${USER_SHELL}，配置文件: $SHELL_RC"
 }
 
 # --- 创建工具目录 ---
@@ -237,23 +239,27 @@ uninstall_pm() {
     warn "请重启终端或重新加载 Shell 配置以使更改生效"
 }
 
-# --- 状态检查 ---
+# --- 状态检查（契约：emit_status 双轨，供 --status-json 复用）---
 status_pm() {
     detect_os
-    local installed=false
-    if [[ -f "$BIN_DIR/$SCRIPT_NAME" && -x "$BIN_DIR/$SCRIPT_NAME" ]]; then
+    local installed=false state human
+    # 主程序 + pm 包装器都存在才算已安装（与原 lib/status.sh 判定一致）
+    if [[ -f "$BIN_DIR/process_manager" && -f "$BIN_DIR/pm" ]]; then
         installed=true
     fi
-
     if $installed; then
+        state="installed"
         if echo "$PATH" | grep -q "$BIN_DIR"; then
-            echo -e "${GREEN}✅ 已安装并配置${NC}"
+            human="${GREEN}✅ 已安装并配置${NC}"
         else
-            echo -e "${YELLOW}⚠️  已安装但 PATH 未配置${NC}"
+            human="${YELLOW}⚠️  已安装但 PATH 未配置${NC}"
+            emit_extra "path=not_configured"
         fi
     else
-        echo -e "${RED}❌ 未安装${NC}"
+        state="not_installed"
+        human="${RED}❌ 未安装${NC}"
     fi
+    emit_status "$state" "$human"
 }
 
 usage() {

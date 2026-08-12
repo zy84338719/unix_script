@@ -8,7 +8,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -78,7 +78,7 @@ install_pkgs() {
     local t pkg
 
     # 逐个安装（容错：个别包缺失不中断）
-    info "安装必备工具（包管理器：$PKG_MANAGER）..."
+    info "安装必备工具（包管理器：${PKG_MANAGER}）..."
     for t in "${ESSENTIAL_TOOLS[@]}" "${LINUX_EXTRA[@]}"; do
         if ! command_exists "$t" 2>/dev/null; then
             pkg=$(pkg_name_for "$t")

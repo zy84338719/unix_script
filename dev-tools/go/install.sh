@@ -8,7 +8,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -23,13 +23,11 @@ preflight() {
 }
 
 # 获取最新稳定版本号（如 1.23.4）
+# 复用 common.sh 的 github_latest_tag；golang/go 的 tag 格式 go1.23.4，剥前缀 go。
 latest_go_version() {
-    local token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
-    local auth=()
-    if [[ -n "$token" ]]; then auth=(-H "Authorization: Bearer $token"); fi
-    # golang/go 的 release tag 格式 go1.23.4
-    curl -fsSL "${auth[@]}" "https://api.github.com/repos/golang/go/releases/latest" 2>/dev/null \
-        | grep '"tag_name"' | head -1 | sed -E 's/.*"go([0-9.]+)".*/\1/'
+    local tag
+    tag=$(github_latest_tag "golang/go")
+    echo "${tag#go}"
 }
 
 arch_suffix() {
@@ -63,7 +61,7 @@ install_go() {
     if [[ -x "$GO_BIN" ]]; then
         local cur
         cur=$("$GO_BIN" version 2>/dev/null | awk '{print $3}' || echo "已安装")
-        warn "检测到已安装 Go（$cur）"
+        warn "检测到已安装 Go（${cur}）"
         if ! yes_no "是否继续并覆盖安装最新版？"; then
             info "已取消"; return 0
         fi
@@ -127,7 +125,7 @@ uninstall_go() {
     if [[ ! -d "$GO_DIR" ]]; then
         warn "未安装 Go（$GO_DIR 不存在）"; return 0
     fi
-    if ! yes_no "确认卸载 Go（删除 $GO_DIR）？"; then
+    if ! yes_no "确认卸载 Go（删除 ${GO_DIR}）？"; then
         info "已取消"; return 0
     fi
     sudo rm -rf "$GO_DIR"

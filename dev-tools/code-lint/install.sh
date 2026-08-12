@@ -18,7 +18,7 @@
 #   uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -191,7 +191,7 @@ install_java_tools() {
                 continue
             fi
             if pkg_install "$tool" >/dev/null 2>&1; then
-                success "  ✅ $tool（包管理器）"
+                success "  ✅ ${tool}（包管理器）"
                 installed_any=true
             else
                 warn "  ⚠️ $tool 不在仓库中"
@@ -229,7 +229,7 @@ install_python_tools() {
                     # brew 可能没有 bandit，回退到 pip
                     info "  回退到 $pip_cmd 安装 $tool..."
                     if "$pip_cmd" install --user "$tool" 2>/dev/null; then
-                        success "  ✅ $tool（pip）"
+                        success "  ✅ ${tool}（pip）"
                     else
                         warn "  ⚠️ $tool 安装失败"
                     fi

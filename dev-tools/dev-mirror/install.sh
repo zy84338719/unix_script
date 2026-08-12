@@ -13,7 +13,7 @@
 # 子命令: install [ecosystem] [source] | uninstall [ecosystem] | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -233,7 +233,7 @@ config_go() {
     require_ecosystem go
     # go 1.13+ 支持 go env -w；检测版本
     local ver_major
-    ver_major=$(go version 2>/dev/null | grep -oE 'go[0-9]+\.[0-9]+' | head -1 | sed 's/go//;s/\..*//')
+    ver_major=$(go version 2>/dev/null | grep -oE 'go[0-9]+\.[0-9]+' | head -1 | sed 's/go//;s/\..*//' || true)
     if [[ "${ver_major:-0}" -ge 1 ]] && go env -w GOPROXY="$url" 2>/dev/null; then
         success "go     → $url"
     else
@@ -522,7 +522,7 @@ do_install() {
         local _valid=false _e
         for _e in $ECOSYSTEMS; do [[ "$_e" == "$eco" ]] && _valid=true; done
         if ! $_valid; then
-            error "未知生态: $eco（可选: $ECOSYSTEMS | all）"
+            error "未知生态: ${eco}（可选: $ECOSYSTEMS | all）"
             exit 1
         fi
     fi
@@ -596,7 +596,7 @@ do_uninstall() {
         local _valid=false _e
         for _e in $ECOSYSTEMS; do [[ "$_e" == "$eco" ]] && _valid=true; done
         if ! $_valid; then
-            error "未知生态: $eco（可选: $ECOSYSTEMS | all）"
+            error "未知生态: ${eco}（可选: $ECOSYSTEMS | all）"
             exit 1
         fi
     fi
@@ -689,13 +689,13 @@ do_status() {
         agg_msg="${YELLOW}⚠️  无已安装的语言工具链${NC}"
     elif [[ $mirrored_count -eq $installed_count ]]; then
         agg_state="configured"
-        agg_msg="${GREEN}✅ 全部已装语言已换源（$mirrored_count/$installed_count）${NC}"
+        agg_msg="${GREEN}✅ 全部已装语言已换源（$mirrored_count/${installed_count}）${NC}"
     elif [[ $mirrored_count -gt 0 ]]; then
         agg_state="not_configured"
-        agg_msg="${YELLOW}⚠️  部分已换源（$mirrored_count/$installed_count）${NC}"
+        agg_msg="${YELLOW}⚠️  部分已换源（$mirrored_count/${installed_count}）${NC}"
     else
         agg_state="not_configured"
-        agg_msg="${RED}❌ 均未换源（0/$installed_count）${NC}"
+        agg_msg="${RED}❌ 均未换源（0/${installed_count}）${NC}"
     fi
     emit_status "$agg_state" "$agg_msg"
 

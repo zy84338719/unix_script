@@ -20,7 +20,7 @@
 #   help      帮助
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -31,9 +31,9 @@ cmd_cpu() {
     header "🔥 CPU 占用 TOP10"
     echo "-----------------------------------------------"
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        ps -Arceo pid,%cpu,%mem,comm | head -11
+        ps -Arceo pid,%cpu,%mem,comm | head -11 || true
     else
-        ps -eo pid,ppid,%cpu,%mem,comm --sort=-%cpu | head -11
+        ps -eo pid,ppid,%cpu,%mem,comm --sort=-%cpu | head -11 || true
     fi
 }
 
@@ -42,9 +42,9 @@ cmd_mem() {
     header "💾 内存占用 TOP10"
     echo "-----------------------------------------------"
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        ps -Amceo pid,%mem,rss,comm | head -11
+        ps -Amceo pid,%mem,rss,comm | head -11 || true
     else
-        ps -eo pid,ppid,%mem,rss,comm --sort=-%mem | head -11
+        ps -eo pid,ppid,%mem,rss,comm --sort=-%mem | head -11 || true
     fi
 }
 
@@ -76,12 +76,12 @@ cmd_ports() {
     header "🌐 所有监听端口"
     echo "-----------------------------------------------"
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        lsof -iTCP -sTCP:LISTEN -P -n 2>/dev/null | head -30
+        lsof -iTCP -sTCP:LISTEN -P -n 2>/dev/null | head -30 || true
     else
         if command_exists ss; then
-            ss -tlnp 2>/dev/null | head -30
+            ss -tlnp 2>/dev/null | head -30 || true
         elif command_exists netstat; then
-            netstat -tlnp 2>/dev/null | head -30
+            netstat -tlnp 2>/dev/null | head -30 || true
         else
             warn "无 ss/netstat 命令"
         fi
@@ -101,9 +101,9 @@ cmd_du() {
     echo "-----------------------------------------------"
     if [[ "$OS_TYPE" == "darwin" ]]; then
         # macOS du 不支持 --max-depth，用 -d 1
-        du -sh -d 1 . 2>/dev/null | sort -rh | head -11
+        du -sh -d 1 . 2>/dev/null | sort -rh | head -11 || true
     else
-        du -sh --max-depth=1 . 2>/dev/null | sort -rh | head -11
+        du -sh --max-depth=1 . 2>/dev/null | sort -rh | head -11 || true
     fi
 }
 
@@ -121,20 +121,20 @@ cmd_net() {
         echo "LISTEN: $listen"
         echo
         echo "活跃连接 TOP10:"
-        netstat -an 2>/dev/null | grep ESTABLISHED | head -10
+        netstat -an 2>/dev/null | grep ESTABLISHED | head -10 || true
     else
         if command_exists ss; then
             echo "TCP 连接状态统计:"
             ss -s 2>/dev/null
             echo
             echo "ESTABLISHED TOP10:"
-            ss -tunap state established 2>/dev/null | head -11
+            ss -tunap state established 2>/dev/null | head -11 || true
         elif command_exists netstat; then
             echo "TCP 连接状态统计:"
             netstat -ant 2>/dev/null | awk '{print $6}' | sort | uniq -c | sort -rn
             echo
             echo "ESTABLISHED TOP10:"
-            netstat -antp 2>/dev/null | grep ESTABLISHED | head -10
+            netstat -antp 2>/dev/null | grep ESTABLISHED | head -10 || true
         fi
     fi
 }
@@ -148,7 +148,7 @@ cmd_top() {
     echo
     # 内存
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        vm_stat 2>/dev/null | head -5
+        vm_stat 2>/dev/null | head -5 || true
         echo
         echo "CPU 核心: $(sysctl -n hw.ncpu 2>/dev/null || echo '?')"
     else
@@ -280,6 +280,7 @@ main() {
         all)    cmd_all ;;
         menu)   interactive_menu ;;
         status) status_sys_cmd ;;
+        uninstall) info "sys-cmd 为只读命令封装，不安装任何组件，无需卸载" ;;   # 契约 no-op
         help|--help|-h) usage ;;
         *) error "未知操作: $action"; usage; exit 1 ;;
     esac

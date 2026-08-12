@@ -70,6 +70,8 @@ _uxs() {
         'cli:安装全局命令 uxs'
         'doctor:环境诊断'
         'scaffold:创建新模块模板'
+        'export:导出已装模块为 profile'
+        'apply:从 profile 应用配置'
     )
 
     _arguments -C \

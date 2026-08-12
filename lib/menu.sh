@@ -36,7 +36,7 @@ show_main_menu() {
     echo "脚本版本:      v${current_ver}"
     check_for_update 2>/dev/null || true
     if [[ "${UPDATE_AVAILABLE:-}" == "true" ]]; then
-        echo -e "最新版本:      ${YELLOW}v${REMOTE_LATEST}${NC} ${YELLOW}(有更新！输入 c 检查/更新)${NC}"
+        echo -e "最新版本:      ${YELLOW}v${REMOTE_LATEST:-?}${NC} ${YELLOW}(有更新！输入 c 检查/更新)${NC}"
     else
         echo "最新版本:      v${current_ver}（已是最新）"
     fi
@@ -106,7 +106,7 @@ interactive_main() {
                 echo "========================================"
                 info "当前版本：v$(get_local_version)"
                 if check_for_update 2>/dev/null; then
-                    warn "检测到新版本：v$(get_local_version) → v${REMOTE_LATEST}"
+                    warn "检测到新版本：v$(get_local_version) → v${REMOTE_LATEST:-?}"
                     if yes_no "是否立即更新？"; then
                         do_self_update
                     fi
@@ -184,7 +184,12 @@ show_list_modules() {
             subs=$(grep -oE '^\s+(install|uninstall|status|help|mirror|unmirror|start|stop|restart|enable|disable|pull|all|config|example|tun-on|tun-off|clear|list|setup|route-user|route-port|save)\)' "$script" 2>/dev/null | tr -d ' )' | sort -u | tr '\n' ' ' || true)
         fi
         [[ -z "$subs" ]] && subs="install"
-        printf '%s\t%s\n' "$mod" "$subs"
+        local line="$subs"
+        # 阶段 E：有 REQUIRES 时追加 requires: 列（逗号分隔），便于 AI/人类识别前置依赖
+        local reqs
+        reqs=$(registry_requires "$mod")
+        [[ -n "$reqs" ]] && line="$line  requires:${reqs// /,}"
+        printf '%s\t%s\n' "$mod" "$line"
     done
 }
 
@@ -271,25 +276,14 @@ do_uninstall() {
         if [[ $num -eq $choice ]]; then
             local label
             label=$(_reg_get "$mod" LABEL)
-            # 特殊模块处理
-            local mod_path
+            local mod_path entry_script
             mod_path=$(registry_path "$mod")
-            case "$mod" in
-                shutdown_timer)
-                    uninstall_shutdown_timer
-                    ;;
-                process_manager_tool)
-                    if yes_no "确认卸载 $label？"; then
-                        info "开始卸载..."
-                        run_in_dir "$mod_path" install_process_manager.sh uninstall
-                    fi
-                    ;;
-                *)
-                    if yes_no "确认卸载 $label？"; then
-                        run_in_dir "$mod_path" install.sh uninstall
-                    fi
-                    ;;
-            esac
+            entry_script=$(registry_entry_script "$mod")
+            # 所有模块（含 shutdown_timer / process_manager_tool）统一走入口脚本 uninstall
+            if yes_no "确认卸载 ${label}？"; then
+                info "开始卸载..."
+                run_in_dir "$mod_path" "$entry_script" uninstall
+            fi
             echo
             read -r -p "按回车键继续..."
             return 0

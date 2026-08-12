@@ -8,7 +8,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -30,7 +30,7 @@ install_deno() {
     if command_exists deno; then
         local cur
         cur=$(deno --version 2>/dev/null | head -1 || echo "已安装")
-        warn "检测到已安装 Deno（$cur）"
+        warn "检测到已安装 Deno（${cur}）"
         if ! yes_no "是否继续并重新安装/更新？"; then
             info "已取消"; return 0
         fi
@@ -40,7 +40,7 @@ install_deno() {
         info "通过 Homebrew 安装 deno..."
         brew install deno
     else
-        info "通过官方脚本安装（$OFFICIAL_INSTALLER）..."
+        info "通过官方脚本安装（${OFFICIAL_INSTALLER}）..."
         if ! bash -c "$(curl -fsSL "$OFFICIAL_INSTALLER")"; then
             error "官方安装脚本执行失败，请参考 https://deno.land"
             exit 1
@@ -48,7 +48,7 @@ install_deno() {
     fi
 
     if ! command_exists deno && [[ -x "$DENO_BIN" ]]; then
-        warn "deno 已装到 $DENO_BIN，但不在当前 PATH"
+        warn "deno 已装到 ${DENO_BIN}，但不在当前 PATH"
         info "请添加到 shell 配置：export PATH=\"$DENO_DIR/bin:\$PATH\""
     fi
     success "🎉 Deno 安装完成！"
@@ -69,7 +69,7 @@ uninstall_deno() {
         rm -f "$DENO_BIN"
         removed=true
     fi
-    if [[ -d "$DENO_DIR" ]] && yes_no "是否删除 $DENO_DIR（含缓存）？"; then
+    if [[ -d "$DENO_DIR" ]] && yes_no "是否删除 ${DENO_DIR}（含缓存）？"; then
         rm -rf "$DENO_DIR"
     fi
     if $removed; then

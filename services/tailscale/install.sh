@@ -11,7 +11,7 @@
 #   status            查看状态
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -42,7 +42,7 @@ install_tailscale() {
     if command_exists tailscale; then
         local cur
         cur=$(tailscale version 2>/dev/null | head -1 || echo "未知版本")
-        warn "检测到已安装 Tailscale（$cur）"
+        warn "检测到已安装 Tailscale（${cur}）"
         if ! yes_no "是否继续并尝试更新？"; then
             info "已取消"
             return 0
@@ -99,7 +99,7 @@ uninstall_tailscale() {
         sudo systemctl disable --now tailscaled 2>/dev/null || true
         detect_pkg_manager
         if ! pkg_remove tailscale; then
-            warn "自动卸载失败（$PKG_MANAGER），请手动卸载 tailscale"
+            warn "自动卸载失败（${PKG_MANAGER}），请手动卸载 tailscale"
         fi
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         brew services stop tailscale 2>/dev/null || true

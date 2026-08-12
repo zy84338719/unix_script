@@ -39,13 +39,27 @@ if [[ -n "${NO_COLOR:-}" ]] || [[ ! -t 1 ]]; then
     RED='' GREEN='' YELLOW='' BLUE='' CYAN='' PURPLE='' NC=''
 fi
 
+# ---------------- 调试输出开关 ----------------
+# UXS_DEBUG=1 时，库内原本静默的 stderr（2>/dev/null）改为透出到终端，
+# 便于排查网络/解析失败。默认 0（静默，保持输出整洁）。
+UXS_DEBUG="${UXS_DEBUG:-0}"
+# uxs_stderr — 返回 stderr 重定向目标：debug 时 /dev/stderr，否则 /dev/null。
+# 用法：cmd 2>"$(uxs_stderr)"
+uxs_stderr() {
+    if [[ "$UXS_DEBUG" == "1" ]]; then
+        echo "/dev/stderr"
+    else
+        echo "/dev/null"
+    fi
+}
+
 # ---------------- 打印函数（统一命名：info/success/warn/error/header/menu） ----------------
-info()    { echo -e "${BLUE}[INFO]${NC} $1"; }
-success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-warn()    { echo -e "${YELLOW}[WARNING]${NC} $1"; }
-error()   { echo -e "${RED}[ERROR]${NC} $1"; }
-header()  { echo -e "${CYAN}$1${NC}"; }
-menu()    { echo -e "${PURPLE}$1${NC}"; }
+info()    { echo -e "${BLUE}[INFO]${NC} ${1:-}"; }
+success() { echo -e "${GREEN}[SUCCESS]${NC} ${1:-}"; }
+warn()    { echo -e "${YELLOW}[WARNING]${NC} ${1:-}"; }
+error()   { echo -e "${RED}[ERROR]${NC} ${1:-}"; }
+header()  { echo -e "${CYAN}${1:-}${NC}"; }
+menu()    { echo -e "${PURPLE}${1:-}${NC}"; }
 
 # ---------------- 平台 / 架构检测 ----------------
 # 设置全局变量：OS_TYPE (linux|darwin)、ARCH_TYPE (x86_64|ARM64|ARMv7|<原值>)、OS_KERNEL
@@ -70,6 +84,9 @@ detect_arch() {
         armv7l)         ARCH_TYPE="ARMv7"  ;;
         *)              ARCH_TYPE="$arch"  ;;
     esac
+    # 归一化小写形式（ARCH_TYPE 历史值为 x86_64/ARM64/ARMv7 大小写不一，下游匹配易踩坑）。
+    # 新代码建议用 ARCH_TYPE_LOWER（统一小写：x86_64/arm64/armv7）；ARCH_TYPE 保留以兼容现有模块。
+    ARCH_TYPE_LOWER="$(echo "$ARCH_TYPE" | tr '[:upper:]' '[:lower:]')"
 }
 
 # ---------------- 包管理器检测 ----------------
@@ -217,7 +234,7 @@ get_local_ip() {
     local ip_addr=""
     if [[ "$OS_TYPE" == "linux" ]]; then
         # hostname -I 在多数发行版可用
-        ip_addr=$(hostname -I 2>/dev/null | awk '{print $1}')
+        ip_addr=$(hostname -I 2>/dev/null | awk '{print $1}' || true)
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         local iface
         for iface in en0 en1 en2; do
@@ -233,6 +250,8 @@ get_local_ip() {
 
 # 从 GitHub API 取最新 release 的 tag（不含前缀 v）
 # 若设置了 GH_TOKEN 或 GITHUB_TOKEN 环境变量，则带认证头（提升速率限制到 5000/h）。
+# 优先用 jq 解析 JSON（健壮，能区分空字段与解析失败）；无 jq 时回退 grep+sed
+# （逐字节兼容旧实现，保留 v 前缀剥离）。失败（网络/限流/解析）静默返回空串。
 github_latest_tag() {
     local repo="$1"
     local tag
@@ -241,9 +260,54 @@ github_latest_tag() {
     if [[ -n "$token" ]]; then
         auth=(-H "Authorization: Bearer $token")
     fi
-    tag=$(curl -fsSL "${auth[@]}" "https://api.github.com/repos/${repo}/releases/latest" 2>/dev/null \
-          | grep '"tag_name"' | head -1 | sed -E 's/.*"v?([^"]+)".*/\1/')
+    local api_url="https://api.github.com/repos/${repo}/releases/latest"
+    if command -v jq >/dev/null 2>&1; then
+        tag=$(curl -fsSL ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
+              | jq -r '.tag_name // empty' 2>"$(uxs_stderr)" || true)
+        tag="${tag#v}"; tag="${tag#V}"
+    else
+        tag=$(curl -fsSL ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
+              | grep '"tag_name"' | head -1 | sed -E 's/.*"v?([^"]+)".*/\1/' || true)
+    fi
     echo "$tag"
+}
+
+# 从 GitHub 最新 release 取匹配的资产下载 URL（取第一个匹配项）。
+# github_release_asset_url <repo> <url-pattern>
+#   <url-pattern>：作用于 browser_download_url 的正则（jq 分支用 test()，回退分支用 grep -E）。
+# 优先 jq；无 jq 回退 grep+sed（替代脆弱的 cut -d'"' -f4 字段下标）。失败返回空串。
+github_release_asset_url() {
+    local repo="$1" pattern="$2"
+    local auth=()
+    local token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
+    [[ -n "$token" ]] && auth=(-H "Authorization: Bearer $token")
+    local api_url="https://api.github.com/repos/${repo}/releases/latest"
+    if command -v jq >/dev/null 2>&1; then
+        curl -fsSL ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
+            | jq -r --arg p "$pattern" \
+                '.assets[].browser_download_url | select(test($p))' 2>"$(uxs_stderr)" \
+            | head -1 || true
+    else
+        curl -fsSL ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
+            | grep '"browser_download_url"' | grep -E "$pattern" | head -1 \
+            | sed -E 's/.*"([^"]+)".*/\1/' || true
+    fi
+}
+
+# 校验文件 SHA256。verify_sha256 <file> <expected-sha256>
+# 跨平台：macOS/BSD 用 shasum -a 256，Linux 用 sha256sum。匹配返回 0，不匹配 1，无工具 2。
+verify_sha256() {
+    local file="$1" expected="$2"
+    [[ -f "$file" ]] || return 1
+    local actual
+    if command -v shasum >/dev/null 2>&1; then
+        actual=$(shasum -a 256 "$file" | awk '{print $1}')
+    elif command -v sha256sum >/dev/null 2>&1; then
+        actual=$(sha256sum "$file" | awk '{print $1}')
+    else
+        return 2
+    fi
+    [[ "$actual" == "$expected" ]]
 }
 
 # ---------------- 版本更新检查 ----------------
@@ -277,8 +341,11 @@ version_gt() {
     [[ "$a" =~ ^[0-9][0-9.]*$ ]] || return 1
     [[ "$b" =~ ^[0-9][0-9.]*$ ]] || return 1
     [[ "$a" == "$b" ]] && return 1
-    local lowest
-    lowest=$(printf '%s\n%s\n' "$a" "$b" | sort -V | head -n1)
+    # 不用 `... | head -n1`：在 pipefail 下 head 提前关管道会触发上游 SIGPIPE。
+    # 排序结果固定 2 行，用参数展开取首行即可。
+    local sorted lowest
+    sorted=$(printf '%s\n%s\n' "$a" "$b" | sort -V)
+    lowest=${sorted%%$'\n'*}
     [[ "$lowest" == "$b" ]]
 }
 
@@ -308,7 +375,7 @@ print_update_hint() {
         check_for_update 2>/dev/null || true
     fi
     if [[ "${UPDATE_AVAILABLE:-}" == "true" ]]; then
-        warn "[更新提示] 检测到新版本：当前 $(get_local_version) → 远端 ${REMOTE_LATEST}"
+        warn "[更新提示] 检测到新版本：当前 $(get_local_version) → 远端 ${REMOTE_LATEST:-未知}"
         warn "    运行 ./install.sh update 一键更新（会先确认，不会静默改动）"
     fi
 }

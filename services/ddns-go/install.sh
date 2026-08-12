@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 # 引入公共函数库
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -50,15 +50,8 @@ install_ddns_go() {
     echo "=========================================="
 
     info "正在获取最新版本信息..."
-    api_url="https://api.github.com/repos/jeessy2/ddns-go/releases/latest"
-    gh_auth=()
-    gh_token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
-    if [[ -n "$gh_token" ]]; then
-        gh_auth=(-H "Authorization: Bearer $gh_token")
-    fi
-    release_info=$(curl -s "${gh_auth[@]}" "$api_url")
-
-    latest_tag=$(echo "$release_info" | grep '"tag_name"' | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
+    # 复用 common.sh 的 github_latest_tag（jq 优先 + grep 回退 + GH_TOKEN 认证）
+    latest_tag=$(github_latest_tag "jeessy2/ddns-go")
     if [[ -z "$latest_tag" ]]; then
         error "无法获取最新版本信息，请检查网络连接或 API 速率限制"
         exit 1
@@ -85,7 +78,9 @@ install_ddns_go() {
         ;;
     esac
 
-    download_url=$(echo "$release_info" | grep "browser_download_url" | grep "$arch_suffix.tar.gz" | cut -d '"' -f 4)
+    # 复用 common.sh 的 github_release_asset_url（jq 优先，回退 grep+sed，
+    # 替代脆弱的 cut -d'"' -f4 字段下标）
+    download_url=$(github_release_asset_url "jeessy2/ddns-go" "$arch_suffix.tar.gz")
     if [[ -z "$download_url" ]]; then
         error "无法找到适用于 $arch_suffix 的下载链接"; exit 1
     fi

@@ -5,7 +5,7 @@
 #
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../lib/common.sh"
+source "$SCRIPT_DIR/../lib/common.sh"
 
 PREZTO_DIR="${ZDOTDIR:-$HOME}/.zprezto"
 
@@ -73,7 +73,7 @@ status_prezto() {
     # 检测主题
     if [ -f "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
         local theme
-        theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}')
+        theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}' || true)
         echo "主题: ${theme:-未设置}"
     fi
 
@@ -91,13 +91,13 @@ list_plugins_prezto() {
 
     # 内置模块
     echo "内置模块:"
-    ls "$PREZTO_DIR/modules/" 2>/dev/null
+    ls "$PREZTO_DIR/modules/" 2>/dev/null || true
 
     # 外部模块（contrib）
     if [ -d "$PREZTO_DIR/contrib" ]; then
         echo ""
         echo "外部模块:"
-        ls "$PREZTO_DIR/contrib/" 2>/dev/null
+        ls "$PREZTO_DIR/contrib/" 2>/dev/null || true
     fi
 }
 

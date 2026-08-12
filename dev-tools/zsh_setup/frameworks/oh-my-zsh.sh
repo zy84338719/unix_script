@@ -5,7 +5,7 @@
 #
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../lib/common.sh"
+source "$SCRIPT_DIR/../lib/common.sh"
 
 OH_MY_ZSH_DIR="$HOME/.oh-my-zsh"
 CUSTOM_DIR="${ZSH_CUSTOM:-$OH_MY_ZSH_DIR/custom}"
@@ -64,7 +64,7 @@ status_oh_my_zsh() {
     # 检测主题
     if [ -f "$HOME/.zshrc" ]; then
         local theme
-        theme=$(grep "^ZSH_THEME=" "$HOME/.zshrc" | cut -d'"' -f2)
+        theme=$(grep "^ZSH_THEME=" "$HOME/.zshrc" | cut -d'"' -f2 || true)
         echo "主题: ${theme:-未设置}"
     fi
 
@@ -82,13 +82,14 @@ list_plugins_oh_my_zsh() {
 
     # 内置插件
     echo "内置插件:"
-    ls "$OH_MY_ZSH_DIR/plugins/" 2>/dev/null
+    # 目录可能缺失（部分安装）；ls 失败在 set -e 下会中止，用 || true 兜底（仅展示）
+    ls "$OH_MY_ZSH_DIR/plugins/" 2>/dev/null || true
 
     # 自定义插件
     if [ -d "$CUSTOM_DIR/plugins" ]; then
         echo ""
         echo "自定义插件:"
-        ls "$CUSTOM_DIR/plugins/" 2>/dev/null
+        ls "$CUSTOM_DIR/plugins/" 2>/dev/null || true
     fi
 }
 

@@ -12,7 +12,7 @@
 #   status            查看状态
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -78,7 +78,7 @@ install_caddy() {
     if command_exists caddy; then
         local cur
         cur=$(caddy version 2>/dev/null | head -1 || echo "未知版本")
-        warn "检测到已安装 Caddy（$cur）"
+        warn "检测到已安装 Caddy（${cur}）"
         if ! yes_no "是否继续并尝试更新？"; then
             info "已取消"
             return 0
@@ -100,7 +100,7 @@ install_caddy() {
             dnf)     install_caddy_rpm dnf ;;
             yum)     install_caddy_rpm yum ;;
             *)
-                error "当前包管理器（$PKG_MANAGER）暂不支持自动安装 Caddy"
+                error "当前包管理器（${PKG_MANAGER}）暂不支持自动安装 Caddy"
                 info "请参考官方文档手动安装：https://caddyserver.com/docs/install"
                 exit 1
                 ;;

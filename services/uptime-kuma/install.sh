@@ -8,7 +8,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -85,7 +85,7 @@ uninstall_uptime_kuma() {
     fi
     sudo docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
     sudo docker rmi "$IMAGE" 2>/dev/null || true
-    if yes_no "是否同时删除数据卷 $DATA_VOLUME（监控历史数据将丢失）？"; then
+    if yes_no "是否同时删除数据卷 ${DATA_VOLUME}（监控历史数据将丢失）？"; then
         sudo docker volume rm "$DATA_VOLUME" 2>/dev/null || true
         success "数据卷已删除"
     fi
@@ -110,7 +110,7 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     通过 Docker 部署 Uptime Kuma（监控面板，默认端口 $WEB_PORT）
+  install     通过 Docker 部署 Uptime Kuma（监控面板，默认端口 ${WEB_PORT}）
   uninstall   卸载 Uptime Kuma（容器与镜像）
   status      查看状态
 EOF

@@ -8,7 +8,7 @@
 # 子命令：install | uninstall | mirror | unmirror | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -83,7 +83,7 @@ _ensure_shellenv() {
         echo "$shellenv_line"
         echo "# <<< homebrew <<<"
     } >> "$rc"
-    success "已写入 $rc（重新打开终端或 source $rc 生效）"
+    success "已写入 ${rc}（重新打开终端或 source $rc 生效）"
 }
 
 # 从 shell 配置中移除 brew shellenv 块
@@ -115,13 +115,13 @@ install_brew() {
     if command_exists brew; then
         local cur
         cur=$(brew --version 2>/dev/null | head -1 || echo "已安装")
-        warn "检测到已安装 Homebrew（$cur）"
+        warn "检测到已安装 Homebrew（${cur}）"
         if ! yes_no "是否继续并重新安装/更新？"; then
             info "已取消"; return 0
         fi
     fi
 
-    info "通过官方脚本安装（$BREW_INSTALLER）..."
+    info "通过官方脚本安装（${BREW_INSTALLER}）..."
     /bin/bash -c "$(curl -fsSL "$BREW_INSTALLER")"
 
     # 配置 PATH
@@ -226,7 +226,7 @@ mirror_brew() {
     export HOMEBREW_CORE_GIT_REMOTE="$MIRROR_CORE_REMOTE"
     export HOMEBREW_BOTTLE_DOMAIN="$MIRROR_BOTTLE_DOMAIN"
 
-    success "已配置清华镜像源（写入 $rc）"
+    success "已配置清华镜像源（写入 ${rc}）"
     info "镜像地址："
     echo "  API:      $MIRROR_API_DOMAIN"
     echo "  Brew:     $MIRROR_BREW_REMOTE"

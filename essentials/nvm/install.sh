@@ -8,7 +8,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -23,12 +23,12 @@ preflight() {
 }
 
 # 获取 nvm 最新版本 tag（含 v）
+# 复用 common.sh 的 github_latest_tag（jq 优先 + grep 回退 + 认证）；补回 nvm 的 v 前缀。
 nvm_latest() {
-    local token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
-    local auth=()
-    if [[ -n "$token" ]]; then auth=(-H "Authorization: Bearer $token"); fi
-    curl -fsSL "${auth[@]}" "https://api.github.com/repos/${NVM_REPO}/releases/latest" 2>/dev/null \
-        | grep '"tag_name"' | head -1 | sed -E 's/.*"([^"]+)".*/\1/'
+    local tag
+    tag=$(github_latest_tag "$NVM_REPO")
+    [[ -n "$tag" ]] && tag="v$tag"
+    echo "$tag"
 }
 
 install_nvm() {
@@ -36,7 +36,7 @@ install_nvm() {
     info "🚀 安装 nvm（Node 版本管理）"
 
     if [[ -d "$NVM_DIR" ]]; then
-        warn "检测到已安装 nvm（$NVM_DIR）"
+        warn "检测到已安装 nvm（${NVM_DIR}）"
         if ! yes_no "是否重新安装/更新？"; then
             info "已取消"; return 0
         fi
@@ -103,7 +103,7 @@ uninstall_nvm() {
     if [[ ! -d "$NVM_DIR" ]]; then
         warn "未安装 nvm"; return 0
     fi
-    if ! yes_no "确认卸载 nvm（将删除 $NVM_DIR）？"; then
+    if ! yes_no "确认卸载 nvm（将删除 ${NVM_DIR}）？"; then
         info "已取消"; return 0
     fi
     rm -rf "$NVM_DIR"

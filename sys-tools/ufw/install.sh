@@ -14,7 +14,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -33,12 +33,12 @@ install_ufw() {
     preflight
     require_sudo
     detect_pkg_manager
-    info "开始安装 UFW 防火墙（包管理器：$PKG_MANAGER）"
+    info "开始安装 UFW 防火墙（包管理器：${PKG_MANAGER}）"
 
     if command_exists ufw; then
         local cur
         cur=$(ufw version 2>/dev/null | head -1 || echo "未知版本")
-        warn "检测到已安装 UFW（$cur）"
+        warn "检测到已安装 UFW（${cur}）"
         if ! yes_no "是否继续并重新配置默认规则？"; then
             info "已取消"
             return 0
@@ -47,7 +47,7 @@ install_ufw() {
 
     info "安装 ufw..."
     if ! pkg_install ufw; then
-        error "ufw 安装失败（包管理器：$PKG_MANAGER）"
+        error "ufw 安装失败（包管理器：${PKG_MANAGER}）"
         exit 1
     fi
 

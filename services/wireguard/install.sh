@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 #
 # wireguard/install.sh
@@ -57,7 +58,7 @@ install_tools() {
     info "WireGuard tools not found. Attempting to install..."
     if [[ "$OS" == "Linux" ]]; then
         ensure_epel
-        pkg_install wireguard-tools || { error "wireguard-tools 安装失败（$PKG_MANAGER）"; exit 1; }
+        pkg_install wireguard-tools || { error "wireguard-tools 安装失败（${PKG_MANAGER}）"; exit 1; }
     elif [[ "$OS" == "Darwin" ]]; then
         if ! command_exists brew; then
             error "Homebrew is not installed. Please install it first: https://brew.sh/"
@@ -188,7 +189,11 @@ uninstall_service() {
 # --- 状态 ---
 status_wireguard() {
     local wg_installed=false service_running=false interface="wg0"
+    detect_os
     command_exists wg && wg_installed=true
+    # 本模块自带 detect_os()（覆盖 common.sh 的），它设置 OS（值为 Linux/Darwin，即 uname -s）。
+    # 原本 status_wireguard 未调用 detect_os → $OS 未定义 → Linux 上 service_running 恒为 false，
+    # 状态误报为 stopped。status_wireguard 起首已补 detect_os 调用。
     if [[ "$OS" == "Linux" ]]; then
         systemctl is-active --quiet "wg-quick@${interface}" 2>/dev/null && service_running=true
     elif [[ "$OS" == "Darwin" ]]; then

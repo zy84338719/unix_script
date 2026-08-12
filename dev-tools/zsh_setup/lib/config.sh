@@ -151,14 +151,14 @@ config_export() {
         oh-my-zsh)
             if [ -f "$HOME/.zshrc" ]; then
                 local theme
-                theme=$(grep "^ZSH_THEME=" "$HOME/.zshrc" | cut -d'"' -f2)
+                theme=$(grep "^ZSH_THEME=" "$HOME/.zshrc" | cut -d'"' -f2 || true)
                 config_json+=$(json_escape "$theme")
             fi
             ;;
         prezto)
             if [ -f "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
                 local theme
-                theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}' | tr -d "'")
+                theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}' | tr -d "'" || true)
                 config_json+=$(json_escape "$theme")
             fi
             ;;

@@ -8,7 +8,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -30,7 +30,7 @@ install_rust() {
     if command_exists rustc; then
         local cur
         cur=$(rustc --version 2>/dev/null || echo "已安装")
-        warn "检测到已安装 Rust（$cur）"
+        warn "检测到已安装 Rust（${cur}）"
         if ! yes_no "是否继续并更新？"; then
             info "已取消"; return 0
         fi
@@ -45,8 +45,10 @@ install_rust() {
         brew install rustup
         rustup-init -y --no-modify-path 2>/dev/null || true
     else
-        info "通过官方 rustup 安装（$RUSTUP_INSTALLER）..."
-        # rustup 安装器：-y 跳过所有交互确认，使用默认配置
+        info "通过官方 rustup 安装（${RUSTUP_INSTALLER}）..."
+        # rustup 安装器：-y 跳过所有交互确认，使用默认配置。
+        # 信任模型：rustup 安装器内部会校验下载的 rustup-init 二进制完整性（rust-lang/rustup#2711），
+        # 故仅信任传输层（强制 --proto '=https' --tlsv1.2）即可。
         if ! curl --proto '=https' --tlsv1.2 -sSf "$RUSTUP_INSTALLER" | bash -s -- -y; then
             error "rustup 安装失败，请检查网络或参考 https://rustup.rs"
             exit 1

@@ -12,7 +12,7 @@
 #   ./tests/ci_run.sh --help
 #
 # 退出码：任一检查失败返回 1，全部通过返回 0。
-# 报告：以 Markdown 写入 $OUT（默认 tests/<phase>-report.md），并追加到 $GITHUB_STEP_SUMMARY（若存在）。
+# 报告：以 Markdown 写入 ${OUT}（默认 tests/<phase>-report.md），并追加到 ${GITHUB_STEP_SUMMARY}（若存在）。
 
 set -u
 
@@ -165,9 +165,9 @@ check_status_contract() {
         done
     done
 
-    # P5 特殊模块（shutdown_timer / process_manager_tool）：无 install.sh，
-    # 状态逻辑在 lib/status.sh 的 check_*_status，通过 module_status_raw 验证。
-    # 这两个模块也会出现在 --status-json 里，必须输出合法状态码（不能是 unknown）。
+    # shutdown_timer / process_manager_tool 历史上是「特殊模块」（ENTRY_SCRIPT 非 install.sh，
+    # 状态逻辑曾硬编码在 lib/status.sh）。现已去特判化，二者与普通模块一样经入口脚本 status
+    # 输出 STATE=。此处保留断言作为回归守卫：确保去特判后它们仍输出合法状态码。
     local p5_mod
     for p5_mod in shutdown_timer process_manager_tool; do
         # 从 --status-json 提取该模块的状态行
@@ -257,8 +257,16 @@ phase_routing() {
         fi
         script="$REPO_DIR/$mod_path/$entry_script"
         [[ -f "$script" ]] || { report_row "$m: 脚本存在 ($entry_script)" fail "缺失"; continue; }
+        # 契约：每个模块入口脚本必须提供 install/uninstall/status/help 四子命令分发。
+        # uninstall 多为破坏性操作，无法在 CI 行为测试，故校验 case 分支存在（grep 结构断言）。
+        # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
+        assert "$m: uninstall 子命令存在" bash -c 'grep -qE "uninstall[[:space:]]*\)" "$1"' _ "$script"
         assert "$m: status (exit 0)" bash "$script" status
         assert "$m: help (exit 0)" bash "$script" help
+        # 永久门禁：强制 nounset 跑一遍，确保模块未引入未定义变量引用
+        # （模块自身已 set -euo pipefail；此断言防止有人删掉 set -u 后静默回退）
+        assert "$m: status (set -u)" bash -u "$script" status
+        assert "$m: help (set -u)" bash -u "$script" help
     done
 
     # 5. shutdown_timer 的非交互入口存在且可调用（取消接口）
@@ -285,6 +293,83 @@ phase_routing() {
 
     # 4b. status 契约：machine 模式下每个模块首行必须是合法 STATE=
     check_status_contract
+
+    # 10. 阶段 E：模块依赖图（lib/deps.sh）
+    assert "依赖图: lib/deps.sh 存在" bash -c "test -f \"$REPO_DIR/lib/deps.sh\""
+    assert "依赖图: minikube .manifest 含 REQUIRES=docker" bash -c "grep -q '^REQUIRES=docker' \"$REPO_DIR/dev-tools/minikube/.manifest\""
+    # shellcheck disable=SC2016 # $1/$() 故意交给内层 bash -c 求值
+    assert "依赖图: resolve_deps(minikube)=docker" bash -c \
+        'cd "$1" && SCRIPT_DIR=. && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/deps.sh >/dev/null 2>&1
+         detect_os >/dev/null 2>&1; registry_scan
+         [ "$(resolve_deps minikube)" = "docker" ]' _ "$REPO_DIR"
+    # shellcheck disable=SC2016 # 同上
+    assert "依赖图: topo_sort_all 中 docker 先于 minikube" bash -c \
+        'cd "$1" && SCRIPT_DIR=. && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/deps.sh >/dev/null 2>&1
+         detect_os >/dev/null 2>&1; registry_scan
+         order=$(topo_sort_all)
+         di=$(echo "$order" | tr " " "\n" | grep -n "^docker$" | cut -d: -f1)
+         mi=$(echo "$order" | tr " " "\n" | grep -n "^minikube$" | cut -d: -f1)
+         [ -n "$di" ] && [ -n "$mi" ] && [ "$di" -lt "$mi" ]' _ "$REPO_DIR"
+    # 循环检测：注入 docker→minikube（minikube 已→docker）形成环，resolve_deps 内部 exit 1，
+    # 用子 shell 捕获：检测到环 → 本断言通过（exit 0）
+    # shellcheck disable=SC2016 # 同上
+    assert "依赖图: 循环依赖检测（遇环退出非0）" bash -c \
+        'cd "$1" && SCRIPT_DIR=. && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/deps.sh >/dev/null 2>&1
+         detect_os >/dev/null 2>&1; registry_scan
+         eval "_REG_REQUIRES_docker=minikube"
+         if ( resolve_deps minikube ) >/dev/null 2>&1; then exit 1; else exit 0; fi' _ "$REPO_DIR"
+    # --list-modules 对 minikube 输出 requires:docker
+    assert "依赖图: --list-modules 含 minikube requires:docker" bash -c \
+        "\"$REPO_DIR/install.sh\" --list-modules | grep '^minikube' | grep -q 'requires:docker'"
+    # --no-deps 解析（无模块参数 → 显示用法 exit 0）
+    # shellcheck disable=SC2016 # $1 故意交给内层 bash -c 求值
+    assert "依赖图: --no-deps 解析正常" bash -c \
+        'UNIX_SCRIPT_NO_UPDATE_CHECK=1 "$1/install.sh" --no-deps </dev/null >/dev/null 2>&1' _ "$REPO_DIR"
+
+    # 11. 阶段 D：profile 导出/应用（lib/profile.sh）
+    assert "profile: lib/profile.sh 存在" bash -c "test -f \"$REPO_DIR/lib/profile.sh\""
+    assert "profile: 含 export_profile/apply_profile" bash -c \
+        "grep -q 'export_profile()' \"$REPO_DIR/lib/profile.sh\" && grep -q 'apply_profile()' \"$REPO_DIR/lib/profile.sh\""
+    assert "profile: bun .manifest 含 EXPORTABLE=registry" bash -c \
+        "grep -q '^EXPORTABLE=registry' \"$REPO_DIR/dev-tools/bun/.manifest\""
+    assert "profile: install.sh 路由 export/apply" bash -c \
+        "grep -q 'export|export-profile)' \"$REPO_DIR/install.sh\" && grep -q 'apply|apply-profile)' \"$REPO_DIR/install.sh\""
+    # export → 产出合法 profile（含头部 + 用法提示）
+    local prof_dir prof synth
+    prof_dir="$(mktemp -d)"
+    prof="$prof_dir/uxs_test_profile.txt"
+    # shellcheck disable=SC2016 # $1/$2 故意交给内层 bash -c 求值
+    assert "profile: export 产出文件" bash -c \
+        'UNIX_SCRIPT_NO_UPDATE_CHECK=1 "$1/install.sh" export "$2" >/dev/null 2>&1 && grep -q "# unix_script profile" "$2"' _ "$REPO_DIR" "$prof"
+    # apply --dry-run 对导出的 profile 不报错（已装模块全跳过）
+    # shellcheck disable=SC2016
+    assert "profile: apply --dry-run 正常退出" bash -c \
+        'UNIX_SCRIPT_NO_UPDATE_CHECK=1 "$1/install.sh" apply "$2" --dry-run </dev/null >/dev/null 2>&1' _ "$REPO_DIR" "$prof"
+    # 配置透传解析：合成一个含 key=value 的 profile（bun 未装时会被 dry-run「应用」并回显配置）
+    synth="$prof_dir/synth.txt"
+    printf '# synthetic\nbun registry=https://example.test/\n' > "$synth"
+    # shellcheck disable=SC2016
+    assert "profile: 解析 key=value 配置并注入" bash -c \
+        'UNIX_SCRIPT_NO_UPDATE_CHECK=1 "$1/install.sh" apply "$2" --dry-run </dev/null 2>&1 | grep -q "UXS_CONFIG_registry="' _ "$REPO_DIR" "$synth"
+    rm -rf "$prof_dir"
+
+    # 12. 行为测试：别名解析 + 畸形 manifest 容错
+    # shellcheck disable=SC2016 # $1/$() 故意交给内层 bash -c 求值
+    assert "行为: 别名解析（pm/shutdown/未知）" bash -c \
+        'cd "$1" && SCRIPT_DIR=. && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/deps.sh >/dev/null 2>&1
+         detect_os >/dev/null 2>&1; registry_scan
+         [ "$(registry_resolve_alias pm)" = "process_manager_tool" ] &&
+         [ "$(registry_resolve_alias shutdown)" = "shutdown_timer" ] &&
+         [ "$(registry_resolve_alias __no_such_alias__)" = "__no_such_alias__" ]' _ "$REPO_DIR"
+    # 畸形 manifest（缺必填 LABEL）应被 _parse_manifest 拒绝（return 1）且不进 _REGISTRY_MODULES
+    # shellcheck disable=SC2016
+    assert "行为: 畸形 manifest（缺 LABEL）被跳过" bash -c \
+        'cd "$1" && SCRIPT_DIR=. && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/deps.sh >/dev/null 2>&1
+         detect_os >/dev/null 2>&1; registry_scan
+         tmp=$(mktemp); printf "CATEGORY=服务\n" > "$tmp"
+         if _parse_manifest __uxs_fake__ "$tmp" >/dev/null 2>&1; then rc=0; else rc=1; fi
+         rm -f "$tmp"
+         [ "$rc" -eq 1 ] && ! echo "$_REGISTRY_MODULES" | grep -qw __uxs_fake__' _ "$REPO_DIR"
 
     report_footer
     [[ $FAIL_COUNT -eq 0 ]]

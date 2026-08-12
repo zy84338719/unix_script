@@ -10,7 +10,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -53,12 +53,12 @@ redis_config_path() {
 
 install_redis() {
     preflight
-    info "安装 Redis（内存数据库，默认端口 $REDIS_PORT）"
+    info "安装 Redis（内存数据库，默认端口 ${REDIS_PORT}）"
 
     if command_exists redis-cli; then
         local cur
         cur=$(redis-cli --version 2>/dev/null || echo "已安装")
-        warn "检测到已安装 Redis（$cur）"
+        warn "检测到已安装 Redis（${cur}）"
         if ! yes_no "是否继续并重新安装/更新？"; then
             info "已取消"; return 0
         fi
@@ -172,7 +172,7 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install      安装 Redis（内存数据库，默认端口 $REDIS_PORT）
+  install      安装 Redis（内存数据库，默认端口 ${REDIS_PORT}）
   uninstall    卸载 Redis
   status       查看安装与运行状态
 EOF

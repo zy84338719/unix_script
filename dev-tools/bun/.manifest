@@ -1,3 +1,4 @@
 LABEL=Bun
 CATEGORY=开发环境
 DEFAULT_ACTION=install
+EXPORTABLE=registry

@@ -15,7 +15,7 @@
 #   help    显示帮助
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -103,7 +103,7 @@ prompt_filename() {
     local default_fname
     default_fname=$(default_filename "$img")
     local fname
-    read -r -p "请输入导出文件名（默认 $default_fname）: " fname
+    read -r -p "请输入导出文件名（默认 ${default_fname}）: " fname
     fname="${fname:-$default_fname}"
     if ! valid_filename "$fname"; then
         error "文件名非法（不能含 / 或为空）: $fname"
@@ -134,7 +134,7 @@ pull_one() {
     fi
     info "拉取镜像：$img"
     if ! docker pull "$img"; then
-        error "拉取失败：$img（镜像名错误或网络问题）"
+        error "拉取失败：${img}（镜像名错误或网络问题）"
         return 1
     fi
     success "拉取完成"
@@ -354,6 +354,9 @@ main() {
     case "$action" in
         save)    shift || true; do_save "$@" ;;
         status)  do_status ;;
+        # 本模块仅「导出」镜像为 .tar.gz 产物，不安装任何持久组件/服务/配置；
+        # 导出的文件由用户保留（可用于 docker load 恢复），故 uninstall 为文档化 no-op。
+        uninstall) info "docker-image 仅导出镜像产物，不安装持久组件；已导出的 .tar.gz 请按需手动删除" ;;
         help|--help|-h) usage ;;
         *) error "未知操作: $action"; usage; exit 1 ;;
     esac

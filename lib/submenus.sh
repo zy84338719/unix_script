@@ -142,7 +142,8 @@ manage_clash() {
 _multinet_status() {
     echo "当前状态: $(module_status multi-net)"
     echo "本机网卡:"
-    (command -v ip >/dev/null 2>&1 && ip -br link show 2>/dev/null | awk '{print "  "$1}' || echo "  (需 Linux)") | head -8
+    # pipefail 下 head -8 提前关管道会触发子 shell SIGPIPE → 用 || true 兜底（仅展示）
+    (command -v ip >/dev/null 2>&1 && ip -br link show 2>/dev/null | awk '{print "  "$1}' || echo "  (需 Linux)") | head -8 || true
 }
 _multinet_display() {
     echo "  1) 初始化某网卡策略路由 (setup)"
@@ -258,16 +259,4 @@ manage_shutdown_timer() {
     "$script_path"
     info "已从自动关机管理返回主菜单。"
     read -r -p "按回车键继续..."
-}
-
-# 取消每日自动关机（供卸载菜单调用）
-uninstall_shutdown_timer() {
-    info "正在取消每日自动关机任务..."
-    local script_path="$SCRIPT_DIR/sys-tools/shutdown_timer/shutdown_timer.sh"
-    if [ ! -f "$script_path" ]; then
-        error "脚本不存在: $script_path"
-        return
-    fi
-    chmod +x "$script_path"
-    "$script_path" cancel_daily_shutdown_internal
 }

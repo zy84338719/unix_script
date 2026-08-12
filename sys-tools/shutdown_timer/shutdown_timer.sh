@@ -1,4 +1,7 @@
 #!/bin/bash
+# 注：仅 nounset + pipefail，不加 errexit（-e）：本脚本是交互式菜单，
+# 菜单项命令偶发返回非零不应整体退出。
+set -uo pipefail
 
 #
 # shutdown_timer.sh
@@ -269,6 +272,29 @@ cancel_daily_shutdown_linux() {
     success "每日定时关机任务已成功取消。"
 }
 
+# 机器可读状态（供 --status-json / module_status_machine 复用）。
+# 契约：UXS_STATUS_MODE=machine 时输出 STATE=，否则输出人类可读中文（emit_status 双轨）。
+status_shutdown_timer() {
+    detect_os
+    local is_configured=false state human
+    if [[ "$OS_TYPE" == "darwin" ]]; then
+        [ -f "$PLIST_FILE" ] && is_configured=true
+    elif [[ "$OS_TYPE" == "linux" ]]; then
+        # crontab -l 无 crontab 时返回非零，整条 if 即判否（正确：未配置）
+        if crontab -l 2>/dev/null | grep -q "$CRON_COMMENT"; then
+            is_configured=true
+        fi
+    fi
+    if $is_configured; then
+        state="configured"
+        human="${GREEN}✅ 已配置每日定时关机${NC}"
+    else
+        state="not_configured"
+        human="${RED}❌ 未配置${NC}"
+    fi
+    emit_status "$state" "$human"
+}
+
 
 # --- 主菜单 ---
 main() {
@@ -291,11 +317,21 @@ main() {
         cancel_daily_shutdown_internal)
             cancel_daily_shutdown; exit 0 ;;
         status)
-            check_shutdown_status; exit 0 ;;
+            status_shutdown_timer; exit 0 ;;
+        uninstall)
+            # 取消每日关机即等价于「卸载」本模块配置
+            cancel_daily_shutdown; exit 0 ;;
+        install)
+            # shutdown_timer 需交互式选择关机时间，非交互模式仅给出引导
+            info "shutdown_timer 需交互式配置关机时间。请运行交互菜单："
+            info "  ./install.sh   （主菜单 → 系统工具 → shutdown_timer）"
+            exit 0 ;;
         help|--help|-h)
-            echo "用法: $0 [status|cancel_daily_shutdown_internal|help]"
-            echo "  status                        查看当前关机状态"
-            echo "  cancel_daily_shutdown_internal 取消每日关机（内部接口）"
+            echo "用法: $0 [install|uninstall|status|help]"
+            echo "  install                       引导至交互菜单配置关机时间"
+            echo "  uninstall                     取消每日定时关机（≈ cancel_daily_shutdown）"
+            echo "  status                        查看当前关机配置状态"
+            echo "  cancel_daily_shutdown_internal 取消每日关机（兼容旧接口）"
             echo "  help                          显示此帮助"
             echo "  (无参数)                      进入交互式菜单"
             exit 0 ;;

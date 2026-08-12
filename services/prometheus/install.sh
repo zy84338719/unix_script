@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 # 引入公共函数库
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -395,7 +395,7 @@ uninstall_prometheus() {
         info "保留配置目录 /etc/prometheus"
     fi
 
-    if yes_no "是否删除数据目录 $PROM_DATA_DIR（历史监控数据将丢失）？"; then
+    if yes_no "是否删除数据目录 ${PROM_DATA_DIR}（历史监控数据将丢失）？"; then
         sudo rm -rf "$PROM_DATA_DIR"
         success "数据目录已删除"
     else

@@ -8,7 +8,7 @@
 # 子命令：install(enable) | uninstall(disable) | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -89,11 +89,11 @@ status_bbr() {
     algo=$(sysctl -n net.ipv4.tcp_congestion_control 2>/dev/null || echo "未知")
     qdisc=$(sysctl -n net.core.default_qdisc 2>/dev/null || echo "未知")
     if [[ "$algo" == "bbr" ]]; then
-        emit_status "configured" "${GREEN}✅ BBR 已开启${NC}（qdisc=$qdisc）"
+        emit_status "configured" "${GREEN}✅ BBR 已开启${NC}（qdisc=${qdisc}）"
         emit_extra "qdisc=$qdisc"
         emit_extra "algorithm=$algo"
     else
-        emit_status "not_configured" "${YELLOW}⚠️  未开启 BBR${NC}（当前算法：$algo）"
+        emit_status "not_configured" "${YELLOW}⚠️  未开启 BBR${NC}（当前算法：${algo}）"
         emit_extra "qdisc=$qdisc"
         emit_extra "algorithm=$algo"
     fi

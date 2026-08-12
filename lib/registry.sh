@@ -47,7 +47,11 @@ _reg_set() {
     local mod="$1" key="$2" value="$3"
     local varname
     varname=$(_reg_varname "$mod" "$key")
-    # printf '%q' 转义特殊字符，防止 eval 注入
+    # 威胁模型说明：此处用 eval 是为了在 bash 3.2（macOS 默认 bash，本项目明确支持）
+    # 下实现动态变量，规避关联数组（bash 4+）依赖。安全性由两点保证：
+    #   1) $varname 由本函数受控生成（_REG_<KEY>_<safe_mod>，仅字母数字下划线），不可注入；
+    #   2) $value 来自仓库内 .manifest 文件（非外部不可信输入），且经 printf '%q' 单引号转义，
+    #      任意特殊字符都被转义为字面量，无法逃逸出赋值上下文。
     eval "${varname}=$(printf '%q' "$value")"
 }
 
@@ -70,6 +74,8 @@ _parse_manifest() {
     _reg_set "$mod" DEFAULT_ACTION "install"
     _reg_set "$mod" HAS_SUBMENU ""
     _reg_set "$mod" ENTRY_SCRIPT "install.sh"
+    _reg_set "$mod" REQUIRES ""
+    _reg_set "$mod" EXPORTABLE ""
 
     # 解析 key=value
     while IFS='=' read -r key value; do
@@ -83,6 +89,8 @@ _parse_manifest() {
             DEFAULT_ACTION)   _reg_set "$mod" DEFAULT_ACTION "$value" ;;
             HAS_SUBMENU)      _reg_set "$mod" HAS_SUBMENU "$value" ;;
             ENTRY_SCRIPT)     _reg_set "$mod" ENTRY_SCRIPT "$value" ;;
+            REQUIRES)         _reg_set "$mod" REQUIRES "$value" ;;     # 阶段 E：依赖的模块（逗号分隔）
+            EXPORTABLE)       _reg_set "$mod" EXPORTABLE "$value" ;;   # 阶段 D：可导出配置键（逗号分隔）
         esac
     done < "$manifest"
 
@@ -131,6 +139,10 @@ registry_aliases()         { _reg_get "$1" ALIASES; }
 registry_default_action()  { local v; v=$(_reg_get "$1" DEFAULT_ACTION); echo "${v:-install}"; }
 registry_has_submenu()     { _reg_get "$1" HAS_SUBMENU; }
 registry_entry_script()    { local v; v=$(_reg_get "$1" ENTRY_SCRIPT); echo "${v:-install.sh}"; }
+# 阶段 E：模块声明的依赖（空格分隔，便于直接 for 遍历；manifest 中是逗号分隔）
+registry_requires()        { local v; v=$(_reg_get "$1" REQUIRES); echo "${v//,/ }"; }
+# 阶段 D：模块可导出的配置键（空格分隔）
+registry_exportable()      { local v; v=$(_reg_get "$1" EXPORTABLE); echo "${v//,/ }"; }
 
 # 获取模块的物理相对路径（如 "services/docker"）
 registry_path() {

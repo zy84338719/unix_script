@@ -64,7 +64,7 @@ EOF
     if echo "$PATH" | grep -q "$UXS_TOOLS_BIN"; then
         info "PATH 中已包含 $UXS_TOOLS_BIN"
     else
-        info "配置 PATH（写入 $UXS_USER_SHELL 的 $UXS_SHELL_RC）..."
+        info "配置 PATH（写入 $UXS_USER_SHELL 的 ${UXS_SHELL_RC}）..."
         if ! grep -q "/.tools/bin" "$UXS_SHELL_RC" 2>/dev/null; then
             if [[ -f "$UXS_SHELL_RC" ]]; then
                 cp "$UXS_SHELL_RC" "${UXS_SHELL_RC}.bak.$(date +%Y%m%d_%H%M%S)" 2>/dev/null || true
@@ -120,7 +120,7 @@ uninstall_cli() {
     if [[ -f "$wrapper" ]]; then
         rm -f "$wrapper" && success "已删除：$wrapper" && removed=true
     else
-        info "未找到 $wrapper（可能未安装）"
+        info "未找到 ${wrapper}（可能未安装）"
     fi
 
     # 2) 询问是否清理 PATH 配置
