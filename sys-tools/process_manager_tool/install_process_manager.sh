@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# nounset + pipefail（不含 -e，避免交互式安装流程中偶发非零退出整体中止）
-set -uo pipefail
+# 安装器（非交互菜单），与其它模块入口一致启用 set -euo pipefail。
+# 交互菜单在 process_manager.sh（运行时工具）与 lib/submenus.sh 的 manage_process_tool。
+set -euo pipefail
 #
 # install_process_manager.sh
 #
@@ -8,8 +9,6 @@ set -uo pipefail
 #
 # 子命令：install | uninstall | status | help
 #
-
-set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
