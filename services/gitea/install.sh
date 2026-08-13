@@ -12,7 +12,7 @@
 #   status            查看状态
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -69,7 +69,7 @@ handle_existing_installation() {
     fi
     local current_version
     current_version=$(gitea --version 2>/dev/null | head -1 || echo "未知版本")
-    warn "检测到已安装 Gitea（$current_version）"
+    warn "检测到已安装 Gitea（${current_version}）"
     if ! yes_no "是否继续并覆盖安装最新版本？"; then
         info "安装已取消"
         exit 0
@@ -325,7 +325,7 @@ uninstall_gitea() {
     warn "即将卸载 Gitea。"
     echo
     local delete_data=false
-    if yes_no "是否同时删除数据目录（$GITEA_DATA）？"; then
+    if yes_no "是否同时删除数据目录（${GITEA_DATA}）？"; then
         delete_data=true
         info "将删除数据目录"
     else

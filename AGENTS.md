@@ -71,13 +71,36 @@ unix_script 是一个 macOS/Linux 脚本库，提供 52 个模块的安装、配
 ./install.sh <模块名>           # 默认动作（通常=install）
 ./install.sh <模块名> install   # 显式安装
 ./install.sh bun mirror         # 模块子命令透传
+./install.sh --no-deps <模块名> # 安装但跳过依赖自动安装（阶段 E）
 
 # 示例
 ./install.sh docker             # 安装 Docker
+./install.sh minikube           # 安装 minikube（自动先装其依赖 docker）
 ./install.sh fail2ban           # 安装 Fail2ban
 ./install.sh sys-setup all      # 全部系统初始化配置
 ./install.sh bun mirror         # Bun 换国内镜像源
 ```
+
+### 模块依赖与配置复现（阶段 E + D）
+
+**依赖图（阶段 E）**：模块可在 `.manifest` 中声明 `REQUIRES=<模块名>[,...]`。安装时框架自动先装缺失的依赖（拓扑序），循环依赖会被检测并报错。`--list-modules` 对有依赖的模块追加 `requires:...` 列。
+
+```bash
+./install.sh --no-deps minikube   # 跳过自动装依赖
+UNIX_SCRIPT_NO_DEPS=1 ./install.sh minikube   # 等价环境变量
+```
+
+**配置复现 / profile（阶段 D）**：把"哪些模块已装 + 关键配置"导出为可 git 的纯文本 profile，在新机器一键复现。模块用 `EXPORTABLE=<key>[,...]` 声明可导出的配置键（其 `status` 用 `emit_extra "key=value"` 输出当前值）。
+
+```bash
+./install.sh export                  # 导出到 ~/.config/unix_script/profile.txt
+./install.sh export /path/profile    # 导出到指定文件
+./install.sh apply                   # 应用默认 profile（已装模块跳过）
+./install.sh apply /path/profile --force    # 强制重装
+./install.sh apply /path/profile --dry-run  # 预览
+```
+
+profile 行格式：`<模块名> [key=value ...]   # 注释`。apply 时把 `key=value` 注入为 `UXS_CONFIG_<KEY>` 环境变量传给模块 install（模块自行读取，如 bun 读 `UXS_CONFIG_REGISTRY`）。
 
 ### 去除颜色（管道/日志场景）
 
@@ -86,6 +109,14 @@ unix_script 是一个 macOS/Linux 脚本库，提供 52 个模块的安装、配
 ```bash
 NO_COLOR=1 ./install.sh --status
 ./install.sh --status-json       # --status-json 始终无颜色
+```
+
+### 调试模式
+
+`UXS_DEBUG=1` 会把库内原本静默的 stderr（`2>/dev/null`，如 GitHub API 请求/解析失败）透出到终端，便于排查：
+
+```bash
+UXS_DEBUG=1 ./install.sh check-update
 ```
 
 ## 模块子命令约定

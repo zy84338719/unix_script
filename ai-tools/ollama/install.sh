@@ -8,7 +8,7 @@
 # 子命令：install | pull <模型> | start | stop | status | uninstall | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -29,7 +29,7 @@ install_ollama() {
     if command_exists ollama; then
         local cur
         cur=$(ollama --version 2>/dev/null || echo "已安装")
-        warn "检测到已安装 Ollama（$cur）"
+        warn "检测到已安装 Ollama（${cur}）"
         if ! yes_no "是否继续并重新安装/更新？"; then
             info "已取消"; return 0
         fi

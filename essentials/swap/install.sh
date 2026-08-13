@@ -9,7 +9,7 @@
 # install 支持 --size <GB> 指定大小（默认根据内存自动计算）。
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -30,7 +30,9 @@ preflight() {
 # 根据物理内存自动计算建议 swap 大小（GB）：<=2G 内存给 2 倍，否则给与内存等量（上限 8G）
 suggest_size() {
     local mem_kb mem_gb
-    mem_kb=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+    # grep 在无 /proc/meminfo（某些容器）时返回非零；pipefail 下用 || true 兜底，mem_kb 留空后续处理
+    mem_kb=$(grep MemTotal /proc/meminfo 2>/dev/null | awk '{print $2}' || true)
+    mem_kb="${mem_kb:-0}"
     mem_gb=$((mem_kb / 1024 / 1024))
     local swap_gb
     if [[ $mem_gb -le 2 ]]; then
@@ -62,7 +64,7 @@ install_swap() {
         sudo swapoff "$SWAP_FILE" 2>/dev/null || sudo swapoff -a 2>/dev/null || true
     fi
 
-    info "💾 创建 ${size_gb}GB swap 文件（$SWAP_FILE）"
+    info "💾 创建 ${size_gb}GB swap 文件（${SWAP_FILE}）"
     # fallocate 更快；不支持则回退 dd
     if ! sudo fallocate -l "${size_gb}G" "$SWAP_FILE" 2>/dev/null; then
         warn "fallocate 不支持，使用 dd（较慢）..."
@@ -95,7 +97,7 @@ uninstall_swap() {
         warn "未发现 $SWAP_FILE"
         return 0
     fi
-    if ! yes_no "确认禁用并删除 $SWAP_FILE？"; then
+    if ! yes_no "确认禁用并删除 ${SWAP_FILE}？"; then
         info "已取消"; return 0
     fi
     sudo swapoff "$SWAP_FILE"

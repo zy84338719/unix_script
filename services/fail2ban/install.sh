@@ -12,7 +12,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -58,12 +58,12 @@ install_fail2ban() {
     preflight
     require_sudo
     detect_pkg_manager
-    info "🚀 开始安装 Fail2ban（包管理器：$PKG_MANAGER）"
+    info "🚀 开始安装 Fail2ban（包管理器：${PKG_MANAGER}）"
 
     if command_exists fail2ban-client; then
         local cur
         cur=$(fail2ban-client --version 2>/dev/null | head -1 || echo "未知版本")
-        warn "检测到已安装 Fail2ban（$cur）"
+        warn "检测到已安装 Fail2ban（${cur}）"
         if ! yes_no "是否继续并重新写入默认 jail.local？"; then
             info "已取消"
             return 0
@@ -73,7 +73,7 @@ install_fail2ban() {
     info "安装 fail2ban..."
     ensure_epel
     if ! pkg_install fail2ban; then
-        error "fail2ban 安装失败（包管理器：$PKG_MANAGER）"
+        error "fail2ban 安装失败（包管理器：${PKG_MANAGER}）"
         exit 1
     fi
 
@@ -87,7 +87,7 @@ install_fail2ban() {
         sudo cp -a "$JAIL_LOCAL" "$JAIL_LOCAL.bak.$(date +%s)"
         warn "已备份现有 $JAIL_LOCAL 为 .bak.*"
     fi
-    info "写入默认 $JAIL_LOCAL（保护 sshd）..."
+    info "写入默认 ${JAIL_LOCAL}（保护 sshd）..."
     gen_jail_local | sudo tee "$JAIL_LOCAL" >/dev/null
 
     info "启用并启动 fail2ban..."
@@ -113,7 +113,7 @@ install_fail2ban() {
     echo "  sudo fail2ban-client status sshd"
     echo "  sudo tail -f /var/log/fail2ban.log"
     echo
-    info "调整策略请编辑：$JAIL_LOCAL，然后："
+    info "调整策略请编辑：${JAIL_LOCAL}，然后："
     echo "  sudo systemctl restart fail2ban"
 }
 
@@ -130,7 +130,7 @@ uninstall_fail2ban() {
     pkg_remove fail2ban 2>/dev/null || warn "fail2ban 包移除失败，请手动卸载"
 
     if [[ -f "$JAIL_LOCAL" ]]; then
-        if yes_no "是否删除 $JAIL_LOCAL（保留 .bak.* 备份）？"; then
+        if yes_no "是否删除 ${JAIL_LOCAL}（保留 .bak.* 备份）？"; then
             sudo rm -f "$JAIL_LOCAL"
             success "$JAIL_LOCAL 已删除。"
         fi

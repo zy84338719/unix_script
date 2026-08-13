@@ -15,7 +15,7 @@
 #   help        —— 帮助
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -88,7 +88,7 @@ deb ${MIRROR_BASE}/debian/ ${codename}-backports main contrib non-free non-free-
 deb ${MIRROR_BASE}/debian-security ${codename}-security main contrib non-free non-free-firmware
 EOF
             fi
-            success "apt 源已更换为清华镜像（$distro/$codename），原文件已备份"
+            success "apt 源已更换为清华镜像（$distro/${codename}），原文件已备份"
             sudo apt-get update
             ;;
         centos|rhel)
@@ -104,7 +104,7 @@ EOF
 
             if [[ "$is_stream" == "yes" ]] && [[ "$os_ver" == 9* ]]; then
                 # CentOS Stream 9：覆盖 centos.repo（核心仓库指向清华镜像）
-                info "检测到 CentOS Stream $os_ver，覆盖 centos.repo 为清华镜像"
+                info "检测到 CentOS Stream ${os_ver}，覆盖 centos.repo 为清华镜像"
                 sudo tee /etc/yum.repos.d/centos.repo >/dev/null <<'EOF'
 # 由 unix_script sys-setup 生成 —— CentOS Stream 9 清华 TUNA 镜像
 [baseos]
@@ -140,12 +140,12 @@ EOF
                 sudo dnf makecache 2>/dev/null || true
             else
                 # CentOS 7/8 等老版或 AlmaLinux/Rocky Linux 等衍生版
-                info "检测到 RHEL 系发行版：$os_id $os_ver（非 Stream 9）"
+                info "检测到 RHEL 系发行版：$os_id ${os_ver}（非 Stream 9）"
                 info "衍生版/老版换源请参考对应镜像帮助："
                 echo "  CentOS 7:   https://mirrors.tuna.tsinghua.edu.cn/help/centos-vault/"
                 echo "  AlmaLinux:  https://mirrors.tuna.tsinghua.edu.cn/help/almalinux/"
                 echo "  Rocky:      https://mirrors.tuna.tsinghua.edu.cn/help/rocky/"
-                warn "已备份原 /etc/yum.repos.d 到 .bak.$ts，请按指引手动替换 baseurl"
+                warn "已备份原 /etc/yum.repos.d 到 .bak.${ts}，请按指引手动替换 baseurl"
             fi
             ;;
         opensuse)
@@ -440,7 +440,7 @@ do_timezone() {
         fi
     else
         sudo ln -sf "/usr/share/zoneinfo/$tz" /etc/localtime
-        success "时区已设置为 $tz（符号链接）"
+        success "时区已设置为 ${tz}（符号链接）"
     fi
 
     # 没有 timesyncd 时回退装 chrony/ntp
@@ -469,7 +469,7 @@ do_optimize() {
 root            soft    nofile          65536
 root            hard    nofile          65536
 EOF
-    success "已提升文件描述符上限到 65536（$limits_file）"
+    success "已提升文件描述符上限到 65536（${limits_file}）"
 
     # 内核参数（网络/内存）
     local sysctl_file=/etc/sysctl.d/99-unix-script.conf
@@ -489,7 +489,7 @@ vm.swappiness = 10
 vm.overcommit_memory = 1
 EOF
     sudo sysctl --system >/dev/null 2>&1 || sudo sysctl -p "$sysctl_file" >/dev/null 2>&1 || true
-    success "已写入内核优化参数（$sysctl_file）"
+    success "已写入内核优化参数（${sysctl_file}）"
 }
 
 # -------- 4. SSH 加固 --------
@@ -517,7 +517,7 @@ PasswordAuthentication no
 PermitRootLogin no
 PubkeyAuthentication yes
 EOF
-    success "已写入 SSH 加固配置（$dropin）"
+    success "已写入 SSH 加固配置（${dropin}）"
 
     if command_exists systemctl; then
         sudo systemctl reload sshd 2>/dev/null || sudo systemctl reload ssh 2>/dev/null || true
@@ -675,6 +675,40 @@ usage() {
 EOF
 }
 
+# 卸载：仅移除本工具写入的「增量 drop-in」配置（可逆），不动镜像源/NTP 等需手动还原项。
+# 移除的文件均为 99-unix-script.conf 增量配置，删掉即恢复系统默认值。
+uninstall_sys_setup() {
+    detect_os
+    if [[ "$OS_TYPE" != "linux" ]]; then
+        info "sys-setup 的卸载仅适用 Linux（drop-in 配置为 Linux 路径），当前平台无需卸载"
+        return 0
+    fi
+    info "卸载 sys-setup 写入的增量配置（drop-in）..."
+    require_sudo
+    local removed=0
+    local f
+    for f in \
+        /etc/security/limits.d/99-unix-script.conf \
+        /etc/sysctl.d/99-unix-script.conf \
+        /etc/ssh/sshd_config.d/99-unix-script.conf; do
+        if [[ -f "$f" ]]; then
+            sudo rm -f "$f"
+            success "已移除：$f"
+            removed=$((removed + 1))
+        fi
+    done
+    # 应用 sysctl 变更（drop-in 删除后重新加载系统默认）
+    sudo sysctl --system >/dev/null 2>&1 || true
+    if [[ $removed -eq 0 ]]; then
+        info "未发现 sys-setup 写入的 drop-in 配置（可能未执行过 optimize/ssh）"
+    else
+        success "已移除 $removed 个 drop-in 配置，系统已恢复默认值"
+    fi
+    warn "镜像源/NTP 等修改在安装时已生成 .bak.* 备份，如需还原请手动查找："
+    warn "  ls -t /etc/apt/sources.list.bak.* /etc/yum.repos.d/*.bak.* 2>/dev/null"
+    warn "SSH 服务策略已恢复默认，如修改过 sshd 建议复查：sudo sshd -t && sudo systemctl restart sshd"
+}
+
 main() {
     local action="${1:-help}"
     detect_os
@@ -686,6 +720,7 @@ main() {
         ssh)        do_ssh ;;
         autoupdate) do_autoupdate ;;
         all)        do_all ;;
+        uninstall)  uninstall_sys_setup ;;
         status)     status_sys_setup ;;
         help|--help|-h) usage ;;
         *) error "未知操作: $action"; usage; exit 1 ;;

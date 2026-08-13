@@ -9,7 +9,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -30,7 +30,7 @@ install_linux() {
     if command_exists docker; then
         local cur
         cur=$(docker --version 2>/dev/null || echo "未知版本")
-        warn "检测到已安装 Docker（$cur）"
+        warn "检测到已安装 Docker（${cur}）"
         if ! yes_no "是否继续并尝试更新？"; then
             info "已取消"
             return 0

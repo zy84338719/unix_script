@@ -6,6 +6,10 @@
 # 一个智能的进程管理工具，支持模糊搜索进程名称或端口号，
 # 提供二次确认，并能优雅地终止或强制杀死进程。
 #
+# 注意：本脚本是装到 ~/.tools/bin 的「运行时交互工具」（非 unix_script 安装契约脚本），
+# 故刻意不启用 set -e/pipefail——交互式循环中命令偶发返回非零不应整体退出。
+# 关键搜索管道已加 || true 兜底，便于未来若引入 pipefail 也不会误伤。
+#
 
 # --- 颜色定义 ---
 RED='\033[0;31m'
@@ -115,16 +119,18 @@ extract_pids() {
             port_pids=$(lsof -t -i ":$search_term" 2>/dev/null)
         else
             if command -v ss >/dev/null 2>&1; then
-                port_pids=$(ss -tulnp | grep ":$search_term " | grep -o 'pid=[0-9]*' | cut -d'=' -f2 | sort -u)
+                # grep 无匹配返回非零；本脚本未启用 set -e 故当前无碍，加 || true 以便
+                # 未来若引入 pipefail 也不会在「无占用端口」时中止搜索。
+                port_pids=$(ss -tulnp | grep ":$search_term " | grep -o 'pid=[0-9]*' | cut -d'=' -f2 | sort -u || true)
             elif command -v netstat >/dev/null 2>&1; then
-                port_pids=$(netstat -tulnp | grep ":$search_term " | awk '{print $7}' | cut -d'/' -f1 | grep -E '^[0-9]+$' | sort -u)
+                port_pids=$(netstat -tulnp | grep ":$search_term " | awk '{print $7}' | cut -d'/' -f1 | grep -E '^[0-9]+$' | sort -u || true)
             fi
         fi
     fi
     
-    # 合并并去重PID
+    # 合并并去重PID（grep 无 PID 行时返回非零，|| true 兜底；本脚本未启用 set -e）
     local all_pids
-    all_pids=$(echo -e "$process_pids\n$port_pids" | grep -E '^[0-9]+$' | sort -u)
+    all_pids=$(echo -e "$process_pids\n$port_pids" | grep -E '^[0-9]+$' | sort -u || true)
     
     if [[ -n "$all_pids" ]]; then
         echo "$all_pids"

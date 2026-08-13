@@ -1,11 +1,22 @@
 # 设计：status 契约统一 + 依赖图 + 配置可重现（阶段 A + E + D）
 
 **日期**: 2026-08-07
-**状态**: 待实施
+**状态**: 已实施（2026-08-13）
 **作者**: brainstorming 会话产出
 **范围**: 本次会话推进 A（status 契约）→ E（依赖图）→ D（export/apply 可重现部署）
 
+## 实现状态
+
+| 阶段 | 状态 | 落地内容 |
+|------|------|----------|
+| A — status 契约统一 | ✅ 已实施 | `emit_status`/`emit_version`/`emit_extra`（lib/common.sh）；`module_status_machine`/`module_status_raw`（lib/status.sh）；全部 52 模块走入口脚本 status 输出 `STATE=`；CI 契约校验（tests/ci_run.sh） |
+| E — 模块依赖图 | ✅ 已实施 | manifest `REQUIRES` 字段；lib/deps.sh（`resolve_deps`/`topo_sort_all` + 循环检测）；install.sh `ensure_module_deps` 自动安装 + `--no-deps`；`--list-modules` requires 列；minikube `REQUIRES=docker` |
+| D — 配置导出/应用 | ✅ 已实施（pilot） | manifest `EXPORTABLE` 字段；lib/profile.sh（`export_profile`/`apply_profile`）；install.sh `export`/`apply` 路由；bun `EXPORTABLE=registry` + `UXS_CONFIG_REGISTRY` 透传；completions 更新。全量 52 模块配置透传按 spec D「不做（YAGNI）」刻意未做，仅 bun 为 pilot |
+
+> 注：下方正文为原始设计稿，保留作为实现参照；以本「实现状态」表为准。
+
 ---
+
 
 ## 背景与动机
 

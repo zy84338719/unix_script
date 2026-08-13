@@ -17,7 +17,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -73,9 +73,15 @@ install_modern_cli() {
             else
                 # eza/starship 较新，可能需额外方式
                 if [[ "$tool" == "starship" ]] && ! command_exists starship; then
-                    info "  starship 通过官方脚本安装..."
+                    # 信任模型：starship.rs/install.sh 是官方安装器（HTTPS 传输），
+                    # 它从 GitHub release 拉取二进制。此处解析并展示目标版本以增强可审计性；
+                    # 若需端到端校验，可用 common.sh 的 github_release_asset_url + verify_sha256
+                    # 直接下载带 .sha256 的 release 资产并校验（资产命名随版本变化，需按需适配）。
+                    local starship_ver
+                    starship_ver=$(github_latest_tag "starship/starship" 2>/dev/null || echo "latest")
+                    info "  starship 通过官方脚本安装（目标版本：${starship_ver}）..."
                     if curl -fsSL https://starship.rs/install.sh | bash -s -- -y >/dev/null 2>&1; then
-                        success "  ✅ starship (脚本)"
+                        success "  ✅ starship (脚本, ${starship_ver})"
                     else
                         warn "  ⚠️ starship 安装失败"
                     fi
@@ -188,9 +194,9 @@ status_modern_cli() {
         fi
     done
     if [[ $found -ge $total ]]; then
-        emit_status "installed" "${GREEN}✅ 全部已安装（$found/$total）${NC}"
+        emit_status "installed" "${GREEN}✅ 全部已安装（$found/${total}）${NC}"
     elif [[ $found -gt 0 ]]; then
-        emit_status "installed" "${YELLOW}⚠️  部分已安装（$found/$total）${NC}"
+        emit_status "installed" "${YELLOW}⚠️  部分已安装（$found/${total}）${NC}"
         emit_extra "installed=$found/$total"
         local missing_csv
         missing_csv=$(IFS=,; echo "${missing[*]}")

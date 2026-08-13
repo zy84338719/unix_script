@@ -8,7 +8,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -29,7 +29,7 @@ install_pnpm() {
     if command_exists pnpm; then
         local cur
         cur=$(pnpm --version 2>/dev/null || echo "已安装")
-        warn "检测到已安装 pnpm（$cur）"
+        warn "检测到已安装 pnpm（${cur}）"
         if ! yes_no "是否继续并重新安装/更新？"; then
             info "已取消"; return 0
         fi
@@ -39,7 +39,7 @@ install_pnpm() {
         info "通过 Homebrew 安装 pnpm..."
         brew install pnpm
     else
-        info "通过官方独立脚本安装（$OFFICIAL_INSTALLER）..."
+        info "通过官方独立脚本安装（${OFFICIAL_INSTALLER}）..."
         # get.pnpm.io 的脚本需要 sh - 接收管道
         if ! bash -c "$(curl -fsSL "$OFFICIAL_INSTALLER")" -; then
             error "官方安装脚本执行失败，请参考 https://pnpm.io/installation"

@@ -8,7 +8,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -123,7 +123,7 @@ install_linux() {
             esac
             rm -rf "$tmpdir"
             trap - EXIT
-            success "k7s 已安装（$pkg_ext）"
+            success "k7s 已安装（${pkg_ext}）"
             return 0
         else
             warn "$pkg_ext 下载失败，尝试 AppImage..."
@@ -175,8 +175,8 @@ install_k7s() {
     if command_exists k7s; then
         local current
         current=$(k7s --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "未知")
-        warn "已安装 k7s（$current）"
-        if ! yes_no "是否继续安装 v$version？"; then
+        warn "已安装 k7s（${current}）"
+        if ! yes_no "是否继续安装 v${version}？"; then
             info "已取消"; return 0
         fi
     fi

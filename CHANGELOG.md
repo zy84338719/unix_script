@@ -4,6 +4,23 @@
 
 ## [Unreleased]
 
+### 新增
+- **模块依赖图（阶段 E）**：manifest 新增 `REQUIRES` 字段；`lib/deps.sh` 提供 `resolve_deps`/`topo_sort_all` + 循环依赖检测；安装时自动先装缺失依赖（拓扑序）；`--no-deps`/`UNIX_SCRIPT_NO_DEPS=1` 跳过；`--list-modules` 对有依赖的模块追加 `requires:` 列。minikube 声明 `REQUIRES=docker`
+- **配置复现 / profile（阶段 D）**：`lib/profile.sh` 提供 `export_profile`/`apply_profile`；`./install.sh export|apply [--force|--dry-run]` 导出/应用可 git 的纯文本 profile；manifest 新增 `EXPORTABLE` 字段；apply 透传 `UXS_CONFIG_<KEY>` 给模块 install。bun 为 pilot（`EXPORTABLE=registry` + `UXS_CONFIG_REGISTRY`）
+- **健壮性地基**：全仓库启用 `set -euo pipefail`；`UXS_DEBUG=1` 透出库内静默 stderr；`lib/common.sh` 新增 `github_latest_tag`（jq 优先 + grep 回退）、`github_release_asset_url`、`verify_sha256`、`uxs_stderr`
+- **CI 强制 nounset 门禁**：routing 阶段对每个模块的 status/help 在 `bash -u` 下重跑，防止未定义变量引用静默回退
+
+### 变更
+- **去特判化**：shutdown_timer / process_manager_tool 改为符合统一接口（install/uninstall/status/help），删除 install.sh、lib/status.sh、lib/menu.sh、lib/submenus.sh 中 7 处硬编码特判；`dispatch_module`/`dispatch_module_or_passthrough` 改用 `registry_entry_script`（修复原先硬编码 `install.sh` 的潜在 bug）
+- **5 个模块补齐 uninstall**：multi-net（≈clear）、sys-cmd（只读 no-op）、docker-image（导出器 no-op）、sys-setup（删 drop-in + 列备份）、zsh_setup（框架卸载 + 清配置）
+- **bootstrap 强制同步安全**：`reset --hard` 前对有本地改动的工作区创建 `git stash create` 备份并给出恢复命令，与 `do_self_update` 的 clean-tree 纪律对齐
+- **架构检测**：新增 `ARCH_TYPE_LOWER`（统一小写）供新代码使用，`ARCH_TYPE` 保留兼容
+
+### 修复
+- **bash 3.2 多字节变量名 bug**：`$var` 紧邻全角字符（如 `）`）时 bash 3.2（macOS 默认）会把多字节吞进变量名导致值丢失；全仓库 121 处改用 `${var}` 花括号
+- **wireguard status**：status 路径未调用 `detect_os`，Linux 上服务状态误报为 stopped；已补调用
+- **zsh_setup 框架脚本路径**：frameworks/*.sh 的 `source .../lib/common.sh` 路径错误（多了一层 `../`），set -e 下会中止
+
 ## [1.7.2] - 2026-08-07
 
 ### 新增

@@ -8,7 +8,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -40,7 +40,7 @@ install_upftp() {
     if command_exists upftp; then
         local cur
         cur=$(upftp --version 2>/dev/null || echo "已安装")
-        warn "检测到已安装 upftp（$cur）"
+        warn "检测到已安装 upftp（${cur}）"
         if ! yes_no "是否继续并更新？"; then
             info "已取消"; return 0
         fi

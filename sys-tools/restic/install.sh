@@ -11,7 +11,7 @@
 #   status            查看状态
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -26,7 +26,7 @@ handle_existing_installation() {
     fi
     local current_version
     current_version=$(restic version 2>/dev/null | head -1 || echo "未知版本")
-    warn "检测到已安装 Restic（$current_version）"
+    warn "检测到已安装 Restic（${current_version}）"
     if ! yes_no "是否继续并覆盖安装最新版本？"; then
         info "安装已取消"
         exit 0

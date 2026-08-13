@@ -12,7 +12,7 @@ _uxs_completions() {
     # 第一个参数：模块名 + 全局选项
     if [[ $COMP_CWORD -eq 1 ]]; then
         modules="bbr brew bun clash cockpit ddns-go deno deskflow dev-enhance dev-mirror dev-tui docker docker-image essential-pkgs fail2ban go grafana gitea k7s minikube modern-cli multi-net nginx node_exporter nvm ollama opencode openlist pi pnpm postgres prometheus process_manager_tool redis restic caddy rust safe-rm shutdown_timer swap sys-cmd sys-setup tailscale ufw upftp uptime-kuma wireguard zsh_setup"
-        local globals="--status --status-json --list --list-modules --list-categories --version --help update cli doctor scaffold"
+        local globals="--status --status-json --list --list-modules --list-categories --version --help update cli doctor scaffold export apply"
         COMPREPLY=( $(compgen -W "$modules $globals" -- "$cur") )
         return 0
     fi

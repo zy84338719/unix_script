@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 # 引入公共函数库（颜色码与打印函数统一：info/success/warn/error/header）
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -153,14 +153,10 @@ get_latest_versions() {
         KUBECTL_VERSION="v1.28.0"
     fi
     
-    # 获取 minikube 最新版本
-    if command -v curl >/dev/null 2>&1; then
-        MINIKUBE_VERSION=$(curl -s https://api.github.com/repos/kubernetes/minikube/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    else
-        MINIKUBE_VERSION=$(wget -qO- https://api.github.com/repos/kubernetes/minikube/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    fi
-    
-    if [[ -z "$MINIKUBE_VERSION" ]]; then
+    # 获取 minikube 最新版本（复用 common.sh 的 github_latest_tag：jq 优先 + grep 回退 + 认证）
+    MINIKUBE_VERSION="v$(github_latest_tag "kubernetes/minikube")"
+
+    if [[ -z "$MINIKUBE_VERSION" || "$MINIKUBE_VERSION" == "v" ]]; then
         warn "无法获取 minikube 最新版本，使用默认版本 v1.32.0"
         MINIKUBE_VERSION="v1.32.0"
     fi
@@ -275,7 +271,7 @@ create_start_script() {
     
     cat > "$INSTALL_DIR/start-minikube.sh" << 'EOF'
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 # 颜色定义
 GREEN='\033[0;32m'
@@ -414,7 +410,7 @@ create_uninstall_script() {
     
     cat > "$INSTALL_DIR/uninstall.sh" << EOF
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 # 颜色定义
 RED='\033[0;31m'
@@ -585,7 +581,7 @@ do_uninstall() {
     if [[ -x "$uninstall_script" ]]; then
         "$uninstall_script"
     else
-        warn "未找到卸载脚本（$uninstall_script），可能尚未安装。"
+        warn "未找到卸载脚本（${uninstall_script}），可能尚未安装。"
         if [[ -d "$HOME/.tools/minikube" ]]; then
             rm -rf "$HOME/.tools/minikube" && success "已删除 $HOME/.tools/minikube"
         fi

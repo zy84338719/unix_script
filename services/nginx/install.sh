@@ -9,7 +9,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -39,7 +39,7 @@ do_install() {
     if command_exists nginx; then
         local cur
         cur=$(nginx -v 2>&1 || echo "未知版本")
-        warn "检测到已安装 Nginx（$cur）"
+        warn "检测到已安装 Nginx（${cur}）"
         if ! yes_no "是否继续并尝试更新？"; then
             info "已取消"
             return 0
@@ -47,9 +47,9 @@ do_install() {
     fi
 
     detect_pkg_manager
-    info "安装 Nginx（包管理器：$PKG_MANAGER）..."
+    info "安装 Nginx（包管理器：${PKG_MANAGER}）..."
     if ! pkg_install nginx; then
-        error "Nginx 安装失败（包管理器：$PKG_MANAGER）"
+        error "Nginx 安装失败（包管理器：${PKG_MANAGER}）"
         exit 1
     fi
 
@@ -140,7 +140,7 @@ do_uninstall() {
     local conf_dir
     conf_dir=$(nginx_conf_dir)
     if [[ -d "$conf_dir" ]]; then
-        if yes_no "是否删除配置文件目录 $conf_dir？（站点配置和证书链接也会被删除）"; then
+        if yes_no "是否删除配置文件目录 ${conf_dir}？（站点配置和证书链接也会被删除）"; then
             sudo rm -rf "$conf_dir"
             success "配置目录 $conf_dir 已删除。"
         else

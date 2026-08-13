@@ -5,7 +5,7 @@
 #
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../lib/common.sh"
+source "$SCRIPT_DIR/../lib/common.sh"
 
 SHELDON_CONFIG="${HOME}/.config/sheldon/plugins.toml"
 
@@ -17,6 +17,8 @@ install_sheldon() {
     fi
 
     info "正在安装 sheldon..."
+    # 信任模型：crate.sh 通用安装器从 GitHub release 拉取 tarball，并校验其内嵌的 SHA256，
+    # 故二进制完整性已自校验；仅需信任传输层（HTTPS）。
     curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh | bash -s -- --repo rossmacarthur/sheldon
 
     if ! command_exists sheldon; then

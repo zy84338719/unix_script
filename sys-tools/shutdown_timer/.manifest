@@ -1,6 +1,6 @@
 LABEL=自动关机管理
 CATEGORY=系统工具
 ALIASES=shutdown
-DEFAULT_ACTION=
+DEFAULT_ACTION=status
 HAS_SUBMENU=shutdown_timer
 ENTRY_SCRIPT=shutdown_timer.sh

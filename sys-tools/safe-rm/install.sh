@@ -19,7 +19,7 @@
 # 子命令：install | status | uninstall | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -187,12 +187,12 @@ uninstall_safe_rm() {
     if [[ -d "$trash_root/files" ]] && [[ -n "$(ls -A "$trash_root/files" 2>/dev/null)" ]]; then
         local sz
         sz=$(du -sh "$trash_root/files" 2>/dev/null | cut -f1)
-        info "回收站当前占用：$sz（路径 $trash_root）"
+        info "回收站当前占用：${sz}（路径 ${trash_root}）"
         if yes_no "是否同时清空回收站数据（不可恢复）？"; then
             rm -rf "${trash_root}/files/"* "${trash_root}/info/"* 2>/dev/null || true
             success "回收站已清空"
         else
-            info "保留回收站数据（可手动删除 $trash_root）"
+            info "保留回收站数据（可手动删除 ${trash_root}）"
         fi
     else
         info "回收站为空，无需清理"

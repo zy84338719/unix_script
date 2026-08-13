@@ -18,7 +18,7 @@
 #       用 ip rule + iptables fwmark 把目标流量导到对应表, 实现按网卡分流。
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -73,7 +73,7 @@ ensure_rt_table() {
 # 获取网卡的网关（默认路由下一跳）
 gateway_for() {
     local iface="$1"
-    ip route show dev "$iface" 2>/dev/null | grep default | awk '{print $3}' | head -1
+    ip route show dev "$iface" 2>/dev/null | grep default | awk '{print $3}' | head -1 || true
 }
 
 # setup <网卡>: 为网卡建独立路由表 + 默认路由
@@ -119,7 +119,7 @@ do_setup() {
         info "已添加规则: fwmark $mark -> table $tid"
     fi
 
-    success "$iface 策略路由表已就绪（标记 $mark 的流量将走 $iface）"
+    success "$iface 策略路由表已就绪（标记 $mark 的流量将走 ${iface}）"
     info "后续用 route-user / route-port 指定流量走该网卡"
 }
 
@@ -258,6 +258,7 @@ main() {
         route-port) shift; do_route_port "$@" ;;
         list)       do_list ;;
         clear)      do_clear ;;
+        uninstall)  do_clear ;;   # 等价 clear：移除全部 multinet iptables/ip-rule 规则
         status)     status_multinet ;;
         help|--help|-h) usage ;;
         *) error "未知操作: $action"; usage; exit 1 ;;

@@ -29,7 +29,7 @@ run_in_dir() {
 # 卸载单个模块（封装确认）
 ask_and_uninstall() {
     local label="$1"; shift
-    if yes_no "确认卸载 $label？"; then
+    if yes_no "确认卸载 ${label}？"; then
         info "卸载 $label ..."
         "$@"
         success "$label 卸载流程结束。"

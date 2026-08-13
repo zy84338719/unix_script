@@ -10,7 +10,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -51,7 +51,7 @@ pg_config_dir() {
             apt-get)
                 # 尝试获取主版本号
                 local ver
-                ver=$(pg_config --version 2>/dev/null | grep -oE '[0-9]+' | head -1)
+                ver=$(pg_config --version 2>/dev/null | grep -oE '[0-9]+' | head -1 || true)
                 if [[ -n "$ver" ]]; then
                     echo "/etc/postgresql/${ver}/main"
                 else
@@ -65,12 +65,12 @@ pg_config_dir() {
 
 install_postgres() {
     preflight
-    info "安装 PostgreSQL（关系型数据库，默认端口 $PG_PORT）"
+    info "安装 PostgreSQL（关系型数据库，默认端口 ${PG_PORT}）"
 
     if command_exists psql; then
         local cur
         cur=$(psql --version 2>/dev/null || echo "已安装")
-        warn "检测到已安装 PostgreSQL（$cur）"
+        warn "检测到已安装 PostgreSQL（${cur}）"
         if ! yes_no "是否继续并重新安装/更新？"; then
             info "已取消"; return 0
         fi
@@ -211,7 +211,7 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install      安装 PostgreSQL（关系型数据库，默认端口 $PG_PORT）
+  install      安装 PostgreSQL（关系型数据库，默认端口 ${PG_PORT}）
   uninstall    卸载 PostgreSQL（提示是否保留数据目录）
   status       查看安装与运行状态
 EOF

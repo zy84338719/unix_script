@@ -8,7 +8,7 @@
 # 子命令：install | uninstall | status | help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -48,7 +48,7 @@ install_openlist() {
     if [[ -x "$OPENLIST_BIN" ]]; then
         local cur
         cur=$("$OPENLIST_BIN" version 2>/dev/null | head -1 || echo "已安装")
-        warn "检测到已安装 OpenList（$cur）"
+        warn "检测到已安装 OpenList（${cur}）"
         if ! yes_no "是否继续并覆盖安装最新版？"; then
             info "已取消"; return 0
         fi
@@ -186,7 +186,7 @@ uninstall_openlist() {
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         sudo rm -f "$PLIST_FILE"
     fi
-    if yes_no "是否删除数据目录 $INSTALL_DIR（含配置与数据库）？"; then
+    if yes_no "是否删除数据目录 ${INSTALL_DIR}（含配置与数据库）？"; then
         sudo rm -rf "$INSTALL_DIR"
         success "数据目录已删除"
     fi

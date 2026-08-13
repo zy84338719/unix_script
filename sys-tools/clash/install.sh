@@ -16,7 +16,7 @@
 #   help
 #
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
@@ -182,7 +182,7 @@ proxy-groups: []
 rules:
   - MATCH,DIRECT
 EOF
-    success "已生成示例配置 $CONFIG_FILE（请替换为真实订阅）"
+    success "已生成示例配置 ${CONFIG_FILE}（请替换为真实订阅）"
 }
 
 # TUN 透明代理开关
@@ -258,7 +258,7 @@ uninstall_clash() {
     sudo rm -f "$SERVICE_FILE"
     sudo systemctl daemon-reload 2>/dev/null || true
     sudo rm -f "$BIN"
-    if yes_no "是否删除配置目录 $CONFIG_DIR（含订阅/节点）？"; then
+    if yes_no "是否删除配置目录 ${CONFIG_DIR}（含订阅/节点）？"; then
         sudo rm -rf "$CONFIG_DIR"
         success "配置目录已删除"
     fi

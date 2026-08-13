@@ -88,6 +88,9 @@ git clone https://github.com/zy84338719/unix_script.git && cd unix_script
 | `./install.sh check-update` | 检查远端是否有新版本（不修改本地） |
 | `./install.sh update` | 安全检查 + 确认后 `git pull` 更新 |
 | `./install.sh --dry-run <模块>` | 预览模式：只打印将执行的操作，不实际执行 |
+| `./install.sh --no-deps <模块>` | 安装但跳过依赖自动安装 |
+| `./install.sh export [文件]` | 导出已装模块+配置为 profile（默认 `~/.config/unix_script/profile.txt`） |
+| `./install.sh apply [文件] [--force\|--dry-run]` | 从 profile 复现安装（已装跳过；`--force` 重装） |
 | `./install.sh cli` | 安装全局命令 `uxs` 到 `~/.tools/bin` |
 | `./install.sh uninstall-cli` | 卸载全局命令 `uxs` |
 | `./install.sh completions` | 安装 Tab 自动补全到当前 shell 配置 |

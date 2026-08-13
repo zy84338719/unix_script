@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 #
 # zsh_setup/install.sh
 # Zsh 环境配置管理工具
@@ -93,12 +94,13 @@ show_status() {
         case "$fw" in
             oh-my-zsh)
                 if [ -f "$HOME/.zshrc" ]; then
-                    theme=$(grep "^ZSH_THEME=" "$HOME/.zshrc" | cut -d'"' -f2)
+                    # grep 未匹配返回 1，pipefail 下会触发 set -e；用 || true 兜底（theme 留空）
+                    theme=$(grep "^ZSH_THEME=" "$HOME/.zshrc" | cut -d'"' -f2 || true)
                 fi
                 ;;
             prezto)
                 if [ -f "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
-                    theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}')
+                    theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}' || true)
                 fi
                 ;;
         esac
@@ -190,6 +192,27 @@ EOF
     fi
 }
 
+# 卸载：移除已安装的框架 + 本工具配置目录。
+# 各框架卸载器（uninstall_oh_my_zsh / uninstall_prezto / ...）自行清理其 .zshrc 片段；
+# zsh_setup 未用统一标记写入 .zshrc，故残留行需用户手动复查。
+uninstall_zsh_setup() {
+    info "卸载 zsh_setup..."
+    # set -e 下 framework_uninstall 失败需捕获，不能直接中止整个卸载流程
+    if framework_uninstall; then
+        :
+    else
+        warn "框架卸载未完全成功（详见上文输出）"
+    fi
+    local cfg_dir="$HOME/.config/zsh_setup"
+    if [ -d "$cfg_dir" ]; then
+        rm -rf "$cfg_dir"
+        success "已移除配置目录：$cfg_dir"
+    else
+        info "未发现配置目录：$cfg_dir（无需清理）"
+    fi
+    warn "如需彻底还原 zsh 环境，请手动检查 ~/.zshrc 是否有残留配置行"
+}
+
 # 主函数
 main() {
     local command="${1:-help}"
@@ -236,7 +259,10 @@ main() {
             esac
             ;;
         status)
-            show_status "$1"
+            show_status "${1:-}"
+            ;;
+        uninstall)
+            uninstall_zsh_setup
             ;;
         help|--help|-h)
             show_help
