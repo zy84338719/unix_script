@@ -98,8 +98,14 @@ _status_disk_dashboard() {
             printf "  总内存: %dGB | 已用: %dGB | 可用: %dGB\n" "$mem_total_gb" "$used_gb" "$free_gb"
         fi
     else
-        free -h | awk 'NR==1 {printf "  %-10s %10s %10s %10s %10s %10s\n", "", "总量", "已用", "可用", "共享", "缓存"}
-                        NR==2 {printf "  %-10s %10s %10s %10s %10s %10s\n", $1, $2, $3, $4, $5, $6}'
+        # free 属 procps/procps-ng，极简容器（CI routing 阶段，essential-pkgs 未装前）可能缺失；
+        # 缺失时降级提示而非中止（status 命令不应因一个可选工具缺失而硬失败）。
+        if command_exists free; then
+            free -h | awk 'NR==1 {printf "  %-10s %10s %10s %10s %10s %10s\n", "", "总量", "已用", "可用", "共享", "缓存"}
+                            NR==2 {printf "  %-10s %10s %10s %10s %10s %10s\n", $1, $2, $3, $4, $5, $6}'
+        else
+            echo "  (free 命令不可用，安装 procps/procps-ng 后可查看内存详情)"
+        fi
     fi
     echo
 
