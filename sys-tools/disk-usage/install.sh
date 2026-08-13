@@ -58,9 +58,14 @@ _status_disk_dashboard() {
             printf "%s%-25s %8s %8s %8s %5s  %s%s\n", color, $1, $2, $3, $4, $5, $9, nc
         }'
     else
-        # Linux
-        df -h --output=source,size,used,avail,pcent,target -x tmpfs -x devtmpfs -x squashfs 2>/dev/null \
-        | awk 'NR==1 {
+        # Linux: GNU df 支持 --output/-x（过滤伪文件系统）；BusyBox df（Alpine 等）不支持，
+        # 降级到 plain df -h。两者列序一致（source,size,used,avail,pcent,target），共用同一 awk。
+        local df_data
+        df_data=$(df -h --output=source,size,used,avail,pcent,target -x tmpfs -x devtmpfs -x squashfs 2>/dev/null || true)
+        if [[ -z "$df_data" ]]; then
+            df_data=$(df -h 2>/dev/null || true)
+        fi
+        echo "$df_data" | awk 'NR==1 {
             printf "%-25s %8s %8s %8s %5s  %s\n", "文件系统", "容量", "已用", "可用", "使用率", "挂载点"
         }
         NR>1 {
@@ -98,8 +103,14 @@ _status_disk_dashboard() {
             printf "  总内存: %dGB | 已用: %dGB | 可用: %dGB\n" "$mem_total_gb" "$used_gb" "$free_gb"
         fi
     else
-        free -h | awk 'NR==1 {printf "  %-10s %10s %10s %10s %10s %10s\n", "", "总量", "已用", "可用", "共享", "缓存"}
-                        NR==2 {printf "  %-10s %10s %10s %10s %10s %10s\n", $1, $2, $3, $4, $5, $6}'
+        # free 属 procps/procps-ng，极简容器（CI routing 阶段，essential-pkgs 未装前）可能缺失；
+        # 缺失时降级提示而非中止（status 命令不应因一个可选工具缺失而硬失败）。
+        if command_exists free; then
+            free -h | awk 'NR==1 {printf "  %-10s %10s %10s %10s %10s %10s\n", "", "总量", "已用", "可用", "共享", "缓存"}
+                            NR==2 {printf "  %-10s %10s %10s %10s %10s %10s\n", $1, $2, $3, $4, $5, $6}'
+        else
+            echo "  (free 命令不可用，安装 procps/procps-ng 后可查看内存详情)"
+        fi
     fi
     echo
 

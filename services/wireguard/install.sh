@@ -189,14 +189,14 @@ uninstall_service() {
 # --- 状态 ---
 status_wireguard() {
     local wg_installed=false service_running=false interface="wg0"
-    detect_os
+    # status 子命令必须始终返回状态码，绝不因平台/包管理器不支持而 exit。
+    # 故不调用本模块严格的 detect_os()（它对 apk/pacman/zypper 会 exit 1 → Alpine/Arch/openSUSE 中止），
+    # 直接取内核名判断 Linux/Darwin 分支即可。
+    local os_kernel; os_kernel="$(uname -s)"
     command_exists wg && wg_installed=true
-    # 本模块自带 detect_os()（覆盖 common.sh 的），它设置 OS（值为 Linux/Darwin，即 uname -s）。
-    # 原本 status_wireguard 未调用 detect_os → $OS 未定义 → Linux 上 service_running 恒为 false，
-    # 状态误报为 stopped。status_wireguard 起首已补 detect_os 调用。
-    if [[ "$OS" == "Linux" ]]; then
+    if [[ "$os_kernel" == "Linux" ]]; then
         systemctl is-active --quiet "wg-quick@${interface}" 2>/dev/null && service_running=true
-    elif [[ "$OS" == "Darwin" ]]; then
+    elif [[ "$os_kernel" == "Darwin" ]]; then
         sudo launchctl list 2>/dev/null | grep -q "com.wireguard.${interface}" && service_running=true
     fi
     if $wg_installed; then
