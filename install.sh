@@ -29,6 +29,7 @@ source "$SCRIPT_DIR/lib/profile.sh"
 source "$SCRIPT_DIR/lib/submenus.sh"
 source "$SCRIPT_DIR/lib/uxs_cli.sh"
 source "$SCRIPT_DIR/lib/menu.sh"
+source "$SCRIPT_DIR/lib/menu_fzf.sh"
 source "$SCRIPT_DIR/lib/scaffold.sh"
 source "$SCRIPT_DIR/lib/doctor.sh"
 

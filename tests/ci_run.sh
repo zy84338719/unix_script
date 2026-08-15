@@ -452,6 +452,19 @@ phase_routing() {
          render_category_page 服务 "" 2>/dev/null | grep -q "容器引擎" && \
          render_category_page 服务 "" 2>/dev/null | grep -q "docker"' _ "$REPO_DIR"
 
+    # 18. fzf 菜单：源码结构与降级
+    assert "fzf 菜单: lib/menu_fzf.sh 存在" bash -c "test -f '$REPO_DIR/lib/menu_fzf.sh'"
+    assert "fzf 菜单: install.sh 已 source menu_fzf.sh" bash -c "grep -q 'lib/menu_fzf.sh' '$REPO_DIR/install.sh'"
+    # shellcheck disable=SC2016
+    assert "fzf 菜单: 无 fzf 时 resolve_menu_mode=auto → bash" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
+         registry_scan
+         if command -v fzf >/dev/null 2>&1; then
+            [ "$(UXS_MENU=bash resolve_menu_mode)" = "bash" ]
+         else
+            [ "$(resolve_menu_mode)" = "bash" ]
+         fi' _ "$REPO_DIR"
+
     report_footer
     [[ $FAIL_COUNT -eq 0 ]]
 }
