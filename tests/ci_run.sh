@@ -432,6 +432,26 @@ phase_routing() {
          if UXS_STATUS_CACHE_DIR="$2" UXS_STATUS_CACHE_TTL=0 status_cache_load; then exit 1; else exit 0; fi' _ "$REPO_DIR" "$sc_dir"
     rm -rf "$sc_dir"
 
+    # 17. 菜单：模式解析与渲染纯函数（交互循环不自动化）
+    # shellcheck disable=SC2016
+    assert "菜单: UXS_MENU=bash 强制 bash 模式" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh
+         registry_scan
+         [ "$(UXS_MENU=bash resolve_menu_mode)" = "bash" ]' _ "$REPO_DIR"
+    # shellcheck disable=SC2016
+    assert "菜单: category_items 过滤（vpn → tailscale+wireguard）" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh
+         registry_scan
+         items=$(category_items 服务 vpn)
+         echo "$items" | grep -q tailscale && echo "$items" | grep -q wireguard && \
+         [ "$(echo "$items" | wc -w)" -eq 2 ]' _ "$REPO_DIR"
+    # shellcheck disable=SC2016
+    assert "菜单: render_category_page 含状态列与描述" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh
+         registry_scan
+         render_category_page 服务 "" 2>/dev/null | grep -q "容器引擎" && \
+         render_category_page 服务 "" 2>/dev/null | grep -q "docker"' _ "$REPO_DIR"
+
     report_footer
     [[ $FAIL_COUNT -eq 0 ]]
 }
