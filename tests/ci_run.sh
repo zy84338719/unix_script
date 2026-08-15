@@ -396,6 +396,18 @@ phase_routing() {
     assert "容错: usage 按分类分组（含描述）" bash -c \
         '"$1/install.sh" --help | grep -q "\[服务\]" && "$1/install.sh" --help | grep -q "容器引擎"' _ "$REPO_DIR"
 
+    # 15. 网络超时：common.sh 所有 curl 均带超时参数
+    # shellcheck disable=SC2016
+    assert "超时: common.sh 定义 UXS_CURL_TIMEOUT_ARGS" bash -c \
+        'source "$1/lib/common.sh" && [ "${#UXS_CURL_TIMEOUT_ARGS[@]}" -eq 4 ]' _ "$REPO_DIR"
+    local bare_curls
+    bare_curls=$(grep -n 'curl ' "$REPO_DIR/lib/common.sh" | grep -v 'UXS_CURL_TIMEOUT_ARGS' | grep -v ':[[:space:]]*#' || true)
+    if [[ -z "$bare_curls" ]]; then
+        report_row "超时: 全部 curl 带超时参数" pass
+    else
+        report_row "超时: 全部 curl 带超时参数" fail "$(printf '%s' "$bare_curls" | head -2 | tr '\n' ' ')"
+    fi
+
     report_footer
     [[ $FAIL_COUNT -eq 0 ]]
 }

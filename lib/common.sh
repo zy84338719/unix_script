@@ -39,6 +39,14 @@ if [[ -n "${NO_COLOR:-}" ]] || [[ ! -t 1 ]]; then
     RED='' GREEN='' YELLOW='' BLUE='' CYAN='' PURPLE='' NC=''
 fi
 
+# ---------------- 网络超时 ----------------
+# 所有对外 curl 统一带超时，弱网下不阻塞菜单启动。
+# 可用环境变量覆盖：UXS_CURL_TIMEOUT（max-time 秒）、UXS_CURL_CONNECT_TIMEOUT（connect 秒）。
+UXS_CURL_TIMEOUT_ARGS=(
+    "--connect-timeout" "${UXS_CURL_CONNECT_TIMEOUT:-5}"
+    "--max-time" "${UXS_CURL_TIMEOUT:-10}"
+)
+
 # ---------------- 调试输出开关 ----------------
 # UXS_DEBUG=1 时，库内原本静默的 stderr（2>/dev/null）改为透出到终端，
 # 便于排查网络/解析失败。默认 0（静默，保持输出整洁）。
@@ -262,11 +270,11 @@ github_latest_tag() {
     fi
     local api_url="https://api.github.com/repos/${repo}/releases/latest"
     if command -v jq >/dev/null 2>&1; then
-        tag=$(curl -fsSL ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
+        tag=$(curl -fsSL "${UXS_CURL_TIMEOUT_ARGS[@]}" ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
               | jq -r '.tag_name // empty' 2>"$(uxs_stderr)" || true)
         tag="${tag#v}"; tag="${tag#V}"
     else
-        tag=$(curl -fsSL ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
+        tag=$(curl -fsSL "${UXS_CURL_TIMEOUT_ARGS[@]}" ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
               | grep '"tag_name"' | head -1 | sed -E 's/.*"v?([^"]+)".*/\1/' || true)
     fi
     echo "$tag"
@@ -283,12 +291,12 @@ github_release_asset_url() {
     [[ -n "$token" ]] && auth=(-H "Authorization: Bearer $token")
     local api_url="https://api.github.com/repos/${repo}/releases/latest"
     if command -v jq >/dev/null 2>&1; then
-        curl -fsSL ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
+        curl -fsSL "${UXS_CURL_TIMEOUT_ARGS[@]}" ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
             | jq -r --arg p "$pattern" \
                 '.assets[].browser_download_url | select(test($p))' 2>"$(uxs_stderr)" \
             | head -1 || true
     else
-        curl -fsSL ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
+        curl -fsSL "${UXS_CURL_TIMEOUT_ARGS[@]}" ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
             | grep '"browser_download_url"' | grep -E "$pattern" | head -1 \
             | sed -E 's/.*"([^"]+)".*/\1/' || true
     fi
