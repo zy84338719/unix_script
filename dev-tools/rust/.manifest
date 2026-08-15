@@ -2,3 +2,4 @@ LABEL=Rust
 CATEGORY=开发环境
 ALIASES=rustup
 DEFAULT_ACTION=install
+DESC=Rust 语言环境

@@ -1,3 +1,4 @@
 LABEL=Pi
 CATEGORY=AI工具
 DEFAULT_ACTION=install
+DESC=Pi AI 编程代理框架

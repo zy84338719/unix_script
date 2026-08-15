@@ -47,6 +47,7 @@ scaffold_module() {
     cat > "$dir/.manifest" <<EOF
 LABEL=$label
 CATEGORY=$category
+DESC=一句话中文描述（请替换）
 DEFAULT_ACTION=install
 EOF
 
@@ -156,6 +157,7 @@ EOF
     echo "  $cat_dir/$name/README.md"
     echo
     info "下一步："
+    echo "  0. 编辑 $cat_dir/$name/.manifest 的 DESC 为一句话中文描述"
     echo "  1. 编辑 $cat_dir/$name/install.sh 实现安装逻辑"
     echo "  2. 更新 README.md"
     echo "  3. 运行 ./tests/ci_run.sh --phase static 检查语法"

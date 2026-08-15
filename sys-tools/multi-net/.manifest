@@ -3,3 +3,4 @@ CATEGORY=系统工具
 ALIASES=multinet,multi_net
 DEFAULT_ACTION=list
 HAS_SUBMENU=multi-net
+DESC=多网卡策略路由

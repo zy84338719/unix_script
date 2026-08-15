@@ -1,3 +1,4 @@
 LABEL=Ollama
 CATEGORY=AI工具
 DEFAULT_ACTION=install
+DESC=本地大模型运行时

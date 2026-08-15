@@ -2,3 +2,4 @@ LABEL=minikube
 CATEGORY=开发环境
 DEFAULT_ACTION=install
 REQUIRES=docker
+DESC=本地 Kubernetes 开发环境

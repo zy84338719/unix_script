@@ -2,3 +2,4 @@ LABEL=Fail2ban
 CATEGORY=服务
 ALIASES=f2b
 DEFAULT_ACTION=install
+DESC=SSH 暴力破解防护

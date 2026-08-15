@@ -371,6 +371,120 @@ phase_routing() {
          rm -f "$tmp"
          [ "$rc" -eq 1 ] && ! echo "$_REGISTRY_MODULES" | grep -qw __uxs_fake__' _ "$REPO_DIR"
 
+    # 13. DESC 数据完整性：--list-modules 三列且第 3 列（描述）非空
+    local desc_bad
+    desc_bad=$("$REPO_DIR/install.sh" --list-modules 2>/dev/null | awk -F'\t' 'NF<3 || $3==""')
+    if [[ -z "$desc_bad" ]]; then
+        report_row "DESC: --list-modules 三列非空" pass
+    else
+        report_row "DESC: --list-modules 三列非空" fail "缺描述: $(printf '%s' "$desc_bad" | head -3 | tr '\n' ' ')"
+    fi
+    # shellcheck disable=SC2016
+    assert "DESC: registry_desc(docker) 非空" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh
+         registry_scan; [ -n "$(registry_desc docker)" ]' _ "$REPO_DIR"
+    assert "DESC: scaffold 模板含 DESC 占位" bash -c "grep -q 'DESC=' '$REPO_DIR/lib/scaffold.sh'"
+
+    # 14. did-you-mean：未知模块给出建议且不再倾倒 usage
+    # shellcheck disable=SC2016
+    assert "容错: doker → 建议 docker (exit 1)" bash -c \
+        'out=$("$1/install.sh" doker 2>&1); rc=$?; [ "$rc" -eq 1 ] && printf "%s" "$out" | grep -q "docker"' _ "$REPO_DIR"
+    # shellcheck disable=SC2016
+    assert "容错: 无相近候选时不倾倒 usage" bash -c \
+        'out=$("$1/install.sh" zzzqqq 2>&1); rc=$?; [ "$rc" -eq 1 ] && printf "%s" "$out" | grep -q "list-categories" && ! printf "%s" "$out" | grep -q "^用法:"' _ "$REPO_DIR"
+    # shellcheck disable=SC2016
+    assert "容错: usage 按分类分组（含描述）" bash -c \
+        '"$1/install.sh" --help | grep -q "\[服务\]" && "$1/install.sh" --help | grep -q "容器引擎"' _ "$REPO_DIR"
+
+    # 15. 网络超时：common.sh 所有 curl 均带超时参数
+    # shellcheck disable=SC2016
+    assert "超时: common.sh 定义 UXS_CURL_TIMEOUT_ARGS" bash -c \
+        'source "$1/lib/common.sh" && [ "${#UXS_CURL_TIMEOUT_ARGS[@]}" -eq 4 ]' _ "$REPO_DIR"
+    local bare_curls
+    bare_curls=$(grep -n 'curl ' "$REPO_DIR/lib/common.sh" | grep -v 'UXS_CURL_TIMEOUT_ARGS' | grep -v ':[[:space:]]*#' || true)
+    if [[ -z "$bare_curls" ]]; then
+        report_row "超时: 全部 curl 带超时参数" pass
+    else
+        report_row "超时: 全部 curl 带超时参数" fail "$(printf '%s' "$bare_curls" | head -2 | tr '\n' ' ')"
+    fi
+
+    # 16. 状态缓存与图标（lib/status.sh）
+    # shellcheck disable=SC2016
+    assert "状态: status_icon 映射" bash -c \
+        'source "$1/lib/common.sh" && source "$1/lib/registry.sh" && source "$1/lib/status.sh"
+         [ "$(status_icon installed)" = "✓" ] && [ "$(status_icon installed:running)" = "✓" ] && \
+         [ "$(status_icon configured)" = "✓" ] && [ "$(status_icon not_installed)" = " " ] && \
+         [ "$(status_icon n/a)" = "·" ] && [ "$(status_icon unknown)" = "?" ]' _ "$REPO_DIR"
+    local sc_dir
+    sc_dir=$(mktemp -d)
+    # shellcheck disable=SC2016
+    assert "状态: 并行批查 + 缓存写入 + 命中" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/status.sh
+         registry_scan
+         UXS_STATUS_CACHE_DIR="$2" UXS_STATUS_CACHE_TTL=60 status_batch_query docker redis
+         [ -n "$(UXS_STATUS_CACHE_DIR="$2" status_state_get docker)" ] && \
+         [ -n "$(UXS_STATUS_CACHE_DIR="$2" status_state_get redis)" ]
+         UXS_STATUS_CACHE_DIR="$2" status_cache_save
+         UXS_STATUS_CACHE_DIR="$2" status_cache_load' _ "$REPO_DIR" "$sc_dir"
+    # shellcheck disable=SC2016
+    assert "状态: TTL=0 禁用缓存（load 必 miss）" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/status.sh
+         if UXS_STATUS_CACHE_DIR="$2" UXS_STATUS_CACHE_TTL=0 status_cache_load; then exit 1; else exit 0; fi' _ "$REPO_DIR" "$sc_dir"
+    rm -rf "$sc_dir"
+
+    # 17. 菜单：模式解析与渲染纯函数（交互循环不自动化）
+    # shellcheck disable=SC2016
+    assert "菜单: UXS_MENU=bash 强制 bash 模式" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh
+         registry_scan
+         [ "$(UXS_MENU=bash resolve_menu_mode)" = "bash" ]' _ "$REPO_DIR"
+    # shellcheck disable=SC2016
+    assert "菜单: category_items 过滤（vpn → tailscale+wireguard）" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh
+         registry_scan
+         items=$(category_items 服务 vpn)
+         echo "$items" | grep -q tailscale && echo "$items" | grep -q wireguard && \
+         [ "$(echo "$items" | wc -w)" -eq 2 ]' _ "$REPO_DIR"
+    # shellcheck disable=SC2016
+    assert "菜单: render_category_page 含状态列与描述" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh
+         registry_scan
+         render_category_page 服务 "" 2>/dev/null | grep -q "容器引擎" && \
+         render_category_page 服务 "" 2>/dev/null | grep -q "docker"' _ "$REPO_DIR"
+
+    # 18. fzf 菜单：源码结构与降级
+    assert "fzf 菜单: lib/menu_fzf.sh 存在" bash -c "test -f '$REPO_DIR/lib/menu_fzf.sh'"
+    assert "fzf 菜单: install.sh 已 source menu_fzf.sh" bash -c "grep -q 'lib/menu_fzf.sh' '$REPO_DIR/install.sh'"
+    # shellcheck disable=SC2016
+    assert "fzf 菜单: 无 fzf 时 resolve_menu_mode=auto → bash" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
+         registry_scan
+         if command -v fzf >/dev/null 2>&1; then
+            [ "$(UXS_MENU=bash resolve_menu_mode)" = "bash" ]
+         else
+            [ "$(resolve_menu_mode)" = "bash" ]
+         fi' _ "$REPO_DIR"
+
+    # 19. 补全：注册表驱动（与 --list 同源）
+    # shellcheck disable=SC2016
+    assert "补全: bash 模块清单与注册表一致" bash -c '
+        COMP_WORDS=(uxs ""); COMP_CWORD=1
+        source "$1/completions/uxs.bash"
+        _uxs_completions
+        # 不用 diff：极简容器（arch/RHEL 系）可能无 diffutils；sort+字符串比较仅依赖 POSIX 基础工具
+        comp_list=$(printf "%s\n" "${COMPREPLY[@]}" | grep -vE "^(--.*|apply|check-update|cli|completions|doctor|export|scaffold|uninstall-cli|update)$" | sort)
+        reg_list=$("$1/install.sh" --list | tr " " "\n" | grep -v "^$" | sort)
+        [ "$comp_list" = "$reg_list" ]' _ "$REPO_DIR"
+    if command -v zsh >/dev/null 2>&1; then
+        assert "补全: uxs.zsh 语法正确" zsh -n "$REPO_DIR/completions/uxs.zsh"
+    else
+        report_row "补全: uxs.zsh 语法" skip "zsh 未安装"
+    fi
+    assert "补全: uxs.zsh manifest 驱动（无硬编码清单）" bash -c \
+        "! grep -q 'bbr:BBR' '$REPO_DIR/completions/uxs.zsh' && grep -q 'manifest' '$REPO_DIR/completions/uxs.zsh'"
+    assert "补全: uxs.bash manifest 驱动" bash -c \
+        "! grep -q 'bbr brew bun clash' '$REPO_DIR/completions/uxs.bash' && grep -q 'manifest' '$REPO_DIR/completions/uxs.bash'"
+
     report_footer
     [[ $FAIL_COUNT -eq 0 ]]
 }

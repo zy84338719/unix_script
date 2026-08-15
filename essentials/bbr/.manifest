@@ -1,3 +1,4 @@
 LABEL=BBR 网络加速
 CATEGORY=装机必备
 DEFAULT_ACTION=enable
+DESC=TCP BBR 拥塞控制加速

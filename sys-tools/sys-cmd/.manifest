@@ -2,3 +2,4 @@ LABEL=系统诊断命令
 CATEGORY=系统工具
 ALIASES=sys_cmd,syscmd
 DEFAULT_ACTION=menu
+DESC=系统诊断命令集（cpu/mem/port/disk/net）

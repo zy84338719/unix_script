@@ -2,3 +2,4 @@ LABEL=Bun
 CATEGORY=开发环境
 DEFAULT_ACTION=install
 EXPORTABLE=registry
+DESC=Bun 运行时（含国内镜像加速）

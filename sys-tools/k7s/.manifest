@@ -1,3 +1,4 @@
 LABEL=k7s
 CATEGORY=系统工具
 DEFAULT_ACTION=install
+DESC=Kubernetes 桌面监控

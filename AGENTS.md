@@ -30,10 +30,13 @@ unix_script 是一个 macOS/Linux 脚本库，提供 52 个模块的安装、配
 
 ```bash
 ./install.sh --list-modules
-# 输出 TSV：模块名\t支持子命令
-# node_exporter  install uninstall status help
-# bun            install mirror unmirror uninstall status help
+# 输出 TSV：模块名\t支持子命令[  requires:...]\t描述
+# node_exporter	install uninstall status help	Prometheus 系统指标收集器
+# bun	install mirror unmirror uninstall status help	Bun 运行时（含国内镜像加速）
+# minikube	install uninstall status help  requires:docker	本地 Kubernetes 开发环境
 ```
+
+第 3 列为 `.manifest` 的 `DESC`（一句话中文描述；无描述的模块该列为空）。前两列语义与历史版本一致。
 
 ### 按分类列出模块
 

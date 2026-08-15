@@ -2,3 +2,4 @@ LABEL=Node Exporter
 CATEGORY=服务
 ALIASES=nodeexporter
 DEFAULT_ACTION=install
+DESC=Prometheus 系统指标收集器

@@ -2,3 +2,4 @@ LABEL=代码分析工具集
 CATEGORY=开发环境
 ALIASES=codelint,code_lint,lint-tools
 DEFAULT_ACTION=install
+DESC=代码分析工具集

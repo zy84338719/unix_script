@@ -2,3 +2,4 @@ LABEL=Docker 镜像导出
 CATEGORY=系统工具
 ALIASES=docker_image,dockerimage
 DEFAULT_ACTION=save
+DESC=镜像导出为 .tar.gz（离线分发）

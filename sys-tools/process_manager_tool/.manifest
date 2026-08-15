@@ -4,3 +4,4 @@ ALIASES=process_manager,pm
 DEFAULT_ACTION=install
 HAS_SUBMENU=process_manager_tool
 ENTRY_SCRIPT=install_process_manager.sh
+DESC=智能搜索和管理系统进程

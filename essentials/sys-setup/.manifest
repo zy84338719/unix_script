@@ -3,3 +3,4 @@ CATEGORY=装机必备
 ALIASES=sys_setup
 DEFAULT_ACTION=all
 HAS_SUBMENU=sys-setup
+DESC=换源/时区/NTP/优化/SSH 加固/自动更新

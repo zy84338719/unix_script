@@ -76,7 +76,7 @@ git clone https://github.com/zy84338719/unix_script.git && cd unix_script
 | `./install.sh -h` / `--help` | 显示帮助（含所有模块名） |
 | `./install.sh -v` / `--version` | 显示版本 |
 | `./install.sh --list` | 列出所有模块名（空格分隔，适合脚本） |
-| `./install.sh --list-modules` | TSV：模块名 + 支持的子命令（AI / 脚本友好） |
+| `./install.sh --list-modules` | TSV：模块名 + 支持的子命令 + 描述（AI / 脚本友好） |
 | `./install.sh --list-categories` | 按分类分组列出模块 |
 | `./install.sh --status-json` | key:value 状态（无颜色无 emoji，AI 友好） |
 
@@ -111,11 +111,11 @@ git clone https://github.com/zy84338719/unix_script.git && cd unix_script
 专为 AI agent 与自动化脚本设计，三种格式覆盖所有场景：
 
 ```bash
-# 1) 模块名 + 子命令（TSV，解析最方便）
+# 1) 模块名 + 子命令 + 描述（TSV，解析最方便；第 3 列为 DESC 描述）
 $ ./install.sh --list-modules
-node_exporter  install uninstall status help
-bun            install mirror unmirror uninstall status help
-clash          install uninstall status start stop restart enable disable help
+node_exporter  install uninstall status help  Prometheus 系统指标收集器
+bun            install mirror unmirror uninstall status help  Bun 运行时（含国内镜像加速）
+clash          install uninstall status start stop restart enable disable help  代理核心 + TUN 透明代理（mihomo）
 
 # 2) 当前安装状态（key:value，无颜色无 emoji）
 $ ./install.sh --status-json
@@ -138,6 +138,26 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 ```
 
 > AI agent 的典型工作流详见 [AGENTS.md](AGENTS.md)。
+
+---
+
+## 🖥️ 交互式菜单
+
+无参数运行 `./install.sh` 进入交互菜单。根据环境自动选择模式（`UXS_MENU=fzf|bash` 强制指定）：
+
+**fzf 模式**（检测到 [fzf](https://github.com/junegunn/fzf) 时自动启用）
+- 输入关键字模糊搜索模块（模块名 / 名称 / 中文描述）
+- `TAB` 勾选多个模块，回车批量执行默认动作（install 依赖自动先装）
+- 右侧预览窗格显示模块 README（fzf ≥ 0.20）
+
+**bash 分类菜单**（无 fzf 时自动降级）
+- 首页选分类（服务 / 装机必备 / 开发环境 / AI工具 / 系统工具，附「已装/总数」），再进模块列表
+- 每行含状态图标与中文描述：`✓` 已安装 · 空白 未安装 · `·` 本平台不适用
+- 支持一次多选：输入 `1,3,5-8`（逗号/区间可混合）
+- 输入 `/关键字` 过滤当前分类（匹配模块名/名称/描述），单独输入 `/` 清空过滤
+- `b` 返回上级；首页：`s` 状态总览 · `u` 卸载 · `c` 检查更新 · `f` 刷新状态缓存 · `q` 退出
+
+菜单内的安装状态来自并行查询的跨进程缓存：默认缓存 300 秒（`UXS_STATUS_CACHE_TTL` 调整，`0` 禁用），并发度 `UXS_STATUS_JOBS`（默认 8）。
 
 ---
 

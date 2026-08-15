@@ -1,3 +1,4 @@
 LABEL=nvm
 CATEGORY=装机必备
 DEFAULT_ACTION=install
+DESC=Node.js 多版本管理

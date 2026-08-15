@@ -2,3 +2,4 @@ LABEL=Nginx
 CATEGORY=服务
 ALIASES=nginx
 DEFAULT_ACTION=install
+DESC=Web 服务器 / 反向代理

@@ -2,3 +2,4 @@ LABEL=Certbot (Let's Encrypt)
 CATEGORY=服务
 ALIASES=letsencrypt
 DEFAULT_ACTION=install
+DESC=Let's Encrypt 免费 SSL 证书

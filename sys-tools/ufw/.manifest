@@ -2,3 +2,4 @@ LABEL=UFW 防火墙
 CATEGORY=系统工具
 ALIASES=firewall
 DEFAULT_ACTION=install
+DESC=UFW 防火墙管理
