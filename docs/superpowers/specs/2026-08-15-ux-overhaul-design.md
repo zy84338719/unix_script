@@ -111,7 +111,7 @@ unix_script 的 CLI/机器侧（统一子命令、别名、`--status-json`、依
   - 补全脚本通过自身路径定位仓库根（`${BASH_SOURCE[0]%/*}/..` / zsh `%` 展开），实时 grep 各分类目录 `.manifest` 的模块名（`basename`）——与注册表**同源**，新增/删除模块自动同步
   - 子命令补全沿用 `show_list_modules` 的提取启发式（usage 行 `{a|b|c}` 或 case 分支 grep），在补全内以 grep 实现
   - zsh 保留对未知模块的 `install/uninstall/status/help` 回退；bash 增加同样回退
-  - DESC 不进补全（保持补全轻量、避免每次 TAB 全量 grep manifest 的开销——模块名清单 grep 一次 < 50ms 可接受）
+  - 描述展示（实施细化，替代原「DESC 不进补全」表述）：zsh 补全保留描述显示（现状即有，去掉属回归），来源改为与模块清单同一次 `.manifest` 扫描读取 `LABEL=`/`DESC=`，无额外 IO；bash compgen 无描述机制，维持纯名称
 - 兼容场景：仓库被移动后旧 rc 里 source 的绝对路径失效属既有问题，不在本次范围（uxs wrapper 同理）
 
 ## ⑥ 网络超时

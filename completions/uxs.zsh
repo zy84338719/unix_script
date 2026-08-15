@@ -1,73 +1,43 @@
 #compdef uxs
 
-# unix_script / uxs Zsh 自动补全
+# unix_script / uxs Zsh 自动补全（注册表驱动）
+# 模块清单与描述运行时从仓库 .manifest 动态生成，新增模块自动进补全。
 # 用法：source completions/uxs.zsh
-# 或复制到 $fpath 并 compinit
 
 _uxs() {
     local -a modules globals subcmds
+    local comp_file repo_root mf mod label desc line script
+    comp_file=${(%):-%x}
+    repo_root=${comp_file:A:h}/..
 
-    modules=(
-        'bbr:BBR 网络加速'
-        'brew:Homebrew 包管理器'
-        'bun:Bun 运行时'
-        'clash:Clash (mihomo) 代理'
-        'cockpit:Cockpit 管理面板'
-        'ddns-go:动态域名解析'
-        'deno:Deno 运行时'
-        'deskflow:键鼠共享'
-        'dev-enhance:开发工具增强'
-        'dev-mirror:开发换源加速'
-        'dev-tui:终端 TUI 工具'
-        'docker:Docker 容器引擎'
-        'docker-image:Docker 镜像导出'
-        'essential-pkgs:装机必备工具包'
-        'fail2ban:SSH 暴力破解防护'
-        'go:Go 语言环境'
-        'grafana:Grafana 监控面板'
-        'gitea:Gitea 自托管 Git'
-        'k7s:Kubernetes 桌面监控'
-        'minikube:本地 Kubernetes'
-        'modern-cli:现代 CLI 工具'
-        'multi-net:多网卡策略路由'
-        'nginx:Nginx Web 服务器'
-        'node_exporter:Prometheus 节点导出器'
-        'nvm:Node.js 版本管理'
-        'ollama:本地大模型运行时'
-        'opencode:终端 AI 编程助手'
-        'openlist:文件列表/网盘聚合'
-        'pi:Pi AI 编程代理'
-        'pnpm:Node.js 包管理器'
-        'postgres:PostgreSQL 数据库'
-        'prometheus:Prometheus 监控系统'
-        'process_manager_tool:进程管理工具'
-        'redis:Redis 内存数据库'
-        'restic:Restic 备份工具'
-        'caddy:Caddy Web 服务器'
-        'rust:Rust 语言环境'
-        'safe-rm:安全删除'
-        'shutdown_timer:定时关机'
-        'swap:Swap 虚拟内存'
-        'sys-cmd:系统诊断命令'
-        'sys-setup:系统初始化配置'
-        'tailscale:Tailscale VPN'
-        'ufw:UFW 防火墙'
-        'upftp:FTP 文件分享'
-        'uptime-kuma:服务可用性监控'
-        'wireguard:WireGuard VPN'
-        'zsh_setup:Zsh & Oh My Zsh'
-    )
+    # 模块清单：扫描各分类目录 .manifest（与 install.sh --list 同源）
+    modules=()
+    for mf in "$repo_root"/services/*/.manifest(N) \
+              "$repo_root"/essentials/*/.manifest(N) \
+              "$repo_root"/dev-tools/*/.manifest(N) \
+              "$repo_root"/ai-tools/*/.manifest(N) \
+              "$repo_root"/sys-tools/*/.manifest(N); do
+        mod=${mf:h:t}
+        desc=$(grep -m1 '^DESC=' "$mf" 2>/dev/null | cut -d= -f2-)
+        label=$(grep -m1 '^LABEL=' "$mf" 2>/dev/null | cut -d= -f2-)
+        modules+=("${mod}:${desc:-$label}")
+    done
 
     globals=(
         '--status:查看所有模块状态'
-        '--status-json:JSON 格式状态'
+        '--status-json:机器可读状态'
         '--list:列出模块名'
         '--list-modules:列出模块及子命令'
         '--list-categories:列出模块分类'
+        '--dry-run:预览模式'
+        '--no-deps:跳过依赖自动安装'
         '--version:查看版本'
         '--help:帮助信息'
         'update:更新到最新版'
+        'check-update:检查新版本'
         'cli:安装全局命令 uxs'
+        'uninstall-cli:卸载全局命令 uxs'
+        'completions:安装 Tab 补全'
         'doctor:环境诊断'
         'scaffold:创建新模块模板'
         'export:导出已装模块为 profile'
@@ -85,22 +55,16 @@ _uxs() {
             _describe -t globals '全局选项' globals
             ;;
         second_arg)
-            case $words[2] in
-                bbr)              subcmds=('enable' 'disable' 'status' 'help') ;;
-                brew)             subcmds=('install' 'uninstall' 'mirror' 'unmirror' 'status' 'help') ;;
-                bun)              subcmds=('install' 'mirror' 'unmirror' 'uninstall' 'status' 'help') ;;
-                clash)            subcmds=('config' 'example' 'install' 'restart' 'start' 'status' 'stop' 'tun-off' 'tun-on' 'uninstall') ;;
-                docker)           subcmds=('install' 'mirror' 'registry' 'uninstall' 'status' 'help') ;;
-                docker-image)     subcmds=('save' 'status' 'help') ;;
-                multi-net)        subcmds=('clear' 'list' 'route-port' 'route-user' 'setup' 'status') ;;
-                ollama)           subcmds=('install' 'pull' 'status' 'uninstall' 'help') ;;
-                safe-rm)          subcmds=('install' 'on' 'off' 'status' 'uninstall' 'help') ;;
-                sys-cmd)          subcmds=('all' 'status') ;;
-                sys-setup)        subcmds=('mirror' 'timezone' 'ntp' 'optimize' 'ssh' 'autoupdate' 'all' 'status' 'help') ;;
-                tailscale)        subcmds=('install' 'uninstall' 'status') ;;
-                shutdown_timer)   subcmds=('status') ;;
-                *)                subcmds=('install' 'uninstall' 'status' 'help') ;;
-            esac
+            local m=$words[2]
+            script=$(print -r -- "$repo_root"/*/"$m"/install.sh(N) | head -1)
+            subcmds=()
+            if [[ -n $script ]]; then
+                line=$(grep -m1 '用法:' "$script" 2>/dev/null)
+                if [[ $line == *\{*}* ]]; then
+                    subcmds=( ${(s:|:)${${line##*\{}%%\}*}} )
+                fi
+            fi
+            (( $#subcmds )) || subcmds=(install uninstall status help)
             _describe -t subcmds '子命令' subcmds
             ;;
     esac

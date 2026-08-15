@@ -465,6 +465,26 @@ phase_routing() {
             [ "$(resolve_menu_mode)" = "bash" ]
          fi' _ "$REPO_DIR"
 
+    # 19. 补全：注册表驱动（与 --list 同源）
+    # shellcheck disable=SC2016
+    assert "补全: bash 模块清单与注册表一致" bash -c '
+        COMP_WORDS=(uxs ""); COMP_CWORD=1
+        source "$1/completions/uxs.bash"
+        _uxs_completions
+        printf "%s\n" "${COMPREPLY[@]}" | grep -vE "^(--.*|apply|check-update|cli|completions|doctor|export|scaffold|uninstall-cli|update)$" | sort > /tmp/uxs_comp.$$.txt
+        "$1/install.sh" --list | tr " " "\n" | grep -v "^$" | sort > /tmp/uxs_reg.$$.txt
+        diff -q /tmp/uxs_comp.$$.txt /tmp/uxs_reg.$$.txt
+        rc=$?; rm -f /tmp/uxs_comp.$$.txt /tmp/uxs_reg.$$.txt; exit $rc' _ "$REPO_DIR"
+    if command -v zsh >/dev/null 2>&1; then
+        assert "补全: uxs.zsh 语法正确" zsh -n "$REPO_DIR/completions/uxs.zsh"
+    else
+        report_row "补全: uxs.zsh 语法" skip "zsh 未安装"
+    fi
+    assert "补全: uxs.zsh manifest 驱动（无硬编码清单）" bash -c \
+        "! grep -q 'bbr:BBR' '$REPO_DIR/completions/uxs.zsh' && grep -q 'manifest' '$REPO_DIR/completions/uxs.zsh'"
+    assert "补全: uxs.bash manifest 驱动" bash -c \
+        "! grep -q 'bbr brew bun clash' '$REPO_DIR/completions/uxs.bash' && grep -q 'manifest' '$REPO_DIR/completions/uxs.bash'"
+
     report_footer
     [[ $FAIL_COUNT -eq 0 ]]
 }
