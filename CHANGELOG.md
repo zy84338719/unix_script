@@ -56,7 +56,11 @@
 - **删除 `FEATURE_ENHANCEMENT_SUMMARY.md`**（历史文件，信息已在 CHANGELOG 中）
 - **模块数更新**：51 → 52（code-lint 纳入 git 跟踪）
 
-## [1.8.0] - 2026-08-05
+## [历史遗留] 曾误编号为 1.8.0（未发布）- 2026-08-05
+
+> 注：该节原标为 `[1.8.0]`，但该版本号从未打 tag 发布（tag 序列为 …v1.6.2 → v1.6.3 → v1.6.4 → v1.7.0…），
+> 且 v1.6.3/v1.6.4 在本文件中无独立条目。按内容（38→48 模块、scaffold、doctor 等）推断对应
+> v1.6.3/v1.6.4 时期的变更，现重命名以免与真实发布的 [1.8.0]（2026-08-15）冲突。
 
 ### 新增
 - **10 个新模块**（38 → 48）：nginx、caddy、certbot、redis、postgres、prometheus、grafana、gitea、ufw、restic
