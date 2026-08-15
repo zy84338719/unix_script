@@ -408,6 +408,30 @@ phase_routing() {
         report_row "超时: 全部 curl 带超时参数" fail "$(printf '%s' "$bare_curls" | head -2 | tr '\n' ' ')"
     fi
 
+    # 16. 状态缓存与图标（lib/status.sh）
+    # shellcheck disable=SC2016
+    assert "状态: status_icon 映射" bash -c \
+        'source "$1/lib/common.sh" && source "$1/lib/registry.sh" && source "$1/lib/status.sh"
+         [ "$(status_icon installed)" = "✓" ] && [ "$(status_icon installed:running)" = "✓" ] && \
+         [ "$(status_icon configured)" = "✓" ] && [ "$(status_icon not_installed)" = " " ] && \
+         [ "$(status_icon n/a)" = "·" ] && [ "$(status_icon unknown)" = "?" ]' _ "$REPO_DIR"
+    local sc_dir
+    sc_dir=$(mktemp -d)
+    # shellcheck disable=SC2016
+    assert "状态: 并行批查 + 缓存写入 + 命中" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/status.sh
+         registry_scan
+         UXS_STATUS_CACHE_DIR="$2" UXS_STATUS_CACHE_TTL=60 status_batch_query docker redis
+         [ -n "$(UXS_STATUS_CACHE_DIR="$2" status_state_get docker)" ] && \
+         [ -n "$(UXS_STATUS_CACHE_DIR="$2" status_state_get redis)" ]
+         UXS_STATUS_CACHE_DIR="$2" status_cache_save
+         UXS_STATUS_CACHE_DIR="$2" status_cache_load' _ "$REPO_DIR" "$sc_dir"
+    # shellcheck disable=SC2016
+    assert "状态: TTL=0 禁用缓存（load 必 miss）" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/status.sh
+         if UXS_STATUS_CACHE_DIR="$2" UXS_STATUS_CACHE_TTL=0 status_cache_load; then exit 1; else exit 0; fi' _ "$REPO_DIR" "$sc_dir"
+    rm -rf "$sc_dir"
+
     report_footer
     [[ $FAIL_COUNT -eq 0 ]]
 }

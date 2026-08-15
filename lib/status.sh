@@ -89,3 +89,158 @@ show_installed_services() {
     echo
     if $INTERACTIVE; then read -r -p "按回车键返回主菜单..."; fi
 }
+
+# ============================================================
+# 菜单状态层：内存态 + 并行批查 + TTL 跨进程缓存（UX 改造）
+#
+# 实测串行全量 status 查询 ~5.4s（52 模块），菜单重画不可接受。
+# 三层：并行批查（UXS_STATUS_JOBS，默认 8）→ 内存变量 →
+#       /tmp TTL 缓存（UXS_STATUS_CACHE_TTL 秒，默认 300，0=禁用；
+#       UXS_STATUS_CACHE_DIR 可覆盖，测试用）。
+# bash 3.2 兼容：动态变量名沿用 registry 的 eval 模式；并发用 jobs/wait（无 wait -n）。
+# ============================================================
+
+# --- 内存态（模块名连字符转下划线，同 _reg_varname 约定）---
+_uxs_state_varname() {
+    local safe_mod="${1//-/_}"
+    echo "_UXS_STATE_${safe_mod}"
+}
+
+_uxs_state_set() {
+    local varname
+    varname=$(_uxs_state_varname "$1")
+    eval "${varname}=\$2"
+    # 已知模块清单（去重追加），供 cache_save 遍历
+    case " ${_UXS_STATE_KNOWN:-} " in
+        *" $1 "*) ;;
+        *) _UXS_STATE_KNOWN="${_UXS_STATE_KNOWN:-} $1" ;;
+    esac
+}
+
+status_state_get() {
+    local varname
+    varname=$(_uxs_state_varname "$1")
+    eval "echo \"\${${varname}:-}\""
+}
+
+# --- TTL 缓存目录：按仓库路径区分（多 clone 不互相污染）---
+_uxs_cache_dir() {
+    local base key
+    base="${UXS_STATUS_CACHE_DIR:-/tmp/uxs-status-$(id -u)}"
+    key=$(printf '%s' "${SCRIPT_DIR:-.}" | cksum | cut -d' ' -f1)
+    echo "$base/$key"
+}
+
+_uxs_cache_file() {
+    echo "$(_uxs_cache_dir)/cache"
+}
+
+# 命中：填充内存态返回 0；未命中/禁用/损坏：返回 1
+status_cache_load() {
+    local ttl="${UXS_STATUS_CACHE_TTL:-300}"
+    if [[ "$ttl" == "0" ]]; then return 1; fi
+    local file
+    file=$(_uxs_cache_file)
+    [[ -f "$file" ]] || return 1
+    local ts now
+    ts=$(sed -n 's/^#ts=//p' "$file" | head -1)
+    now=$(date +%s)
+    [[ "$ts" =~ ^[0-9]+$ ]] || return 1
+    if (( now - ts > ttl )); then return 1; fi
+    local mod state
+    while IFS=$'\t' read -r mod state; do
+        if [[ -z "$mod" || "$mod" == \#* ]]; then continue; fi
+        _uxs_state_set "$mod" "$state"
+    done < "$file"
+    return 0
+}
+
+status_cache_save() {
+    local ttl="${UXS_STATUS_CACHE_TTL:-300}"
+    if [[ "$ttl" == "0" ]]; then return 0; fi
+    local dir file mod
+    dir=$(_uxs_cache_dir)
+    mkdir -p "$dir" 2>/dev/null || return 0
+    file="$dir/cache"
+    {
+        echo "#ts=$(date +%s)"
+        for mod in ${_UXS_STATE_KNOWN:-}; do
+            printf '%s\t%s\n' "$mod" "$(status_state_get "$mod")"
+        done
+    } > "$file" 2>/dev/null || true
+}
+
+# 单模块状态变更后更新缓存行（缓存不存在则不做任何事）
+status_cache_update() {
+    local mod="$1" state="$2" file
+    file=$(_uxs_cache_file)
+    [[ -f "$file" ]] || return 0
+    if grep -q "^${mod}$(printf '\t')" "$file"; then
+        grep -v "^${mod}$(printf '\t')" "$file" > "${file}.tmp" 2>/dev/null || true
+        printf '%s\t%s\n' "$mod" "$state" >> "${file}.tmp"
+        mv "${file}.tmp" "$file"
+    else
+        printf '%s\t%s\n' "$mod" "$state" >> "$file"
+    fi
+}
+
+# --- 并行批查：固定并发跑 module_status_machine，结果进内存 ---
+status_batch_query() {
+    local jobs="${UXS_STATUS_JOBS:-8}"
+    if ! [[ "$jobs" =~ ^[1-9][0-9]*$ ]]; then jobs=8; fi
+    local tmpdir
+    tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/uxs-status.XXXXXX")
+    local mod running=0
+    for mod in "$@"; do
+        (
+            local st
+            st=$(module_status_machine "$mod" 2>/dev/null || echo unknown)
+            [[ -z "$st" ]] && st=unknown
+            printf '%s' "$st" > "$tmpdir/$mod"
+        ) &
+        running=$((running + 1))
+        if (( running >= jobs )); then
+            wait
+            running=0
+        fi
+    done
+    wait
+    for mod in "$@"; do
+        if [[ -f "$tmpdir/$mod" ]]; then
+            _uxs_state_set "$mod" "$(cat "$tmpdir/$mod")"
+        else
+            _uxs_state_set "$mod" unknown
+        fi
+    done
+    rm -rf "$tmpdir"
+}
+
+# 单模块即时刷新（动作执行成功后调用）
+status_state_refresh() {
+    local mod="$1" st
+    st=$(module_status_machine "$mod" 2>/dev/null || echo unknown)
+    [[ -z "$st" ]] && st=unknown
+    _uxs_state_set "$mod" "$st"
+    status_cache_update "$mod" "$st"
+}
+
+# 人类菜单状态图标
+status_icon() {
+    case "$1" in
+        installed*|configured) echo "✓" ;;
+        not_installed|not_configured) echo " " ;;
+        "n/a") echo "·" ;;
+        *) echo "?" ;;
+    esac
+}
+
+# 菜单入口：优先吃缓存，否则并行批查全量并落盘
+menu_status_ensure() {
+    if status_cache_load; then
+        return 0
+    fi
+    info "正在检查各模块安装状态（首次约数秒；UXS_STATUS_CACHE_TTL=0 可关闭缓存）..."
+    # shellcheck disable=SC2086  # $_REGISTRY_MODULES 为受控模块名列表，需要分词
+    status_batch_query $_REGISTRY_MODULES
+    status_cache_save
+}
