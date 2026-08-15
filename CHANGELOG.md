@@ -4,6 +4,19 @@
 
 ## [Unreleased]
 
+### 新增
+- 交互菜单双轨重构：fzf 模糊搜索/TAB 多选/README 预览（`UXS_MENU=fzf|bash` 强制切换，无 fzf 自动降级）
+- bash 分类两级菜单：状态图标、模块描述、`1,3,5-8` 多选、`/关键字` 过滤
+- did-you-mean：未知模块名给出编辑距离建议，不再倾倒模块清单
+- `.manifest` 新增 `DESC` 字段（描述单一数据源），`--list-modules` 追加描述列
+- 安装状态并行批查 + TTL 跨进程缓存（`UXS_STATUS_CACHE_TTL` / `UXS_STATUS_JOBS`），全量查询 5.4s → ~2s、二次进入秒开
+- bash/zsh 补全改为注册表驱动动态生成（新增模块自动进补全）
+
+### 修复
+- 敲错模块名静默失败：`set -e` 下别名未命中导致命令替换失败直接退出，「未知模块」错误从未输出；现输出错误 + did-you-mean 建议
+- 弱网环境启动菜单长时间卡顿（GitHub API 请求无超时；现默认 connect 5s / max 10s，`UXS_CURL_TIMEOUT` 可覆盖）
+- 补全文件硬编码清单落后注册表 4 个模块（certbot / code-lint / disk-usage / nat）
+
 ## [1.8.0] - 2026-08-15
 
 ### 新增
