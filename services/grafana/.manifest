@@ -1,3 +1,4 @@
 LABEL=Grafana
 CATEGORY=服务
 DEFAULT_ACTION=install
+DESC=监控可视化面板

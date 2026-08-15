@@ -2,3 +2,4 @@ LABEL=safe-rm 回收站
 CATEGORY=系统工具
 ALIASES=safe_rm,safesrm
 DEFAULT_ACTION=install
+DESC=安全删除替代 rm，防误删

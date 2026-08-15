@@ -2,3 +2,4 @@ LABEL=PostgreSQL
 CATEGORY=服务
 ALIASES=postgres,postgresql,pg
 DEFAULT_ACTION=install
+DESC=PostgreSQL 数据库

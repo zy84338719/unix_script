@@ -2,3 +2,4 @@ LABEL=Uptime Kuma
 CATEGORY=服务
 ALIASES=uptime_kuma
 DEFAULT_ACTION=install
+DESC=服务可用性监控面板（Docker）

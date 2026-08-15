@@ -2,3 +2,4 @@ LABEL=Homebrew
 CATEGORY=装机必备
 ALIASES=homebrew
 DEFAULT_ACTION=install
+DESC=Homebrew 包管理器

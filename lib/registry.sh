@@ -7,6 +7,7 @@
 #
 # Manifest 格式（纯文本 key=value）：
 #   LABEL=显示名称          （必填）
+#   DESC=一句话中文描述      （可选，≤20 字，菜单/补全/--list-modules 展示用）
 #   CATEGORY=分类           （必填：服务/装机必备/开发环境/AI工具/系统工具）
 #   ALIASES=别名1,别名2     （可选，逗号分隔）
 #   DEFAULT_ACTION=install  （可选，默认 install）
@@ -69,6 +70,7 @@ _parse_manifest() {
 
     # 初始化默认值
     _reg_set "$mod" LABEL ""
+    _reg_set "$mod" DESC ""
     _reg_set "$mod" CATEGORY ""
     _reg_set "$mod" ALIASES ""
     _reg_set "$mod" DEFAULT_ACTION "install"
@@ -84,6 +86,7 @@ _parse_manifest() {
         value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         case "$key" in
             LABEL)            _reg_set "$mod" LABEL "$value" ;;
+            DESC)             _reg_set "$mod" DESC "$value" ;;
             CATEGORY)         _reg_set "$mod" CATEGORY "$value" ;;
             ALIASES)          _reg_set "$mod" ALIASES "$value" ;;
             DEFAULT_ACTION)   _reg_set "$mod" DEFAULT_ACTION "$value" ;;
@@ -134,6 +137,7 @@ registry_scan() {
 
 # --- 查询 API ---
 registry_label()           { _reg_get "$1" LABEL; }
+registry_desc()            { _reg_get "$1" DESC; }
 registry_category()        { _reg_get "$1" CATEGORY; }
 registry_aliases()         { _reg_get "$1" ALIASES; }
 registry_default_action()  { local v; v=$(_reg_get "$1" DEFAULT_ACTION); echo "${v:-install}"; }

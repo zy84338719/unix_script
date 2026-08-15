@@ -2,3 +2,4 @@ LABEL=磁盘空间管理
 CATEGORY=系统工具
 ALIASES=disk,du,disk_usage
 DEFAULT_ACTION=status
+DESC=磁盘空间管理

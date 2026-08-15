@@ -1,3 +1,4 @@
 LABEL=Gitea
 CATEGORY=服务
 DEFAULT_ACTION=install
+DESC=自托管 Git 服务

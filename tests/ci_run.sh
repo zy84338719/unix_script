@@ -371,6 +371,20 @@ phase_routing() {
          rm -f "$tmp"
          [ "$rc" -eq 1 ] && ! echo "$_REGISTRY_MODULES" | grep -qw __uxs_fake__' _ "$REPO_DIR"
 
+    # 13. DESC 数据完整性：--list-modules 三列且第 3 列（描述）非空
+    local desc_bad
+    desc_bad=$("$REPO_DIR/install.sh" --list-modules 2>/dev/null | awk -F'\t' 'NF<3 || $3==""')
+    if [[ -z "$desc_bad" ]]; then
+        report_row "DESC: --list-modules 三列非空" pass
+    else
+        report_row "DESC: --list-modules 三列非空" fail "缺描述: $(printf '%s' "$desc_bad" | head -3 | tr '\n' ' ')"
+    fi
+    # shellcheck disable=SC2016
+    assert "DESC: registry_desc(docker) 非空" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh
+         registry_scan; [ -n "$(registry_desc docker)" ]' _ "$REPO_DIR"
+    assert "DESC: scaffold 模板含 DESC 占位" bash -c "grep -q 'DESC=' '$REPO_DIR/lib/scaffold.sh'"
+
     report_footer
     [[ $FAIL_COUNT -eq 0 ]]
 }

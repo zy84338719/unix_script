@@ -1,3 +1,4 @@
 LABEL=OpenList
 CATEGORY=服务
 DEFAULT_ACTION=install
+DESC=文件列表 / 网盘聚合（原 Alist）

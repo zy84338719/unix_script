@@ -1,3 +1,4 @@
 LABEL=Restic 备份工具
 CATEGORY=系统工具
 DEFAULT_ACTION=install
+DESC=增量加密备份工具

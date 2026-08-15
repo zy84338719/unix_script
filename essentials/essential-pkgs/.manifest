@@ -2,3 +2,4 @@ LABEL=装机必备工具包
 CATEGORY=装机必备
 ALIASES=essential,essential_pkgs
 DEFAULT_ACTION=install
+DESC=curl/git/vim/htop/tmux/jq 等一键装齐

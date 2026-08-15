@@ -2,3 +2,4 @@ LABEL=WireGuard
 CATEGORY=服务
 ALIASES=wg
 DEFAULT_ACTION=install
+DESC=现代、快速、安全的 VPN

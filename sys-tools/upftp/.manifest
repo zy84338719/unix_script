@@ -1,3 +1,4 @@
 LABEL=upftp
 CATEGORY=系统工具
 DEFAULT_ACTION=install
+DESC=轻量级 FTP 文件分享工具

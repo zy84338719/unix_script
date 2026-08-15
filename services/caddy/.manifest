@@ -1,3 +1,4 @@
 LABEL=Caddy
 CATEGORY=服务
 DEFAULT_ACTION=install
+DESC=现代 Web 服务器（自动 HTTPS）

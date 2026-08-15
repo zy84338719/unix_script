@@ -1,3 +1,4 @@
 LABEL=pnpm
 CATEGORY=开发环境
 DEFAULT_ACTION=install
+DESC=Node.js 包管理器

@@ -1,3 +1,4 @@
 LABEL=OpenCode
 CATEGORY=AI工具
 DEFAULT_ACTION=install
+DESC=终端 AI 编程助手

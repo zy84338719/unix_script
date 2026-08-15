@@ -2,3 +2,4 @@ LABEL=现代 CLI 工具
 CATEGORY=开发环境
 ALIASES=modern_cli,moderncli
 DEFAULT_ACTION=install
+DESC=bat/eza/ripgrep/fd/fzf/zoxide/starship

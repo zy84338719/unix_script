@@ -1,3 +1,4 @@
 LABEL=Deskflow
 CATEGORY=系统工具
 DEFAULT_ACTION=install
+DESC=键鼠共享（Flatpak / Homebrew）

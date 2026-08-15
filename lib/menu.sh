@@ -165,17 +165,15 @@ interactive_main() {
 # 机器可读输出（供 AI agent / 脚本解析）
 # ============================================================
 
-# --list-modules: TSV 输出模块名 + 支持的子命令
+# --list-modules: TSV 输出模块名 + 支持子命令 + 描述（第 3 列）
 show_list_modules() {
-    local mod
+    local mod entry_script mod_path script subs usage_line line reqs desc
     for mod in $_REGISTRY_MODULES; do
-        local entry_script mod_path
         entry_script=$(registry_entry_script "$mod")
         mod_path=$(registry_path "$mod")
-        local script="$SCRIPT_DIR/$mod_path/$entry_script"
+        script="$SCRIPT_DIR/$mod_path/$entry_script"
         [[ -f "$script" ]] || continue
-        local subs=""
-        local usage_line
+        subs=""
         usage_line=$(grep -m1 '用法:' "$script" 2>/dev/null || true)
         if [[ "$usage_line" == *"{"*"}"* ]]; then
             subs=$(echo "$usage_line" | sed 's/.*{//;s/}.*//' | tr '|' ' ')
@@ -184,12 +182,13 @@ show_list_modules() {
             subs=$(grep -oE '^\s+(install|uninstall|status|help|mirror|unmirror|start|stop|restart|enable|disable|pull|all|config|example|tun-on|tun-off|clear|list|setup|route-user|route-port|save)\)' "$script" 2>/dev/null | tr -d ' )' | sort -u | tr '\n' ' ' || true)
         fi
         [[ -z "$subs" ]] && subs="install"
-        local line="$subs"
+        line="$subs"
         # 阶段 E：有 REQUIRES 时追加 requires: 列（逗号分隔），便于 AI/人类识别前置依赖
-        local reqs
         reqs=$(registry_requires "$mod")
         [[ -n "$reqs" ]] && line="$line  requires:${reqs// /,}"
-        printf '%s\t%s\n' "$mod" "$line"
+        # UX：末尾追加描述列（第 3 列，供人类/AI 识别模块用途；前两列语义不变）
+        desc=$(registry_desc "$mod")
+        printf '%s\t%s\t%s\n' "$mod" "$line" "$desc"
     done
 }
 
