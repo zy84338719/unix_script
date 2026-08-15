@@ -385,6 +385,17 @@ phase_routing() {
          registry_scan; [ -n "$(registry_desc docker)" ]' _ "$REPO_DIR"
     assert "DESC: scaffold 模板含 DESC 占位" bash -c "grep -q 'DESC=' '$REPO_DIR/lib/scaffold.sh'"
 
+    # 14. did-you-mean：未知模块给出建议且不再倾倒 usage
+    # shellcheck disable=SC2016
+    assert "容错: doker → 建议 docker (exit 1)" bash -c \
+        'out=$("$1/install.sh" doker 2>&1); rc=$?; [ "$rc" -eq 1 ] && printf "%s" "$out" | grep -q "docker"' _ "$REPO_DIR"
+    # shellcheck disable=SC2016
+    assert "容错: 无相近候选时不倾倒 usage" bash -c \
+        'out=$("$1/install.sh" zzzqqq 2>&1); rc=$?; [ "$rc" -eq 1 ] && printf "%s" "$out" | grep -q "list-categories" && ! printf "%s" "$out" | grep -q "^用法:"' _ "$REPO_DIR"
+    # shellcheck disable=SC2016
+    assert "容错: usage 按分类分组（含描述）" bash -c \
+        '"$1/install.sh" --help | grep -q "\[服务\]" && "$1/install.sh" --help | grep -q "容器引擎"' _ "$REPO_DIR"
+
     report_footer
     [[ $FAIL_COUNT -eq 0 ]]
 }

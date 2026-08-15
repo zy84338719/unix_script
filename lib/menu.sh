@@ -311,12 +311,6 @@ do_uninstall() {
 # 用法文本
 # ============================================================
 show_usage() {
-    local mod_list=""
-    for mod in $_REGISTRY_MODULES; do
-        mod_list="$mod_list | $mod"
-    done
-    mod_list="${mod_list# | }"
-
     cat <<EOF
 用法: $0 [选项] [模块名]
 
@@ -326,7 +320,7 @@ show_usage() {
   -s, --status      查看所有模块的安装状态后退出（非交互）
   --dry-run         预览模式：仅打印将执行的操作，不实际执行
   --list            列出可用模块名后退出
-  --list-modules    机器可读：模块名 + 支持子命令（TSV，供 AI/脚本）
+  --list-modules    机器可读：模块名 + 支持子命令 + 描述（TSV，供 AI/脚本）
   --list-categories 按分类列出所有模块
   --status-json     机器可读：模块状态 key:value（无颜色，供 AI/脚本）
   check-update      检查远端是否有新版本（不修改本地）
@@ -337,20 +331,32 @@ show_usage() {
   uninstall-cli     卸载全局命令 uxs
   completions       安装 Tab 自动补全到当前 shell 配置
 
-模块名（用于非交互安装）:
-  $mod_list
+模块（按分类；别名与平台支持详见 --list-categories / README）:
+EOF
+    local cat mod label desc mods
+    for cat in $CATEGORY_ORDER; do
+        mods=$(registry_modules_in_category "$cat")
+        if [[ -z "$mods" ]]; then continue; fi
+        echo "  [$cat]"
+        for mod in $mods; do
+            label=$(_reg_get "$mod" LABEL)
+            desc=$(registry_desc "$mod")
+            printf '    %-22s %s\n' "$mod" "${desc:-$label}"
+        done
+    done
+    cat <<'EOF'
 
 示例:
-  $0                       # 进入交互式主菜单
-  $0 --status              # 直接打印安装状态
-  $0 docker                # 直接安装 docker
-  $0 tailscale             # 直接安装 tailscale
-  $0 check-update          # 检查是否有新版本
-  $0 update                # 更新到最新版本（需确认）
-  $0 scaffold my-tool      # 生成名为 my-tool 的新模块脚手架
-  $0 doctor                # 环境诊断
-  $0 --dry-run docker      # 预览安装 docker 的操作（不实际执行）
-  $0 cli                   # 安装全局命令 uxs（之后可 uxs docker-image 等）
+  ./install.sh                       # 进入交互式主菜单（fzf 模糊搜索/多选；无 fzf 自动用分类菜单）
+  ./install.sh --status              # 直接打印安装状态
+  ./install.sh docker                # 直接安装 docker
+  ./install.sh tailscale             # 直接安装 tailscale
+  ./install.sh check-update          # 检查是否有新版本
+  ./install.sh update                # 更新到最新版本（需确认）
+  ./install.sh scaffold my-tool      # 生成名为 my-tool 的新模块脚手架
+  ./install.sh doctor                # 环境诊断
+  ./install.sh --dry-run docker      # 预览安装 docker 的操作（不实际执行）
+  ./install.sh cli                   # 安装全局命令 uxs（之后可 uxs docker-image 等）
 EOF
 }
 

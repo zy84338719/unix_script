@@ -47,11 +47,22 @@ should_auto_check_update() {
 dispatch_module() {
     local name="$1"
     local resolved
-    resolved=$(registry_resolve_alias "$name")
+    # registry_resolve_alias 未命中别名时 rc=1 且原样回显输入名；
+    # set -e 下命令替换失败会静默退出，故 || true 兜底，由下方统一报错。
+    resolved=$(registry_resolve_alias "$name" || true)
 
     if [[ "$resolved" == "$name" ]] && ! echo "$_REGISTRY_MODULES" | grep -qw "$name"; then
         error "未知模块: $name"
-        show_noninteractive_usage
+        local -a cand
+        read -ra cand <<< "$(suggest_module "$name")"
+        if [[ ${#cand[@]} -gt 0 ]]; then
+            echo "  你是想输入 ${cand[0]} 吗？（$0 ${cand[0]}）"
+            if [[ ${#cand[@]} -gt 1 ]]; then
+                local others="${cand[*]:1}"
+                echo "  其他候选: ${others}"
+            fi
+        fi
+        info "查看全部模块: $0 --list-categories"
         exit 1
     fi
 
