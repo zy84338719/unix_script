@@ -165,24 +165,37 @@ interactive_main() {
 # 机器可读输出（供 AI agent / 脚本解析）
 # ============================================================
 
+# 模块支持的子命令（空格分隔）：先解析入口脚本 usage 行的 {a|b|c} 枚举，
+# 回退扫描 case 分支的已知子命令词表；最终兜底 "install"。
+module_subcommands() {
+    local mod="$1"
+    local entry_script mod_path script subs usage_line
+    entry_script=$(registry_entry_script "$mod")
+    mod_path=$(registry_path "$mod")
+    script="$SCRIPT_DIR/$mod_path/$entry_script"
+    [[ -f "$script" ]] || { echo ""; return 0; }
+    subs=""
+    usage_line=$(grep -m1 '用法:' "$script" 2>/dev/null || true)
+    if [[ "$usage_line" == *"{"*"}"* ]]; then
+        subs=$(echo "$usage_line" | sed 's/.*{//;s/}.*//' | tr '|' ' ')
+    fi
+    if [[ -z "$subs" ]]; then
+        subs=$(grep -oE '^\s+(install|uninstall|status|help|mirror|unmirror|start|stop|restart|enable|disable|pull|all|config|example|tun-on|tun-off|clear|list|setup|route-user|route-port|save)\)' "$script" 2>/dev/null | tr -d ' )' | sort -u | tr '\n' ' ' || true)
+    fi
+    [[ -z "$subs" ]] && subs="install"
+    echo "$subs"
+}
+
 # --list-modules: TSV 输出模块名 + 支持子命令 + 描述（第 3 列）
 show_list_modules() {
-    local mod entry_script mod_path script subs usage_line line reqs desc
+    local mod line reqs desc
     for mod in $_REGISTRY_MODULES; do
+        local entry_script mod_path
         entry_script=$(registry_entry_script "$mod")
         mod_path=$(registry_path "$mod")
-        script="$SCRIPT_DIR/$mod_path/$entry_script"
+        local script="$SCRIPT_DIR/$mod_path/$entry_script"
         [[ -f "$script" ]] || continue
-        subs=""
-        usage_line=$(grep -m1 '用法:' "$script" 2>/dev/null || true)
-        if [[ "$usage_line" == *"{"*"}"* ]]; then
-            subs=$(echo "$usage_line" | sed 's/.*{//;s/}.*//' | tr '|' ' ')
-        fi
-        if [[ -z "$subs" ]]; then
-            subs=$(grep -oE '^\s+(install|uninstall|status|help|mirror|unmirror|start|stop|restart|enable|disable|pull|all|config|example|tun-on|tun-off|clear|list|setup|route-user|route-port|save)\)' "$script" 2>/dev/null | tr -d ' )' | sort -u | tr '\n' ' ' || true)
-        fi
-        [[ -z "$subs" ]] && subs="install"
-        line="$subs"
+        line=$(module_subcommands "$mod")
         # 阶段 E：有 REQUIRES 时追加 requires: 列（逗号分隔），便于 AI/人类识别前置依赖
         reqs=$(registry_requires "$mod")
         [[ -n "$reqs" ]] && line="$line  requires:${reqs// /,}"
