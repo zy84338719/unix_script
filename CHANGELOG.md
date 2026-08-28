@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.11.2] - 2026-08-28
+
 ### 修复
 - **disk 模块无法经统一入口调用（v1.10.0 起的别名遮蔽）**：`./install.sh disk` 实际落到 disk-usage——其别名 `disk` 在注册表序中先于 disk 模块的正式名命中（`registry_resolve_alias` 单趟逐模块「先比正式名再比别名」，序在先的模块可凭别名遮蔽后续模块名）。三处根治：disk-usage 别名收窄为 `du, disk_usage`（disk 模块冗余的自名别名一并移除）；`registry_resolve_alias` 改为「正式名优先、别名回落」两段解析；routing 阶段新增两条断言（全仓库别名不得与其他模块正式名冲突 + disk/du 解析回归）
 
