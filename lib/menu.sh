@@ -495,7 +495,7 @@ show_usage() {
   -h, --help        显示本帮助
   -v, --version     显示版本
   -s, --status      查看所有模块的安装状态后退出（非交互）
-  --dry-run         预览模式：仅打印将执行的操作，不实际执行
+  --dry-run         预览模式：sudo/root 操作仅打印不执行（用户级操作仍会执行）
   --list            列出可用模块名后退出
   --list-modules    机器可读：模块名 + 支持子命令 + 描述（TSV，供 AI/脚本）
   --list-categories 按分类列出所有模块

@@ -227,6 +227,11 @@ check_commands() {
 # - 已是 root：直接放行（适用于 CI 容器、直接 root 登录的服务器）
 # - 普通用户：确保 sudo 可用（交互式场景）
 require_sudo() {
+    # dry-run 预览不实际执行，不需要真实 sudo 凭据（配合下方 sudo 遮蔽函数）
+    if [[ "$UNIX_SCRIPT_DRY_RUN" == "1" ]]; then
+        info "[dry-run] 跳过 sudo 授权（预览模式不实际执行）"
+        return 0
+    fi
     if [[ $EUID -eq 0 ]]; then
         return 0
     fi
@@ -514,6 +519,21 @@ dry_run_sudo() {
     fi
     sudo "$@"
 }
+
+# 安装 sudo 遮蔽函数——dry-run 全局拦截的关键。
+# 各模块脚本都 source 本文件，source 时若已处 dry-run（子进程继承
+# UNIX_SCRIPT_DRY_RUN），这里用同名 bash 函数遮蔽 sudo 二进制，使模块内
+# 直接书写的 `sudo ...`（apt/systemd/写 /etc 等 root 操作）降级为打印。
+# 顶层 install.sh 解析 --dry-run 后需显式调用一次（其 source 时还没解析到）。
+uxs_install_sudo_shim() {
+    sudo() {
+        info "[dry-run] sudo $*"
+        return 0
+    }
+}
+if [[ "$UNIX_SCRIPT_DRY_RUN" == "1" ]]; then
+    uxs_install_sudo_shim
+fi
 
 # ---------------- 交互工具 ----------------
 # yes_no <prompt>  -> 输入 y/Y 返回 0，否则 1
