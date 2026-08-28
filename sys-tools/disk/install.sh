@@ -400,14 +400,14 @@ cmd_status() {
         emit_status "n/a" "disk 仅支持 Linux（当前：${OS_TYPE}）"
         return 0
     fi
-    local missing="" t opt_missing="" disks=0
+    local miss_tools="" t opt_missing="" disks=0
     for t in lsblk parted; do
-        command -v "$t" >/dev/null 2>&1 || missing="$missing$t "
+        command -v "$t" >/dev/null 2>&1 || miss_tools="$miss_tools$t "
     done
-    command -v mkfs.ext4 >/dev/null 2>&1 || missing="$missing mkfs.ext4"
-    if [[ -n "$missing" ]]; then
-        emit_status "not_installed" "⚠️  磁盘工具箱依赖缺失:${missing}（运行 ./install.sh disk install 补齐）"
-        emit_extra "missing=${missing// /,}"
+    command -v mkfs.ext4 >/dev/null 2>&1 || miss_tools="$miss_tools mkfs.ext4"
+    if [[ -n "$miss_tools" ]]; then
+        emit_status "not_installed" "⚠️  磁盘工具箱依赖缺失:${miss_tools}（运行 ./install.sh disk install 补齐）"
+        emit_extra "missing=${miss_tools// /,}"
         return 0
     fi
     for t in smartctl mkfs.xfs mkfs.vfat mkfs.exfat mkfs.ntfs; do
