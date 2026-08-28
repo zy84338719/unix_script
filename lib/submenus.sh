@@ -5,6 +5,10 @@
 # 各模块子菜单的回调函数与 manage_* 入口。
 # 通过 run_submenu() 框架统一调度。
 #
+# 入口命名约定：子菜单入口函数名必须为 manage_<模块名>（即 .manifest 的
+# HAS_SUBMENU 值），菜单按 "manage_${HAS_SUBMENU}" 动态分发，二者不一致
+# 会导致菜单找不到入口。
+#
 
 # 幂等保护
 if [[ -n "${_SUBMENUS_LOADED:-}" ]]; then return 0 2>/dev/null || exit 0; fi
@@ -58,7 +62,7 @@ _dev_mirror_action() {
     echo; read -r -p "按回车键继续..."
     return 0
 }
-manage_dev_mirror() {
+manage_dev-mirror() {
     [ -f "$SCRIPT_DIR/dev-tools/dev-mirror/install.sh" ] || { error "脚本不存在"; sleep 2; return; }
     run_submenu "📦 dev-mirror 管理（npm/Go/Rust/Python 换源加速）" _dev_mirror_status _dev_mirror_display _dev_mirror_action
 }
@@ -93,7 +97,7 @@ _sys_setup_action() {
     echo; read -r -p "按回车键继续..."
     return 0
 }
-manage_sys_setup() {
+manage_sys-setup() {
     [ -f "$SCRIPT_DIR/essentials/sys-setup/install.sh" ] || { error "脚本不存在"; sleep 2; return; }
     run_submenu "⚙️  系统初始化配置（装机必设置，仅 Linux）" _sys_setup_status _sys_setup_display _sys_setup_action
 }
@@ -165,7 +169,7 @@ _multinet_action() {
     echo; read -r -p "按回车键继续..."
     return 0
 }
-manage_multinet() {
+manage_multi-net() {
     [ -f "$SCRIPT_DIR/sys-tools/multi-net/install.sh" ] || { error "脚本不存在"; sleep 2; return; }
     run_submenu "🔀 多网卡策略路由管理" _multinet_status _multinet_display _multinet_action
 }
@@ -240,7 +244,7 @@ _pm_action() {
     echo; read -r -p "按回车键继续..."
     return 0
 }
-manage_process_tool() {
+manage_process_manager_tool() {
     run_submenu "🔧 进程管理工具" _pm_status _pm_display _pm_action
 }
 

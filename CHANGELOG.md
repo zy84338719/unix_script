@@ -13,6 +13,7 @@
 - bash/zsh 补全改为注册表驱动动态生成（新增模块自动进补全）
 
 ### 修复
+- **子菜单入口分发崩溃**：菜单按 `manage_<HAS_SUBMENU>` 动态分发入口函数，但 sys-setup / dev-mirror / multi-net / process_manager_tool 四个模块的入口函数名与模块名不一致（下划线/缩写），菜单选中即在 `set -e` 下 `command not found` 整体退出；现入口函数名与模块名严格对齐，`menu_exec_actions` 增加 `declare -F` 兜底（缺失时明确提示而非崩溃），CI 增加全量 HAS_SUBMENU ↔ `manage_*` 一致性断言
 - 敲错模块名静默失败：`set -e` 下别名未命中导致命令替换失败直接退出，「未知模块」错误从未输出；现输出错误 + did-you-mean 建议
 - 弱网环境启动菜单长时间卡顿（GitHub API 请求无超时；现默认 connect 5s / max 10s，`UXS_CURL_TIMEOUT` 可覆盖）
 - 补全文件硬编码清单落后注册表 4 个模块（certbot / code-lint / disk-usage / nat）
