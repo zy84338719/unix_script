@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-08-28
+
 ### 修复
 - **换源不彻底（Ubuntu 24.04+/Debian 13 deb822）**：`sys-setup mirror` 只重写 `/etc/apt/sources.list`，而新世代的发行版源实际在 `/etc/apt/sources.list.d/ubuntu.sources`（deb822），导致新旧源并存——同一批索引重复下载、`security.ubuntu.com` 官方源残留、`apt modernize-sources` 提示；现优先重写 deb822 主文件（含 `Signed-By`，security 套件走清华），并停用其余仍指向发行版归档的源文件（重命名为 `.bak.<时间戳>`，apt 自动忽略、可随时改回）；`status` 的镜像检测同步覆盖 `sources.list.d`（此前即使已换源也误报「默认源」）
 - **--dry-run 假预览**：`UNIX_SCRIPT_DRY_RUN` 此前无任何模块消费（`dry_run_exec/dry_run_sudo` 零调用），预览模式会真实执行安装，且 `require_sudo` 在无 TTY 时直接报错退出；现 `require_sudo` 在 dry-run 下短路跳过授权，并以同名函数遮蔽 `sudo`（各模块 source common.sh 时自动生效），apt/systemd/写 /etc 等全部 root 操作降级为 `[dry-run]` 打印——无 TTY 环境也可安全预览。注意：少数非 sudo 的用户级操作（如克隆到家目录的工具安装）仍会实际执行，`--help` 已注明
