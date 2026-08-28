@@ -156,6 +156,17 @@ EXTRA=<key=value>        # 可选，附加信息
 
 详见 `docs/superpowers/specs/2026-08-07-status-contract-deps-profile-design.md`。
 
+### 发行版与桌面环境检测
+
+模块可用 `lib/common.sh` 的以下函数做平台差异化处理（覆盖麒麟/统信/openEuler/deepin/openKylin 等国产系统）：
+
+| 函数/变量 | 说明 |
+|-----------|------|
+| `detect_distro` | 读取 `/etc/os-release`，设置 `DISTRO_ID`（ubuntu/kylin/uos…）、`DISTRO_VERSION_ID`、`DISTRO_NAME`、`DISTRO_FAMILY`（debian\|rhel\|suse\|arch\|alpine\|unknown）。主机模式按包管理器实测定族（麒麟/统信服务器版=RPM 系、桌面版=Deb 系，均能正确归类）；显式传 os-release 文件路径则为纯词表分类（测试用） |
+| `detect_desktop` | 检测桌面环境，设置 `DESKTOP_ENV`（ukui/dde/gnome/kde/xfce/mate/cinnamon/lxqt/budgie/none）与 `IS_DESKTOP`（1/0）。ukui=麒麟桌面、dde=统信/深度桌面 |
+
+注意：麒麟（kylin）刻意不在 ID 硬表里——其服务器版基于 RHEL 系、桌面版基于 Ubuntu 系，族归属交由包管理器实测/ID_LIKE 判定。CI 在多发行版容器（含麒麟 V10、统信 UOS V20、openEuler、deepin、openKylin 镜像）中对识别结果做「外部真值断言」（`UXS_EXPECT_DISTRO_ID`/`UXS_EXPECT_DISTRO_FAMILY`），修改 `detect_distro`/`detect_desktop` 后请本地跑 `./tests/ci_run.sh --phase routing` 验证。
+
 ## 直接调用模块（绕过 install.sh）
 
 ```bash
