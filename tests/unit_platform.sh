@@ -49,5 +49,19 @@ t_eq "detect_distro: 文件模式族判定" "debian" "$DISTRO_FAMILY"
 t_eq "detect_distro: 单引号 PRETTY_NAME 剥引号" "Debian GNU/Linux 13" "$DISTRO_NAME"
 rm -f "$FIX"
 
-echo "unit_platform(os_release): 通过 $PASS / 失败 $FAIL"
+# ---------- uxs_svc ----------
+UNIX_SCRIPT_DRY_RUN=1
+OS_TYPE=linux
+out=$(uxs_svc enable-now nginx)
+t_eq "svc: dry-run enable-now 打印且不执行" \
+    "[INFO] [dry-run] systemctl enable --now: sudo systemctl enable --now nginx" "$out"
+out=$(uxs_svc restart docker)
+t_eq "svc: dry-run restart" "[INFO] [dry-run] systemctl restart: sudo systemctl restart docker" "$out"
+rc=0; uxs_svc bogus-action nginx >/dev/null 2>&1 || rc=$?
+t_eq "svc: 未知 action 返回 1" "1" "$rc"
+OS_TYPE=darwin
+rc=0; uxs_svc restart nginx >/dev/null 2>&1 || rc=$?
+t_eq "svc: darwin 拒绝返回 1" "1" "$rc"
+
+echo "unit_platform: 通过 $PASS / 失败 $FAIL"
 (( FAIL == 0 ))

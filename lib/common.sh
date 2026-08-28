@@ -632,6 +632,30 @@ service_start() {
     fi
 }
 
+# uxs_svc <action> <unit>... — systemd 服务动作封装（Linux-only）。
+# action: start|stop|restart|reload|enable|disable|enable-now|is-active。
+# 除只读的 is-active 外均走 dry_run_sudo（--dry-run 下仅打印）；非 Linux 返回 1。
+# 与 service_start/stop/is_active 并存：那组是 systemd+launchd 双平台签名，
+# Linux-only 模块用本函数，签名更简单。
+uxs_svc() {
+    local action="$1"; shift
+    if [[ $# -lt 1 ]]; then
+        error "uxs_svc: 缺少 unit 参数"
+        return 1
+    fi
+    if [[ "${OS_TYPE:-}" != "linux" ]]; then
+        warn "uxs_svc 仅支持 systemd（Linux），当前：${OS_TYPE:-unknown}"
+        return 1
+    fi
+    case "$action" in
+        is-active)  systemctl is-active --quiet "$@" ;;
+        start|stop|restart|reload|enable|disable)
+            dry_run_sudo "systemctl $action" systemctl "$action" "$@" ;;
+        enable-now) dry_run_sudo "systemctl enable --now" systemctl enable --now "$@" ;;
+        *)          error "uxs_svc: 未知 action：$action"; return 1 ;;
+    esac
+}
+
 # ---------------- Dry-run 模式 ----------------
 # 设置 UNIX_SCRIPT_DRY_RUN=1 或传入 --dry-run 启用。
 # 启用后，所有 sudo/pkg_install/service 操作仅打印不执行。
