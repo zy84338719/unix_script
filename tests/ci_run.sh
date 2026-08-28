@@ -332,6 +332,7 @@ phase_routing() {
     assert "disk: usage 子命令枚举完整（供 --list-modules/补全解析）" bash -c "grep -qF '{list|wizard|partition|format|mount|umount|fstab|smart|scan|wipe|install|uninstall|status|help}' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: smart 判定纯函数存在（可单测）" bash -c "grep -q '_smart_verdict()' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: smart 判定单测全过" bash "$REPO_DIR/tests/unit_disk_smart.sh"
+    assert "platform: lib helper 单测全过" bash "$REPO_DIR/tests/unit_platform.sh"
     assert "disk: scan 子命令存在且只读（禁 badblocks 写模式 -w/-n）" bash -c "grep -q 'cmd_scan()' \"$REPO_DIR/$disk_path/install.sh\" && ! grep -Eq 'badblocks .*( -w| -n)' \"$REPO_DIR/$disk_path/install.sh\""
     # 9d+. disk: 占用原因诊断（详细报错）与 wipe 旧签名放宽（stub lsblk + 假 /sys）
     # shellcheck disable=SC2016 # $1/$() 故意交给内层 bash -c 求值
