@@ -374,6 +374,12 @@ phase_routing() {
         echo "$out3" | grep -q "dir with space/lvl2" || { echo "空格路径被截断"; exit 1; }
         if bash "$1/sys-tools/disk-usage/install.sh" top "$FX" --min-size 100 --no-interactive </dev/null >/dev/null 2>&1; then echo "缺单位应报错"; rm -rf "$FX"; exit 1; fi
         rm -rf "$FX"' _ "$REPO_DIR"
+    assert "disk-usage: 交互层结构（TTY 守卫/路径栈/键位）" bash -c '
+        grep -q "_top_interactive()" "$1/sys-tools/disk-usage/install.sh" || exit 1
+        grep -q "\-t 0" "$1/sys-tools/disk-usage/install.sh" || exit 1
+        grep -q "\-t 1" "$1/sys-tools/disk-usage/install.sh" || exit 1
+        grep -q "TOP_NO_INTERACTIVE" "$1/sys-tools/disk-usage/install.sh" || exit 1
+        grep -q "u=上一层" "$1/sys-tools/disk-usage/install.sh" || exit 1' _ "$REPO_DIR"
 
 
     # 4b. status 契约：machine 模式下每个模块首行必须是合法 STATE=

@@ -162,8 +162,74 @@ _status_disk_dashboard() {
     fi
 }
 
+# ---- top: 交互模式（智能 TTY：stdout+stdin 均为终端且未 --no-interactive 才启用） ----
+# 键位：序号=下钻（depth 重置 1）  u=上一层（恢复原 depth）  c=改数量  q/回车=退出
+_top_interactive() {
+    local start_path="$1" start_depth="$2"
+    local count="$3"
+    local -a stack_paths=("$start_path") stack_depths=("$start_depth")
+    local cur depth ans n new_count idx n_paths
+
+    while true; do
+        n=${#stack_paths[@]}
+        cur="${stack_paths[$((n - 1))]}"
+        depth="${stack_depths[$((n - 1))]}"
+        echo
+        _top_print_dirs "$cur" "$depth" "$count"
+        if [[ "$n" -eq 1 ]]; then
+            echo
+            _top_print_files "$cur" "$count"
+        fi
+        echo
+        printf "序号=下钻该目录  u=上一层  c=改数量(当前 %s, 如 10/20/30/50)  q=退出\n> " "$count"
+        if ! read -r ans; then
+            break    # EOF（Ctrl-D）安全退出
+        fi
+        case "$ans" in
+            q|Q|"")
+                break
+                ;;
+            u|U)
+                if [[ "$n" -le 1 ]]; then
+                    info "已在顶层"
+                else
+                    unset "stack_paths[$((n - 1))]"
+                    unset "stack_depths[$((n - 1))]"
+                fi
+                ;;
+            c|C)
+                printf "输入数量（正整数，回车保留 %s）: " "$count"
+                if ! read -r new_count; then break; fi
+                if [[ -z "$new_count" ]]; then
+                    :
+                elif [[ "$new_count" =~ ^[0-9]+$ && "$new_count" -ge 1 ]]; then
+                    count="$new_count"
+                else
+                    warn "非法数量，保留 $count"
+                fi
+                ;;
+            *[!0-9]*)
+                warn "无效输入: $ans"
+                ;;
+            *)
+                n_paths=${#_top_last_paths[@]}
+                if [[ "$n_paths" -eq 0 ]]; then
+                    warn "当前榜单为空，无目录可下钻"
+                elif [[ "$ans" -ge 1 && "$ans" -le "$n_paths" ]]; then
+                    idx=$((ans - 1))
+                    stack_paths+=("${_top_last_paths[$idx]}")
+                    stack_depths+=(1)
+                else
+                    warn "序号超出范围（1-${n_paths}）"
+                fi
+                ;;
+        esac
+    done
+    return 0
+}
+
 # ============================================================
-# top - 大文件/目录排行
+# top - 大文件/目录排行（--depth 下钻 + 智能 TTY 交互）
 # ============================================================
 
 # ---- top: 纯函数（大小解析/格式化） ----
@@ -227,11 +293,15 @@ top_disk() {
         USE_SUDO=0
     fi
 
-    echo
-    _top_print_dirs "$scan_path" "${TOP_DEPTH:-1}" "${TOP_COUNT:-10}"
-    echo
-    _top_print_files "$scan_path" "${TOP_COUNT:-10}"
-    echo
+    if [[ -t 0 && -t 1 && -z "${TOP_NO_INTERACTIVE:-}" ]]; then
+        _top_interactive "$scan_path" "${TOP_DEPTH:-1}" "${TOP_COUNT:-10}"
+    else
+        echo
+        _top_print_dirs "$scan_path" "${TOP_DEPTH:-1}" "${TOP_COUNT:-10}"
+        echo
+        _top_print_files "$scan_path" "${TOP_COUNT:-10}"
+        echo
+    fi
 }
 
 # ---- top: 扫描内核 ----
