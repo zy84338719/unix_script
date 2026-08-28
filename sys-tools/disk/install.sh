@@ -420,11 +420,30 @@ _disk_fstab_remove() {
     success "已移除 fstab 条目: ${mp}（备份: /etc/fstab.bak.${ts}）"
 }
 
+# smartctl 统一读取：自动探测失败（提示 SAT 层，某些 SAT 层/USB 桥/虚拟化环境会出现）时
+# 自动以 -d ata 重试。输出三段（-i、-H、-A），以记录分隔符 \x1e 拼接
+_smartctl_read() {
+    local dev="$1" i h a
+    i=$(sudo smartctl -i "$dev" 2>/dev/null || true)
+    if grep -qi "SAT layer" <<<"$i"; then
+        i=$(sudo smartctl -i -d ata "$dev" 2>/dev/null || true)
+        h=$(sudo smartctl -H -d ata "$dev" 2>/dev/null || true)
+        a=$(sudo smartctl -A -d ata "$dev" 2>/dev/null || true)
+    else
+        h=$(sudo smartctl -H "$dev" 2>/dev/null || true)
+        a=$(sudo smartctl -A "$dev" 2>/dev/null || true)
+    fi
+    printf '%s\x1e%s\x1e%s' "$i" "$h" "$a"
+}
+
 # 总线类型：NVMe 走 NVMe 判读，其余按 ATA（SAS 仅总评可判）
 _smart_bus() {
-    local info
-    info=$(sudo smartctl -i "$1" 2>/dev/null || true)
-    if grep -qi 'NVMe Version' <<<"$info"; then
+    local i
+    i=$(sudo smartctl -i "$1" 2>/dev/null || true)
+    if grep -qi "SAT layer" <<<"$i"; then
+        i=$(sudo smartctl -i -d ata "$1" 2>/dev/null || true)
+    fi
+    if grep -qi 'NVMe Version' <<<"$i"; then
         echo nvme
     else
         echo ata
@@ -433,9 +452,11 @@ _smart_bus() {
 
 # 单盘一行结论（概览用；机器模式输出 STATE/EXTRA）
 _smart_report_one() {
-    local dev="$1" h a vout verdict reasons model size
-    h=$(sudo smartctl -H "$dev" 2>/dev/null || true)
-    a=$(sudo smartctl -A "$dev" 2>/dev/null || true)
+    local dev="$1" raw h a vout verdict reasons model size
+    raw=$(_smartctl_read "$dev")
+    raw=${raw#*$'\x1e'}   # 丢弃 -i 段（概览不需要设备信息）
+    h=${raw%%$'\x1e'*}
+    a=${raw#*$'\x1e'}
     vout=$(_smart_verdict "$h" "$a" "$(_smart_bus "$dev")")
     verdict=${vout%%|*}
     reasons=${vout#*|}
@@ -451,9 +472,10 @@ _smart_report_one() {
 
 # 单盘详情：设备信息 + 总评 + 关键指标 + 属性表 + 结论
 _smart_report_detail() {
-    local dev="$1" h a vout verdict reasons temp hours
-    h=$(sudo smartctl -H "$dev" 2>/dev/null || true)
-    a=$(sudo smartctl -A "$dev" 2>/dev/null || true)
+    local dev="$1" raw i h a vout verdict reasons temp hours
+    raw=$(_smartctl_read "$dev")
+    i=${raw%%$'\x1e'*}; raw=${raw#*$'\x1e'}
+    h=${raw%%$'\x1e'*}; a=${raw#*$'\x1e'}
     vout=$(_smart_verdict "$h" "$a" "$(_smart_bus "$dev")")
     verdict=${vout%%|*}
     reasons=${vout#*|}
@@ -464,10 +486,10 @@ _smart_report_detail() {
     fi
     header "═══ SMART 健康体检：${dev} ═══"
     echo "—— 设备信息 ——"
-    sudo smartctl -i "$dev" 2>/dev/null | sed -n '1,20p' || true
+    sed -n '1,20p' <<<"$i"
     echo
     echo "—— SMART 总评 ——"
-    sudo smartctl -H "$dev" 2>/dev/null || true   # 健康异常时 smartctl 退出非零是正常语义，以输出为准
+    cat <<<"$h"   # 健康异常时 smartctl 退出非零是正常语义，以输出为准
     echo
     echo "—— 关键指标 ——"
     temp=$(_smart_ata_raw "$a" 194)
@@ -478,7 +500,7 @@ _smart_report_detail() {
     [[ -n "$hours" ]] && echo "通电时长: ${hours} 小时"
     echo
     echo "—— 属性表 ——"
-    sudo smartctl -A "$dev" 2>/dev/null || true
+    cat <<<"$a"
     echo
     case "$verdict" in
         healthy)  success "$(_smart_verdict_emoji healthy) 结论：健康——未发现异常指标" ;;
