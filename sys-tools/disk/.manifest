@@ -1,6 +1,5 @@
 LABEL=磁盘管理
 CATEGORY=系统工具
-ALIASES=disk
 DEFAULT_ACTION=list
 DESC=磁盘分区/格式化/挂载/健康一站式管理（仅 Linux，严格防误删）
 HAS_SUBMENU=disk

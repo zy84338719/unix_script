@@ -168,12 +168,16 @@ registry_modules_in_category() {
 }
 
 # 别名解析：输入别名或正式名，输出正式名。无匹配返回原值。
+# 正式名优先两段解析：先全表比对模块名再回落别名——若单趟逐模块「先比正式名再比别名」，
+# 注册表序在先的模块可凭同名别名遮蔽后续模块的正式名（disk-usage 的 disk 曾挡住 disk 模块）。
 registry_resolve_alias() {
     local name="$1" mod aliases alias
     for mod in $_REGISTRY_MODULES; do
         if [[ "$mod" == "$name" ]]; then
             echo "$mod"; return 0
         fi
+    done
+    for mod in $_REGISTRY_MODULES; do
         aliases=$(_reg_get "$mod" ALIASES)
         if [[ -n "$aliases" ]]; then
             IFS=',' read -ra _alias_arr <<< "$aliases"
