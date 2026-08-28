@@ -139,6 +139,129 @@ _disk_guard_destructive() {
 }
 
 # ============================================================
+# SMART 健康判定（纯函数：只解析传入文本，不碰设备，可单测）
+# ============================================================
+
+# ATA 属性表：取指定 ID 的 RAW 值数字前缀；属性不存在输出空
+_smart_ata_raw() {
+    local raw
+    raw=$(awk -v id="$2" '$1 == id { print $10; exit }' <<<"$1")
+    raw=${raw%%[^0-9]*}
+    echo "$raw"
+}
+
+# NVMe 属性：按标签取冒号后的值（trim 首尾空白）
+_smart_nvme_val() {
+    awk -v lbl="$2" 'index($0, lbl) { sub(/^[^:]*:[[:space:]]*/, ""); print; exit }' <<<"$1"
+}
+
+# 取数字前缀："95%"→95，"0x00"→0，空→空
+_smart_pct() {
+    local v=${1:-}
+    v=${v%%[^0-9]*}
+    echo "$v"
+}
+
+# -H 输出的总评词：PASSED / FAILED / 空（读不到）
+_smart_health_word() {
+    local w
+    w=$(awk '/overall-health self-assessment test result:/ { print $NF; exit }' <<<"$1")
+    w=${w//[^A-Za-z]/}
+    echo "$w"
+}
+
+# 非负整数比较：$1 > $2 时返回 0（空/非数字按 0；10# 强制十进制防八进制）
+_smart_num_gt() {
+    local a=${1:-0} b=${2:-0}
+    [[ "$a" =~ ^[0-9]+$ ]] || a=0
+    [[ "$b" =~ ^[0-9]+$ ]] || b=0
+    (( 10#$a > 10#$b ))
+}
+
+# 判定核心：入参 =(-H 输出, -A 输出, 总线 nvme|ata)
+# 输出 "<verdict>|<原因;...>"；verdict ∈ healthy|warning|critical|unknown
+_smart_verdict() {
+    local h_out="$1" a_out="$2" bus="$3"
+    local verdict="healthy" reasons="" health id raw
+    health=$(_smart_health_word "$h_out")
+    if [[ "$health" == "FAILED" ]]; then
+        verdict="critical"
+        reasons="SMART 总评 FAILED"
+    elif [[ -z "$health" ]]; then
+        echo "unknown|读不到 SMART 数据（USB 桥/RAID 背板不支持或权限不足）"
+        return 0
+    fi
+    case "$bus" in
+        nvme)
+            local cw media spare spare_th pct
+            cw=$(_smart_nvme_val "$a_out" "Critical Warning:")
+            media=$(_smart_nvme_val "$a_out" "Media and Data Integrity Errors:")
+            spare=$(_smart_pct "$(_smart_nvme_val "$a_out" "Available Spare:")")
+            spare_th=$(_smart_pct "$(_smart_nvme_val "$a_out" "Available Spare Threshold:")")
+            pct=$(_smart_pct "$(_smart_nvme_val "$a_out" "Percentage Used:")")
+            if [[ -n "$cw" && "$cw" != "0x00" && "$cw" != "0" ]]; then
+                verdict="critical"
+                reasons="${reasons:+${reasons};}NVMe critical_warning=${cw}"
+            fi
+            if _smart_num_gt "$media" 0; then
+                verdict="critical"
+                reasons="${reasons:+${reasons};}介质错误(Media Errors)=${media}"
+            fi
+            if [[ "$spare" =~ ^[0-9]+$ && "$spare_th" =~ ^[0-9]+$ ]] && (( 10#$spare < 10#$spare_th )); then
+                verdict="critical"
+                reasons="${reasons:+${reasons};}备用空间 ${spare}% 低于阈值 ${spare_th}%"
+            fi
+            if _smart_num_gt "$pct" 89; then
+                [[ "$verdict" == "healthy" ]] && verdict="warning"
+                reasons="${reasons:+${reasons};}寿命已耗 ${pct}%"
+            fi
+            ;;
+        *)
+            for id in 197 198 187; do   # 待定/不可修复/不可纠正 → 危险
+                raw=$(_smart_ata_raw "$a_out" "$id")
+                if _smart_num_gt "$raw" 0; then
+                    verdict="critical"
+                    case "$id" in
+                        197) reasons="${reasons:+${reasons};}待定扇区(Current_Pending)=${raw}" ;;
+                        198) reasons="${reasons:+${reasons};}不可修复扇区(Offline_Uncorrectable)=${raw}" ;;
+                        187) reasons="${reasons:+${reasons};}不可纠正(Reported_Uncorrect)=${raw}" ;;
+                    esac
+                fi
+            done
+            for id in 5 196; do         # 重映射扇区/事件 → 注意（盘在自愈）
+                raw=$(_smart_ata_raw "$a_out" "$id")
+                if _smart_num_gt "$raw" 0; then
+                    [[ "$verdict" == "healthy" ]] && verdict="warning"
+                    case "$id" in
+                        5)   reasons="${reasons:+${reasons};}重映射扇区(Reallocated_Sector)=${raw}" ;;
+                        196) reasons="${reasons:+${reasons};}重映射事件(Reallocation_Event)=${raw}" ;;
+                    esac
+                fi
+            done
+            ;;
+    esac
+    echo "${verdict}|${reasons}"
+}
+
+_smart_verdict_emoji() {
+    case "$1" in
+        healthy)  echo "✅" ;;
+        warning)  echo "🟡" ;;
+        critical) echo "🔴" ;;
+        *)        echo "🟡" ;;
+    esac
+}
+
+_smart_verdict_cn() {
+    case "$1" in
+        healthy)  echo "健康" ;;
+        warning)  echo "注意" ;;
+        critical) echo "危险" ;;
+        *)        echo "未知" ;;
+    esac
+}
+
+# ============================================================
 # 子命令实现
 # ============================================================
 
@@ -472,4 +595,7 @@ main() {
     esac
 }
 
-main "$@"
+# 允许单测 source 本文件只取纯函数；直接执行时照常入口
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
+fi
