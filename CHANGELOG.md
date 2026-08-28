@@ -4,8 +4,12 @@
 
 ## [Unreleased]
 
+### 新增
+- **磁盘健康诊断升级（sys-tools/disk）**：`disk smart` 从原样输出 smartctl 升级为逐项判读——无参数全盘概览与单盘详情均给出分级结论（✅健康/🟡注意/🔴危险/未知），ATA 判读重映射/待定/不可纠正扇区、NVMe 判读介质错误/备用空间/寿命耗用，机器模式输出 `STATE`/`EXTRA`，SMART 自动探测失败（SAT 层提示）时自动以 `-d ata` 重试；新增 `disk scan` 盘面坏块只读扫描（badblocks 不写盘，实时进度、耗时预估、坏块 LBA 清单与备份/换盘建议）
+
 ### 修复
 - **disk 护栏拒绝时不再一句笼统话**：`format`/`partition`/`wipe` 等破坏性操作被"使用中"护栏拒绝时，逐条列出具体占用（哪个分区已挂载、哪个是 LVM PV 及其 VG 名、哪个被激活的内核 DM/RAID 持有）与对应解除方法；并解锁死锁——此前旧 LVM PV/swap 残留签名既挡住 format 也挡住能解除它们的 `wipe`，只能手敲 `pvremove`。现 `wipe` 在设备无挂载、无激活占用（内核 holder 判定）时允许清除旧签名；挂载与激活占用仍硬拒绝。顺带补上 disk 模块缺失的 source 守护（单测无法复用纯函数）
+- disk 模块两处 shellcheck 0.9 存量报错：`cmd_status` 局部变量与 lib/common.sh 数组同名触发 SC2178/SC2128（改名 miss_tools）；`_disk_format_device` 的 `A&&B||true` 写法触发 SC2015（改 if 形式，行为不变）
 
 ## [1.11.0] - 2026-08-28
 
