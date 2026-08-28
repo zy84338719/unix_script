@@ -344,10 +344,27 @@ _top_scan_dirs_fallback() {
     done
 }
 
+# 探测当前 find 是否支持 -size 的 M/G 后缀：GNU find 支持；BusyBox find 只有
+# c/b/k/w（实测 Alpine）。不支持时文件榜降级跳过，而不是静默输出「无匹配」误导用户。
+_top_find_supports_size_m() {
+    local probe rc
+    probe="$(mktemp)" || return 1
+    printf 'x' > "$probe"
+    find "$probe" -size +1M >/dev/null 2>&1
+    rc=$?
+    rm -f "$probe"
+    # GNU find：1 字节文件不匹配 +1M，退出 0；BusyBox find：不认 M 后缀，退出非 0
+    [[ $rc -eq 0 ]]
+}
+
 # 文件扫描：find -type f -size +50M → du -k，数字排序取前 count
 _top_scan_files() {
     local count="$1"; shift
     local raw
+    if ! _top_find_supports_size_m; then
+        warn "当前 find 不支持按 M/G 过滤（BusyBox？），文件榜已跳过（可装 findutils 恢复）" >&2
+        return 0
+    fi
     if [[ "$USE_SUDO" == "1" ]]; then
         raw=$(sudo find "$@" -type f -size +50M -exec du -k {} + 2>/dev/null || true)
     else
