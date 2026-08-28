@@ -418,21 +418,97 @@ _disk_fstab_remove() {
     success "已移除 fstab 条目: ${mp}（备份: /etc/fstab.bak.${ts}）"
 }
 
+# 总线类型：NVMe 走 NVMe 判读，其余按 ATA（SAS 仅总评可判）
+_smart_bus() {
+    local info
+    info=$(sudo smartctl -i "$1" 2>/dev/null || true)
+    if grep -qi 'NVMe Version' <<<"$info"; then
+        echo nvme
+    else
+        echo ata
+    fi
+}
+
+# 单盘一行结论（概览用；机器模式输出 STATE/EXTRA）
+_smart_report_one() {
+    local dev="$1" h a vout verdict reasons model size
+    h=$(sudo smartctl -H "$dev" 2>/dev/null || true)
+    a=$(sudo smartctl -A "$dev" 2>/dev/null || true)
+    vout=$(_smart_verdict "$h" "$a" "$(_smart_bus "$dev")")
+    verdict=${vout%%|*}
+    reasons=${vout#*|}
+    if uxs_is_machine_mode; then
+        emit_status "$verdict" "${dev} $(_smart_verdict_cn "$verdict")"
+        emit_extra "dev=${dev##*/} model=${model} reasons=${reasons}"
+    else
+        model=$(lsblk -dno MODEL "$dev" 2>/dev/null | head -1 || true)
+        size=$(lsblk -dno SIZE "$dev" 2>/dev/null | head -1 || true)
+        emit_status "$verdict" "$(_smart_verdict_emoji "$verdict") ${dev##*/}  ${model:-?}  ${size:-?}  $(_smart_verdict_cn "$verdict")${reasons:+（${reasons}）}"
+    fi
+}
+
+# 单盘详情：设备信息 + 总评 + 关键指标 + 属性表 + 结论
+_smart_report_detail() {
+    local dev="$1" h a vout verdict reasons temp hours
+    h=$(sudo smartctl -H "$dev" 2>/dev/null || true)
+    a=$(sudo smartctl -A "$dev" 2>/dev/null || true)
+    vout=$(_smart_verdict "$h" "$a" "$(_smart_bus "$dev")")
+    verdict=${vout%%|*}
+    reasons=${vout#*|}
+    if uxs_is_machine_mode; then
+        emit_status "$verdict" "${dev}"
+        emit_extra "dev=${dev##*/} reasons=${reasons}"
+        return 0
+    fi
+    header "═══ SMART 健康体检：${dev} ═══"
+    echo "—— 设备信息 ——"
+    sudo smartctl -i "$dev" 2>/dev/null | sed -n '1,20p' || true
+    echo
+    echo "—— SMART 总评 ——"
+    sudo smartctl -H "$dev" 2>/dev/null || true   # 健康异常时 smartctl 退出非零是正常语义，以输出为准
+    echo
+    echo "—— 关键指标 ——"
+    temp=$(_smart_ata_raw "$a" 194)
+    [[ -n "$temp" ]] || temp=$(_smart_pct "$(_smart_nvme_val "$a" "Temperature:")")
+    hours=$(_smart_ata_raw "$a" 9)
+    [[ -n "$hours" ]] || hours=$(_smart_nvme_val "$a" "Power On Hours:")
+    [[ -n "$temp" ]] && echo "温度: ${temp}°C"
+    [[ -n "$hours" ]] && echo "通电时长: ${hours} 小时"
+    echo
+    echo "—— 属性表 ——"
+    sudo smartctl -A "$dev" 2>/dev/null || true
+    echo
+    case "$verdict" in
+        healthy)  success "$(_smart_verdict_emoji healthy) 结论：健康——未发现异常指标" ;;
+        warning)  warn "$(_smart_verdict_emoji warning) 结论：注意——${reasons}（盘正在自愈，关注趋势，保持备份）" ;;
+        critical) error "$(_smart_verdict_emoji critical) 结论：危险——${reasons}（建议立即备份数据，评估换盘）" ;;
+        *)        warn "$(_smart_verdict_emoji unknown) 结论：未知——${reasons}" ;;
+    esac
+    [[ "$verdict" == "critical" ]] && return 1
+    return 0
+}
+
 cmd_smart() {
-    local dev_s="${1:-}" dev base
-    [[ -n "$dev_s" ]] || { error "用法: smart <整盘>（如 sda）"; return 1; }
-    dev=$(_disk_resolve "$dev_s") || return 1
     _linux_require || return 1
-    require_sudo
     if ! command -v smartctl >/dev/null 2>&1; then
         info "未安装 smartmontools，正在补装..."
         pkg_install smartmontools
     fi
-    base=$(_disk_base_disk "$dev")
-    header "SMART 健康总评（${base}）："
-    sudo smartctl -H "$base" || true   # 健康异常时 smartctl 退出非零是正常语义，以输出为准
-    echo
-    sudo smartctl -A "$base" || true
+    require_sudo
+    if [[ $# -eq 0 ]]; then
+        header "SMART 健康概览（全部整盘）："
+        local d any=false
+        while IFS= read -r d; do
+            any=true
+            _smart_report_one "/dev/$d"
+        done < <(lsblk -drno NAME,TYPE 2>/dev/null | awk '$2=="disk"{print $1}')
+        $any || warn "未发现整盘设备"
+        return 0
+    fi
+    local dev_s="$1" dev
+    dev=$(_disk_resolve "$dev_s") || return 1
+    dev=$(_disk_base_disk "$dev")
+    _smart_report_detail "$dev"
 }
 
 cmd_wipe() {
@@ -562,7 +638,7 @@ usage() {
   mount <设备> <挂载点> [--fstab]  挂载（--fstab 同时持久化）
   umount <挂载点|设备>          卸载
   fstab list|add|remove         fstab 管理（UUID 方式，写前备份写后验证）
-  smart <整盘>                  SMART 健康检查（缺 smartmontools 自动补装）
+  smart [整盘]                  SMART 健康体检（无参=全部整盘概览；单盘=详情+判读）
   wipe <设备>                   清除文件系统/分区表签名（wipefs）
   install                       补装依赖工具
   uninstall                     移除辅助工具（不碰磁盘数据）
@@ -572,6 +648,7 @@ usage() {
   · 根盘/启动盘/EFI/swap 及其所在整盘硬拒绝，使用中设备硬拒绝
   · 破坏性操作仅限交互终端，且需手动输入完整设备名确认
   · fstab 写入前自动备份，mount -a 验证失败自动回滚
+  · smart/scan 为只读体检：不写盘，scan 对使用中设备仅警告不拒绝
 EOF
 }
 

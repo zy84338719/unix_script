@@ -330,6 +330,8 @@ phase_routing() {
     assert "disk: 系统盘硬拒绝护栏存在" bash -c "grep -q '_disk_is_protected()' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: 护栏拒绝非交互终端" bash -c "grep -qF '仅允许在交互终端执行' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: usage 子命令枚举完整（供 --list-modules/补全解析）" bash -c "grep -qF '{list|wizard|partition|format|mount|umount|fstab|smart|wipe|install|uninstall|status|help}' \"$REPO_DIR/$disk_path/install.sh\""
+    assert "disk: smart 判定纯函数存在（可单测）" bash -c "grep -q '_smart_verdict()' \"$REPO_DIR/$disk_path/install.sh\""
+    assert "disk: smart 判定单测全过" bash "$REPO_DIR/tests/unit_disk_smart.sh"
 
 
     # 4b. status 契约：machine 模式下每个模块首行必须是合法 STATE=
