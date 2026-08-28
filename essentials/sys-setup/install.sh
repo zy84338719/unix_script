@@ -34,6 +34,27 @@ preflight() {
 # 国内镜像源（清华 TUNA）
 MIRROR_BASE="https://mirrors.tuna.tsinghua.edu.cn"
 
+# 停用除主文件外仍指向发行版归档的 apt 源文件（deb822 与一行式都查），
+# 避免新旧源并存：索引重复下载、security 残留官方源、modernize-sources 提示。
+# 停用方式 = 重命名为 *.bak.<ts>（apt 只读 .list/.sources 后缀，随时可改回）。
+_apt_disable_distro_sources() {
+    local primary="$1" ts="$2" f
+    # 匹配发行版归档 URI：官方 archive/security/deb.debian.org + 各国内镜像站的 ubuntu/debian 路径
+    local pattern='(archive|security|azure|cn)\.ubuntu\.com|(deb|security)\.debian\.org|mirrors\.[A-Za-z.]+/(ubuntu|debian)'
+    local -a candidates=(/etc/apt/sources.list)
+    for f in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+        [[ -f "$f" ]] && candidates+=("$f")
+    done
+    for f in "${candidates[@]}"; do
+        [[ -f "$f" ]] || continue
+        [[ "$f" == "$primary" ]] && continue
+        if sudo grep -Eq "$pattern" "$f" 2>/dev/null; then
+            sudo mv "$f" "${f}.bak.$ts" 2>/dev/null || { warn "停用失败（权限？）：$f"; continue; }
+            warn "已停用重复/残留源文件：$f（恢复：sudo mv ${f}.bak.$ts $f）"
+        fi
+    done
+}
+
 do_mirror() {
     preflight
     detect_pkg_manager
@@ -70,24 +91,60 @@ do_mirror() {
                 error "无法识别发行版代号（VERSION_CODENAME）"
                 return 1
             fi
-            sudo cp -a /etc/apt/sources.list "/etc/apt/sources.list.bak.$(date +%s)" 2>/dev/null || true
-            if [[ "$distro" == "ubuntu" ]]; then
-                sudo tee /etc/apt/sources.list >/dev/null <<EOF
+            local ts primary
+            ts=$(date +%s)
+            # Ubuntu 24.04+/Debian 13 起发行版源在 sources.list.d/*.sources（deb822），
+            # 只重写 sources.list 会与之并存导致索引重复、security 残留官方源——优先重写 deb822 主文件
+            if [[ "$distro" == "ubuntu" && -f /etc/apt/sources.list.d/ubuntu.sources ]]; then
+                primary=/etc/apt/sources.list.d/ubuntu.sources
+                sudo cp -a "$primary" "${primary}.bak.$ts" 2>/dev/null || true
+                sudo tee "$primary" >/dev/null <<EOF
+# 由 unix_script sys-setup 生成（原文件已备份为 ${primary}.bak.$ts）
+Types: deb
+URIs: ${MIRROR_BASE}/ubuntu/
+Suites: ${codename} ${codename}-updates ${codename}-backports ${codename}-security
+Components: main restricted universe multiverse
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+EOF
+            elif [[ "$distro" == "debian" && -f /etc/apt/sources.list.d/debian.sources ]]; then
+                primary=/etc/apt/sources.list.d/debian.sources
+                sudo cp -a "$primary" "${primary}.bak.$ts" 2>/dev/null || true
+                sudo tee "$primary" >/dev/null <<EOF
+# 由 unix_script sys-setup 生成（原文件已备份为 ${primary}.bak.$ts）
+Types: deb
+URIs: ${MIRROR_BASE}/debian/
+Suites: ${codename} ${codename}-updates ${codename}-backports
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb
+URIs: ${MIRROR_BASE}/debian-security/
+Suites: ${codename}-security
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+EOF
+            else
+                primary=/etc/apt/sources.list
+                sudo cp -a /etc/apt/sources.list "/etc/apt/sources.list.bak.$ts" 2>/dev/null || true
+                if [[ "$distro" == "ubuntu" ]]; then
+                    sudo tee /etc/apt/sources.list >/dev/null <<EOF
 # 由 unix_script sys-setup 生成（原文件已备份为 .bak.*）
 deb ${MIRROR_BASE}/ubuntu/ ${codename} main restricted universe multiverse
 deb ${MIRROR_BASE}/ubuntu/ ${codename}-updates main restricted universe multiverse
 deb ${MIRROR_BASE}/ubuntu/ ${codename}-backports main restricted universe multiverse
 deb ${MIRROR_BASE}/ubuntu/ ${codename}-security main restricted universe multiverse
 EOF
-            else
-                sudo tee /etc/apt/sources.list >/dev/null <<EOF
+                else
+                    sudo tee /etc/apt/sources.list >/dev/null <<EOF
 # 由 unix_script sys-setup 生成（原文件已备份为 .bak.*）
 deb ${MIRROR_BASE}/debian/ ${codename} main contrib non-free non-free-firmware
 deb ${MIRROR_BASE}/debian/ ${codename}-updates main contrib non-free non-free-firmware
 deb ${MIRROR_BASE}/debian/ ${codename}-backports main contrib non-free non-free-firmware
 deb ${MIRROR_BASE}/debian-security ${codename}-security main contrib non-free non-free-firmware
 EOF
+                fi
             fi
+            _apt_disable_distro_sources "$primary" "$ts"
             success "apt 源已更换为清华镜像（$distro/${codename}），原文件已备份"
             sudo apt-get update
             ;;
@@ -590,9 +647,9 @@ status_sys_setup() {
     fi
 
     # ---- 先计算各子项的事实，用于聚合并聚态与 emit_extra ----
-    # 镜像源
+    # 镜像源（现代 Ubuntu/Debian 的发行版源在 sources.list.d/*.sources，需一并检测）
     local mirror_ok=false mirror_val="默认源"
-    if grep -q "tuna.tsinghua\|mirrors.aliyun\|mirrors.ustc" /etc/apt/sources.list 2>/dev/null; then
+    if grep -qs "tuna.tsinghua\|mirrors.aliyun\|mirrors.ustc" /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources 2>/dev/null; then
         mirror_ok=true; mirror_val="已换国内源"
     fi
     # 时区
