@@ -294,6 +294,22 @@ phase_routing() {
             grep -q "manage_${v}()" "$1/lib/submenus.sh" || { echo "缺少 manage_${v}()"; exit 1; }
         done' _ "$REPO_DIR"
     assert "lib/status.sh 含 module_status 函数" bash -c "grep -q 'module_status()' \"$REPO_DIR/lib/status.sh\""
+
+    # 9b. dry-run：require_sudo 短路 + sudo 遮蔽函数（预览模式不真实执行 root 操作）
+    assert "dry-run: common.sh 含 sudo 遮蔽安装函数" bash -c "grep -q 'uxs_install_sudo_shim()' \"$REPO_DIR/lib/common.sh\""
+    assert "dry-run: require_sudo 短路存在" bash -c "grep -q '跳过 sudo 授权' \"$REPO_DIR/lib/common.sh\""
+    # shellcheck disable=SC2016 # $1 展开后交内层 bash -c 求值
+    assert "dry-run: sudo 命令被拦截不落盘" bash -c '
+        T=$(mktemp -d) || exit 1
+        export UNIX_SCRIPT_DRY_RUN=1
+        source "$1/lib/common.sh" >/dev/null 2>&1 || exit 1
+        sudo touch "$T/marker"
+        require_sudo >/dev/null 2>&1
+        [ ! -e "$T/marker" ] || { echo "marker 被真实创建，遮蔽失效"; exit 1; }
+        rm -rf "$T"' _ "$REPO_DIR"
+    # shellcheck disable=SC2016 # $() 故意交给内层 bash -c 求值
+    assert "dry-run: 非 dry-run 不遮蔽 sudo" bash -c \
+        'cd "$1" && UNIX_SCRIPT_DRY_RUN=0 bash -c "source ./lib/common.sh >/dev/null 2>&1; [ -z \"\$(declare -F sudo)\" ]"' _ "$REPO_DIR"
     # dev-mirror 子命令路由：非法生态应报错退出 1
     assert "dev-mirror: 非法生态报错 (exit 1)" bash -c "! \"$REPO_DIR/$dm_path/install.sh\" install __bad_eco__ >/dev/null 2>&1"
     # dev-mirror: 非法源标识应报错退出 1

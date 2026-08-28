@@ -156,7 +156,8 @@ main() {
     case "$1" in
         --dry-run)
             export UNIX_SCRIPT_DRY_RUN=1
-            info "启用 dry-run 模式（仅预览，不实际执行）"
+            uxs_install_sudo_shim
+            info "启用 dry-run 模式（sudo/root 操作仅打印，不实际执行）"
             shift
             if [[ $# -eq 0 ]]; then
                 show_usage
