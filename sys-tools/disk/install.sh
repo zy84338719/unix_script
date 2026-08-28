@@ -4,7 +4,7 @@
 # 磁盘管理工具箱：列盘 / 分区 / 格式化 / 挂载 / fstab / SMART 健康 / 擦除签名。
 # 仅 Linux。破坏性操作受三层严格护栏保护（见 _disk_guard_destructive），无 --yes 绕过。
 #
-# 用法: install.sh {list|wizard|partition|format|mount|umount|fstab|smart|wipe|install|uninstall|status|help}
+# 用法: install.sh {list|wizard|partition|format|mount|umount|fstab|smart|scan|wipe|install|uninstall|status|help}
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -511,6 +511,47 @@ cmd_smart() {
     _smart_report_detail "$dev"
 }
 
+cmd_scan() {
+    local dev_s="${1:-}" dev base size est_min bb_out badn rc
+    [[ -n "$dev_s" ]] || { error "用法: scan <整盘|分区>（如 sdb 或 sdb1）"; return 1; }
+    _linux_require || return 1
+    dev=$(_disk_resolve "$dev_s") || return 1
+    if ! command -v badblocks >/dev/null 2>&1; then
+        info "未安装 badblocks（e2fsprogs），正在补装..."
+        pkg_install e2fsprogs
+    fi
+    require_sudo
+    base=$(_disk_base_disk "$dev")
+    _disk_show_detail "$dev"
+    # 只读扫描不走破坏性护栏：使用中/系统盘仅警告 IO 竞争，不拒绝（不写盘，数据零风险）
+    if _disk_in_use "$dev" || _disk_is_protected "$base"; then
+        warn "扫描为只读（不写盘），但 ${dev} 正在使用中/属系统盘：扫描会显著变慢且拖累系统 IO"
+    fi
+    size=$(lsblk -bno SIZE "$dev" 2>/dev/null | head -1 || true)
+    if [[ "$size" =~ ^[0-9]+$ ]]; then
+        est_min=$(( size / 1048576 / 150 / 60 ))
+        (( est_min < 1 )) && est_min=1
+        info "预计耗时约 $(( est_min / 60 )) 小时 $(( est_min % 60 )) 分钟（按 ~150MB/s 估算，SSD 通常更快）"
+    fi
+    header "开始只读盘面扫描（badblocks，不写盘）。长时间扫描建议放 tmux/screen；Ctrl-C 可中断，已扫部分无结论可直接重跑。"
+    bb_out=$(mktemp "${TMPDIR:-/tmp}/uxs-badblocks.XXXXXX")
+    rc=0
+    sudo badblocks -sv -b 4096 -o "$bb_out" "$dev" || rc=$?
+    badn=$(wc -l < "$bb_out" 2>/dev/null || true)
+    badn=$(printf '%s' "${badn:-0}" | tr -d '[:space:]')
+    if (( badn > 0 )); then
+        error "🔴 发现 ${badn} 个坏块！建议：① 立即备份重要数据 ② ./install.sh disk smart ${base##*/} 查看重映射趋势 ③ 评估更换硬盘"
+        echo "坏块 LBA 清单（前 20 行；完整清单: ${bb_out}）:"
+        head -20 "$bb_out" || true
+        return 1
+    elif (( rc != 0 )); then
+        error "扫描异常退出（rc=${rc}；退出码 bit2=被中断）。已扫描部分无结论，可直接重跑"
+        return 1
+    fi
+    rm -f "$bb_out"
+    success "✅ 盘面完好：${dev} 全盘只读扫描未发现坏块"
+}
+
 cmd_wipe() {
     local dev_s="${1:-}" dev
     [[ -n "$dev_s" ]] || { error "用法: wipe <设备>（清文件系统/分区表签名）"; return 1; }
@@ -629,7 +670,7 @@ usage() {
     cat <<EOF
 磁盘管理工具箱（仅 Linux）：分区 / 格式化 / 挂载 / fstab / SMART / 擦除签名
 
-用法: install.sh {list|wizard|partition|format|mount|umount|fstab|smart|wipe|install|uninstall|status|help}
+用法: install.sh {list|wizard|partition|format|mount|umount|fstab|smart|scan|wipe|install|uninstall|status|help}
 
   list                          列出块设备与受保护设备（默认动作）
   wizard                        新盘一键上线：分区→格式化→挂载→fstab（交互）
@@ -639,6 +680,7 @@ usage() {
   umount <挂载点|设备>          卸载
   fstab list|add|remove         fstab 管理（UUID 方式，写前备份写后验证）
   smart [整盘]                  SMART 健康体检（无参=全部整盘概览；单盘=详情+判读）
+  scan <整盘|分区>              盘面坏块只读扫描（badblocks 不写盘，耗时可能数小时）
   wipe <设备>                   清除文件系统/分区表签名（wipefs）
   install                       补装依赖工具
   uninstall                     移除辅助工具（不碰磁盘数据）
@@ -663,6 +705,7 @@ main() {
         umount|unmount) cmd_umount "$@" ;;
         fstab)     cmd_fstab "$@" ;;
         smart)     cmd_smart "$@" ;;
+        scan)      cmd_scan "$@" ;;
         wipe)      cmd_wipe "$@" ;;
         install)   cmd_install ;;
         uninstall) cmd_uninstall ;;

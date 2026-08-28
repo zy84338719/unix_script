@@ -329,9 +329,10 @@ phase_routing() {
     assert "disk: DEFAULT_ACTION=list（非交互默认最安全）" bash -c "grep -q '^DEFAULT_ACTION=list$' \"$REPO_DIR/$disk_path/.manifest\""
     assert "disk: 系统盘硬拒绝护栏存在" bash -c "grep -q '_disk_is_protected()' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: 护栏拒绝非交互终端" bash -c "grep -qF '仅允许在交互终端执行' \"$REPO_DIR/$disk_path/install.sh\""
-    assert "disk: usage 子命令枚举完整（供 --list-modules/补全解析）" bash -c "grep -qF '{list|wizard|partition|format|mount|umount|fstab|smart|wipe|install|uninstall|status|help}' \"$REPO_DIR/$disk_path/install.sh\""
+    assert "disk: usage 子命令枚举完整（供 --list-modules/补全解析）" bash -c "grep -qF '{list|wizard|partition|format|mount|umount|fstab|smart|scan|wipe|install|uninstall|status|help}' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: smart 判定纯函数存在（可单测）" bash -c "grep -q '_smart_verdict()' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: smart 判定单测全过" bash "$REPO_DIR/tests/unit_disk_smart.sh"
+    assert "disk: scan 子命令存在且只读（禁 badblocks 写模式 -w/-n）" bash -c "grep -q 'cmd_scan()' \"$REPO_DIR/$disk_path/install.sh\" && ! grep -Eq 'badblocks .*( -w| -n)' \"$REPO_DIR/$disk_path/install.sh\""
 
 
     # 4b. status 契约：machine 模式下每个模块首行必须是合法 STATE=
