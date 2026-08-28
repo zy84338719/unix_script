@@ -331,6 +331,60 @@ phase_routing() {
     assert "disk: 护栏拒绝非交互终端" bash -c "grep -qF '仅允许在交互终端执行' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: usage 子命令枚举完整（供 --list-modules/补全解析）" bash -c "grep -qF '{list|wizard|partition|format|mount|umount|fstab|smart|wipe|install|uninstall|status|help}' \"$REPO_DIR/$disk_path/install.sh\""
 
+    # 9e. disk-usage top：深度下钻 + 交互守卫（纯函数 + fixture 行为）
+    local dus_path
+    dus_path=$(resolve_module_path disk-usage)
+    # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
+    assert "disk-usage: _fmt_kb 单位换算边界" bash -c '
+        source "$1/sys-tools/disk-usage/install.sh" >/dev/null 2>&1
+        [ "$(_fmt_kb 456)" = "456K" ] || exit 1
+        [ "$(_fmt_kb 1024)" = "1M" ] || exit 1
+        [ "$(_fmt_kb 1536)" = "1M" ] || exit 1
+        [ "$(_fmt_kb 2097152)" = "2.0G" ] || exit 1
+        [ "$(_fmt_kb 1610612736)" = "1536.0G" ] || exit 1
+        [ "$(_fmt_kb 1572864)" = "1.5G" ] || exit 1' _ "$REPO_DIR"
+    # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
+    assert "disk-usage: _parse_size_to_kb 解析与拒绝" bash -c '
+        source "$1/sys-tools/disk-usage/install.sh" >/dev/null 2>&1
+        [ "$(_parse_size_to_kb 100M)" = "102400" ] || exit 1
+        [ "$(_parse_size_to_kb 2g)" = "2097152" ] || exit 1
+        [ "$(_parse_size_to_kb 500K)" = "500" ] || exit 1
+        if _parse_size_to_kb 100 >/dev/null 2>&1; then echo "缺单位应拒绝"; exit 1; fi
+        if _parse_size_to_kb 100MB >/dev/null 2>&1; then echo "非法后缀应拒绝"; exit 1; fi
+        if _parse_size_to_kb abc >/dev/null 2>&1; then echo "非数字应拒绝"; exit 1; fi' _ "$REPO_DIR"
+    # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
+    assert "disk-usage: top fixture（空格路径/隐藏目录/深度/min-size/文件榜/管道无交互）" bash -c '
+        FX=$(mktemp -d) || exit 1
+        mkdir -p "$FX/big" "$FX/small" "$FX/.hidden" "$FX/dir with space/lvl2" || exit 1
+        dd if=/dev/zero of="$FX/big/huge.bin" bs=1048576 count=51 2>/dev/null || exit 1
+        dd if=/dev/zero of="$FX/big/f.bin" bs=1048576 count=3 2>/dev/null || exit 1
+        dd if=/dev/zero of="$FX/small/f.bin" bs=1048576 count=1 2>/dev/null || exit 1
+        dd if=/dev/zero of="$FX/.hidden/f.bin" bs=1048576 count=2 2>/dev/null || exit 1
+        dd if=/dev/zero of="$FX/dir with space/lvl2/f.bin" bs=1048576 count=2 2>/dev/null || exit 1
+        out=$(bash "$1/sys-tools/disk-usage/install.sh" top "$FX" --count 20 --no-interactive </dev/null 2>&1); rc=$?
+        [ "$rc" -eq 0 ] || { echo "rc=$rc"; echo "$out"; rm -rf "$FX"; exit 1; }
+        echo "$out" | grep -q "dir with space" || { echo "空格路径缺失"; exit 1; }
+        echo "$out" | grep -q ".hidden" || { echo "隐藏目录缺失"; exit 1; }
+        echo "$out" | grep -Eq "[0-9]+(\.[0-9]+)?[MG]" || { echo "无 M/G 单位输出"; exit 1; }
+        echo "$out" | grep -q "huge.bin" || { echo "文件榜缺 >50M 文件"; exit 1; }
+        echo "$out" | grep -q "q=退出" && { echo "管道下不应出现交互提示"; exit 1; }
+        out2=$(bash "$1/sys-tools/disk-usage/install.sh" top "$FX" --min-size 3M --no-interactive </dev/null 2>&1)
+        echo "$out2" | grep -q "big" || { echo "min-size 误杀大目录"; exit 1; }
+        echo "$out2" | grep -q "small" && { echo "min-size 未过滤小目录"; exit 1; }
+        echo "$out2" | grep -q ".hidden" && { echo "min-size 未过滤 2M 隐藏目录"; exit 1; }
+        out3=$(bash "$1/sys-tools/disk-usage/install.sh" top "$FX" --depth 2 --count 30 --no-interactive </dev/null 2>&1)
+        echo "$out3" | grep -q "lvl2" || { echo "--depth 2 未下钻"; exit 1; }
+        echo "$out3" | grep -q "dir with space/lvl2" || { echo "空格路径被截断"; exit 1; }
+        if bash "$1/sys-tools/disk-usage/install.sh" top "$FX" --min-size 100 --no-interactive </dev/null >/dev/null 2>&1; then echo "缺单位应报错"; rm -rf "$FX"; exit 1; fi
+        rm -rf "$FX"' _ "$REPO_DIR"
+    # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
+    assert "disk-usage: 交互层结构（TTY 守卫/路径栈/键位）" bash -c '
+        grep -q "_top_interactive()" "$1/sys-tools/disk-usage/install.sh" || exit 1
+        grep -q "\-t 0" "$1/sys-tools/disk-usage/install.sh" || exit 1
+        grep -q "\-t 1" "$1/sys-tools/disk-usage/install.sh" || exit 1
+        grep -q "TOP_NO_INTERACTIVE" "$1/sys-tools/disk-usage/install.sh" || exit 1
+        grep -q "u=上一层" "$1/sys-tools/disk-usage/install.sh" || exit 1' _ "$REPO_DIR"
+
 
     # 4b. status 契约：machine 模式下每个模块首行必须是合法 STATE=
     check_status_contract

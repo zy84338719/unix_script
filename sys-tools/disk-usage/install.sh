@@ -162,75 +162,260 @@ _status_disk_dashboard() {
     fi
 }
 
+# ---- top: 交互模式（智能 TTY：stdout+stdin 均为终端且未 --no-interactive 才启用） ----
+# 键位：序号=下钻（depth 重置 1）  u=上一层（恢复原 depth）  c=改数量  q/回车=退出
+_top_interactive() {
+    local start_path="$1" start_depth="$2"
+    local count="$3"
+    local -a stack_paths=("$start_path") stack_depths=("$start_depth")
+    local cur depth ans n new_count idx n_paths
+
+    while true; do
+        n=${#stack_paths[@]}
+        cur="${stack_paths[$((n - 1))]}"
+        depth="${stack_depths[$((n - 1))]}"
+        echo
+        _top_print_dirs "$cur" "$depth" "$count"
+        if [[ "$n" -eq 1 ]]; then
+            echo
+            _top_print_files "$cur" "$count"
+        fi
+        echo
+        printf "序号=下钻该目录  u=上一层  c=改数量(当前 %s, 如 10/20/30/50)  q=退出\n> " "$count"
+        if ! read -r ans; then
+            break    # EOF（Ctrl-D）安全退出
+        fi
+        case "$ans" in
+            q|Q|"")
+                break
+                ;;
+            u|U)
+                if [[ "$n" -le 1 ]]; then
+                    info "已在顶层"
+                else
+                    unset "stack_paths[$((n - 1))]"
+                    unset "stack_depths[$((n - 1))]"
+                fi
+                ;;
+            c|C)
+                printf "输入数量（正整数，回车保留 %s）: " "$count"
+                if ! read -r new_count; then break; fi
+                if [[ -z "$new_count" ]]; then
+                    :
+                elif [[ "$new_count" =~ ^[0-9]+$ && "$new_count" -ge 1 ]]; then
+                    count="$new_count"
+                else
+                    warn "非法数量，保留 $count"
+                fi
+                ;;
+            *[!0-9]*)
+                warn "无效输入: $ans"
+                ;;
+            *)
+                n_paths=${#_top_last_paths[@]}
+                if [[ "$n_paths" -eq 0 ]]; then
+                    warn "当前榜单为空，无目录可下钻"
+                elif [[ "$ans" -ge 1 && "$ans" -le "$n_paths" ]]; then
+                    idx=$((ans - 1))
+                    stack_paths+=("${_top_last_paths[$idx]}")
+                    stack_depths+=(1)
+                else
+                    warn "序号超出范围（1-${n_paths}）"
+                fi
+                ;;
+        esac
+    done
+    return 0
+}
+
 # ============================================================
-# top - 大文件/目录排行
+# top - 大文件/目录排行（--depth 下钻 + 智能 TTY 交互）
 # ============================================================
+
+# ---- top: 纯函数（大小解析/格式化） ----
+
+# "100M"/"2g"/"500K" → KB 整数。必须带 K/M/G 单位（防纯数字歧义），非法返回 1
+_parse_size_to_kb() {
+    local s="${1:-}" num
+    case "$s" in
+        *[Kk]) num="${s%[Kk]}" ;;
+        *[Mm]) num="${s%[Mm]}" ;;
+        *[Gg]) num="${s%[Gg]}" ;;
+        *) return 1 ;;
+    esac
+    [[ "$num" =~ ^[0-9]+$ ]] || return 1
+    case "$s" in
+        *[Kk]) echo $(( num )) ;;
+        *[Mm]) echo $(( num * 1024 )) ;;
+        *)     echo $(( num * 1048576 )) ;;
+    esac
+}
+
+# KB → 人类可读：≥1G 一位小数（1.5G），≥1M 向下取整（123M），其余 K（456K）
+_fmt_kb() {
+    local kb="$1"
+    if (( kb >= 1048576 )); then
+        printf '%d.%dG\n' $(( kb / 1048576 )) $(( (kb % 1048576) * 10 / 1048576 ))
+    elif (( kb >= 1024 )); then
+        printf '%dM\n' $(( kb / 1024 ))
+    else
+        printf '%dK\n' "$kb"
+    fi
+}
+
 top_disk() {
-    local scan_path="${1:-/}"
-    local count="${TOP_COUNT:-10}"
+    local scan_path
+    scan_path=$(_norm_path "${1:-/}")
+
+    # 参数校验（count/depth 正整数；min-size 必须带单位）
+    case "${TOP_COUNT:-10}" in
+        ''|*[!0-9]*|0) error "--count 需为正整数: ${TOP_COUNT:-}"; usage; exit 1 ;;
+    esac
+    case "${TOP_DEPTH:-1}" in
+        ''|*[!0-9]*|0) error "--depth 需为正整数: ${TOP_DEPTH:-}"; usage; exit 1 ;;
+    esac
+    TOP_MIN_SIZE_KB=""
+    if [[ -n "${TOP_MIN_SIZE:-}" ]]; then
+        TOP_MIN_SIZE_KB=$(_parse_size_to_kb "$TOP_MIN_SIZE") || {
+            error "--min-size 需带 K/M/G 单位，如 100M"; usage; exit 1
+        }
+    fi
 
     if [[ ! -d "$scan_path" ]]; then
         error "路径不存在: $scan_path"
         exit 1
     fi
 
-    header "═══════════════════════════════════════"
-    header "  📊 ${scan_path} 下最大的 ${count} 个目录"
-    header "═══════════════════════════════════════"
-    echo
-
-    info "正在扫描（大目录可能需要一些时间）..."
-    echo
-
-    # 大目录排行（扫描根目录时用 sudo，其他路径直接 du）
-    local du_cmd="du"
+    # 仅初始路径为 / 时整体加 sudo 前缀（一次授权全程有效，交互下钻不重复弹密码）
     if [[ "$scan_path" == "/" ]]; then
-        du_cmd="sudo du"
-    fi
-    if [[ "$OS_TYPE" == "darwin" ]]; then
-        $du_cmd -sh "$scan_path"/* 2>/dev/null | sort -rh | head -n "$count" \
-        | awk '{
-            size=$1; path=""
-            for(i=2;i<=NF;i++) path=path (i>2?" ":"") $i
-            printf "  %10s  %s\n", size, path
-        }'
+        USE_SUDO=1
     else
-        $du_cmd -sh "$scan_path"/* 2>/dev/null | sort -rh | head -n "$count" \
-        | awk '{
-            printf "  %10s  %s\n", $1, $2
-        }'
-    fi
-    echo
-
-    # 大文件排行（仅扫描常见位置，避免太慢）
-    header "═══════════════════════════════════════"
-    header "  📄 常见位置最大的 ${count} 个文件"
-    header "═══════════════════════════════════════"
-    echo
-
-    local search_paths=("/var/log" "/tmp" "/var/cache")
-    if [[ "$OS_TYPE" == "darwin" ]]; then
-        search_paths=("/var/log" "/tmp" "$HOME/Library/Logs" "$HOME/Library/Caches")
+        USE_SUDO=0
     fi
 
-    local find_args=()
-    for p in "${search_paths[@]}"; do
-        [[ -d "$p" ]] && find_args+=("$p")
+    if [[ -t 0 && -t 1 && -z "${TOP_NO_INTERACTIVE:-}" ]]; then
+        _top_interactive "$scan_path" "${TOP_DEPTH:-1}" "${TOP_COUNT:-10}"
+    else
+        echo
+        _top_print_dirs "$scan_path" "${TOP_DEPTH:-1}" "${TOP_COUNT:-10}"
+        echo
+        _top_print_files "$scan_path" "${TOP_COUNT:-10}"
+        echo
+    fi
+}
+
+# ---- top: 扫描内核 ----
+USE_SUDO=0
+
+# 规整路径：去掉尾部斜杠（根 / 除外）
+_norm_path() {
+    local p="$1"
+    [[ "$p" != "/" ]] && p="${p%/}"
+    printf '%s\n' "$p"
+}
+
+# 目录扫描：du -k -d 输出 KB<TAB>路径（tab 分隔天然兼容空格路径，且覆盖隐藏目录）。
+# 过滤根自身行与 <min-size 条目，纯数字排序后取前 count（awk 截断避免 head SIGPIPE）。
+# du 不支持 -d 时（极老 BusyBox）回退单层 glob（含 .[!.]* 覆盖隐藏目录）。
+_top_scan_dirs() {
+    local path="$1" depth="$2" count="$3"
+    local du_cmd=(du)
+    [[ "$USE_SUDO" == "1" ]] && du_cmd=(sudo du)
+    local raw rc=0
+    raw=$("${du_cmd[@]}" -k -d "$depth" "$path" 2>/dev/null) || rc=1
+    if [[ -z "$raw" && "$rc" -ne 0 ]]; then
+        warn "当前 du 不支持深度扫描，已回退单层模式" >&2
+        raw=$(_top_scan_dirs_fallback "$path")
+    fi
+    local min_kb="${TOP_MIN_SIZE_KB:-0}"
+    printf '%s\n' "$raw" | awk -F'\t' -v root="$path" -v min="$min_kb" '$2 != root && $1+0 >= min+0' \
+        | sort -rn | awk -v n="$count" 'NR<=n'
+}
+
+# 降级：逐项 du -sk。显式 .[!.]* 覆盖隐藏目录且不会扫到 ..
+_top_scan_dirs_fallback() {
+    local path="$1" p
+    local du_cmd=(du)
+    [[ "$USE_SUDO" == "1" ]] && du_cmd=(sudo du)
+    for p in "$path"/* "$path"/.[!.]*; do
+        if [[ -e "$p" || -L "$p" ]]; then
+            "${du_cmd[@]}" -sk "$p" 2>/dev/null || true
+        fi
     done
+}
 
-    if [[ ${#find_args[@]} -gt 0 ]]; then
-        find "${find_args[@]}" -type f -exec du -sh {} + 2>/dev/null \
-        | sort -rh | head -n "$count" \
-        | while IFS= read -r line; do
-            local size path
-            size=$(echo "$line" | awk '{print $1}')
-            path=$(echo "$line" | awk '{print $2}')
-            printf "  %10s  %s\n" "$size" "$path"
+# 文件扫描：find -type f -size +50M → du -k，数字排序取前 count
+_top_scan_files() {
+    local count="$1"; shift
+    local raw
+    if [[ "$USE_SUDO" == "1" ]]; then
+        raw=$(sudo find "$@" -type f -size +50M -exec du -k {} + 2>/dev/null || true)
+    else
+        raw=$(find "$@" -type f -size +50M -exec du -k {} + 2>/dev/null || true)
+    fi
+    printf '%s\n' "$raw" | sort -rn | awk -v n="$count" 'NR<=n'
+}
+
+# ---- top: 渲染 ----
+_top_last_paths=()
+
+_top_print_dirs() {
+    local path="$1" depth="$2" count="$3"
+    info "正在扫描（深度 ${depth}，大目录可能需要一些时间）..."
+    _top_last_paths=()
+    local lines
+    lines=$(_top_scan_dirs "$path" "$depth" "$count") || true
+    header "═══════════════════════════════════════"
+    header "  📊 ${path} 下最大的目录（Top ${count} · 深度 ${depth}）"
+    header "═══════════════════════════════════════"
+    if [[ -z "$lines" ]]; then
+        info "  （无匹配的子目录）"
+        return 0
+    fi
+    local kb p
+    while IFS=$'\t' read -r kb p; do
+        [[ -z "$kb" ]] && continue
+        _top_last_paths+=("$p")
+        printf "  %3d) %8s  %s\n" "${#_top_last_paths[@]}" "$(_fmt_kb "$kb")" "$p"
+    done <<< "$lines"
+    return 0
+}
+
+_top_print_files() {
+    local path="$1" count="$2"
+    local search_paths=()
+    if [[ "$path" == "/" ]]; then
+        # 根目录：只扫常见位置（全盘 find 太慢）
+        local cand p
+        if [[ "$OS_TYPE" == "darwin" ]]; then
+            cand=("/var/log" "/tmp" "$HOME/Library/Logs" "$HOME/Library/Caches")
+        else
+            cand=("/var/log" "/tmp" "/var/cache")
+        fi
+        for p in "${cand[@]}"; do
+            if [[ -d "$p" ]]; then
+                search_paths+=("$p")
+            fi
         done
     else
-        echo "  未找到可扫描的路径"
+        search_paths=("$path")
     fi
-    echo
+    header "  📄 最大的文件（Top ${count}，仅列 >50M）"
+    if [[ ${#search_paths[@]} -eq 0 ]]; then
+        info "  （无可扫描的文件路径）"
+        return 0
+    fi
+    local lines kb p
+    lines=$(_top_scan_files "$count" "${search_paths[@]}") || true
+    if [[ -z "$lines" ]]; then
+        info "  （未发现大于 50M 的文件）"
+        return 0
+    fi
+    while IFS=$'\t' read -r kb p; do
+        [[ -z "$kb" ]] && continue
+        printf "   ‣ %8s  %s\n" "$(_fmt_kb "$kb")" "$p"
+    done <<< "$lines"
+    return 0
 }
 
 # ============================================================
@@ -576,8 +761,12 @@ usage() {
   status                     查看存储概况（默认动作）
                              显示各挂载点使用率、内存、Swap 状态
 
-  top [路径] [--count N]     大文件/目录排行
-                             路径默认为 /，数量默认 10
+  top [路径] [--count N] [--depth D] [--min-size SIZE] [--no-interactive]
+                             大文件/目录排行（路径默认 /，数量默认 10）
+    --depth D                目录扫描深度（默认 1）；2 可看第二层子目录
+    --min-size SIZE          只显示不小于该大小的条目（需带 K/M/G 单位，如 100M）
+    --no-interactive         禁用交互（管道/CI 下自动禁用）
+                             交互键位：序号=下钻  u=上一层  c=改数量  q=退出
 
   monitor [--threshold N]    检查使用率是否超阈值（默认 90%）
     --install                写入 crontab（每天 08:00 检查）
@@ -596,6 +785,8 @@ usage() {
   disk-usage status              # 查看存储概况
   disk-usage top /home           # 查看 /home 下大目录
   disk-usage top --count 20      # 查看 Top 20 大目录
+  disk-usage top /var --depth 2  # 二层下钻：/var 与 /var/lib/docker 一屏可见
+  disk-usage top ~ --min-size 100M  # 只看 100M 以上的大家伙
   disk-usage monitor             # 检查是否超过 90%
   disk-usage monitor --threshold 80 --install   # 安装 80% 阈值的定时监控
   disk-usage clean --all         # 全部清理
@@ -615,6 +806,9 @@ main() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --count)      TOP_COUNT="$2"; shift 2 ;;
+            --depth)      TOP_DEPTH="$2"; shift 2 ;;
+            --min-size)   TOP_MIN_SIZE="$2"; shift 2 ;;
+            --no-interactive) TOP_NO_INTERACTIVE=1; shift ;;
             --threshold)  MONITOR_THRESHOLD="$2"; shift 2 ;;
             --install)    MONITOR_INSTALL=1; shift ;;
             --uninstall)  MONITOR_UNINSTALL=1; shift ;;
