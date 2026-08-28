@@ -299,7 +299,9 @@ _disk_format_device() {
     sync
     # mkfs 后 udev 数据库有延迟：紧接着读 UUID（wizard 的 fstab add）可能拿到旧签名
     # 的缓存 UUID（实测 FAT→ext4 复现），settle 等待 udev 刷新
-    command -v udevadm >/dev/null 2>&1 && sudo udevadm settle 2>/dev/null || true
+    if command -v udevadm >/dev/null 2>&1; then
+        sudo udevadm settle 2>/dev/null || true
+    fi
 }
 
 cmd_format() {
