@@ -331,6 +331,26 @@ phase_routing() {
     assert "disk: 护栏拒绝非交互终端" bash -c "grep -qF '仅允许在交互终端执行' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: usage 子命令枚举完整（供 --list-modules/补全解析）" bash -c "grep -qF '{list|wizard|partition|format|mount|umount|fstab|smart|wipe|install|uninstall|status|help}' \"$REPO_DIR/$disk_path/install.sh\""
 
+    # 9e. disk-usage top：深度下钻 + 交互守卫（纯函数 + fixture 行为）
+    local dus_path
+    dus_path=$(resolve_module_path disk-usage)
+    assert "disk-usage: _fmt_kb 单位换算边界" bash -c '
+        source "$1/sys-tools/disk-usage/install.sh" >/dev/null 2>&1
+        [ "$(_fmt_kb 456)" = "456K" ] || exit 1
+        [ "$(_fmt_kb 1024)" = "1M" ] || exit 1
+        [ "$(_fmt_kb 1536)" = "1M" ] || exit 1
+        [ "$(_fmt_kb 2097152)" = "2.0G" ] || exit 1
+        [ "$(_fmt_kb 1610612736)" = "1536.0G" ] || exit 1
+        [ "$(_fmt_kb 1572864)" = "1.5G" ] || exit 1' _ "$REPO_DIR"
+    assert "disk-usage: _parse_size_to_kb 解析与拒绝" bash -c '
+        source "$1/sys-tools/disk-usage/install.sh" >/dev/null 2>&1
+        [ "$(_parse_size_to_kb 100M)" = "102400" ] || exit 1
+        [ "$(_parse_size_to_kb 2g)" = "2097152" ] || exit 1
+        [ "$(_parse_size_to_kb 500K)" = "500" ] || exit 1
+        if _parse_size_to_kb 100 >/dev/null 2>&1; then echo "缺单位应拒绝"; exit 1; fi
+        if _parse_size_to_kb 100MB >/dev/null 2>&1; then echo "非法后缀应拒绝"; exit 1; fi
+        if _parse_size_to_kb abc >/dev/null 2>&1; then echo "非数字应拒绝"; exit 1; fi' _ "$REPO_DIR"
+
 
     # 4b. status 契约：machine 模式下每个模块首行必须是合法 STATE=
     check_status_contract

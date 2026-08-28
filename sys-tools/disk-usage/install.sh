@@ -165,6 +165,38 @@ _status_disk_dashboard() {
 # ============================================================
 # top - 大文件/目录排行
 # ============================================================
+
+# ---- top: 纯函数（大小解析/格式化） ----
+
+# "100M"/"2g"/"500K" → KB 整数。必须带 K/M/G 单位（防纯数字歧义），非法返回 1
+_parse_size_to_kb() {
+    local s="${1:-}" num
+    case "$s" in
+        *[Kk]) num="${s%[Kk]}" ;;
+        *[Mm]) num="${s%[Mm]}" ;;
+        *[Gg]) num="${s%[Gg]}" ;;
+        *) return 1 ;;
+    esac
+    [[ "$num" =~ ^[0-9]+$ ]] || return 1
+    case "$s" in
+        *[Kk]) echo $(( num )) ;;
+        *[Mm]) echo $(( num * 1024 )) ;;
+        *)     echo $(( num * 1048576 )) ;;
+    esac
+}
+
+# KB → 人类可读：≥1G 一位小数（1.5G），≥1M 向下取整（123M），其余 K（456K）
+_fmt_kb() {
+    local kb="$1"
+    if (( kb >= 1048576 )); then
+        printf '%d.%dG\n' $(( kb / 1048576 )) $(( (kb % 1048576) * 10 / 1048576 ))
+    elif (( kb >= 1024 )); then
+        printf '%dM\n' $(( kb / 1024 ))
+    else
+        printf '%dK\n' "$kb"
+    fi
+}
+
 top_disk() {
     local scan_path="${1:-/}"
     local count="${TOP_COUNT:-10}"
