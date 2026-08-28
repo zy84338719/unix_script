@@ -6,6 +6,7 @@
 #   manjaro x86_64→manjaro/stable      aarch64→manjaro-arm/stable
 #   garuda  无把握路径，降级指引
 
+# shellcheck disable=SC2016  # $repo/$arch 是 pacman 模板变量，须字面量写入 mirrorlist
 _arch_mirror_line() {
     local m
     m=$(uname -m)
