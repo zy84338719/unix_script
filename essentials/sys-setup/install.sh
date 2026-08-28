@@ -5,15 +5,17 @@
 # 装机必设置：系统初始化配置集合。仅 Linux。
 # 每个子命令对应一项常用装机配置：
 #
-#   mirror      —— 更换系统软件源为国内镜像（Debian/Ubuntu/CentOS）
+#   mirror      —— 更换系统软件源为国内镜像（预览确认后执行）
 #   timezone    —— 设置时区并启用 NTP 时间同步
 #   optimize    —— 系统参数优化（文件描述符、TCP、内核）
 #   ssh         —— SSH 加固（禁用密码登录、禁用 root 直登）
-#   autoupdate  —— 启用自动安全更新（unattended-upgrades）
+#   autoupdate  —— 启用自动安全更新
 #   all         —— 依次执行以上全部
 #   status      —— 查看各项配置状态
 #   help        —— 帮助
 #
+# 平台差异下沉到 platform/<族>.sh（debian/rhel/suse/arch/alpine），
+# 本文件只保留调度与平台无关逻辑；动词（pkg_install/uxs_svc）来自 lib。
 
 set -euo pipefail
 
@@ -30,224 +32,61 @@ preflight() {
     require_sudo
 }
 
-# -------- 1. 换源（国内镜像） --------
-# 国内镜像源（清华 TUNA）
-MIRROR_BASE="https://mirrors.tuna.tsinghua.edu.cn"
-
-# 停用除主文件外仍指向发行版归档的 apt 源文件（deb822 与一行式都查），
-# 避免新旧源并存：索引重复下载、security 残留官方源、modernize-sources 提示。
-# 停用方式 = 重命名为 *.bak.<ts>（apt 只读 .list/.sources 后缀，随时可改回）。
-_apt_disable_distro_sources() {
-    local primary="$1" ts="$2" f
-    # 匹配发行版归档 URI：官方 archive/security/deb.debian.org + 各国内镜像站的 ubuntu/debian 路径
-    local pattern='(archive|security|azure|cn)\.ubuntu\.com|(deb|security)\.debian\.org|mirrors\.[A-Za-z.]+/(ubuntu|debian)'
-    local -a candidates=(/etc/apt/sources.list)
-    for f in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
-        [[ -f "$f" ]] && candidates+=("$f")
-    done
-    for f in "${candidates[@]}"; do
-        [[ -f "$f" ]] || continue
-        [[ "$f" == "$primary" ]] && continue
-        if sudo grep -Eq "$pattern" "$f" 2>/dev/null; then
-            sudo mv "$f" "${f}.bak.$ts" 2>/dev/null || { warn "停用失败（权限？）：$f"; continue; }
-            warn "已停用重复/残留源文件：$f（恢复：sudo mv ${f}.bak.$ts $f）"
-        fi
-    done
+# -------- 平台实现加载 --------
+# 加载当前发行版族的 platform 实现。
+# 返回：0=已加载；2=发行版族未知（调用方 warn 跳过）；1=platform 文件缺失（框架错误）。
+_load_platform() {
+    detect_distro
+    if [[ "$DISTRO_FAMILY" == "unknown" ]]; then
+        return 2
+    fi
+    local plat="$SCRIPT_DIR/platform/${DISTRO_FAMILY}.sh"
+    if [[ ! -f "$plat" ]]; then
+        error "platform 文件缺失（框架错误）：$plat"
+        return 1
+    fi
+    # shellcheck source=platform/debian.sh
+    source "$plat"
 }
 
+# -------- 1. 换源（国内镜像，预览确认后执行） --------
 do_mirror() {
     preflight
     detect_pkg_manager
-    info "🌐 更换软件源为国内镜像（清华 TUNA）"
+    local rc=0
+    _load_platform || rc=$?
+    if [[ "$rc" == "2" ]]; then
+        warn "暂不支持该发行版（族未知），跳过换源"
+        return 0
+    fi
+    if [[ "$rc" != "0" ]]; then
+        return 1
+    fi
 
-    # 识别发行版（优先用 os-release 的 ID，回退到文件检测）
-    local os_id=""
-    os_id=$(. /etc/os-release 2>/dev/null && echo "$ID")
-    local distro=""
-    case "$os_id" in
-        ubuntu|linuxmint) distro="ubuntu" ;;   # Mint 基于 Ubuntu，apt 源结构相同
-        debian)           distro="debian" ;;
-        centos)           distro="centos" ;;
-        almalinux|rocky|rhel|fedora) distro="rhel" ;;  # AlmaLinux/Rocky/RHEL/Fedora: dnf 系
-        opensuse-leap|opensuse-tumbleweed|sles|suse) distro="opensuse" ;;
-        arch|manjaro|garuda) distro="arch" ;;
-        alpine)           distro="alpine" ;;
-        *)
-            # 回退：按文件特征判断
-            if [[ -f /etc/debian_version ]]; then
-                distro="debian"
-                grep -q '^ID=ubuntu' /etc/os-release 2>/dev/null && distro="ubuntu"
-            elif [[ -f /etc/centos-release ]] || [[ -f /etc/redhat-release ]]; then
-                distro="centos"
-            fi
-            ;;
-    esac
+    # 严格档：换源属破坏性操作，非交互环境跳过不阻断（无逃生开关）
+    if [[ ! -t 0 ]]; then
+        warn "换源需交互确认，已跳过（非交互环境）"
+        return 0
+    fi
 
-    case "$distro" in
-        debian|ubuntu)
-            local codename
-            codename=$(. /etc/os-release 2>/dev/null && echo "$VERSION_CODENAME")
-            if [[ -z "$codename" ]]; then
-                error "无法识别发行版代号（VERSION_CODENAME）"
-                return 1
-            fi
-            local ts primary
-            ts=$(date +%s)
-            # Ubuntu 24.04+/Debian 13 起发行版源在 sources.list.d/*.sources（deb822），
-            # 只重写 sources.list 会与之并存导致索引重复、security 残留官方源——优先重写 deb822 主文件
-            if [[ "$distro" == "ubuntu" && -f /etc/apt/sources.list.d/ubuntu.sources ]]; then
-                primary=/etc/apt/sources.list.d/ubuntu.sources
-                sudo cp -a "$primary" "${primary}.bak.$ts" 2>/dev/null || true
-                sudo tee "$primary" >/dev/null <<EOF
-# 由 unix_script sys-setup 生成（原文件已备份为 ${primary}.bak.$ts）
-Types: deb
-URIs: ${MIRROR_BASE}/ubuntu/
-Suites: ${codename} ${codename}-updates ${codename}-backports ${codename}-security
-Components: main restricted universe multiverse
-Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
-EOF
-            elif [[ "$distro" == "debian" && -f /etc/apt/sources.list.d/debian.sources ]]; then
-                primary=/etc/apt/sources.list.d/debian.sources
-                sudo cp -a "$primary" "${primary}.bak.$ts" 2>/dev/null || true
-                sudo tee "$primary" >/dev/null <<EOF
-# 由 unix_script sys-setup 生成（原文件已备份为 ${primary}.bak.$ts）
-Types: deb
-URIs: ${MIRROR_BASE}/debian/
-Suites: ${codename} ${codename}-updates ${codename}-backports
-Components: main contrib non-free non-free-firmware
-Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+    info "🌐 更换软件源为国内镜像"
+    local os_ver os_codename detect_line
+    os_ver=$(uxs_os_release VERSION_ID)
+    os_codename=$(uxs_os_release VERSION_CODENAME)
+    detect_line="${DISTRO_NAME:-${DISTRO_ID:-未知}} ${os_ver}"
+    [[ -n "$os_codename" ]] && detect_line+=" (${os_codename})"
+    detect_line+=" · $(uname -m) · ${PKG_MANAGER:-?}"
 
-Types: deb
-URIs: ${MIRROR_BASE}/debian-security/
-Suites: ${codename}-security
-Components: main contrib non-free non-free-firmware
-Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
-EOF
-            else
-                primary=/etc/apt/sources.list
-                sudo cp -a /etc/apt/sources.list "/etc/apt/sources.list.bak.$ts" 2>/dev/null || true
-                if [[ "$distro" == "ubuntu" ]]; then
-                    sudo tee /etc/apt/sources.list >/dev/null <<EOF
-# 由 unix_script sys-setup 生成（原文件已备份为 .bak.*）
-deb ${MIRROR_BASE}/ubuntu/ ${codename} main restricted universe multiverse
-deb ${MIRROR_BASE}/ubuntu/ ${codename}-updates main restricted universe multiverse
-deb ${MIRROR_BASE}/ubuntu/ ${codename}-backports main restricted universe multiverse
-deb ${MIRROR_BASE}/ubuntu/ ${codename}-security main restricted universe multiverse
-EOF
-                else
-                    sudo tee /etc/apt/sources.list >/dev/null <<EOF
-# 由 unix_script sys-setup 生成（原文件已备份为 .bak.*）
-deb ${MIRROR_BASE}/debian/ ${codename} main contrib non-free non-free-firmware
-deb ${MIRROR_BASE}/debian/ ${codename}-updates main contrib non-free non-free-firmware
-deb ${MIRROR_BASE}/debian/ ${codename}-backports main contrib non-free non-free-firmware
-deb ${MIRROR_BASE}/debian-security ${codename}-security main contrib non-free non-free-firmware
-EOF
-                fi
-            fi
-            _apt_disable_distro_sources "$primary" "$ts"
-            success "apt 源已更换为清华镜像（$distro/${codename}），原文件已备份"
-            sudo apt-get update
-            ;;
-        centos|rhel)
-            # 通过 os-release 区分 CentOS Stream 9 / 其他版本或衍生版
-            local os_id os_ver is_stream
-            os_id=$(. /etc/os-release 2>/dev/null && echo "$ID")
-            os_ver=$(. /etc/os-release 2>/dev/null && echo "$VERSION_ID")
-            is_stream=$(. /etc/os-release 2>/dev/null && echo "$NAME" | grep -qi stream && echo yes || echo no)
-
-            # 备份现有 repo 文件
-            local ts; ts=$(date +%s)
-            sudo cp -a /etc/yum.repos.d "/etc/yum.repos.d.bak.$ts" 2>/dev/null || true
-
-            if [[ "$is_stream" == "yes" ]] && [[ "$os_ver" == 9* ]]; then
-                # CentOS Stream 9：覆盖 centos.repo（核心仓库指向清华镜像）
-                info "检测到 CentOS Stream ${os_ver}，覆盖 centos.repo 为清华镜像"
-                sudo tee /etc/yum.repos.d/centos.repo >/dev/null <<'EOF'
-# 由 unix_script sys-setup 生成 —— CentOS Stream 9 清华 TUNA 镜像
-[baseos]
-name=CentOS Stream $releasever - BaseOS
-baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-stream/$releasever-stream/BaseOS/$basearch/os
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
-gpgcheck=1
-enabled=1
-
-[appstream]
-name=CentOS Stream $releasever - AppStream
-baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-stream/$releasever-stream/AppStream/$basearch/os
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
-gpgcheck=1
-enabled=1
-
-[crb]
-name=CentOS Stream $releasever - CRB
-baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-stream/$releasever-stream/CRB/$basearch/os
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
-gpgcheck=1
-enabled=1
-
-[extras-common]
-name=CentOS Stream $releasever - Extras packages
-baseurl=https://mirrors.tuna.tsinghua.edu.cn/centos-stream/SIGs/$releasever-stream/extras/$basearch/extras-common
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-Extras-SHA512
-gpgcheck=1
-enabled=1
-EOF
-                success "CentOS Stream 9 源已更换为清华镜像（原 /etc/yum.repos.d 已备份）"
-                sudo dnf clean all 2>/dev/null || true
-                sudo dnf makecache 2>/dev/null || true
-            else
-                # CentOS 7/8 等老版或 AlmaLinux/Rocky Linux 等衍生版
-                info "检测到 RHEL 系发行版：$os_id ${os_ver}（非 Stream 9）"
-                info "衍生版/老版换源请参考对应镜像帮助："
-                echo "  CentOS 7:   https://mirrors.tuna.tsinghua.edu.cn/help/centos-vault/"
-                echo "  AlmaLinux:  https://mirrors.tuna.tsinghua.edu.cn/help/almalinux/"
-                echo "  Rocky:      https://mirrors.tuna.tsinghua.edu.cn/help/rocky/"
-                warn "已备份原 /etc/yum.repos.d 到 .bak.${ts}，请按指引手动替换 baseurl"
-            fi
-            ;;
-        opensuse)
-            # openSUSE：替换 zypper 仓库 URL 为清华镜像
-            local ts; ts=$(date +%s)
-            sudo cp -a /etc/zypp/repos.d "/etc/zypp/repos.d.bak.$ts" 2>/dev/null || true
-            info "openSUSE 换源：将所有仓库 URL 替换为清华镜像"
-            sudo sed -i.bak \
-                -e 's|download.opensuse.org|mirrors.tuna.tsinghua.edu.cn/opensuse|g' \
-                -e 's|download.tumbleweed|mirrors.tuna.tsinghua.edu.cn/opensuse/tumbleweed|g' \
-                /etc/zypp/repos.d/*.repo 2>/dev/null || true
-            sudo zypper --non-interactive refresh 2>/dev/null || true
-            success "openSUSE 源已替换为清华镜像（原 /etc/zypp/repos.d 已备份）"
-            ;;
-        arch)
-            # Arch：替换 mirrorlist 为清华镜像（启用 Server 行）
-            info "Arch Linux 换源：生成清华镜像 /etc/pacman.d/mirrorlist"
-            local ts; ts=$(date +%s)
-            sudo cp -a /etc/pacman.d/mirrorlist "/etc/pacman.d/mirrorlist.bak.$ts" 2>/dev/null || true
-            sudo tee /etc/pacman.d/mirrorlist >/dev/null <<'EOF'
-# 由 unix_script sys-setup 生成 —— Arch Linux 清华镜像
-Server = https://mirrors.tuna.tsinghua.edu.cn/archlinux/$repo/os/$arch
-EOF
-            sudo pacman -Sy 2>/dev/null || true
-            success "Arch mirrorlist 已替换为清华镜像"
-            ;;
-        alpine)
-            # Alpine：替换 /etc/apk/repositories 为清华镜像
-            local alpine_ver
-            alpine_ver=$(. /etc/os-release 2>/dev/null && echo "$VERSION_ID")
-            [[ -z "$alpine_ver" ]] && alpine_ver="latest-stable"
-            local ts; ts=$(date +%s)
-            sudo cp -a /etc/apk/repositories "/etc/apk/repositories.bak.$ts" 2>/dev/null || true
-            sudo tee /etc/apk/repositories >/dev/null <<EOF
-# 由 unix_script sys-setup 生成 —— Alpine 清华镜像
-https://mirrors.tuna.tsinghua.edu.cn/alpine/v${alpine_ver}/main
-https://mirrors.tuna.tsinghua.edu.cn/alpine/v${alpine_ver}/community
-EOF
-            sudo apk update 2>/dev/null || true
-            success "Alpine 源已替换为清华镜像"
-            ;;
-        *)
-            warn "无法识别发行版，跳过换源。当前支持 Debian/Ubuntu/Mint/CentOS/AlmaLinux/Rocky/openSUSE/Arch/Alpine。"
-            ;;
-    esac
+    echo "── 换源预览 ──────────────────────────────"
+    echo "检测到:  ${detect_line}"
+    echo "执行动作:"
+    plat_mirror_preview
+    echo "──────────────────────────────────────────"
+    if ! yes_no "确认执行换源？"; then
+        info "已取消换源"
+        return 0
+    fi
+    plat_mirror_apply
 }
 
 # -------- 2. 时区 + 时间同步 --------
@@ -341,6 +180,7 @@ _configure_ntpd() {
 # 设置 NTP 服务器（自动检测后端）
 set_ntp_servers() {
     local servers="$1"
+    detect_distro
 
     # 检测使用哪个 NTP 后端
     if systemctl is-active --quiet systemd-timesyncd 2>/dev/null || \
@@ -366,21 +206,22 @@ set_ntp_servers() {
             error "配置 ntpd 失败"; return 1
         fi
     else
-        # 没有 NTP 服务，尝试安装
-        warn "未检测到 NTP 服务，尝试安装..."
-        detect_pkg_manager
-        local install_ok=false
-        case "$PKG_MANAGER" in
-            apt-get) sudo apt-get install -y chrony && sudo systemctl enable --now chrony && install_ok=true ;;
-            dnf)     sudo dnf install -y chrony && sudo systemctl enable --now chronyd && install_ok=true ;;
-            yum)     sudo yum install -y chrony && sudo systemctl enable --now chronyd && install_ok=true ;;
-            *)       warn "无法自动安装 NTP 服务（不支持的包管理器）"; return 1 ;;
-        esac
-        if $install_ok && command_exists chronyc; then
-            _configure_chrony "$servers"
-            success "已安装 chrony 并配置: $servers"
+        # 没有 NTP 服务，尝试安装 chrony（unit 名是名词：debian 系 chrony、rhel 系 chronyd）
+        warn "未检测到 NTP 服务，尝试安装 chrony..."
+        if pkg_install chrony; then
+            local unit="chronyd"
+            [[ "$DISTRO_FAMILY" == "debian" ]] && unit="chrony"
+            if uxs_svc enable-now "$unit"; then
+                if _configure_chrony "$servers"; then
+                    success "已安装 chrony 并配置: $servers"
+                else
+                    error "配置 chrony 失败"; return 1
+                fi
+            else
+                error "chrony 服务启用失败"; return 1
+            fi
         else
-            error "chrony 安装失败，请手动安装: sudo apt-get install chrony"
+            error "chrony 安装失败，请手动安装"
             return 1
         fi
     fi
@@ -483,6 +324,7 @@ do_ntp() {
 # shellcheck disable=SC2120  # 函数签名预留参数，当前未使用
 do_timezone() {
     preflight
+    detect_distro
     local tz="${1:-Asia/Shanghai}"
     info "🕐 设置时区为 $tz 并启用时间同步"
 
@@ -500,15 +342,16 @@ do_timezone() {
         success "时区已设置为 ${tz}（符号链接）"
     fi
 
-    # 没有 timesyncd 时回退装 chrony/ntp
+    # 没有 timesyncd 时回退装 chrony（unit 名是名词：debian 系 chrony、rhel 系 chronyd）
     if ! systemctl is-active --quiet systemd-timesyncd 2>/dev/null; then
-        detect_pkg_manager
-        case "$PKG_MANAGER" in
-            apt-get) sudo apt-get install -y chrony && sudo systemctl enable --now chrony ;;
-            dnf)     sudo dnf install -y chrony && sudo systemctl enable --now chronyd ;;
-            yum)     sudo yum install -y ntp && sudo systemctl enable --now ntpd ;;
-        esac 2>/dev/null || true
-        success "已安装并启用时间同步服务"
+        if pkg_install chrony 2>/dev/null; then
+            local unit="chronyd"
+            [[ "$DISTRO_FAMILY" == "debian" ]] && unit="chrony"
+            uxs_svc enable-now "$unit" 2>/dev/null || true
+            success "已安装并启用 chrony 时间同步"
+        else
+            warn "chrony 安装失败，跳过时间同步服务配置"
+        fi
     fi
 }
 
@@ -586,41 +429,16 @@ EOF
 do_autoupdate() {
     preflight
     info "🛡️  启用自动安全更新"
-    detect_pkg_manager
-    case "$PKG_MANAGER" in
-        apt-get)
-            pkg_install unattended-upgrades apt-listchanges
-            sudo dpkg-reconfigure -fnoninteractive -plow unattended-upgrades 2>/dev/null || true
-            success "已启用 Debian/Ubuntu/Mint 自动安全更新（unattended-upgrades）"
-            ;;
-        dnf)
-            pkg_install dnf-automatic
-            sudo sed -i 's/^apply_updates = no/apply_updates = yes/' /etc/dnf/automatic.conf 2>/dev/null || true
-            sudo systemctl enable --now dnf-automatic.timer 2>/dev/null || true
-            success "已启用 dnf-automatic"
-            ;;
-        yum)
-            pkg_install yum-cron
-            sudo systemctl enable --now yum-cron 2>/dev/null || true
-            success "已启用 yum-cron"
-            ;;
-        zypper)
-            # openSUSE 用 zypper-updates-service（或 yast2-online-update）
-            pkg_install yast2-online-update-configuration 2>/dev/null || true
-            info "openSUSE 建议用 yast2 online_update 配置自动补丁；或定期执行 sudo zypper patch"
-            ;;
-        pacman)
-            # Arch 滚动发布，官方推荐定期 pacman -Syu；可装 pacman-contrib 的 checkupdates
-            pkg_install pacman-contrib 2>/dev/null || true
-            info "Arch 为滚动发布，建议定期执行 sudo pacman -Syu 保持更新"
-            ;;
-        apk)
-            info "Alpine 无原生自动安全更新；建议定期执行 sudo apk upgrade"
-            ;;
-        *)
-            warn "无法识别包管理器，跳过自动更新配置"
-            ;;
-    esac
+    local rc=0
+    _load_platform || rc=$?
+    if [[ "$rc" == "2" ]]; then
+        warn "暂不支持该发行版（族未知），跳过自动更新配置"
+        return 0
+    fi
+    if [[ "$rc" != "0" ]]; then
+        return 1
+    fi
+    plat_autoupdate
 }
 
 # -------- 全部执行 --------
@@ -721,7 +539,7 @@ usage() {
     cat <<EOF
 用法: $0 {mirror|timezone|ntp|optimize|ssh|autoupdate|all|status|help}  (仅 Linux)
 
-  mirror      更换软件源为国内镜像（Debian/Ubuntu/CentOS）
+  mirror      更换软件源为国内镜像（预览确认后执行；Alma/Rocky/Fedora/openEuler/Anolis/deepin 已支持）
   timezone    设置时区并启用 NTP 时间同步（默认 Asia/Shanghai）
   ntp         配置自定义 NTP 服务器（阿里云/清华/华为/Google/自定义）
   optimize    优化系统参数（文件描述符、TCP、内核）

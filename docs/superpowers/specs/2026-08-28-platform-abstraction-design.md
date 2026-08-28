@@ -74,6 +74,10 @@ systemd 服务动作封装，Linux-only：
 
 ## 二、sys-setup 样板拆分（方案 B）
 
+> **2026-08-28 实现期修订**：换源镜像站按发行版固定（TUNA 优先，实测无货的
+> 发行版改用有货的国内站：almalinux/anolis→阿里云、rocky→USTC），映射表与
+> 逐站 curl 依据见实现计划 `docs/superpowers/plans/2026-08-28-platform-abstraction.md`。
+
 ### 2.1 目录结构
 
 ```
