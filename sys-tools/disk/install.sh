@@ -4,7 +4,7 @@
 # 磁盘管理工具箱：列盘 / 分区 / 格式化 / 挂载 / fstab / SMART 健康 / 擦除签名。
 # 仅 Linux。破坏性操作受三层严格护栏保护（见 _disk_guard_destructive），无 --yes 绕过。
 #
-# 用法: install.sh {list|wizard|partition|format|mount|umount|fstab|smart|wipe|install|uninstall|status|help}
+# 用法: install.sh {list|wizard|partition|format|mount|umount|fstab|smart|scan|wipe|install|uninstall|status|help}
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -100,12 +100,64 @@ _disk_is_protected() {
     return 1
 }
 
-# 0 = 使用中（已挂载 / swap 签名 / raid·lvm 成员）
+# 占用原因检测（机器可读行 KIND|DEV|DETAIL，供详细报错与 wipe 放宽判定）：
+#   MOUNT|<dev>|<挂载点>   已挂载（硬阻断，wipe 也不例外）
+#   HOLD|<dev>|<holder>    被激活的内核 DM/MD 设备持有（硬阻断；未挂载的激活 LV 也算）
+#   SIG|<dev>|<签名>       旧签名残留（swap/raid/lvm/bios_grub；wipe 可解除）
+_DISK_SYS_BLOCK="${_DISK_SYS_BLOCK:-/sys/class/block}"
+
+_disk_in_use_reasons() {
+    local dev="$1" d rest h
+    while IFS=' ' read -r d rest; do
+        [[ -n "$rest" ]] && echo "MOUNT|/dev/$d|$rest"
+    done < <(lsblk -rno NAME,MOUNTPOINT "$dev" 2>/dev/null)
+    while IFS=' ' read -r d rest; do
+        case "$rest" in
+            swap|linux_raid_member|LVM2_member|bios_grub) echo "SIG|/dev/$d|$rest" ;;
+        esac
+    done < <(lsblk -rno NAME,FSTYPE "$dev" 2>/dev/null)
+    while IFS= read -r d; do
+        [[ -z "$d" ]] && continue
+        for h in "$_DISK_SYS_BLOCK/$d"/holders/*; do
+            [[ -e "$h" ]] && echo "HOLD|/dev/$d|$(basename "$h")"
+        done
+    done < <(lsblk -rno NAME "$dev" 2>/dev/null)
+    return 0
+}
+
 _disk_in_use() {
-    local dev="$1"
-    lsblk -rno MOUNTPOINT "$dev" 2>/dev/null | grep -q '[^[:space:]]' && return 0
-    lsblk -rno FSTYPE "$dev" 2>/dev/null | grep -Eq 'swap|linux_raid_member|LVM2_member|bios_grub' && return 0
-    return 1
+    [[ -n "$(_disk_in_use_reasons "$1")" ]]
+}
+
+# LVM PV 所属 VG 名（lvm2 缺失/无 root 时返回空，仅用于提示；sudo -n 复用护栏前缓存的授权）
+_disk_lvm_pv_vg() {
+    command -v pvs >/dev/null 2>&1 || return 0
+    sudo -n pvs --noheadings -o vg_name "$1" 2>/dev/null | tr -d ' ' | head -1
+    return 0
+}
+
+# 人类可读的占用详情（逐条说明谁在占用 + 解除方法）
+_disk_in_use_report() {
+    local dev="$1" kind rd dt vg
+    while IFS='|' read -r kind rd dt; do
+        case "$kind" in
+            MOUNT)
+                printf '  ⛔ %s 已挂载到 %s（请先 umount）\n' "$rd" "$dt" ;;
+            HOLD)
+                printf '  ⛔ %s 被激活的内核设备 %s 占用（多为激活中的 LVM LV/RAID；LVM 可 sudo vgchange -an <VG名> 停用）\n' "$rd" "$dt" ;;
+            SIG)
+                if [[ "$dt" == "LVM2_member" ]]; then
+                    vg=$(_disk_lvm_pv_vg "$rd")
+                    if [[ -n "$vg" ]]; then
+                        printf '  ⛔ %s 是 LVM PV（VG %s，未激活）\n' "$rd" "$vg"
+                    else
+                        printf '  ⛔ %s 含 LVM PV 签名（旧 VG 残留）\n' "$rd"
+                    fi
+                else
+                    printf '  ⛔ %s 含 %s 签名\n' "$rd" "$dt"
+                fi ;;
+        esac
+    done < <(_disk_in_use_reasons "$dev")
 }
 
 _disk_show_detail() {
@@ -117,7 +169,7 @@ _disk_show_detail() {
 # 严格护栏：破坏性操作统一入口（三层，无绕过）
 # ============================================================
 _disk_guard_destructive() {
-    local dev="$1" action="$2" typed
+    local dev="$1" action="$2" allow_sig_only="${3:-0}" typed reasons
     if [[ ! -t 0 ]]; then
         error "拒绝：$action 属破坏性操作，仅允许在交互终端执行（安全护栏，无 --yes 跳过）"
         return 1
@@ -126,9 +178,18 @@ _disk_guard_destructive() {
         error "拒绝：$dev 是系统/启动/swap 所在盘或其分区，禁止破坏性操作"
         return 1
     fi
-    if _disk_in_use "$dev"; then
-        error "拒绝：$dev 正在使用中（已挂载 / swap / raid·lvm 成员），请先 umount / swapoff / 停 raid"
-        return 1
+    reasons=$(_disk_in_use_reasons "$dev")
+    if [[ -n "$reasons" ]]; then
+        if [[ "$allow_sig_only" == "1" ]] && ! grep -qE '^(MOUNT\||HOLD\|)' <<< "$reasons"; then
+            # wipe 特例：无挂载、无激活占用，仅旧签名——擦签名正是解除它们的操作
+            warn "$dev 无挂载、无激活占用，仅存旧签名（wipefs 可解除）："
+            _disk_in_use_report "$dev"
+        else
+            error "拒绝：$dev 正在使用中："
+            _disk_in_use_report "$dev"
+            info "提示：若仅剩旧签名残留（无挂载/无激活占用），可用 wipe 解除后重试（如：wipe sdb3）"
+            return 1
+        fi
     fi
     _disk_show_detail "$dev"
     read -r -p "⚠️  $action 将清除 $dev 上的全部数据。请输入完整设备名（如 sdb 或 sdb1）确认: " typed
@@ -136,6 +197,129 @@ _disk_guard_destructive() {
         error "输入不一致（期望: ${dev#/dev/}），已取消"
         return 1
     fi
+}
+
+# ============================================================
+# SMART 健康判定（纯函数：只解析传入文本，不碰设备，可单测）
+# ============================================================
+
+# ATA 属性表：取指定 ID 的 RAW 值数字前缀；属性不存在输出空
+_smart_ata_raw() {
+    local raw
+    raw=$(awk -v id="$2" '$1 == id { print $10; exit }' <<<"$1")
+    raw=${raw%%[^0-9]*}
+    echo "$raw"
+}
+
+# NVMe 属性：按标签取冒号后的值（trim 首尾空白）
+_smart_nvme_val() {
+    awk -v lbl="$2" 'index($0, lbl) { sub(/^[^:]*:[[:space:]]*/, ""); print; exit }' <<<"$1"
+}
+
+# 取数字前缀："95%"→95，"0x00"→0，空→空
+_smart_pct() {
+    local v=${1:-}
+    v=${v%%[^0-9]*}
+    echo "$v"
+}
+
+# -H 输出的总评词：PASSED / FAILED / 空（读不到）
+_smart_health_word() {
+    local w
+    w=$(awk '/overall-health self-assessment test result:/ { print $NF; exit }' <<<"$1")
+    w=${w//[^A-Za-z]/}
+    echo "$w"
+}
+
+# 非负整数比较：$1 > $2 时返回 0（空/非数字按 0；10# 强制十进制防八进制）
+_smart_num_gt() {
+    local a=${1:-0} b=${2:-0}
+    [[ "$a" =~ ^[0-9]+$ ]] || a=0
+    [[ "$b" =~ ^[0-9]+$ ]] || b=0
+    (( 10#$a > 10#$b ))
+}
+
+# 判定核心：入参 =(-H 输出, -A 输出, 总线 nvme|ata)
+# 输出 "<verdict>|<原因;...>"；verdict ∈ healthy|warning|critical|unknown
+_smart_verdict() {
+    local h_out="$1" a_out="$2" bus="$3"
+    local verdict="healthy" reasons="" health id raw
+    health=$(_smart_health_word "$h_out")
+    if [[ "$health" == "FAILED" ]]; then
+        verdict="critical"
+        reasons="SMART 总评 FAILED"
+    elif [[ -z "$health" ]]; then
+        echo "unknown|读不到 SMART 数据（USB 桥/RAID 背板不支持或权限不足）"
+        return 0
+    fi
+    case "$bus" in
+        nvme)
+            local cw media spare spare_th pct
+            cw=$(_smart_nvme_val "$a_out" "Critical Warning:")
+            media=$(_smart_nvme_val "$a_out" "Media and Data Integrity Errors:")
+            spare=$(_smart_pct "$(_smart_nvme_val "$a_out" "Available Spare:")")
+            spare_th=$(_smart_pct "$(_smart_nvme_val "$a_out" "Available Spare Threshold:")")
+            pct=$(_smart_pct "$(_smart_nvme_val "$a_out" "Percentage Used:")")
+            if [[ -n "$cw" && "$cw" != "0x00" && "$cw" != "0" ]]; then
+                verdict="critical"
+                reasons="${reasons:+${reasons};}NVMe critical_warning=${cw}"
+            fi
+            if _smart_num_gt "$media" 0; then
+                verdict="critical"
+                reasons="${reasons:+${reasons};}介质错误(Media Errors)=${media}"
+            fi
+            if [[ "$spare" =~ ^[0-9]+$ && "$spare_th" =~ ^[0-9]+$ ]] && (( 10#$spare < 10#$spare_th )); then
+                verdict="critical"
+                reasons="${reasons:+${reasons};}备用空间 ${spare}% 低于阈值 ${spare_th}%"
+            fi
+            if _smart_num_gt "$pct" 89; then
+                [[ "$verdict" == "healthy" ]] && verdict="warning"
+                reasons="${reasons:+${reasons};}寿命已耗 ${pct}%"
+            fi
+            ;;
+        *)
+            for id in 197 198 187; do   # 待定/不可修复/不可纠正 → 危险
+                raw=$(_smart_ata_raw "$a_out" "$id")
+                if _smart_num_gt "$raw" 0; then
+                    verdict="critical"
+                    case "$id" in
+                        197) reasons="${reasons:+${reasons};}待定扇区(Current_Pending)=${raw}" ;;
+                        198) reasons="${reasons:+${reasons};}不可修复扇区(Offline_Uncorrectable)=${raw}" ;;
+                        187) reasons="${reasons:+${reasons};}不可纠正(Reported_Uncorrect)=${raw}" ;;
+                    esac
+                fi
+            done
+            for id in 5 196; do         # 重映射扇区/事件 → 注意（盘在自愈）
+                raw=$(_smart_ata_raw "$a_out" "$id")
+                if _smart_num_gt "$raw" 0; then
+                    [[ "$verdict" == "healthy" ]] && verdict="warning"
+                    case "$id" in
+                        5)   reasons="${reasons:+${reasons};}重映射扇区(Reallocated_Sector)=${raw}" ;;
+                        196) reasons="${reasons:+${reasons};}重映射事件(Reallocation_Event)=${raw}" ;;
+                    esac
+                fi
+            done
+            ;;
+    esac
+    echo "${verdict}|${reasons}"
+}
+
+_smart_verdict_emoji() {
+    case "$1" in
+        healthy)  echo "✅" ;;
+        warning)  echo "🟡" ;;
+        critical) echo "🔴" ;;
+        *)        echo "🟡" ;;
+    esac
+}
+
+_smart_verdict_cn() {
+    case "$1" in
+        healthy)  echo "健康" ;;
+        warning)  echo "注意" ;;
+        critical) echo "危险" ;;
+        *)        echo "未知" ;;
+    esac
 }
 
 # ============================================================
@@ -298,21 +482,160 @@ _disk_fstab_remove() {
     success "已移除 fstab 条目: ${mp}（备份: /etc/fstab.bak.${ts}）"
 }
 
+# smartctl 统一读取：自动探测失败（提示 SAT 层，某些 SAT 层/USB 桥/虚拟化环境会出现）时
+# 自动以 -d ata 重试。输出三段（-i、-H、-A），以记录分隔符 \x1e 拼接
+_smartctl_read() {
+    local dev="$1" i h a
+    i=$(sudo smartctl -i "$dev" 2>/dev/null || true)
+    if grep -qi "SAT layer" <<<"$i"; then
+        i=$(sudo smartctl -i -d ata "$dev" 2>/dev/null || true)
+        h=$(sudo smartctl -H -d ata "$dev" 2>/dev/null || true)
+        a=$(sudo smartctl -A -d ata "$dev" 2>/dev/null || true)
+    else
+        h=$(sudo smartctl -H "$dev" 2>/dev/null || true)
+        a=$(sudo smartctl -A "$dev" 2>/dev/null || true)
+    fi
+    printf '%s\x1e%s\x1e%s' "$i" "$h" "$a"
+}
+
+# 总线类型：NVMe 走 NVMe 判读，其余按 ATA（SAS 仅总评可判）
+_smart_bus() {
+    local i
+    i=$(sudo smartctl -i "$1" 2>/dev/null || true)
+    if grep -qi "SAT layer" <<<"$i"; then
+        i=$(sudo smartctl -i -d ata "$1" 2>/dev/null || true)
+    fi
+    if grep -qi 'NVMe Version' <<<"$i"; then
+        echo nvme
+    else
+        echo ata
+    fi
+}
+
+# 单盘一行结论（概览用；机器模式输出 STATE/EXTRA）
+_smart_report_one() {
+    local dev="$1" raw h a vout verdict reasons model size
+    raw=$(_smartctl_read "$dev")
+    raw=${raw#*$'\x1e'}   # 丢弃 -i 段（概览不需要设备信息）
+    h=${raw%%$'\x1e'*}
+    a=${raw#*$'\x1e'}
+    vout=$(_smart_verdict "$h" "$a" "$(_smart_bus "$dev")")
+    verdict=${vout%%|*}
+    reasons=${vout#*|}
+    if uxs_is_machine_mode; then
+        emit_status "$verdict" "${dev} $(_smart_verdict_cn "$verdict")"
+        emit_extra "dev=${dev##*/} model=${model} reasons=${reasons}"
+    else
+        model=$(lsblk -dno MODEL "$dev" 2>/dev/null | head -1 || true)
+        size=$(lsblk -dno SIZE "$dev" 2>/dev/null | head -1 || true)
+        emit_status "$verdict" "$(_smart_verdict_emoji "$verdict") ${dev##*/}  ${model:-?}  ${size:-?}  $(_smart_verdict_cn "$verdict")${reasons:+（${reasons}）}"
+    fi
+}
+
+# 单盘详情：设备信息 + 总评 + 关键指标 + 属性表 + 结论
+_smart_report_detail() {
+    local dev="$1" raw i h a vout verdict reasons temp hours
+    raw=$(_smartctl_read "$dev")
+    i=${raw%%$'\x1e'*}; raw=${raw#*$'\x1e'}
+    h=${raw%%$'\x1e'*}; a=${raw#*$'\x1e'}
+    vout=$(_smart_verdict "$h" "$a" "$(_smart_bus "$dev")")
+    verdict=${vout%%|*}
+    reasons=${vout#*|}
+    if uxs_is_machine_mode; then
+        emit_status "$verdict" "${dev}"
+        emit_extra "dev=${dev##*/} reasons=${reasons}"
+        return 0
+    fi
+    header "═══ SMART 健康体检：${dev} ═══"
+    echo "—— 设备信息 ——"
+    sed -n '1,20p' <<<"$i"
+    echo
+    echo "—— SMART 总评 ——"
+    cat <<<"$h"   # 健康异常时 smartctl 退出非零是正常语义，以输出为准
+    echo
+    echo "—— 关键指标 ——"
+    temp=$(_smart_ata_raw "$a" 194)
+    [[ -n "$temp" ]] || temp=$(_smart_pct "$(_smart_nvme_val "$a" "Temperature:")")
+    hours=$(_smart_ata_raw "$a" 9)
+    [[ -n "$hours" ]] || hours=$(_smart_nvme_val "$a" "Power On Hours:")
+    [[ -n "$temp" ]] && echo "温度: ${temp}°C"
+    [[ -n "$hours" ]] && echo "通电时长: ${hours} 小时"
+    echo
+    echo "—— 属性表 ——"
+    cat <<<"$a"
+    echo
+    case "$verdict" in
+        healthy)  success "$(_smart_verdict_emoji healthy) 结论：健康——未发现异常指标" ;;
+        warning)  warn "$(_smart_verdict_emoji warning) 结论：注意——${reasons}（盘正在自愈，关注趋势，保持备份）" ;;
+        critical) error "$(_smart_verdict_emoji critical) 结论：危险——${reasons}（建议立即备份数据，评估换盘）" ;;
+        *)        warn "$(_smart_verdict_emoji unknown) 结论：未知——${reasons}" ;;
+    esac
+    [[ "$verdict" == "critical" ]] && return 1
+    return 0
+}
+
 cmd_smart() {
-    local dev_s="${1:-}" dev base
-    [[ -n "$dev_s" ]] || { error "用法: smart <整盘>（如 sda）"; return 1; }
-    dev=$(_disk_resolve "$dev_s") || return 1
     _linux_require || return 1
-    require_sudo
     if ! command -v smartctl >/dev/null 2>&1; then
         info "未安装 smartmontools，正在补装..."
         pkg_install smartmontools
     fi
+    require_sudo
+    if [[ $# -eq 0 ]]; then
+        header "SMART 健康概览（全部整盘）："
+        local d any=false
+        while IFS= read -r d; do
+            any=true
+            _smart_report_one "/dev/$d"
+        done < <(lsblk -drno NAME,TYPE 2>/dev/null | awk '$2=="disk"{print $1}')
+        $any || warn "未发现整盘设备"
+        return 0
+    fi
+    local dev_s="$1" dev
+    dev=$(_disk_resolve "$dev_s") || return 1
+    dev=$(_disk_base_disk "$dev")
+    _smart_report_detail "$dev"
+}
+
+cmd_scan() {
+    local dev_s="${1:-}" dev base size est_min bb_out badn rc
+    [[ -n "$dev_s" ]] || { error "用法: scan <整盘|分区>（如 sdb 或 sdb1）"; return 1; }
+    _linux_require || return 1
+    dev=$(_disk_resolve "$dev_s") || return 1
+    if ! command -v badblocks >/dev/null 2>&1; then
+        info "未安装 badblocks（e2fsprogs），正在补装..."
+        pkg_install e2fsprogs
+    fi
+    require_sudo
     base=$(_disk_base_disk "$dev")
-    header "SMART 健康总评（${base}）："
-    sudo smartctl -H "$base" || true   # 健康异常时 smartctl 退出非零是正常语义，以输出为准
-    echo
-    sudo smartctl -A "$base" || true
+    _disk_show_detail "$dev"
+    # 只读扫描不走破坏性护栏：使用中/系统盘仅警告 IO 竞争，不拒绝（不写盘，数据零风险）
+    if _disk_in_use "$dev" || _disk_is_protected "$base"; then
+        warn "扫描为只读（不写盘），但 ${dev} 正在使用中/属系统盘：扫描会显著变慢且拖累系统 IO"
+    fi
+    size=$(lsblk -bno SIZE "$dev" 2>/dev/null | head -1 || true)
+    if [[ "$size" =~ ^[0-9]+$ ]]; then
+        est_min=$(( size / 1048576 / 150 / 60 ))
+        (( est_min < 1 )) && est_min=1
+        info "预计耗时约 $(( est_min / 60 )) 小时 $(( est_min % 60 )) 分钟（按 ~150MB/s 估算，SSD 通常更快）"
+    fi
+    header "开始只读盘面扫描（badblocks，不写盘）。长时间扫描建议放 tmux/screen；Ctrl-C 可中断，已扫部分无结论可直接重跑。"
+    bb_out=$(mktemp "${TMPDIR:-/tmp}/uxs-badblocks.XXXXXX")
+    rc=0
+    sudo badblocks -sv -b 4096 -o "$bb_out" "$dev" || rc=$?
+    badn=$(wc -l < "$bb_out" 2>/dev/null || true)
+    badn=$(printf '%s' "${badn:-0}" | tr -d '[:space:]')
+    if (( badn > 0 )); then
+        error "🔴 发现 ${badn} 个坏块！建议：① 立即备份重要数据 ② ./install.sh disk smart ${base##*/} 查看重映射趋势 ③ 评估更换硬盘"
+        echo "坏块 LBA 清单（前 20 行；完整清单: ${bb_out}）:"
+        head -20 "$bb_out" || true
+        return 1
+    elif (( rc != 0 )); then
+        error "扫描异常退出（rc=${rc}；退出码 bit2=被中断）。已扫描部分无结论，可直接重跑"
+        return 1
+    fi
+    rm -f "$bb_out"
+    success "✅ 盘面完好：${dev} 全盘只读扫描未发现坏块"
 }
 
 cmd_wipe() {
@@ -321,7 +644,7 @@ cmd_wipe() {
     dev=$(_disk_resolve "$dev_s") || return 1
     _linux_require || return 1
     require_sudo
-    _disk_guard_destructive "$dev" "擦除签名（wipefs）" || return 1
+    _disk_guard_destructive "$dev" "擦除签名（wipefs）" 1 || return 1
     sudo wipefs -a "$dev"
     sync
     success "已清除 $dev 的所有签名"
@@ -403,14 +726,14 @@ cmd_status() {
         emit_status "n/a" "disk 仅支持 Linux（当前：${OS_TYPE}）"
         return 0
     fi
-    local missing="" t opt_missing="" disks=0
+    local miss_tools="" t opt_missing="" disks=0
     for t in lsblk parted; do
-        command -v "$t" >/dev/null 2>&1 || missing="$missing$t "
+        command -v "$t" >/dev/null 2>&1 || miss_tools="$miss_tools$t "
     done
-    command -v mkfs.ext4 >/dev/null 2>&1 || missing="$missing mkfs.ext4"
-    if [[ -n "$missing" ]]; then
-        emit_status "not_installed" "⚠️  磁盘工具箱依赖缺失:${missing}（运行 ./install.sh disk install 补齐）"
-        emit_extra "missing=${missing// /,}"
+    command -v mkfs.ext4 >/dev/null 2>&1 || miss_tools="$miss_tools mkfs.ext4"
+    if [[ -n "$miss_tools" ]]; then
+        emit_status "not_installed" "⚠️  磁盘工具箱依赖缺失:${miss_tools}（运行 ./install.sh disk install 补齐）"
+        emit_extra "missing=${miss_tools// /,}"
         return 0
     fi
     for t in smartctl mkfs.xfs mkfs.vfat mkfs.exfat mkfs.ntfs; do
@@ -433,7 +756,7 @@ usage() {
     cat <<EOF
 磁盘管理工具箱（仅 Linux）：分区 / 格式化 / 挂载 / fstab / SMART / 擦除签名
 
-用法: install.sh {list|wizard|partition|format|mount|umount|fstab|smart|wipe|install|uninstall|status|help}
+用法: install.sh {list|wizard|partition|format|mount|umount|fstab|smart|scan|wipe|install|uninstall|status|help}
 
   list                          列出块设备与受保护设备（默认动作）
   wizard                        新盘一键上线：分区→格式化→挂载→fstab（交互）
@@ -442,7 +765,8 @@ usage() {
   mount <设备> <挂载点> [--fstab]  挂载（--fstab 同时持久化）
   umount <挂载点|设备>          卸载
   fstab list|add|remove         fstab 管理（UUID 方式，写前备份写后验证）
-  smart <整盘>                  SMART 健康检查（缺 smartmontools 自动补装）
+  smart [整盘]                  SMART 健康体检（无参=全部整盘概览；单盘=详情+判读）
+  scan <整盘|分区>              盘面坏块只读扫描（badblocks 不写盘，耗时可能数小时）
   wipe <设备>                   清除文件系统/分区表签名（wipefs）
   install                       补装依赖工具
   uninstall                     移除辅助工具（不碰磁盘数据）
@@ -452,6 +776,7 @@ usage() {
   · 根盘/启动盘/EFI/swap 及其所在整盘硬拒绝，使用中设备硬拒绝
   · 破坏性操作仅限交互终端，且需手动输入完整设备名确认
   · fstab 写入前自动备份，mount -a 验证失败自动回滚
+  · smart/scan 为只读体检：不写盘，scan 对使用中设备仅警告不拒绝
 EOF
 }
 
@@ -466,6 +791,7 @@ main() {
         umount|unmount) cmd_umount "$@" ;;
         fstab)     cmd_fstab "$@" ;;
         smart)     cmd_smart "$@" ;;
+        scan)      cmd_scan "$@" ;;
         wipe)      cmd_wipe "$@" ;;
         install)   cmd_install ;;
         uninstall) cmd_uninstall ;;
@@ -475,4 +801,7 @@ main() {
     esac
 }
 
-main "$@"
+# 仅直接执行时进入分发；被 source（单测复用纯函数）时不执行
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

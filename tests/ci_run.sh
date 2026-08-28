@@ -329,7 +329,54 @@ phase_routing() {
     assert "disk: DEFAULT_ACTION=list（非交互默认最安全）" bash -c "grep -q '^DEFAULT_ACTION=list$' \"$REPO_DIR/$disk_path/.manifest\""
     assert "disk: 系统盘硬拒绝护栏存在" bash -c "grep -q '_disk_is_protected()' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: 护栏拒绝非交互终端" bash -c "grep -qF '仅允许在交互终端执行' \"$REPO_DIR/$disk_path/install.sh\""
-    assert "disk: usage 子命令枚举完整（供 --list-modules/补全解析）" bash -c "grep -qF '{list|wizard|partition|format|mount|umount|fstab|smart|wipe|install|uninstall|status|help}' \"$REPO_DIR/$disk_path/install.sh\""
+    assert "disk: usage 子命令枚举完整（供 --list-modules/补全解析）" bash -c "grep -qF '{list|wizard|partition|format|mount|umount|fstab|smart|scan|wipe|install|uninstall|status|help}' \"$REPO_DIR/$disk_path/install.sh\""
+    assert "disk: smart 判定纯函数存在（可单测）" bash -c "grep -q '_smart_verdict()' \"$REPO_DIR/$disk_path/install.sh\""
+    assert "disk: smart 判定单测全过" bash "$REPO_DIR/tests/unit_disk_smart.sh"
+    assert "disk: scan 子命令存在且只读（禁 badblocks 写模式 -w/-n）" bash -c "grep -q 'cmd_scan()' \"$REPO_DIR/$disk_path/install.sh\" && ! grep -Eq 'badblocks .*( -w| -n)' \"$REPO_DIR/$disk_path/install.sh\""
+    # 9d+. disk: 占用原因诊断（详细报错）与 wipe 旧签名放宽（stub lsblk + 假 /sys）
+    # shellcheck disable=SC2016 # $1/$() 故意交给内层 bash -c 求值
+    assert "disk: _disk_in_use_reasons 三类原因（stub）" bash -c '
+        T=$(mktemp -d) || exit 1
+        mkdir -p "$T/sys/sdb3/holders" "$T/sys/sdb5/holders" "$T/bin"
+        : > "$T/sys/sdb5/holders/dm-1"    # sdb5 被激活的 DM 设备持有
+        {
+            echo "#!/bin/sh"
+            echo "if [ \"\$2\" = NAME,MOUNTPOINT ]; then"
+            echo "  echo sdb; echo sdb1; echo \"sdb2 /boot\"; echo sdb3; echo sdb4; echo sdb5"
+            echo "elif [ \"\$2\" = NAME,FSTYPE ]; then"
+            echo "  echo sdb; echo \"sdb1 ext4\"; echo \"sdb2 ext4\"; echo \"sdb3 LVM2_member\"; echo \"sdb4 ext4\"; echo \"sdb5 LVM2_member\""
+            echo "else"
+            echo "  echo sdb; echo sdb1; echo sdb2; echo sdb3; echo sdb4; echo sdb5"
+            echo "fi"
+        } > "$T/bin/lsblk"
+        chmod +x "$T/bin/lsblk"
+        source "$1/sys-tools/disk/install.sh" >/dev/null 2>&1
+        r=$(PATH="$T/bin:$PATH" _DISK_SYS_BLOCK="$T/sys" _disk_in_use_reasons /dev/sdb)
+        printf "%s\n" "$r" | grep -q "^MOUNT|/dev/sdb2|/boot$" || { echo "缺 MOUNT"; exit 1; }
+        printf "%s\n" "$r" | grep -q "^SIG|/dev/sdb3|LVM2_member$" || { echo "缺 SIG"; exit 1; }
+        printf "%s\n" "$r" | grep -q "^HOLD|/dev/sdb5|dm-1$" || { echo "缺 HOLD"; exit 1; }
+        # 未挂载且无签名的普通分区（sdb1/sdb4 ext4）不应产生原因
+        printf "%s\n" "$r" | grep -qE "\|/dev/sdb1\||\|/dev/sdb4\|" && { echo "普通分区误报"; exit 1; }
+        # 二元接口与新诊断口径一致
+        PATH="$T/bin:$PATH" _DISK_SYS_BLOCK="$T/sys" _disk_in_use /dev/sdb || { echo "in_use 应为真"; exit 1; }
+        rm -rf "$T"' _ "$REPO_DIR"
+    # shellcheck disable=SC2016
+    assert "disk: 空占用设备返回空原因（stub）" bash -c '
+        T=$(mktemp -d) || exit 1
+        mkdir -p "$T/bin"
+        { echo "#!/bin/sh"; echo "echo sdz"; } > "$T/bin/lsblk"
+        chmod +x "$T/bin/lsblk"
+        source "$1/sys-tools/disk/install.sh" >/dev/null 2>&1
+        r=$(PATH="$T/bin:$PATH" _DISK_SYS_BLOCK="$T/sys_null" _disk_in_use_reasons /dev/sdz)
+        [ -z "$r" ] || { echo "应无原因: $r"; exit 1; }
+        PATH="$T/bin:$PATH" _DISK_SYS_BLOCK="$T/sys_null" _disk_in_use /dev/sdz && { echo "in_use 应为假"; exit 1; }
+        rm -rf "$T"' _ "$REPO_DIR"
+    # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
+    assert "disk: wipe 放宽判定结构（签名占用放行 / 挂载·激活硬阻断）" bash -c '
+        grep -q "allow_sig_only" "$1/sys-tools/disk/install.sh" || { echo "缺放宽参数"; exit 1; }
+        grep -qF "擦除签名（wipefs）\" 1 || return" "$1/sys-tools/disk/install.sh" || { echo "wipe 未启用放宽"; exit 1; }
+        grep -qF "(MOUNT\\||HOLD\\|)" "$1/sys-tools/disk/install.sh" || { echo "缺硬阻断判定"; exit 1; }
+        grep -q "_disk_in_use_reasons" "$1/sys-tools/disk/install.sh" || { echo "缺原因诊断"; exit 1; }' _ "$REPO_DIR"
 
     # 9e. disk-usage top：深度下钻 + 交互守卫（纯函数 + fixture 行为）
     local dus_path

@@ -229,6 +229,7 @@ jobs:
             yum install -y bash sudo curl which
           elif command -v zypper >/dev/null 2>&1; then
             zypper --non-interactive refresh
+            # findutils：最小化容器镜像缺 find（disk-usage top 文件榜依赖）
             zypper --non-interactive install bash sudo curl which gawk findutils
           elif command -v pacman >/dev/null 2>&1; then
             pacman -Sy --noconfirm --needed bash sudo curl which
