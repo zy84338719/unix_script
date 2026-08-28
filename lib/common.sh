@@ -97,6 +97,128 @@ detect_arch() {
     ARCH_TYPE_LOWER="$(echo "$ARCH_TYPE" | tr '[:upper:]' '[:lower:]')"
 }
 
+# ---------------- 发行版识别 ----------------
+# 读取 os-release 风格文件的字段值：_osr_field <文件> <KEY>（值可带或不带引号）。
+# 文件为空/不可读时静默返回空；管道接 || true，防止 set -euo pipefail 环境下
+# （如 install.sh）因 sed 对缺失文件报错而中止整个脚本。
+_osr_field() {
+    [[ -n "${1:-}" && -r "$1" ]] || return 0
+    sed -n "s/^$2=\"\{0,1\}\([^\"]*\)\"\{0,1\}\$/\1/p" "$1" 2>/dev/null | head -1 || true
+}
+
+# 发行版识别：读取 /etc/os-release，设置全局变量：
+#   DISTRO_ID          小写发行版 ID（ubuntu / debian / centos / kylin / uos / openeuler …）
+#   DISTRO_VERSION_ID  版本号（22.04 / 10 / 20 / 24.03 …）
+#   DISTRO_NAME        人类可读名称（PRETTY_NAME，缺省回退 NAME）
+#   DISTRO_FAMILY      包系族：debian | rhel | suse | arch | alpine | unknown
+# 两种模式：
+#   - 主机模式（不传参）：族判定以「实际可用的包管理器」为准、ID/ID_LIKE 词表兜底。
+#     本库 pkg_install/pkg_remove 均按包管理器分发，实测最不易误判，且能正确区分
+#     麒麟/统信的双形态（服务器版=RPM 系、桌面版=Deb 系）。
+#   - 文件模式（显式传 os-release 路径，测试/预检用）：跳过包管理器实测，
+#     纯按该文件的 ID_LIKE → ID 词表分类，跨平台结果一致。
+# 恒返回 0；识别失败时 DISTRO_ID 为空、DISTRO_FAMILY=unknown，由调用方决定如何提示。
+detect_distro() {
+    local rel_file="${1:-}"
+    local host_mode=0
+    if [[ -z "$rel_file" ]]; then
+        host_mode=1
+        for rel_file in /etc/os-release /usr/lib/os-release; do
+            [[ -r "$rel_file" ]] && break
+            rel_file=""
+        done
+    fi
+
+    DISTRO_ID=""
+    DISTRO_VERSION_ID=""
+    DISTRO_NAME=""
+    DISTRO_FAMILY="unknown"
+
+    if [[ -n "$rel_file" && -r "$rel_file" ]]; then
+        DISTRO_ID="$(_osr_field "$rel_file" ID | tr '[:upper:]' '[:lower:]')"
+        DISTRO_VERSION_ID="$(_osr_field "$rel_file" VERSION_ID)"
+        DISTRO_NAME="$(_osr_field "$rel_file" PRETTY_NAME)"
+        [[ -z "$DISTRO_NAME" ]] && DISTRO_NAME="$(_osr_field "$rel_file" NAME)"
+    fi
+
+    # 族判定 ①：主机模式先按包管理器实测
+    if [[ "$host_mode" == 1 ]]; then
+        if command -v apt-get >/dev/null 2>&1; then
+            DISTRO_FAMILY="debian"
+        elif command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1; then
+            DISTRO_FAMILY="rhel"
+        elif command -v zypper >/dev/null 2>&1; then
+            DISTRO_FAMILY="suse"
+        elif command -v pacman >/dev/null 2>&1; then
+            DISTRO_FAMILY="arch"
+        elif command -v apk >/dev/null 2>&1; then
+            DISTRO_FAMILY="alpine"
+        fi
+    fi
+
+    # 族判定 ②：ID_LIKE 词表（文件模式 / 实测无已知包管理器时的依据）
+    if [[ "$DISTRO_FAMILY" == "unknown" ]]; then
+        local id_like
+        id_like="$(_osr_field "$rel_file" ID_LIKE | tr '[:upper:]' '[:lower:]')"
+        case "$id_like" in
+            *debian*|*ubuntu*|*mint*)                         DISTRO_FAMILY="debian" ;;
+            *rhel*|*fedora*|*centos*|*euler*|*anolis*|*amzn*) DISTRO_FAMILY="rhel" ;;
+            *suse*)                                           DISTRO_FAMILY="suse" ;;
+            *arch*|*manjaro*)                                 DISTRO_FAMILY="arch" ;;
+            *alpine*)                                         DISTRO_FAMILY="alpine" ;;
+        esac
+    fi
+    # 族判定 ③：ID 词表兜底。注意：kylin 有意不入表——其服务器版基于 RHEL/CentOS、
+    # 桌面版基于 Ubuntu，硬编码任何一个族都会误判一半场景，交由 ①实测/②ID_LIKE 决定。
+    if [[ "$DISTRO_FAMILY" == "unknown" ]]; then
+        case "$DISTRO_ID" in
+            debian|ubuntu|deepin|openkylin|uos|linuxmint|kali) DISTRO_FAMILY="debian" ;;
+            centos|rhel|rocky|almalinux|fedora|amzn|ol|openeuler|anolis) DISTRO_FAMILY="rhel" ;;
+            opensuse*|sles)                          DISTRO_FAMILY="suse" ;;
+            arch|manjaro)                            DISTRO_FAMILY="arch" ;;
+            alpine)                                  DISTRO_FAMILY="alpine" ;;
+        esac
+    fi
+    return 0
+}
+
+# ---------------- 桌面环境检测 ----------------
+# 设置全局变量：
+#   DESKTOP_ENV  ukui|dde|gnome|kde|xfce|mate|cinnamon|lxqt|budgie|none
+#   IS_DESKTOP   1=检测到桌面环境（麒麟桌面 UKUI / 统信·深度 DDE 等），0=无
+# 识别线索：① 会话环境变量（XDG_CURRENT_DESKTOP / XDG_SESSION_DESKTOP / DESKTOP_SESSION）；
+# ② 桌面会话进程/启动器是否安装（SSH/容器里也能探到已装未启动的桌面）。
+# 用于让服务类模块在桌面系统上做差异化处理（如桌面系统常无 systemd 服务、
+# 代理/网络管理方式不同），并供 doctor / CI 验证展示。
+detect_desktop() {
+    DESKTOP_ENV="none"
+    IS_DESKTOP=0
+    local clues="" v vlow de_bin
+    # 兼容 macOS bash 3.2：不用 ${v,,}（bash4+），统一用 tr 转小写
+    for v in "${XDG_CURRENT_DESKTOP:-}" "${XDG_SESSION_DESKTOP:-}" "${DESKTOP_SESSION:-}"; do
+        [[ -n "$v" ]] || continue
+        vlow="$(printf '%s' "$v" | tr '[:upper:]' '[:lower:]')"
+        clues="$clues $vlow"
+    done
+    for de_bin in ukui-session kwin_x11 startdde dde-desktop gnome-session gnome-shell \
+                  plasmashell startplasma-x11 xfce4-session mate-session cinnamon-session lxsession; do
+        command -v "$de_bin" >/dev/null 2>&1 && clues="$clues $de_bin"
+    done
+    case "$clues" in
+        *ukui*)      DESKTOP_ENV="ukui" ;;   # 麒麟桌面版
+        *dde*|*deepin*) DESKTOP_ENV="dde" ;; # 统信 UOS / 深度 deepin 桌面（startdde 含 dde 已覆盖）
+        *plasma*|*kde*)  DESKTOP_ENV="kde" ;;
+        *gnome*)     DESKTOP_ENV="gnome" ;;
+        *xfce*)      DESKTOP_ENV="xfce" ;;
+        *mate*)      DESKTOP_ENV="mate" ;;
+        *cinnamon*)  DESKTOP_ENV="cinnamon" ;;
+        *lxqt*|*lxsession*) DESKTOP_ENV="lxqt" ;;
+        *budgie*)    DESKTOP_ENV="budgie" ;;
+    esac
+    [[ "$DESKTOP_ENV" != "none" ]] && IS_DESKTOP=1
+    return 0
+}
+
 # ---------------- 包管理器检测 ----------------
 # 设置全局变量 PKG_MANAGER (apt-get|yum|dnf|brew)；不支持则返回非零。
 detect_pkg_manager() {
@@ -127,7 +249,9 @@ pkg_install() {
     local sudo_prefix=""
     [[ $EUID -ne 0 ]] && sudo_prefix="sudo"
     case "$PKG_MANAGER" in
-        apt-get) $sudo_prefix apt-get install -y "$@" ;;
+        # DEBIAN_FRONTEND=noninteractive：容器/极简镜像里 tzdata 等包会弹 debconf
+        # 交互（时区询问），无 TTY 时可能挂死（CI 与脚本场景必须避免）
+        apt-get) $sudo_prefix env DEBIAN_FRONTEND=noninteractive apt-get install -y "$@" ;;
         dnf)     $sudo_prefix dnf install -y "$@" ;;
         yum)     $sudo_prefix yum install -y "$@" ;;
         zypper)  $sudo_prefix zypper --non-interactive install "$@" ;;
@@ -160,7 +284,8 @@ pkg_remove() {
     local sudo_prefix=""
     [[ $EUID -ne 0 ]] && sudo_prefix="sudo"
     case "$PKG_MANAGER" in
-        apt-get) $sudo_prefix apt-get remove --purge -y "$@" ;;
+        # DEBIAN_FRONTEND=noninteractive：理由同 pkg_install（避免 debconf 交互挂死）
+        apt-get) $sudo_prefix env DEBIAN_FRONTEND=noninteractive apt-get remove --purge -y "$@" ;;
         dnf)     $sudo_prefix dnf remove -y "$@" ;;
         yum)     $sudo_prefix yum remove -y "$@" ;;
         zypper)  $sudo_prefix zypper --non-interactive remove "$@" ;;

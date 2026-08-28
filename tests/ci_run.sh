@@ -580,6 +580,109 @@ phase_routing() {
     assert "补全: uxs.bash manifest 驱动" bash -c \
         "! grep -q 'bbr brew bun clash' '$REPO_DIR/completions/uxs.bash' && grep -q 'manifest' '$REPO_DIR/completions/uxs.bash'"
 
+    # 20. 发行版识别（detect_distro）：麒麟/统信/openEuler 等国产系统验证的公共底座。
+    #     CI 矩阵通过 UXS_EXPECT_DISTRO_ID / UXS_EXPECT_DISTRO_FAMILY 注入各发行版
+    #     外部真值做断言；本地/未注入时退化为自洽性校验（ID 一致 + 族与包管理器相符）。
+    if [[ "$(uname -s)" == "Linux" ]]; then
+        # 20a. helper 与识别函数基本行为：用合成的麒麟 os-release fixture 驱动
+        local osr
+        osr="$(mktemp)"
+        printf 'ID="kylin"\nVERSION_ID=V10\nPRETTY_NAME="Kylin Linux Advanced Server V10"\n' > "$osr"
+        # shellcheck disable=SC2016 # $1/$2 故意交给内层 bash -c 求值
+        assert "发行版: _osr_field 解析带引号/无引号字段" bash -c '
+            source "$1/lib/common.sh"
+            [ "$(_osr_field "$2" ID)" = "kylin" ] && [ "$(_osr_field "$2" VERSION_ID)" = "V10" ]' _ "$REPO_DIR" "$osr"
+        # shellcheck disable=SC2016
+        assert "发行版: detect_distro(fixture) ID/版本/名称齐全" bash -c '
+            source "$1/lib/common.sh" && detect_distro "$2"
+            [ "$DISTRO_ID" = "kylin" ] && [ -n "$DISTRO_NAME" ] && [ -n "$DISTRO_VERSION_ID" ]' _ "$REPO_DIR" "$osr"
+        rm -f "$osr"
+        # 20a-2. 桌面操作系统识别（文件模式，跨平台一致）：麒麟桌面/统信桌面/deepin/openKylin
+        #         均为 Deb 系；麒麟服务器版 RPM 系；无 ID_LIKE 且非实测时保持 unknown（诚实不猜）。
+        local dfix
+        dfix="$(mktemp -d)"
+        printf 'ID="Kylin"\nVERSION_ID=V10\nID_LIKE="rhel fedora centos"\nPRETTY_NAME="Kylin Linux Advanced Server V10"\n' > "$dfix/kylin-server"
+        printf 'ID="Kylin"\nVERSION_ID=V10\nID_LIKE="ubuntu debian"\nPRETTY_NAME="Kylin Desktop V10"\n' > "$dfix/kylin-desktop"
+        printf 'ID="uos"\nVERSION_ID=20\nID_LIKE="deepin debian"\nPRETTY_NAME="UnionTech OS Desktop 20"\n' > "$dfix/uos-desktop"
+        printf 'ID="Deepin"\nVERSION_ID="23"\nID_LIKE="debian"\nPRETTY_NAME="Deepin 23"\n' > "$dfix/deepin"
+        printf 'ID="openKylin"\nVERSION_ID="1.0"\nPRETTY_NAME="openKylin 1.0"\n' > "$dfix/openkylin"
+        # shellcheck disable=SC2016
+        assert "桌面发行版: 麒麟服务器(RPM系)/麒麟桌面(Deb系) 分流正确" bash -c '
+            source "$1/lib/common.sh"
+            detect_distro "$2/kylin-server";  [ "$DISTRO_FAMILY" = "rhel" ] || exit 1
+            detect_distro "$2/kylin-desktop"; [ "$DISTRO_FAMILY" = "debian" ] || exit 2' _ "$REPO_DIR" "$dfix"
+        # shellcheck disable=SC2016
+        assert "桌面发行版: 统信桌面/deepin/openKylin 归 Deb 系" bash -c '
+            source "$1/lib/common.sh"
+            detect_distro "$2/uos-desktop";  [ "$DISTRO_FAMILY" = "debian" ] || exit 1
+            detect_distro "$2/deepin";       [ "$DISTRO_FAMILY" = "debian" ] || exit 2
+            detect_distro "$2/openkylin";    [ "$DISTRO_FAMILY" = "debian" ] || exit 3
+            [ "$DISTRO_ID" = "openkylin" ] || exit 4' _ "$REPO_DIR" "$dfix"
+        rm -rf "$dfix"
+        # 20a-3. 桌面环境检测（detect_desktop）：临时环境变量驱动，容器/CI 可测。
+        #         注意 detect_desktop 在当前 shell 内执行（VAR=x func 形式对函数生效），
+        #         断言读的是同一 shell 里的变量。
+        # shellcheck disable=SC2016
+        assert "桌面环境: UKUI（麒麟桌面）识别" bash -c '
+            unset XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP DESKTOP_SESSION
+            source "$1/lib/common.sh"
+            XDG_CURRENT_DESKTOP=UKUI detect_desktop
+            [ "$DESKTOP_ENV" = "ukui" ] && [ "$IS_DESKTOP" = 1 ]' _ "$REPO_DIR"
+        # shellcheck disable=SC2016
+        assert "桌面环境: DDE（统信/深度桌面）识别" bash -c '
+            unset XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP DESKTOP_SESSION
+            source "$1/lib/common.sh"
+            XDG_CURRENT_DESKTOP=DDE detect_desktop
+            [ "$DESKTOP_ENV" = "dde" ] && [ "$IS_DESKTOP" = 1 ]' _ "$REPO_DIR"
+        # shellcheck disable=SC2016
+        assert "桌面环境: GNOME 识别" bash -c '
+            unset XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP DESKTOP_SESSION
+            source "$1/lib/common.sh"
+            XDG_CURRENT_DESKTOP=ubuntu:GNOME detect_desktop
+            [ "$DESKTOP_ENV" = "gnome" ] && [ "$IS_DESKTOP" = 1 ]' _ "$REPO_DIR"
+        # shellcheck disable=SC2016
+        assert "桌面环境: 无桌面时 IS_DESKTOP=0" bash -c '
+            env -u XDG_CURRENT_DESKTOP -u XDG_SESSION_DESKTOP -u DESKTOP_SESSION \
+                bash -c "source \"$1/lib/common.sh\" && detect_desktop; [ \"\$DESKTOP_ENV\" = none ] && [ \"\$IS_DESKTOP\" = 0 ]"' _ "$REPO_DIR"
+        # 20b. 当前环境自洽校验
+        # shellcheck disable=SC2016
+        assert "发行版: DISTRO_ID 与 os-release 一致（小写）" bash -c '
+            source "$1/lib/common.sh" && detect_distro
+            want=$(_osr_field /etc/os-release ID | tr "[:upper:]" "[:lower:]")
+            [ -n "$want" ] && [ "$DISTRO_ID" = "$want" ]' _ "$REPO_DIR"
+        # shellcheck disable=SC2016
+        assert "发行版: DISTRO_FAMILY 在有限集" bash -c '
+            source "$1/lib/common.sh" && detect_distro
+            case " debian rhel suse arch alpine unknown " in *" $DISTRO_FAMILY "*) exit 0 ;; *) exit 1 ;; esac' _ "$REPO_DIR"
+        # shellcheck disable=SC2016
+        assert "发行版: 族与包管理器实测相符" bash -c '
+            source "$1/lib/common.sh" && detect_distro
+            case "$DISTRO_FAMILY" in
+                debian)  command -v apt-get >/dev/null ;;
+                rhel)    command -v dnf >/dev/null || command -v yum >/dev/null ;;
+                suse)    command -v zypper >/dev/null ;;
+                arch)    command -v pacman >/dev/null ;;
+                alpine)  command -v apk >/dev/null ;;
+                unknown) ! command -v apt-get >/dev/null && ! command -v dnf >/dev/null \
+                      && ! command -v yum >/dev/null && ! command -v zypper >/dev/null \
+                      && ! command -v pacman >/dev/null && ! command -v apk >/dev/null ;;
+                *) exit 1 ;;
+            esac' _ "$REPO_DIR"
+        # 20c. CI 矩阵注入的外部真值（期望 ID/族；未设置则跳过）
+        if [[ -n "${UXS_EXPECT_DISTRO_ID:-}" ]]; then
+            # shellcheck disable=SC2016
+            assert "发行版: 外部真值 DISTRO_ID=${UXS_EXPECT_DISTRO_ID}" bash -c '
+                source "$1/lib/common.sh" && detect_distro && [ "$DISTRO_ID" = "$2" ]' _ "$REPO_DIR" "$UXS_EXPECT_DISTRO_ID"
+        fi
+        if [[ -n "${UXS_EXPECT_DISTRO_FAMILY:-}" ]]; then
+            # shellcheck disable=SC2016
+            assert "发行版: 外部真值 族=${UXS_EXPECT_DISTRO_FAMILY}" bash -c '
+                source "$1/lib/common.sh" && detect_distro && [ "$DISTRO_FAMILY" = "$2" ]' _ "$REPO_DIR" "$UXS_EXPECT_DISTRO_FAMILY"
+        fi
+    else
+        report_row "发行版: detect_distro" skip "非 Linux"
+    fi
+
     report_footer
     [[ $FAIL_COUNT -eq 0 ]]
 }

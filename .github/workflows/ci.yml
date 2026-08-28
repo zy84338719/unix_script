@@ -85,9 +85,9 @@ jobs:
   #
   # 设计说明：
   #   - GitHub Actions 无原生 CentOS/RHEL runner，只能在 ubuntu runner 里用 container: 跑。
-  #   - 不同发行版的 shellcheck 版本不同（ubuntu≈0.8.0、macOS≈0.11.0、CentOS EPEL≈0.10.0），
-  #     版本差异会导致规则不一致（曾因 0.8.0 报 SC2002/SC2086 而 0.11.0 不报）。
-  #     本 job 在 RHEL 系容器内复用同一 tests/ci_run.sh --phase static，补全覆盖。
+  #   - 不同发行版的 shellcheck 版本不同（debian12≈0.9.0、ubuntu≈0.8.0、macOS≈0.11.0、
+  #     CentOS EPEL≈0.10.0），版本差异会导致规则不一致（曾因 0.8.0 报 SC2002/SC2086
+  #     而 0.11.0 不报）。本 job 在各包系族容器内复用同一 tests/ci_run.sh --phase static。
   # ============================================================
   static-container:
     name: 容器静态检查 / ${{ matrix.distro }}
@@ -97,6 +97,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - distro: debian-12
+            image: debian:12
           - distro: centos-stream9
             image: quay.io/centos/centos:stream9
           - distro: almalinux-9
@@ -104,12 +106,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 安装 shellcheck（EPEL）与 bash
+      - name: 安装 shellcheck 与 bash（按发行版包管理器）
         shell: sh
         run: |
-          # RHEL 系：shellcheck 在 EPEL 仓库，先装 epel-release 再装 shellcheck
-          dnf install -y -q epel-release
-          dnf install -y -q shellcheck bash
+          # RHEL 系：shellcheck 在 EPEL 仓库，先装 epel-release；Debian 系：apt 直装
+          if command -v dnf >/dev/null 2>&1; then
+            dnf install -y -q epel-release
+            dnf install -y -q shellcheck bash
+          elif command -v yum >/dev/null 2>&1; then
+            yum install -y -q epel-release
+            yum install -y -q shellcheck bash
+          elif command -v apt-get >/dev/null 2>&1; then
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update -q
+            apt-get install -y -q shellcheck bash
+          fi
 
       - name: 运行静态检查并生成报告
         shell: bash
@@ -143,27 +154,62 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Debian 系
+          # Debian 系 —— 主流多版本
+          # expect_id/expect_family: 该发行版的外部真值，注入给 ci_run.sh 的
+          # 「发行版识别」断言（UXS_EXPECT_DISTRO_*），防止检测逻辑自我循环论证
+          - distro: ubuntu-20.04
+            image: ubuntu:20.04
+            expect_id: ubuntu
+            expect_family: debian
           - distro: ubuntu-22.04
             image: ubuntu:22.04
+            expect_id: ubuntu
+            expect_family: debian
+          - distro: ubuntu-24.04
+            image: ubuntu:24.04
+            expect_id: ubuntu
+            expect_family: debian
+          - distro: debian-11
+            image: debian:11
+            expect_id: debian
+            expect_family: debian
           - distro: debian-12
             image: debian:12
+            expect_id: debian
+            expect_family: debian
+          - distro: debian-13
+            image: debian:13
+            expect_id: debian
+            expect_family: debian
           # RHEL 系
           - distro: fedora
             image: fedora:latest
+            expect_id: fedora
+            expect_family: rhel
           - distro: centos-stream9
             image: quay.io/centos/centos:stream9
+            expect_id: centos
+            expect_family: rhel
           - distro: almalinux-9
             image: almalinux:9
+            expect_id: almalinux
+            expect_family: rhel
           - distro: rocky-9
             image: rockylinux:9
+            expect_family: rhel
           # 独立发行版
           - distro: opensuse-tumbleweed
             image: opensuse/tumbleweed:latest
+            expect_id: opensuse-tumbleweed
+            expect_family: suse
           - distro: arch
             image: archlinux:latest
+            expect_id: arch
+            expect_family: arch
           - distro: alpine
             image: alpine:latest
+            expect_id: alpine
+            expect_family: alpine
     steps:
       - uses: actions/checkout@v4
 
@@ -173,6 +219,8 @@ jobs:
         run: |
           # 各包管理器族安装 bash/sudo/curl（which 在 debian 系由 debianutils 内置）
           if command -v apt-get >/dev/null 2>&1; then
+            # noninteractive：tzdata 等包在无 TTY 容器里会弹 debconf 交互挂死
+            export DEBIAN_FRONTEND=noninteractive
             apt-get update
             apt-get install -y bash sudo curl
           elif command -v dnf >/dev/null 2>&1; then
@@ -190,6 +238,10 @@ jobs:
 
       - name: 验证包管理器识别与脚本可解析
         shell: bash
+        env:
+          # 发行版外部真值断言（见矩阵 expect_id/expect_family 注释）
+          UXS_EXPECT_DISTRO_ID: ${{ matrix.expect_id }}
+          UXS_EXPECT_DISTRO_FAMILY: ${{ matrix.expect_family }}
         run: |
           chmod +x tests/ci_run.sh
           # 容器内做路由级验证（验证各发行版 detect_pkg_manager 与脚本可解析）
@@ -207,6 +259,123 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: install-container-${{ matrix.distro }}
+          path: |
+            routing-report.md
+            install-report.md
+          if-no-files-found: warn
+
+  # ============================================================
+  # Job 3b: 国产化平台验证 —— 麒麟 / 统信 UOS / openEuler + 遗留 CentOS 7
+  #
+  # 设计说明：
+  #   - 麒麟/统信无公开的官方容器镜像，采用社区维护镜像（macrosan/*，基于官方
+  #     软件源构建）；openEuler 用官方镜像（麒麟服务器版的上游发行版）。
+  #   - 验证内容：detect_distro 发行版识别（注入外部真值断言）+ 路由测试 +
+  #     essential-pkgs 实装（RPM 系 yum/dnf 分支真实走包安装）。
+  #   - continue-on-error：社区镜像的可维护性与海外网络访问国产软件源不受我们
+  #     控制，结果尽力而为、记入报告但不阻塞质量门禁（与 install-vm 同策略）。
+  #   - 不用 actions/checkout：其 node20 运行时要求 glibc≥2.28，CentOS 7 等老
+  #     镜像跑不动，改为容器内原生 git fetch 当前 ref。
+  # ============================================================
+  install-container-domestic:
+    name: 国产化平台验证 / ${{ matrix.distro }}
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - distro: kylin-v10-sp3          # 银河麒麟高级服务器版 V10 SP3（RPM 系）
+            image: docker.io/macrosan/kylin:v10-sp3-2403
+            expect_id: kylin
+            expect_family: rhel
+          - distro: uos-v20                # 统信 UOS 服务器版 V20（RPM 系）
+            image: docker.io/macrosan/uos:v20-1070
+            expect_id: uos
+            expect_family: rhel
+          - distro: openeuler-24.03-lts    # openEuler 官方镜像（麒麟服务器版上游）
+            image: docker.io/openeuler/openeuler:24.03-lts
+            expect_id: openeuler
+            expect_family: rhel
+          # —— 国产桌面操作系统（Deb 系）——
+          - distro: deepin-23              # 深度 deepin 官方镜像（DDE 桌面，Deb 系）
+            image: docker.io/linuxdeepin/deepin:latest
+            expect_id: deepin
+            expect_family: debian
+          - distro: openkylin              # 开放麒麟官方镜像（麒麟桌面版同源，Deb 系）
+            image: docker.io/openkylin/openkylin:latest
+            expect_id: openkylin
+            expect_family: debian
+          # 麒麟桌面版/统信桌面版无公开容器镜像，其识别由 ci_run.sh 的
+          # 「桌面发行版」os-release 仿真夹具断言覆盖（见 routing 阶段 20a-2）。
+          - distro: centos-7               # 主流遗留版本（已 EOL，须切 vault 源）
+            image: docker.io/library/centos:7
+            expect_id: centos
+            expect_family: rhel
+    steps:
+      - name: 安装基础工具（bash/git/curl/sudo）
+        shell: sh
+        run: |
+          # CentOS 7 官方源已下线（mirrorlist 404），先切 vault 才能装东西
+          if grep -q "release 7" /etc/centos-release 2>/dev/null; then
+            sed -i 's|^mirrorlist|#mirrorlist|g; s|^#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*.repo
+          fi
+          if command -v apt-get >/dev/null 2>&1; then
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update && apt-get install -y bash git curl sudo which
+          elif command -v dnf >/dev/null 2>&1; then
+            dnf install -y bash git curl sudo which
+          elif command -v yum >/dev/null 2>&1; then
+            yum install -y bash git curl sudo which
+          fi
+
+      - name: Checkout（容器内原生 git fetch，规避 actions/checkout 的 node20/glibc 要求）
+        shell: bash
+        env:
+          GIT_TERMINAL_PROMPT: 0
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE" || true
+          git init -q "$GITHUB_WORKSPACE"
+          cd "$GITHUB_WORKSPACE"
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          # GITHUB_REF 同时覆盖 push（refs/heads/*）与 PR（refs/pull/*/merge）
+          git fetch -q --depth 1 origin "$GITHUB_REF"
+          git checkout -q FETCH_HEAD
+
+      - name: 运行路由测试（含发行版识别断言）
+        shell: bash
+        env:
+          UXS_EXPECT_DISTRO_ID: ${{ matrix.expect_id }}
+          UXS_EXPECT_DISTRO_FAMILY: ${{ matrix.expect_family }}
+        run: |
+          chmod +x tests/ci_run.sh
+          ./tests/ci_run.sh --phase routing --out routing-report.md
+
+      - name: essential-pkgs 实装测试（验证 RPM 系安装分支）
+        shell: bash
+        run: |
+          ./tests/ci_run.sh --phase install --module essential-pkgs --out install-report.md
+
+      - name: 平台识别信息写入步骤摘要
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "### 国产化平台验证 / ${{ matrix.distro }}"
+            echo
+            echo '```'
+            grep -E '^(ID|VERSION_ID|PRETTY_NAME|ID_LIKE)=' /etc/os-release 2>/dev/null || echo "(无 /etc/os-release)"
+            echo '```'
+            echo
+            source ./lib/common.sh && detect_distro
+            echo "detect_distro → ID=${DISTRO_ID:-(空)} 版本=${DISTRO_VERSION_ID:-(空)} 族=${DISTRO_FAMILY}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 上传报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: domestic-${{ matrix.distro }}
           path: |
             routing-report.md
             install-report.md
@@ -250,7 +419,7 @@ jobs:
   report:
     name: 汇总报告
     runs-on: ubuntu-latest
-    needs: [static, static-container, routing, install-container, install-vm]
+    needs: [static, static-container, routing, install-container, install-container-domestic, install-vm]
     if: always()
     steps:
       - uses: actions/checkout@v4
@@ -280,6 +449,7 @@ jobs:
             echo "| 容器静态检查 (static-container) | ${{ needs.static-container.result }} |"
             echo "| 路由测试 (routing) | ${{ needs.routing.result }} |"
             echo "| 容器包解析 (install-container) | ${{ needs.install-container.result }} |"
+            echo "| 国产化平台验证 (install-container-domestic) | ${{ needs.install-container-domestic.result }} |"
             echo "| VM 实装 (install-vm) | ${{ needs.install-vm.result }} |"
             echo
             echo "---"
@@ -328,5 +498,8 @@ jobs:
           done
           if [ "${{ needs.install-vm.result }}" != "success" ] && [ "${{ needs.install-vm.result }}" != "skipped" ]; then
             echo "::warning::实装测试 (install-vm) 结果为 ${{ needs.install-vm.result }}，详见报告（受外网/环境限制，不阻塞整体）"
+          fi
+          if [ "${{ needs.install-container-domestic.result }}" != "success" ] && [ "${{ needs.install-container-domestic.result }}" != "skipped" ]; then
+            echo "::warning::国产化平台验证 (install-container-domestic) 结果为 ${{ needs.install-container-domestic.result }}，详见报告（社区镜像/国产源网络不受控，不阻塞整体）"
           fi
           echo "所有核心阶段通过"

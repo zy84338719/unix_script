@@ -58,6 +58,22 @@ run_doctor() {
     success "操作系统：$OS_TYPE ($OS_KERNEL)"
     success "CPU 架构：$ARCH_TYPE"
 
+    # Distro detection（发行版识别，覆盖麒麟/统信/openEuler 等国产系统）
+    detect_distro
+    if [[ -n "$DISTRO_ID" ]]; then
+        success "发行版：$DISTRO_NAME（ID=$DISTRO_ID 版本=${DISTRO_VERSION_ID:-未知}，${DISTRO_FAMILY} 系）"
+    else
+        warn "未能识别发行版（缺少 /etc/os-release，包系族按包管理器判定）"
+    fi
+
+    # Desktop detection（桌面环境：麒麟桌面 UKUI / 统信·深度 DDE / GNOME / KDE 等）
+    detect_desktop
+    if [[ "$IS_DESKTOP" == 1 ]]; then
+        success "桌面环境：${DESKTOP_ENV}（桌面系统）"
+    else
+        info "桌面环境：无（服务器/CLI 环境）"
+    fi
+
     # Package manager
     info "检查包管理器..."
     detect_pkg_manager
