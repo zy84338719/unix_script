@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### 修复
+- **换源不彻底（Ubuntu 24.04+/Debian 13 deb822）**：`sys-setup mirror` 只重写 `/etc/apt/sources.list`，而新世代的发行版源实际在 `/etc/apt/sources.list.d/ubuntu.sources`（deb822），导致新旧源并存——同一批索引重复下载、`security.ubuntu.com` 官方源残留、`apt modernize-sources` 提示；现优先重写 deb822 主文件（含 `Signed-By`，security 套件走清华），并停用其余仍指向发行版归档的源文件（重命名为 `.bak.<时间戳>`，apt 自动忽略、可随时改回）；`status` 的镜像检测同步覆盖 `sources.list.d`（此前即使已换源也误报「默认源」）
+
 ## [1.9.0] - 2026-08-28
 
 ### 新增

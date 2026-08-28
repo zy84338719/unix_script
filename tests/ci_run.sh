@@ -299,6 +299,13 @@ phase_routing() {
     # dev-mirror: 非法源标识应报错退出 1
     assert "dev-mirror: 非法源标识报错 (exit 1)" bash -c "! \"$REPO_DIR/$dm_path/install.sh\" install go __bad_source__ >/dev/null 2>&1"
 
+    # 9c. sys-setup：apt 换源需感知 deb822（Ubuntu 24.04+ 发行版源在 sources.list.d/*.sources）
+    local ss_path
+    ss_path=$(resolve_module_path sys-setup)
+    assert "sys-setup: mirror 重写 deb822 ubuntu.sources" bash -c "grep -q 'sources.list.d/ubuntu.sources' \"$REPO_DIR/$ss_path/install.sh\""
+    assert "sys-setup: 停用残留源逻辑存在" bash -c "grep -q '_apt_disable_distro_sources()' \"$REPO_DIR/$ss_path/install.sh\""
+    assert "sys-setup: status 镜像检测覆盖 sources.list.d" bash -c "grep -qF '/etc/apt/sources.list.d/*.sources' \"$REPO_DIR/$ss_path/install.sh\""
+
     # 4b. status 契约：machine 模式下每个模块首行必须是合法 STATE=
     check_status_contract
 
