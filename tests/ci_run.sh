@@ -284,7 +284,15 @@ phase_routing() {
     local dm_path
     dm_path=$(resolve_module_path dev-mirror)
     assert "dev-mirror 有 .manifest" bash -c "test -f \"$REPO_DIR/$dm_path/.manifest\""
-    assert "lib/submenus.sh 含 manage_dev_mirror 函数" bash -c "grep -q 'manage_dev_mirror()' \"$REPO_DIR/lib/submenus.sh\""
+    assert "lib/submenus.sh 含 manage_dev-mirror 函数" bash -c "grep -q 'manage_dev-mirror()' \"$REPO_DIR/lib/submenus.sh\""
+    # 菜单按 "manage_${HAS_SUBMENU}" 动态分发：每个声明 HAS_SUBMENU 的模块都必须有同名入口
+    # shellcheck disable=SC2016 # $1/$() 故意交给内层 bash -c 求值
+    assert "子菜单入口: 所有 HAS_SUBMENU 均有 manage_<名>() 对应" bash -c '
+        for m in "$1"/*/*/.manifest; do
+            v=$(grep -h "^HAS_SUBMENU=" "$m" 2>/dev/null | cut -d= -f2)
+            [ -z "$v" ] && continue
+            grep -q "manage_${v}()" "$1/lib/submenus.sh" || { echo "缺少 manage_${v}()"; exit 1; }
+        done' _ "$REPO_DIR"
     assert "lib/status.sh 含 module_status 函数" bash -c "grep -q 'module_status()' \"$REPO_DIR/lib/status.sh\""
     # dev-mirror 子命令路由：非法生态应报错退出 1
     assert "dev-mirror: 非法生态报错 (exit 1)" bash -c "! \"$REPO_DIR/$dm_path/install.sh\" install __bad_eco__ >/dev/null 2>&1"

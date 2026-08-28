@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 安装器（非交互菜单），与其它模块入口一致启用 set -euo pipefail。
-# 交互菜单在 process_manager.sh（运行时工具）与 lib/submenus.sh 的 manage_process_tool。
+# 交互菜单在 process_manager.sh（运行时工具）与 lib/submenus.sh 的 manage_process_manager_tool。
 set -euo pipefail
 #
 # install_process_manager.sh

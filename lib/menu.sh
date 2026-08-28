@@ -161,7 +161,13 @@ menu_exec_actions() {
                 warn "${mod} 需进入子菜单操作，已跳过（请单独选择）"
                 continue
             fi
-            "manage_${submenu}"
+            # 入口函数名必须为 manage_<HAS_SUBMENU>（见 lib/submenus.sh 头注）；
+            # declare -F 兜底：缺失时报错跳过，而非 set -e 下 127 使整个菜单退出
+            if declare -F "manage_${submenu}" >/dev/null 2>&1; then
+                "manage_${submenu}"
+            else
+                menu_error "子菜单入口缺失：manage_${submenu}（应在 lib/submenus.sh 定义）"
+            fi
             break
         fi
         default_action=$(registry_default_action "$mod")
