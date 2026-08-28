@@ -100,12 +100,64 @@ _disk_is_protected() {
     return 1
 }
 
-# 0 = 使用中（已挂载 / swap 签名 / raid·lvm 成员）
+# 占用原因检测（机器可读行 KIND|DEV|DETAIL，供详细报错与 wipe 放宽判定）：
+#   MOUNT|<dev>|<挂载点>   已挂载（硬阻断，wipe 也不例外）
+#   HOLD|<dev>|<holder>    被激活的内核 DM/MD 设备持有（硬阻断；未挂载的激活 LV 也算）
+#   SIG|<dev>|<签名>       旧签名残留（swap/raid/lvm/bios_grub；wipe 可解除）
+_DISK_SYS_BLOCK="${_DISK_SYS_BLOCK:-/sys/class/block}"
+
+_disk_in_use_reasons() {
+    local dev="$1" d rest h
+    while IFS=' ' read -r d rest; do
+        [[ -n "$rest" ]] && echo "MOUNT|/dev/$d|$rest"
+    done < <(lsblk -rno NAME,MOUNTPOINT "$dev" 2>/dev/null)
+    while IFS=' ' read -r d rest; do
+        case "$rest" in
+            swap|linux_raid_member|LVM2_member|bios_grub) echo "SIG|/dev/$d|$rest" ;;
+        esac
+    done < <(lsblk -rno NAME,FSTYPE "$dev" 2>/dev/null)
+    while IFS= read -r d; do
+        [[ -z "$d" ]] && continue
+        for h in "$_DISK_SYS_BLOCK/$d"/holders/*; do
+            [[ -e "$h" ]] && echo "HOLD|/dev/$d|$(basename "$h")"
+        done
+    done < <(lsblk -rno NAME "$dev" 2>/dev/null)
+    return 0
+}
+
 _disk_in_use() {
-    local dev="$1"
-    lsblk -rno MOUNTPOINT "$dev" 2>/dev/null | grep -q '[^[:space:]]' && return 0
-    lsblk -rno FSTYPE "$dev" 2>/dev/null | grep -Eq 'swap|linux_raid_member|LVM2_member|bios_grub' && return 0
-    return 1
+    [[ -n "$(_disk_in_use_reasons "$1")" ]]
+}
+
+# LVM PV 所属 VG 名（lvm2 缺失/无 root 时返回空，仅用于提示；sudo -n 复用护栏前缓存的授权）
+_disk_lvm_pv_vg() {
+    command -v pvs >/dev/null 2>&1 || return 0
+    sudo -n pvs --noheadings -o vg_name "$1" 2>/dev/null | tr -d ' ' | head -1
+    return 0
+}
+
+# 人类可读的占用详情（逐条说明谁在占用 + 解除方法）
+_disk_in_use_report() {
+    local dev="$1" kind rd dt vg
+    while IFS='|' read -r kind rd dt; do
+        case "$kind" in
+            MOUNT)
+                printf '  ⛔ %s 已挂载到 %s（请先 umount）\n' "$rd" "$dt" ;;
+            HOLD)
+                printf '  ⛔ %s 被激活的内核设备 %s 占用（多为激活中的 LVM LV/RAID；LVM 可 sudo vgchange -an <VG名> 停用）\n' "$rd" "$dt" ;;
+            SIG)
+                if [[ "$dt" == "LVM2_member" ]]; then
+                    vg=$(_disk_lvm_pv_vg "$rd")
+                    if [[ -n "$vg" ]]; then
+                        printf '  ⛔ %s 是 LVM PV（VG %s，未激活）\n' "$rd" "$vg"
+                    else
+                        printf '  ⛔ %s 含 LVM PV 签名（旧 VG 残留）\n' "$rd"
+                    fi
+                else
+                    printf '  ⛔ %s 含 %s 签名\n' "$rd" "$dt"
+                fi ;;
+        esac
+    done < <(_disk_in_use_reasons "$dev")
 }
 
 _disk_show_detail() {
@@ -117,7 +169,7 @@ _disk_show_detail() {
 # 严格护栏：破坏性操作统一入口（三层，无绕过）
 # ============================================================
 _disk_guard_destructive() {
-    local dev="$1" action="$2" typed
+    local dev="$1" action="$2" allow_sig_only="${3:-0}" typed reasons
     if [[ ! -t 0 ]]; then
         error "拒绝：$action 属破坏性操作，仅允许在交互终端执行（安全护栏，无 --yes 跳过）"
         return 1
@@ -126,9 +178,18 @@ _disk_guard_destructive() {
         error "拒绝：$dev 是系统/启动/swap 所在盘或其分区，禁止破坏性操作"
         return 1
     fi
-    if _disk_in_use "$dev"; then
-        error "拒绝：$dev 正在使用中（已挂载 / swap / raid·lvm 成员），请先 umount / swapoff / 停 raid"
-        return 1
+    reasons=$(_disk_in_use_reasons "$dev")
+    if [[ -n "$reasons" ]]; then
+        if [[ "$allow_sig_only" == "1" ]] && ! grep -qE '^(MOUNT\||HOLD\|)' <<< "$reasons"; then
+            # wipe 特例：无挂载、无激活占用，仅旧签名——擦签名正是解除它们的操作
+            warn "$dev 无挂载、无激活占用，仅存旧签名（wipefs 可解除）："
+            _disk_in_use_report "$dev"
+        else
+            error "拒绝：$dev 正在使用中："
+            _disk_in_use_report "$dev"
+            info "提示：若仅剩旧签名残留（无挂载/无激活占用），可用 wipe 解除后重试（如：wipe sdb3）"
+            return 1
+        fi
     fi
     _disk_show_detail "$dev"
     read -r -p "⚠️  $action 将清除 $dev 上的全部数据。请输入完整设备名（如 sdb 或 sdb1）确认: " typed
@@ -582,7 +643,7 @@ cmd_wipe() {
     dev=$(_disk_resolve "$dev_s") || return 1
     _linux_require || return 1
     require_sudo
-    _disk_guard_destructive "$dev" "擦除签名（wipefs）" || return 1
+    _disk_guard_destructive "$dev" "擦除签名（wipefs）" 1 || return 1
     sudo wipefs -a "$dev"
     sync
     success "已清除 $dev 的所有签名"
@@ -739,7 +800,7 @@ main() {
     esac
 }
 
-# 允许单测 source 本文件只取纯函数；直接执行时照常入口
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+# 仅直接执行时进入分发；被 source（单测复用纯函数）时不执行
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi
