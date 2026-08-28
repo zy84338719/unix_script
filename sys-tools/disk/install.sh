@@ -129,10 +129,10 @@ _disk_in_use() {
     [[ -n "$(_disk_in_use_reasons "$1")" ]]
 }
 
-# LVM PV 所属 VG 名（lvm2 工具缺失时返回空，仅用于提示）
+# LVM PV 所属 VG 名（lvm2 缺失/无 root 时返回空，仅用于提示；sudo -n 复用护栏前缓存的授权）
 _disk_lvm_pv_vg() {
     command -v pvs >/dev/null 2>&1 || return 0
-    pvs --noheadings -o vg_name "$1" 2>/dev/null | tr -d ' ' | head -1
+    sudo -n pvs --noheadings -o vg_name "$1" 2>/dev/null | tr -d ' ' | head -1
     return 0
 }
 
