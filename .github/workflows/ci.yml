@@ -376,6 +376,9 @@ jobs:
       - name: 上传报告
         if: always()
         uses: actions/upload-artifact@v4
+        # upload-artifact 的 node 跑不动 glibc<2.28 的容器（centos:7）：
+        # 验证步骤本身已全过，报告上传失败仅降级提示，不让腿变红
+        continue-on-error: true
         with:
           name: domestic-${{ matrix.distro }}
           path: |
