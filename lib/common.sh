@@ -103,7 +103,7 @@ detect_arch() {
 # （如 install.sh）因 sed 对缺失文件报错而中止整个脚本。
 _osr_field() {
     [[ -n "${1:-}" && -r "$1" ]] || return 0
-    sed -n "s/^$2=\"\{0,1\}\([^\"]*\)\"\{0,1\}\$/\1/p" "$1" 2>/dev/null | head -1 || true
+    sed -n "s/^$2=[\"\']\{0,1\}\([^\"\']*\)[\"\']\{0,1\}\$/\1/p" "$1" 2>/dev/null | head -1 || true
 }
 
 # 发行版识别：读取 /etc/os-release，设置全局变量：
@@ -180,6 +180,20 @@ detect_distro() {
         esac
     fi
     return 0
+}
+
+# 读 os-release 风格文件的字段值：uxs_os_release <KEY> [file]
+# file 缺省依次尝试 /etc/os-release、/usr/lib/os-release；均不可读返回空。
+# 供模块替代手写 `$(. /etc/os-release && echo "$ID")`；恒返回 0。
+uxs_os_release() {
+    local key="$1" rel_file="${2:-}"
+    if [[ -z "$rel_file" ]]; then
+        for rel_file in /etc/os-release /usr/lib/os-release; do
+            [[ -r "$rel_file" ]] && break
+            rel_file=""
+        done
+    fi
+    _osr_field "$rel_file" "$key"
 }
 
 # ---------------- 桌面环境检测 ----------------
