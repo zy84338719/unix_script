@@ -149,11 +149,14 @@ cmd_list() {
     lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,MOUNTPOINT,MODEL 2>/dev/null || lsblk
     echo
     echo "受保护设备（系统/启动/swap 相关，禁止破坏性操作）："
-    local found=false d
+    local found=false d info_line
     while IFS= read -r d; do
         [[ -z "$d" ]] && continue
         found=true
-        lsblk -no NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT "$d" 2>/dev/null | head -1 | sed 's/^/  ⚠️  /dev/'
+        # pipefail 下 head 提前关管道会 SIGPIPE 中止（见 submenus.sh 同款注释）→ || true 兜底；
+        # lsblk 对分区会连带输出祖先行，目标行在最后 → tail -1；mapper 设备直接输出原路径
+        info_line=$(lsblk -rno SIZE,TYPE,FSTYPE,MOUNTPOINT "$d" 2>/dev/null | tail -1 || true)
+        printf '  ⚠️  %-40s %s\n' "$d" "$info_line"
     done < <(_disk_system_devices)
     $found || echo "  （无）"
 }
