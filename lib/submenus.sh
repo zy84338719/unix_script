@@ -260,8 +260,9 @@ _disk_menu_display() {
     echo "  5) 挂载"
     echo "  6) 卸载"
     echo "  7) fstab 管理（list）"
-    echo "  8) SMART 健康检查"
+    echo "  8) SMART 健康体检（回车=全部整盘概览）"
     echo "  9) 擦除文件系统签名 (wipe)"
+    echo " 10) 坏块只读扫描（badblocks，不写盘）"
 }
 _disk_menu_action() {
     local dk dk2 mp
@@ -293,12 +294,16 @@ _disk_menu_action() {
             ;;
         7) run_in_dir sys-tools/disk install.sh fstab list ;;
         8)
-            read -r -p "整盘 (如 sda): " dk
-            run_in_dir sys-tools/disk install.sh smart "$dk"
+            read -r -p "整盘 (如 sda，回车=全部整盘概览): " dk
+            run_in_dir sys-tools/disk install.sh smart ${dk:+"$dk"}
             ;;
         9)
             read -r -p "设备 (如 sdb1): " dk
             run_in_dir sys-tools/disk install.sh wipe "$dk"
+            ;;
+        10)
+            read -r -p "整盘或分区 (如 sdb / sdb1): " dk
+            run_in_dir sys-tools/disk install.sh scan "$dk"
             ;;
         *) error "无效选项，请重新输入！"; sleep 1; return 0 ;;
     esac
