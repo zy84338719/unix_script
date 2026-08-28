@@ -249,6 +249,68 @@ manage_process_manager_tool() {
 }
 
 # ============================================================
+# 磁盘管理工具箱子菜单
+# ============================================================
+_disk_menu_status() { echo "当前状态: $(module_status disk)"; }
+_disk_menu_display() {
+    echo "  1) 列出磁盘/分区"
+    echo "  2) 新盘一键上线向导（分区→格式化→挂载→fstab）"
+    echo "  3) 格式化分区/整盘"
+    echo "  4) 分区（GPT 单分区全盘）"
+    echo "  5) 挂载"
+    echo "  6) 卸载"
+    echo "  7) fstab 管理（list）"
+    echo "  8) SMART 健康检查"
+    echo "  9) 擦除文件系统签名 (wipe)"
+}
+_disk_menu_action() {
+    local dk dk2 mp
+    case "$1" in
+        1) run_in_dir sys-tools/disk install.sh list ;;
+        2) run_in_dir sys-tools/disk install.sh wizard ;;
+        3)
+            read -r -p "目标设备 (如 sdb1): " dk
+            read -r -p "文件系统 ext4/xfs/vfat/exfat/ntfs（回车=ext4）: " dk2
+            run_in_dir sys-tools/disk install.sh format "$dk" "${dk2:-ext4}"
+            ;;
+        4)
+            read -r -p "整盘 (如 sdb): " dk
+            run_in_dir sys-tools/disk install.sh partition "$dk"
+            ;;
+        5)
+            read -r -p "设备 (如 sdb1): " dk
+            read -r -p "挂载点 (如 /data): " mp
+            read -r -p "写入 fstab 持久化？(y/N): " dk2
+            if [[ "$dk2" =~ ^[Yy] ]]; then
+                run_in_dir sys-tools/disk install.sh mount "$dk" "$mp" --fstab
+            else
+                run_in_dir sys-tools/disk install.sh mount "$dk" "$mp"
+            fi
+            ;;
+        6)
+            read -r -p "挂载点或设备 (如 /data): " dk
+            run_in_dir sys-tools/disk install.sh umount "$dk"
+            ;;
+        7) run_in_dir sys-tools/disk install.sh fstab list ;;
+        8)
+            read -r -p "整盘 (如 sda): " dk
+            run_in_dir sys-tools/disk install.sh smart "$dk"
+            ;;
+        9)
+            read -r -p "设备 (如 sdb1): " dk
+            run_in_dir sys-tools/disk install.sh wipe "$dk"
+            ;;
+        *) error "无效选项，请重新输入！"; sleep 1; return 0 ;;
+    esac
+    echo; read -r -p "按回车键继续..."
+    return 0
+}
+manage_disk() {
+    [ -f "$SCRIPT_DIR/sys-tools/disk/install.sh" ] || { error "脚本不存在"; sleep 2; return; }
+    run_submenu "💾 磁盘管理（分区/格式化/挂载/健康，严格防误删，仅 Linux）" _disk_menu_status _disk_menu_display _disk_menu_action
+}
+
+# ============================================================
 # 自动关机管理（特殊：直接委托给脚本，无子菜单循环）
 # ============================================================
 manage_shutdown_timer() {

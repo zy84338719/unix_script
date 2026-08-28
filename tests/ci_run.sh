@@ -322,6 +322,16 @@ phase_routing() {
     assert "sys-setup: 停用残留源逻辑存在" bash -c "grep -q '_apt_disable_distro_sources()' \"$REPO_DIR/$ss_path/install.sh\""
     assert "sys-setup: status 镜像检测覆盖 sources.list.d" bash -c "grep -qF '/etc/apt/sources.list.d/*.sources' \"$REPO_DIR/$ss_path/install.sh\""
 
+    # 9d. disk 模块：manifest、护栏与子命令入口（status/help 由注册表循环 + status 契约自动覆盖）
+    local disk_path
+    disk_path=$(resolve_module_path disk)
+    assert "disk: .manifest 含 HAS_SUBMENU=disk" bash -c "grep -q '^HAS_SUBMENU=disk$' \"$REPO_DIR/$disk_path/.manifest\""
+    assert "disk: DEFAULT_ACTION=list（非交互默认最安全）" bash -c "grep -q '^DEFAULT_ACTION=list$' \"$REPO_DIR/$disk_path/.manifest\""
+    assert "disk: 系统盘硬拒绝护栏存在" bash -c "grep -q '_disk_is_protected()' \"$REPO_DIR/$disk_path/install.sh\""
+    assert "disk: 护栏拒绝非交互终端" bash -c "grep -qF '仅允许在交互终端执行' \"$REPO_DIR/$disk_path/install.sh\""
+    assert "disk: usage 子命令枚举完整（供 --list-modules/补全解析）" bash -c "grep -qF '{list|wizard|partition|format|mount|umount|fstab|smart|wipe|install|uninstall|status|help}' \"$REPO_DIR/$disk_path/install.sh\""
+
+
     # 4b. status 契约：machine 模式下每个模块首行必须是合法 STATE=
     check_status_contract
 
