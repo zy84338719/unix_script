@@ -156,6 +156,18 @@ EXTRA=<key=value>        # 可选，附加信息
 
 详见 `docs/superpowers/specs/2026-08-07-status-contract-deps-profile-design.md`。
 
+### 平台动词 helper（lib 层收敛）
+
+模块内跨发行版重复的平台操作优先用 lib helper，勿手写 `sudo apt-get`/`systemctl`：
+
+| Helper | 说明 |
+|--------|------|
+| `uxs_os_release <KEY> [file]` | 读 os-release 字段值（ID/VERSION_ID/VERSION_CODENAME…），替代手写 `. /etc/os-release` |
+| `uxs_svc <action> <unit>...` | systemd 服务动作（start/stop/restart/reload/enable/enable-now/is-active），原生兼容 `--dry-run`；双平台（macOS launchd）场景仍用 `service_start` 等 |
+| `pkg_install` / `pkg_remove` / `pkg_installed` | 跨包管理器安装/卸载/查询（存量，直接用） |
+
+归属原则：跨模块复用的「动词」进 lib；单模块专用的平台差异放模块内 `platform/` 文件（样板见 `essentials/sys-setup`）。
+
 ### 发行版与桌面环境检测
 
 模块可用 `lib/common.sh` 的以下函数做平台差异化处理（覆盖麒麟/统信/openEuler/deepin/openKylin 等国产系统）：

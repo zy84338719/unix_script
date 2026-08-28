@@ -103,7 +103,7 @@ detect_arch() {
 # （如 install.sh）因 sed 对缺失文件报错而中止整个脚本。
 _osr_field() {
     [[ -n "${1:-}" && -r "$1" ]] || return 0
-    sed -n "s/^$2=\"\{0,1\}\([^\"]*\)\"\{0,1\}\$/\1/p" "$1" 2>/dev/null | head -1 || true
+    sed -n "s/^$2=[\"\']\{0,1\}\([^\"\']*\)[\"\']\{0,1\}\$/\1/p" "$1" 2>/dev/null | head -1 || true
 }
 
 # 发行版识别：读取 /etc/os-release，设置全局变量：
@@ -180,6 +180,20 @@ detect_distro() {
         esac
     fi
     return 0
+}
+
+# 读 os-release 风格文件的字段值：uxs_os_release <KEY> [file]
+# file 缺省依次尝试 /etc/os-release、/usr/lib/os-release；均不可读返回空。
+# 供模块替代手写 `$(. /etc/os-release && echo "$ID")`；恒返回 0。
+uxs_os_release() {
+    local key="$1" rel_file="${2:-}"
+    if [[ -z "$rel_file" ]]; then
+        for rel_file in /etc/os-release /usr/lib/os-release; do
+            [[ -r "$rel_file" ]] && break
+            rel_file=""
+        done
+    fi
+    _osr_field "$rel_file" "$key"
 }
 
 # ---------------- 桌面环境检测 ----------------
@@ -616,6 +630,30 @@ service_start() {
         fi
         sudo launchctl load "$plist_path" 2>/dev/null || true
     fi
+}
+
+# uxs_svc <action> <unit>... — systemd 服务动作封装（Linux-only）。
+# action: start|stop|restart|reload|enable|disable|enable-now|is-active。
+# 除只读的 is-active 外均走 dry_run_sudo（--dry-run 下仅打印）；非 Linux 返回 1。
+# 与 service_start/stop/is_active 并存：那组是 systemd+launchd 双平台签名，
+# Linux-only 模块用本函数，签名更简单。
+uxs_svc() {
+    local action="$1"; shift
+    if [[ $# -lt 1 ]]; then
+        error "uxs_svc: 缺少 unit 参数"
+        return 1
+    fi
+    if [[ "${OS_TYPE:-}" != "linux" ]]; then
+        warn "uxs_svc 仅支持 systemd（Linux），当前：${OS_TYPE:-unknown}"
+        return 1
+    fi
+    case "$action" in
+        is-active)  systemctl is-active --quiet "$@" ;;
+        start|stop|restart|reload|enable|disable)
+            dry_run_sudo "systemctl $action" systemctl "$action" "$@" ;;
+        enable-now) dry_run_sudo "systemctl enable --now" systemctl enable --now "$@" ;;
+        *)          error "uxs_svc: 未知 action：$action"; return 1 ;;
+    esac
 }
 
 # ---------------- Dry-run 模式 ----------------
