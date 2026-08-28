@@ -432,6 +432,27 @@ phase_routing() {
         grep -q "TOP_NO_INTERACTIVE" "$1/sys-tools/disk-usage/install.sh" || exit 1
         grep -q "u=上一层" "$1/sys-tools/disk-usage/install.sh" || exit 1' _ "$REPO_DIR"
 
+    # 9f. 注册表别名卫生：别名不得遮蔽模块正式名（registry_resolve_alias 正式名优先两段解析）
+    # shellcheck disable=SC2016 # $1/$() 故意交给内层 bash -c 求值
+    assert "别名: 正式名优先——resolve_alias(disk)=disk 不被 disk-usage 别名遮蔽" bash -c \
+        'cd "$1" && SCRIPT_DIR=. && source ./lib/common.sh && source ./lib/registry.sh >/dev/null 2>&1
+         detect_os >/dev/null 2>&1; registry_scan
+         [ "$(registry_resolve_alias disk)" = "disk" ] || { echo "disk 被遮蔽: $(registry_resolve_alias disk)"; exit 1; }
+         [ "$(registry_resolve_alias du)" = "disk-usage" ] || { echo "du 别名失效"; exit 1; }' _ "$REPO_DIR"
+    # shellcheck disable=SC2016 # 同上
+    assert "别名: 全仓库无别名与其他模块正式名冲突" bash -c '
+        names=$(for m in "$1"/*/*/.manifest; do basename "$(dirname "$m")"; done)
+        for m in "$1"/*/*/.manifest; do
+            name=$(basename "$(dirname "$m")")
+            als=$(grep -E "^ALIASES=" "$m" | cut -d= -f2- | tr -d " " | tr "," " ")
+            for a in $als; do
+                [ "$a" = "$name" ] && continue
+                if printf "%s\n" "$names" | grep -qx "$a"; then
+                    echo "别名 $a ($name) 与模块正式名冲突"; exit 1
+                fi
+            done
+        done' _ "$REPO_DIR"
+
 
     # 4b. status 契约：machine 模式下每个模块首行必须是合法 STATE=
     check_status_contract
