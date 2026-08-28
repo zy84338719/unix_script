@@ -334,6 +334,7 @@ phase_routing() {
     # 9e. disk-usage top：深度下钻 + 交互守卫（纯函数 + fixture 行为）
     local dus_path
     dus_path=$(resolve_module_path disk-usage)
+    # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
     assert "disk-usage: _fmt_kb 单位换算边界" bash -c '
         source "$1/sys-tools/disk-usage/install.sh" >/dev/null 2>&1
         [ "$(_fmt_kb 456)" = "456K" ] || exit 1
@@ -342,6 +343,7 @@ phase_routing() {
         [ "$(_fmt_kb 2097152)" = "2.0G" ] || exit 1
         [ "$(_fmt_kb 1610612736)" = "1536.0G" ] || exit 1
         [ "$(_fmt_kb 1572864)" = "1.5G" ] || exit 1' _ "$REPO_DIR"
+    # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
     assert "disk-usage: _parse_size_to_kb 解析与拒绝" bash -c '
         source "$1/sys-tools/disk-usage/install.sh" >/dev/null 2>&1
         [ "$(_parse_size_to_kb 100M)" = "102400" ] || exit 1
@@ -350,6 +352,7 @@ phase_routing() {
         if _parse_size_to_kb 100 >/dev/null 2>&1; then echo "缺单位应拒绝"; exit 1; fi
         if _parse_size_to_kb 100MB >/dev/null 2>&1; then echo "非法后缀应拒绝"; exit 1; fi
         if _parse_size_to_kb abc >/dev/null 2>&1; then echo "非数字应拒绝"; exit 1; fi' _ "$REPO_DIR"
+    # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
     assert "disk-usage: top fixture（空格路径/隐藏目录/深度/min-size/文件榜/管道无交互）" bash -c '
         FX=$(mktemp -d) || exit 1
         mkdir -p "$FX/big" "$FX/small" "$FX/.hidden" "$FX/dir with space/lvl2" || exit 1
@@ -374,6 +377,7 @@ phase_routing() {
         echo "$out3" | grep -q "dir with space/lvl2" || { echo "空格路径被截断"; exit 1; }
         if bash "$1/sys-tools/disk-usage/install.sh" top "$FX" --min-size 100 --no-interactive </dev/null >/dev/null 2>&1; then echo "缺单位应报错"; rm -rf "$FX"; exit 1; fi
         rm -rf "$FX"' _ "$REPO_DIR"
+    # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
     assert "disk-usage: 交互层结构（TTY 守卫/路径栈/键位）" bash -c '
         grep -q "_top_interactive()" "$1/sys-tools/disk-usage/install.sh" || exit 1
         grep -q "\-t 0" "$1/sys-tools/disk-usage/install.sh" || exit 1

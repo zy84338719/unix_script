@@ -8,10 +8,12 @@
 # 查看存储概况（默认动作）
 ./disk-usage/install.sh status
 
-# 大文件/目录排行
-./disk-usage/install.sh top              # 根目录 Top 10
+# 大文件/目录排行（M/G 人类可读单位）
+./disk-usage/install.sh top              # 根目录 Top 10（终端下可交互下钻）
 ./disk-usage/install.sh top /home        # /home 下 Top 10
 ./disk-usage/install.sh top --count 20   # Top 20
+./disk-usage/install.sh top /var --depth 2       # 二层下钻
+./disk-usage/install.sh top ~ --min-size 100M    # 只看 100M+ 的目录/文件
 
 # 监控告警
 ./disk-usage/install.sh monitor                        # 检查是否超过 90%
@@ -31,7 +33,7 @@
 | 子命令 | 说明 |
 |--------|------|
 | `status` | 查看各挂载点使用率、内存、Swap 状态（默认） |
-| `top [路径]` | 扫描大目录和大文件排行 |
+| `top [路径]` | 扫描大目录和大文件排行，支持深度下钻与交互模式 |
 | `monitor` | 检查使用率是否超阈值，支持 cron 定时监控 |
 | `clean` | 清理日志、包管理器缓存、Docker 垃圾 |
 | `help` | 显示帮助 |
@@ -45,9 +47,11 @@
 - 自动检测并告警使用率超 90% 的挂载点
 
 ### top
-- 扫描指定路径下最大的 N 个目录（`du -sh` + `sort`）
-- 额外扫描 `/var/log`、`/tmp` 等常见位置的大文件
-- 可通过 `--count` 自定义显示数量
+- 扫描指定路径下最大的 N 个目录与文件（M/G 人类可读单位）
+- `--depth D` 深度下钻：一条命令看 D 层内的大目录（含隐藏目录）
+- 终端下自动进入交互模式：输序号逐层下钻、`u` 上层、`c` 改数量（10/20/30/50）、`q` 退出；管道/CI 自动退化为纯输出（`--no-interactive` 可强制）
+- `--min-size 100M` 过滤小条目；大文件榜仅列 >50M，`top <路径>` 时在该路径下找，`top /` 时扫常见位置
+- 扫描 `/` 时自动使用 sudo（一次授权全程有效）
 
 ### monitor
 - 检查所有物理挂载点，超过阈值输出告警

@@ -206,7 +206,7 @@ _top_scan_dirs() {
     fi
     local min_kb="${TOP_MIN_SIZE_KB:-0}"
     printf '%s\n' "$raw" | awk -F'\t' -v root="$path" -v min="$min_kb" '$2 != root && $1+0 >= min+0' \
-        | sort -t'\t' -k1,1 -rn | awk -v n="$count" 'NR<=n'
+        | sort -rn | awk -v n="$count" 'NR<=n'
 }
 
 # 降级：逐项 du -sk。显式 .[!.]* 覆盖隐藏目录且不会扫到 ..
@@ -230,7 +230,7 @@ _top_scan_files() {
     else
         raw=$(find "$@" -type f -size +50M -exec du -k {} + 2>/dev/null || true)
     fi
-    printf '%s\n' "$raw" | sort -t'\t' -k1,1 -rn | awk -v n="$count" 'NR<=n'
+    printf '%s\n' "$raw" | sort -rn | awk -v n="$count" 'NR<=n'
 }
 
 # ---- top: 渲染 ----

@@ -329,7 +329,7 @@ _top_scan_dirs() {
     fi
     local min_kb="${TOP_MIN_SIZE_KB:-0}"
     printf '%s\n' "$raw" | awk -F'\t' -v root="$path" -v min="$min_kb" '$2 != root && $1+0 >= min+0' \
-        | sort -t'\t' -k1,1 -rn | awk -v n="$count" 'NR<=n'
+        | sort -rn | awk -v n="$count" 'NR<=n'
 }
 
 # 降级：逐项 du -sk。显式 .[!.]* 覆盖隐藏目录且不会扫到 ..
@@ -353,7 +353,7 @@ _top_scan_files() {
     else
         raw=$(find "$@" -type f -size +50M -exec du -k {} + 2>/dev/null || true)
     fi
-    printf '%s\n' "$raw" | sort -t'\t' -k1,1 -rn | awk -v n="$count" 'NR<=n'
+    printf '%s\n' "$raw" | sort -rn | awk -v n="$count" 'NR<=n'
 }
 
 # ---- top: 渲染 ----
@@ -761,8 +761,12 @@ usage() {
   status                     查看存储概况（默认动作）
                              显示各挂载点使用率、内存、Swap 状态
 
-  top [路径] [--count N]     大文件/目录排行
-                             路径默认为 /，数量默认 10
+  top [路径] [--count N] [--depth D] [--min-size SIZE] [--no-interactive]
+                             大文件/目录排行（路径默认 /，数量默认 10）
+    --depth D                目录扫描深度（默认 1）；2 可看第二层子目录
+    --min-size SIZE          只显示不小于该大小的条目（需带 K/M/G 单位，如 100M）
+    --no-interactive         禁用交互（管道/CI 下自动禁用）
+                             交互键位：序号=下钻  u=上一层  c=改数量  q=退出
 
   monitor [--threshold N]    检查使用率是否超阈值（默认 90%）
     --install                写入 crontab（每天 08:00 检查）
@@ -781,6 +785,8 @@ usage() {
   disk-usage status              # 查看存储概况
   disk-usage top /home           # 查看 /home 下大目录
   disk-usage top --count 20      # 查看 Top 20 大目录
+  disk-usage top /var --depth 2  # 二层下钻：/var 与 /var/lib/docker 一屏可见
+  disk-usage top ~ --min-size 100M  # 只看 100M 以上的大家伙
   disk-usage monitor             # 检查是否超过 90%
   disk-usage monitor --threshold 80 --install   # 安装 80% 阈值的定时监控
   disk-usage clean --all         # 全部清理
