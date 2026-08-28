@@ -3,16 +3,16 @@
 [![CI](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml/badge.svg)](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**macOS / Linux 服务与环境一键管理脚本库** — 52 个模块，统一子命令接口，覆盖服务部署、系统初始化、开发环境、AI 工具、系统运维全场景。支持 **x86_64 / ARM64 / ARMv7** 三大架构。
+**macOS / Linux 服务与环境一键管理脚本库** — 53 个模块，统一子命令接口，覆盖服务部署、系统初始化、开发环境、AI 工具、系统运维全场景。支持 **x86_64 / ARM64 / ARMv7** 三大架构，适配银河麒麟 / 统信 UOS 等国产发行版。
 
-> 当前版本：[VERSION](VERSION)（v1.7.1） · 更新日志：[CHANGELOG.md](CHANGELOG.md) · AI 接口说明：[AGENTS.md](AGENTS.md)
+> 当前版本：[VERSION](VERSION)（v1.11.1） · 更新日志：[CHANGELOG.md](CHANGELOG.md) · AI 接口说明：[AGENTS.md](AGENTS.md)
 
 ---
 
 ## ✨ 核心特性
 
 - **一行安装**：无需 clone，`curl | bash` 即可拉起任意模块
-- **52 个模块**：服务 / 装机必备 / 开发环境 / AI 工具 / 系统工具，5 大分类全覆盖
+- **53 个模块**：服务 / 装机必备 / 开发环境 / AI 工具 / 系统工具，5 大分类全覆盖
 - **统一接口**：所有模块遵循 `install / uninstall / status / help` 约定
 - **注册表驱动**：模块自带 `.manifest` 元数据，自动发现、自动排序、自动别名
 - **AI / 脚本友好**：`--status-json`、`--list-modules`、`--list-categories` 三种机器可读输出
@@ -23,7 +23,8 @@
 - **环境诊断 `doctor`**：一键检查运行前提
 - **模块脚手架 `scaffold`**：一行命令生成新模块模板
 - **安全自更新**：`update` 自动检查 + 确认 + `git pull`
-- **多发行版 CI**：Ubuntu / macOS / CentOS Stream9 实机验证
+- **国产化适配**：银河麒麟 / 统信 UOS / openEuler / deepin / openKylin 的发行版与桌面环境自动识别
+- **多发行版 CI**：Ubuntu / macOS 实机 + 主流发行版容器 + 国产化容器矩阵验证
 
 ---
 
@@ -161,7 +162,7 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 
 ---
 
-## 📦 全部 52 个模块
+## 📦 全部 53 个模块
 
 > 平台：✅ 支持 · ❌ 不适用 · ✅* 引导安装。带「别名」的模块可用别名调用，如 `./install.sh pg` = postgres。
 
@@ -223,13 +224,14 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 | [opencode](ai-tools/opencode) | 终端 AI 编程助手 | — | ✅ | ✅ |
 | [pi](ai-tools/pi) | Pi AI 编程代理框架 | — | ✅ | ✅ |
 
-### 🛠️ 系统工具（14 个）
+### 🛠️ 系统工具（15 个）
 
 | 模块 | 说明 | 别名 | Linux | macOS |
 |------|------|------|:-----:|:-----:|
 | [clash](sys-tools/clash) | 代理核心 + TUN 透明代理（mihomo） | mihomo | ✅ | ✅ |
 | [sys-cmd](sys-tools/sys-cmd) | 系统诊断命令集（cpu/mem/port/disk/net） | sys_cmd, syscmd | ✅ | ✅ |
-| [disk-usage](sys-tools/disk-usage) | 磁盘空间管理 | disk, du, disk_usage | ✅ | ✅ |
+| [disk-usage](sys-tools/disk-usage) | 磁盘空间管理（top 大目录下钻 / 监控 / 清理） | du, disk_usage | ✅ | ✅ |
+| [disk](sys-tools/disk) | 磁盘管理工具箱：分区/格式化/挂载/SMART 体检/坏块扫描/擦除 | — | ✅ | ❌ |
 | [docker-image](sys-tools/docker-image) | 镜像导出为 .tar.gz（离线分发） | docker_image, dockerimage | ✅ | ✅ |
 | [process_manager_tool](sys-tools/process_manager_tool) | 智能搜索和管理系统进程 | process_manager, pm | ✅ | ✅ |
 | [shutdown_timer](sys-tools/shutdown_timer) | 定时 / 倒计时关机管理 | shutdown | ✅ | ✅ |
@@ -274,6 +276,10 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 ./install.sh clash enable            # 开机自启
 ./install.sh clash disable           # 禁用自启
 
+# 磁盘空间分析
+./install.sh disk-usage top --depth 2    # 多层大目录下钻（交互终端可序号下钻）
+./install.sh disk-usage clean            # 一键清理
+
 # 系统初始化（一次性全套）
 ./install.sh sys-setup all           # 换源 + 时区 + NTP + 内核优化 + SSH 加固 + 自动更新
 ./install.sh sys-setup mirror        # 仅换源
@@ -288,6 +294,7 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 ./sys-tools/multi-net/install.sh list
 ./sys-tools/sys-cmd/install.sh menu
 ./sys-tools/docker-image/install.sh save
+./sys-tools/disk/install.sh wizard    # 新盘一键上线：分区→格式化→挂载→fstab（仅 Linux）
 ./essentials/bbr/install.sh enable
 ```
 
@@ -379,7 +386,7 @@ source completions/uxs.zsh        # 或手动 source（zsh）
 - **权限**：多数服务需要 sudo（脚本内部 `require_sudo` 自动处理）
 - **网络**：安装时需要互联网连接
 - **依赖**：脚本自动检查 `curl`、`tar`、`git`；macOS 服务通常需要 [Homebrew](https://brew.sh/)
-- **CI 验证环境**：Ubuntu / macOS / Debian / Fedora / CentOS Stream9
+- **CI 验证环境**：Ubuntu / macOS 实机；Ubuntu 20.04–24.04 / Debian 11–13 / Fedora / CentOS Stream9 / AlmaLinux / Rocky / openSUSE / Arch / Alpine 容器；麒麟 V10 / 统信 UOS / openEuler / deepin / openKylin 国产化容器
 
 ---
 
@@ -400,9 +407,10 @@ source completions/uxs.zsh        # 或手动 source（zsh）
 [CI 工作流](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml) 在多个平台上验证脚本，每次 push / PR 自动运行：
 
 - **静态检查**：bash 语法 + shellcheck（Ubuntu / macOS）
-- **容器静态检查**：CentOS Stream9
+- **容器静态检查**：Debian 12 / CentOS Stream9 / AlmaLinux 9（覆盖不同 shellcheck 版本）
 - **路由测试**：CLI 参数解析与模块分发（Ubuntu / macOS）
-- **包解析 / 容器**：CentOS Stream9 容器内实机验证
+- **包解析 / 容器**：Ubuntu 20.04–24.04、Debian 11–13、Fedora、CentOS Stream9、AlmaLinux 9、Rocky 9、openSUSE、Arch、Alpine 容器内实机验证
+- **国产化平台验证**：银河麒麟 V10 SP3 / 统信 UOS V20 / openEuler 24.03 / deepin 23 / openKylin / CentOS 7 容器，对发行版识别结果做外部真值断言
 - **实装测试**：真实 VM 上安装指定模块（Ubuntu / macOS）
 
 测试报告可在 Action 页面的 **Artifacts** 区下载。
@@ -417,12 +425,16 @@ bootstrap.sh               # 一行安装引导（curl | bash）
 uninstall.sh               # 卸载入口（注册表驱动）
 
 lib/                       # 框架核心（所有业务逻辑）
-  common.sh                #   共享函数库（颜色/平台检测/包管理/版本检查/dry-run）
+  common.sh                #   共享函数库（颜色/平台/发行版与桌面检测/包管理/版本检查/dry-run）
   core.sh                  #   run_in_dir / run_submenu（子目录执行）
   registry.sh              #   模块注册表（.manifest 扫描/别名/查询 API）
+  deps.sh                  #   依赖图（REQUIRES 解析 / 拓扑排序 / 循环检测）
+  profile.sh               #   profile 导出与应用（配置复现）
   status.sh                #   状态检查
   submenus.sh              #   子菜单回调（docker/clash/sys-setup/dev-mirror 等）
   menu.sh                  #   主菜单 / 交互循环 / 机器可读输出 / 卸载菜单
+  menu_fzf.sh              #   fzf 模糊搜索菜单（TAB 多选 / README 预览）
+  suggest.sh               #   did-you-mean 编辑距离建议
   uxs_cli.sh               #   全局命令 uxs 安装与卸载
   scaffold.sh              #   模块脚手架（生成新模块模板）
   doctor.sh                #   环境诊断
@@ -431,7 +443,7 @@ services/    (17)          # 服务类模块
 essentials/  (6)           # 装机必备模块
 dev-tools/   (12)          # 开发环境模块
 ai-tools/    (3)           # AI 工具模块
-sys-tools/   (14)          # 系统工具模块
+sys-tools/   (15)          # 系统工具模块
   <模块名>/
     install.sh             #   模块入口（source ../../lib/common.sh）
     .manifest              #   元数据（LABEL/CATEGORY/ALIASES/DEFAULT_ACTION/HAS_SUBMENU）
@@ -450,10 +462,13 @@ docs/                      # 文档
 ```ini
 LABEL=Caddy                          # 显示名称（必填）
 CATEGORY=服务                        # 分类（必填）
+DESC=现代 Web 服务器                  # 一句话中文描述（--list-modules 第 3 列）
 ALIASES=letsencrypt                  # 别名，逗号分隔（可选）
 DEFAULT_ACTION=install               # 默认动作（可选，默认 install）
 HAS_SUBMENU=clash                    # 标记有交互子菜单（可选）
 ENTRY_SCRIPT=install.sh             # 入口脚本名（可选，默认 install.sh）
+REQUIRES=docker                      # 依赖模块，逗号分隔（可选，安装时自动先装缺失依赖）
+EXPORTABLE=registry                  # 可导出配置键，逗号分隔（可选，profile 复现用）
 ```
 
 ---
