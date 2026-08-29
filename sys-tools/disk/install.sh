@@ -741,7 +741,7 @@ cmd_status() {
     done
     disks=$(lsblk -drno TYPE 2>/dev/null | grep -c '^disk$' || true)
     emit_status "installed" "✅ 磁盘管理工具箱就绪（${disks} 块整盘）"
-    emit_version "n/a"
+    # 不 emit_version：工具箱无版本概念；输出 VERSION=n/a 会污染 --status-json（拼成 disk:installed:n/a）
     emit_extra "disks=$disks"
     if [[ -n "$opt_missing" ]]; then
         emit_extra "optional_missing=${opt_missing%,}"

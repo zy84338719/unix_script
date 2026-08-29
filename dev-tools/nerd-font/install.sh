@@ -104,13 +104,17 @@ uninstall_nerd_font() {
     for f in $(normalize_fonts); do
         if [[ "$OS_TYPE" == "darwin" ]]; then
             local cask
-            cask=$(cask_for "$f") && brew uninstall --cask "$cask" || true
+            if cask=$(cask_for "$f"); then
+                brew uninstall --cask "$cask" || true
+            fi
         else
             rm -rf "$HOME/.local/share/fonts/NerdFonts/$f"
         fi
         info "已卸载: $f"
     done
-    command_exists fc-cache && fc-cache -f >/dev/null 2>&1 || true
+    if command_exists fc-cache; then
+        fc-cache -f >/dev/null 2>&1 || true
+    fi
 }
 
 status_nerd_font() {
