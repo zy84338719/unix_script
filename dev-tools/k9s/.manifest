@@ -1,0 +1,5 @@
+LABEL=k9s
+CATEGORY=开发环境
+DEFAULT_ACTION=install
+DESC=Kubernetes 终端管理面板
+NEXT_STEPS=本地集群:./install.sh minikube
