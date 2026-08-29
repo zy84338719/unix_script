@@ -4,12 +4,17 @@
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-08-29
+
 ### 新增
-- `uxs_with_timeout` 可移植超时护栏（perl fork+alarm，rc=124 对齐 GNU）
+- `uxs_with_timeout` 可移植超时护栏（perl fork+alarm，rc=124 对齐 GNU timeout）
+- `search <关键字>` 命令行模块搜索（名称/别名/描述，多关键字 AND；机器模式 TSV，无匹配退出 1）
+- 新手引导：`.manifest` 新增 `NEXT_STEPS` 字段，安装成功后打印「下一步」提示；bootstrap 尾屏精简
+- `uxs_func_with_timeout` 函数级超时 + 批查子进程整体 30s 封顶（`UXS_STATUS_MODULE_TIMEOUT`）
 
 ### 修复
-- `--status-json` 并行批查（STATE+VERSION 双缓存）+ 单模块故障恒定输出 unknown
-- ufw status 三级降级链——sudo -n 探测 + systemctl 兜底，杜绝无 TTY 静默中止
+- `--status-json` 并行批查提速（串行 2 分钟级 → 秒级，实测 93.3s 的 `docker info` 挂起已封顶），单模块故障恒定输出 `:unknown` 不再截断
+- ufw status 三级降级链——sudo -n 探测 + systemctl 兜底，杜绝无 TTY 静默中止（顺带修存量 `*active*` 误匹配 inactive）
 - doctor 无 TTY 时 sudo 检测按跳过处理；macOS 缺 os-release 降为 INFO
 - dry-run 压制 Homebrew auto-update 网络副作用（HOMEBREW_NO_AUTO_UPDATE=1）
 

@@ -5,7 +5,7 @@
 
 **macOS / Linux 服务与环境一键管理脚本库** — 54 个模块，统一子命令接口，覆盖服务部署、系统初始化、开发环境、AI 工具、系统运维全场景。支持 **x86_64 / ARM64 / ARMv7** 三大架构，适配银河麒麟 / 统信 UOS 等国产发行版。
 
-> 当前版本：[VERSION](VERSION)（v1.11.1） · 更新日志：[CHANGELOG.md](CHANGELOG.md) · AI 接口说明：[AGENTS.md](AGENTS.md)
+> 当前版本：[VERSION](VERSION)（v1.14.0） · 更新日志：[CHANGELOG.md](CHANGELOG.md) · AI 接口说明：[AGENTS.md](AGENTS.md)
 
 ---
 
@@ -123,7 +123,7 @@ clash          install uninstall status start stop restart enable disable help  
 $ ./install.sh --status-json
 os:darwin
 arch:ARM64
-version:1.13.0
+version:1.14.0
 node_exporter:not_installed
 docker:installed:running
 bun:installed:v1.3.14
