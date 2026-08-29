@@ -133,5 +133,17 @@ case "$OS_TYPE" in
         ;;
 esac
 
+# ---------- dispatch 平台护栏 ----------
+if [[ "$OS_TYPE" == "darwin" ]]; then
+    OUT=$(run_install ufw </dev/null 2>&1); t_rc "gate: darwin 分发 ufw rc=1" 1 $?
+    t_true "gate: 报错含「不支持当前系统」" 'printf "%s" "$OUT" | grep -q "不支持当前系统"'
+    t_true "gate: 提示 SHOW_ALL 逃生口" 'printf "%s" "$OUT" | grep -q "UNIX_SCRIPT_SHOW_ALL=1"'
+    OUT=$(UNIX_SCRIPT_SHOW_ALL=1 run_install ufw status </dev/null 2>&1); t_rc "gate: SHOW_ALL 放行透传 status rc=0" 0 $?
+fi
+if [[ "$OS_TYPE" == "linux" ]]; then
+    OUT=$(run_install brew </dev/null 2>&1); t_rc "gate: linux 分发 brew rc=1" 1 $?
+    t_true "gate: 报错含「不支持当前系统」" 'printf "%s" "$OUT" | grep -q "不支持当前系统"'
+fi
+
 echo "unit_platform_filter: 通过 $PASS / 失败 $FAIL"
 [[ $FAIL -eq 0 ]]
