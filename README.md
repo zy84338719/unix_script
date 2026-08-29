@@ -3,7 +3,7 @@
 [![CI](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml/badge.svg)](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**macOS / Linux 服务与环境一键管理脚本库** — 53 个模块，统一子命令接口，覆盖服务部署、系统初始化、开发环境、AI 工具、系统运维全场景。支持 **x86_64 / ARM64 / ARMv7** 三大架构，适配银河麒麟 / 统信 UOS 等国产发行版。
+**macOS / Linux 服务与环境一键管理脚本库** — 54 个模块，统一子命令接口，覆盖服务部署、系统初始化、开发环境、AI 工具、系统运维全场景。支持 **x86_64 / ARM64 / ARMv7** 三大架构，适配银河麒麟 / 统信 UOS 等国产发行版。
 
 > 当前版本：[VERSION](VERSION)（v1.11.1） · 更新日志：[CHANGELOG.md](CHANGELOG.md) · AI 接口说明：[AGENTS.md](AGENTS.md)
 
@@ -12,7 +12,7 @@
 ## ✨ 核心特性
 
 - **一行安装**：无需 clone，`curl | bash` 即可拉起任意模块
-- **53 个模块**：服务 / 装机必备 / 开发环境 / AI 工具 / 系统工具，5 大分类全覆盖
+- **54 个模块**：服务 / 装机必备 / 开发环境 / AI 工具 / 系统工具，5 大分类全覆盖
 - **统一接口**：所有模块遵循 `install / uninstall / status / help` 约定
 - **注册表驱动**：模块自带 `.manifest` 元数据，自动发现、自动排序、自动别名
 - **AI / 脚本友好**：`--status-json`、`--list-modules`、`--list-categories` 三种机器可读输出
@@ -162,7 +162,7 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 
 ---
 
-## 📦 全部 53 个模块
+## 📦 全部 54 个模块
 
 > 平台：✅ 支持 · ❌ 不适用 · ✅* 引导安装。带「别名」的模块可用别名调用，如 `./install.sh pg` = postgres。
 
@@ -224,7 +224,7 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 | [opencode](ai-tools/opencode) | 终端 AI 编程助手 | — | ✅ | ✅ |
 | [pi](ai-tools/pi) | Pi AI 编程代理框架 | — | ✅ | ✅ |
 
-### 🛠️ 系统工具（15 个）
+### 🛠️ 系统工具（16 个）
 
 | 模块 | 说明 | 别名 | Linux | macOS |
 |------|------|------|:-----:|:-----:|
@@ -232,6 +232,7 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 | [sys-cmd](sys-tools/sys-cmd) | 系统诊断命令集（cpu/mem/port/disk/net） | sys_cmd, syscmd | ✅ | ✅ |
 | [disk-usage](sys-tools/disk-usage) | 磁盘空间管理（top 大目录下钻 / 监控 / 清理） | du, disk_usage | ✅ | ✅ |
 | [disk](sys-tools/disk) | 磁盘管理工具箱：分区/格式化/挂载/SMART 体检/坏块扫描/擦除 | — | ✅ | ❌ |
+| [ops-kit](sys-tools/ops-kit) | 运维工具箱：一键巡检/日志运维/systemd 服务/安全基线 | ops, opskit | ✅ | ❌ |
 | [docker-image](sys-tools/docker-image) | 镜像导出为 .tar.gz（离线分发） | docker_image, dockerimage | ✅ | ✅ |
 | [process_manager_tool](sys-tools/process_manager_tool) | 智能搜索和管理系统进程 | process_manager, pm | ✅ | ✅ |
 | [shutdown_timer](sys-tools/shutdown_timer) | 定时 / 倒计时关机管理 | shutdown | ✅ | ✅ |
@@ -279,6 +280,12 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 # 磁盘空间分析
 ./install.sh disk-usage top --depth 2    # 多层大目录下钻（交互终端可序号下钻）
 ./install.sh disk-usage clean            # 一键清理
+
+# 运维工具箱（仅 Linux）
+./install.sh ops-kit inspect             # 一键巡检报告（默认动作，只读）
+./install.sh ops-kit inspect --json      # 机器可读巡检结果
+./install.sh ops-kit svc failed          # systemd 失败单元排查
+./install.sh ops-kit audit all           # SSH 基线/公网端口/待更新自查
 
 # 系统初始化（一次性全套）
 ./install.sh sys-setup all           # 换源 + 时区 + NTP + 内核优化 + SSH 加固 + 自动更新
@@ -443,7 +450,7 @@ services/    (17)          # 服务类模块
 essentials/  (6)           # 装机必备模块
 dev-tools/   (12)          # 开发环境模块
 ai-tools/    (3)           # AI 工具模块
-sys-tools/   (15)          # 系统工具模块
+sys-tools/   (16)          # 系统工具模块
   <模块名>/
     install.sh             #   模块入口（source ../../lib/common.sh）
     .manifest              #   元数据（LABEL/CATEGORY/ALIASES/DEFAULT_ACTION/HAS_SUBMENU）
