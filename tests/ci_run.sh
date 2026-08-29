@@ -476,6 +476,38 @@ phase_routing() {
     assert "ops-kit: 纯函数单测全过" bash "$REPO_DIR/tests/unit_ops_kit.sh"
     assert "ops-kit: 子菜单入口存在" bash -c "grep -q 'manage_ops-kit()' \"$REPO_DIR/lib/submenus.sh\""
 
+    # 9p. 管理面板批次①：1panel/btpanel/webmin/casaos（status/help 由注册表循环自动覆盖）
+    # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
+    assert "面板: --list-modules 注册 4 新模块（含子命令列）" bash -c '
+        cd "$1" || exit 1
+        for m in 1panel btpanel webmin casaos; do
+            line=$("./install.sh" --list-modules | grep -E "^${m}	") || { echo "缺 $m"; exit 1; }
+            echo "$line" | grep -q "install" || { echo "$m 子命令列缺 install"; exit 1; }
+            echo "$line" | grep -q "uninstall" || { echo "$m 子命令列缺 uninstall"; exit 1; }
+        done' _ "$REPO_DIR"
+    # 用法行枚举完整（供 --list-modules/菜单/补全解析，lib/menu.sh 取首个「用法:」行）
+    assert "1panel: 用法行枚举完整" bash -c "grep -qF '{install|info|update|uninstall|status|help}' \"$REPO_DIR/services/1panel/install.sh\""
+    assert "btpanel: 用法行枚举完整（含 en=aaPanel）" bash -c "grep -qF '{install|en|info|uninstall|status|help}' \"$REPO_DIR/services/btpanel/install.sh\" && grep -qE '^        en\)' \"$REPO_DIR/services/btpanel/install.sh\""
+    assert "webmin: 用法行枚举完整" bash -c "grep -qF '{install|uninstall|status|help}' \"$REPO_DIR/services/webmin/install.sh\""
+    assert "casaos: 用法行枚举完整" bash -c "grep -qF '{install|uninstall|status|help}' \"$REPO_DIR/services/casaos/install.sh\""
+    # 平台护栏与预检
+    # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
+    assert "面板: 4 模块均含 Linux 护栏" bash -c '
+        for m in 1panel btpanel webmin casaos; do
+            grep -q "仅支持 Linux" "$1/services/$m/install.sh" || { echo "$m 缺 Linux 护栏"; exit 1; }
+        done' _ "$REPO_DIR"
+    assert "casaos: 80 端口占用预检存在" bash -c "grep -q 'port_in_use' \"$REPO_DIR/services/casaos/install.sh\""
+    assert "btpanel: 纯净系统预检存在" bash -c "grep -q 'check_purity' \"$REPO_DIR/services/btpanel/install.sh\""
+    assert "webmin: 不依赖 raw.githubusercontent（国内可达性）" bash -c "! grep -q 'raw.githubusercontent.com' \"$REPO_DIR/services/webmin/install.sh\""
+    assert "1panel: 支持 PANEL_* 非交互透传说明" bash -c "grep -q 'PANEL_NON_INTERACTIVE' \"$REPO_DIR/services/1panel/install.sh\""
+    # search 命中（别名/描述联动）
+    # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
+    assert "search: 「面板」命中 1panel/btpanel/webmin" bash -c '
+        out=$("$1/install.sh" search 面板 2>/dev/null) || exit 1
+        for m in 1panel btpanel webmin; do
+            echo "$out" | grep -q "^  $m" || { echo "search 未命中 $m"; exit 1; }
+        done' _ "$REPO_DIR"
+
     # 4b. status 契约：machine 模式下每个模块首行必须是合法 STATE=
     check_status_contract
 
