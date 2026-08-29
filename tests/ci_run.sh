@@ -479,6 +479,9 @@ phase_routing() {
     # 4b. status 契约：machine 模式下每个模块首行必须是合法 STATE=
     check_status_contract
 
+    # 4c. 易用性快修包批次①：uxs_with_timeout 等单测
+    assert "usability: 批次① 单测全过" bash "$REPO_DIR/tests/unit_usability.sh"
+
     # 10. 阶段 E：模块依赖图（lib/deps.sh）
     assert "依赖图: lib/deps.sh 存在" bash -c "test -f \"$REPO_DIR/lib/deps.sh\""
     assert "依赖图: minikube .manifest 含 REQUIRES=docker" bash -c "grep -q '^REQUIRES=docker' \"$REPO_DIR/dev-tools/minikube/.manifest\""

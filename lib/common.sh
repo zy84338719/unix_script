@@ -698,6 +698,39 @@ if [[ "$UNIX_SCRIPT_DRY_RUN" == "1" ]]; then
     uxs_install_sudo_shim
 fi
 
+# ---------------- 超时护栏 ----------------
+# uxs_with_timeout <秒> <命令...> — 带超时执行命令（macOS/Linux 通用，无 GNU timeout 依赖）。
+# 契约：超时 rc=124（与 GNU timeout 对齐）；子命令被信号终止 rc=128+信号；其余透传退出码。
+# perl 缺失（极简容器）时不套超时直接执行，行为退化为无护栏。
+# 实现：perl fork + alarm + kill。不能 exec——exec 后 alarm 虽存活但无法返回 124。
+uxs_with_timeout() {
+    local secs="$1"
+    shift
+    if ! command_exists perl; then
+        "$@"
+        return
+    fi
+    perl -e '
+        my $secs = shift @ARGV;
+        my @cmd  = @ARGV;
+        my $pid = fork();
+        if (!defined $pid) { exit 125; }
+        if ($pid == 0) { exec(@cmd) or exit 127; }
+        $SIG{ALRM} = sub {
+            kill "TERM", $pid;
+            sleep 1;
+            kill "KILL", $pid;
+            exit 124;
+        };
+        alarm $secs;
+        waitpid $pid, 0;
+        alarm 0;
+        my $st = $?;
+        if ($st & 127) { exit(128 + ($st & 127)); }
+        exit($st >> 8);
+    ' "$secs" "$@"
+}
+
 # ---------------- 交互工具 ----------------
 # yes_no <prompt>  -> 输入 y/Y 返回 0，否则 1
 yes_no() {
