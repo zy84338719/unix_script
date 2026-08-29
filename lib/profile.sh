@@ -45,6 +45,7 @@ export_profile() {
         order=$(topo_sort_all)
         local last_cat=""
         for mod in $order; do
+            uxs_module_visible "$mod" || continue   # 只导出本机适用模块（不适用模块在本机无 profile 意义）
             local state
             state=$(module_status_machine "$mod")
             case "$state" in
@@ -155,6 +156,13 @@ apply_profile() {
         label=$(registry_label "$mod")
         mod_path=$(registry_path "$mod")
         entry_script=$(registry_entry_script "$mod")
+
+        # 平台可见性：profile 可跨机器携带，目标机器不适用的行跳过（不报错、不中断）
+        if ! uxs_module_visible "$mod"; then
+            warn "跳过 ${label}（不支持当前系统 ${OS_TYPE:-?}，仅：$(registry_platforms "$mod")）"
+            skipped=$((skipped + 1))
+            continue
+        fi
 
         # 已就绪且非 --force → 跳过（n/a 视为不适用也跳过）
         if [[ "$state" != "not_installed" && "$state" != "not_configured" \

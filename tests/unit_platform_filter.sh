@@ -145,5 +145,21 @@ if [[ "$OS_TYPE" == "linux" ]]; then
     t_true "gate: 报错含「不支持当前系统」" 'printf "%s" "$OUT" | grep -q "不支持当前系统"'
 fi
 
+# ---------- profile：export 过滤 / apply 跳过 ----------
+if [[ "$OS_TYPE" == "darwin" ]]; then HIDDEN_MOD=ufw; else HIDDEN_MOD=brew; fi
+
+PFILE=$(mktemp)
+run_install export "$PFILE" >/dev/null 2>&1; t_rc "export: rc=0" 0 $?
+t_true "export: 文件含头注" 'grep -q "^# unix_script profile" "$PFILE"'
+t_true "export: 不导出不适用模块 $HIDDEN_MOD" "! grep -q \"^${HIDDEN_MOD}\" \"\$PFILE\""
+rm -f "$PFILE"
+
+PROF=$(mktemp)
+printf '%s   # 测试不适用行\n' "$HIDDEN_MOD" > "$PROF"
+OUT=$(run_install apply "$PROF" --dry-run </dev/null 2>&1); t_rc "apply: 仅不适用行 rc=0（跳过不报错）" 0 $?
+t_true "apply: 输出跳过原因（不支持当前系统）" 'printf "%s" "$OUT" | grep -q "不支持当前系统"'
+t_true "apply: 汇总计跳过 1" 'printf "%s" "$OUT" | grep -q "跳过 1"'
+rm -f "$PROF"
+
 echo "unit_platform_filter: 通过 $PASS / 失败 $FAIL"
 [[ $FAIL -eq 0 ]]
