@@ -262,6 +262,10 @@ unmirror_brew() {
 
 status_brew() {
     detect_os
+    if [[ "$OS_TYPE" != "darwin" ]]; then
+        emit_status "n/a" "${YELLOW}⚠️  不适用（仅 macOS）${NC}"
+        return 0
+    fi
     if ! command_exists brew; then
         emit_status "not_installed" "${RED}❌ 未安装${NC}"
         return 0
