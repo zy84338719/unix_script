@@ -87,13 +87,20 @@ t_true "terminal: manifest 无 EXPORTABLE（子模块自治声明）" \
     "grep -q '^DESC=' '$TERM_MANIFEST' && ! grep -q '^EXPORTABLE=' '$TERM_MANIFEST'"
 
 # EXCLUDE 全排除 → install 幂等完成 rc=0，不触发任何子模块安装
-HOME="$FAKE/home" UXS_CONFIG_EXCLUDE="zsh,zsh_setup,modern-cli,nerd-font,atuin" \
+# 用干净 PATH（不带宿主工具与桩 zsh/atuin），避免环节误判就绪
+FAKE_TERM=$(mktemp -d); mkdir -p "$FAKE_TERM/home"
+CLEAN_PATH="/usr/bin:/bin:/usr/sbin:/sbin"
+HOME="$FAKE_TERM/home" PATH="$CLEAN_PATH" UXS_CONFIG_EXCLUDE="zsh,zsh_setup,modern-cli,nerd-font,atuin" \
     bash "$TERM_SH" install </dev/null >/dev/null 2>&1
 t_eq "terminal: EXCLUDE 全排除 install rc=0" "0" "$?"
 
-out=$(PATH="$FAKE:$PATH" HOME="$FAKE/home" UXS_STATUS_MODE=machine bash "$TERM_SH" status </dev/null 2>/dev/null)
+out=$(PATH="$CLEAN_PATH" HOME="$FAKE_TERM/home" UXS_STATUS_MODE=machine bash "$TERM_SH" status </dev/null 2>/dev/null)
 t_eq "terminal: 全缺 → STATE=not_installed" "not_installed" "$(printf '%s' "$out" | sed -n 's/^STATE=//p' | head -1)"
-t_true "terminal: EXTRA=missing 含 modern-cli（桩无该命令）" "printf '%s' \"\$out\" | grep -q 'missing=.*modern-cli'"
+t_true "terminal: EXTRA=missing 含 modern-cli（净 PATH 无该工具）" "printf '%s' \"\$out\" | grep -q 'missing=.*modern-cli'"
+
+# zsh 本体在（桩假 zsh）但框架未配 → zsh_setup 环节必须视为未就绪（防跳过框架安装）
+out=$(PATH="$FAKE:$CLEAN_PATH" HOME="$FAKE_TERM/home" UXS_STATUS_MODE=machine bash "$TERM_SH" status </dev/null 2>/dev/null)
+t_true "terminal: zsh 在但无框架 → missing 含 zsh_setup" "printf '%s' \"\$out\" | grep -q 'missing=.*zsh_setup'"
 
 echo
 echo "通过: $PASS / 失败: $FAIL"

@@ -33,10 +33,19 @@ machine_state() {
         | sed -n 's/^STATE=//p' | head -1
 }
 
+# 取子模块机器模式 status 的某个 EXTRA=<key>= 值
+machine_extra() {
+    ( cd "$(module_dir "$1")" && UXS_STATUS_MODE=machine bash ./install.sh status </dev/null 2>/dev/null ) \
+        | sed -n "s/^EXTRA=$2=//p" | head -1
+}
+
 step_ready() {
     case "$1" in
-        zsh)        command_exists zsh ;;
-        zsh_setup)  [[ "$(machine_state zsh_setup)" == "installed" ]] ;;
+        zsh) command_exists zsh ;;
+        zsh_setup)
+            # STATE 只反映 zsh 本体；框架未选（none）视为未就绪，否则会跳过框架安装
+            [[ "$(machine_state zsh_setup)" == "installed" ]] \
+                && [[ "$(machine_extra zsh_setup framework)" != "none" ]] ;;
         modern-cli) [[ "$(machine_state modern-cli)" == "installed" ]] ;;
         nerd-font)  [[ "$(machine_state nerd-font)" == "installed" ]] ;;
         atuin)      [[ "$(machine_state atuin)" == "installed" ]] ;;
