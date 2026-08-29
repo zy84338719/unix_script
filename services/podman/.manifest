@@ -1,0 +1,5 @@
+LABEL=Podman
+CATEGORY=服务
+DEFAULT_ACTION=install
+DESC=无守护进程容器引擎（rootless）
+NEXT_STEPS=镜像加速:./install.sh podman mirror;容器 TUI:./install.sh dev-tui
