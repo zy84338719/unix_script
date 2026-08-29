@@ -75,6 +75,12 @@ version:1.15.0  # unix_script 自身版本
 | `not_configured` | 未配置 |
 | `n/a` | 当前平台不适用 |
 
+自 v1.15.0 起，`--status-json` 默认仅输出**本机适用**的模块（平台不适用的模块被隐藏，正常输出中不出现 `n/a` 行）。需要全量清单（含不适用模块）时：
+
+```bash
+UNIX_SCRIPT_SHOW_ALL=1 ./install.sh --status-json
+```
+
 ### 安装/操作模块
 
 ```bash
@@ -112,6 +118,17 @@ UNIX_SCRIPT_NO_DEPS=1 ./install.sh minikube   # 等价环境变量
 ```
 
 profile 行格式：`<模块名> [key=value ...]   # 注释`。apply 时把 `key=value` 注入为 `UXS_CONFIG_<KEY>` 环境变量传给模块 install（模块自行读取，如 bun 读 `UXS_CONFIG_REGISTRY`）。
+
+### 平台可见性（PLATFORMS 声明 + SHOW_ALL）
+
+模块可在 `.manifest` 中声明适用 OS：`PLATFORMS=linux[,darwin]`（缺省 = 全平台适用）。
+不适用当前系统的模块默认从**所有出口**隐藏：`--list` / `--list-modules` / `--list-categories` /
+`search` / 交互菜单（bash 与 fzf）/ 卸载菜单 / `--status` / `--status-json` / `export`。
+
+- 直接安装不适用模块（如 macOS 上 `./install.sh ufw`）被框架拦截，给出解释性报错与恢复指引
+- `apply` profile 时跳过本机不适用行（profile 可跨机器携带）
+- `UNIX_SCRIPT_SHOW_ALL=1` 恢复全量显示（对上述所有出口生效）
+- 绕过 install.sh 直接调用模块路径时，模块内部平台检查仍生效（输出 n/a / 报错，纵深防御）
 
 ### 去除颜色（管道/日志场景）
 
@@ -212,6 +229,6 @@ curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstr
 ## 注意事项
 
 - `install` 类操作可能需要 sudo（脚本内部处理 `require_sudo`）
-- 某些模块仅 Linux（macOS 会输出"不适用"并退出 0）
+- 平台不适用的模块默认从列表/菜单隐藏（manifest `PLATFORMS` 声明）；`UNIX_SCRIPT_SHOW_ALL=1` 显示全量；绕过入口直接调模块时仍输出「不适用」并退出 0
 - 状态子命令始终退出 0（用于探测），安装子命令失败退出非 0
 - 输出为中文，子命令名和模块名为英文

@@ -197,7 +197,11 @@ phase_routing() {
     # 2. install.sh CLI
     assert "install.sh --help (exit 0)" bash "$REPO_DIR/install.sh" --help
     assert "install.sh --version (含版本号)" bash -c "\"$REPO_DIR/install.sh\" --version | grep -q 'unix_script'"
-    assert "install.sh --list (含关键模块)" bash -c "\"$REPO_DIR/install.sh\" --list | grep -q tailscale && \"$REPO_DIR/install.sh\" --list | grep -q fail2ban"
+    # shellcheck disable=SC2016 # $1/$(uname)/$KEY 故意交给内层 bash -c 求值
+    assert "install.sh --list (含关键模块)" bash -c '
+        # 平台可见性过滤后，fail2ban 仅 Linux 可见；darwin 用 brew 代表本宿主可见模块
+        if [ "$(uname)" = "Linux" ]; then KEY=fail2ban; else KEY=brew; fi
+        "$1/install.sh" --list | grep -q tailscale && "$1/install.sh" --list | grep -q "$KEY"' _ "$REPO_DIR"
     assert "install.sh --list (模块数 >= 20)" bash -c "[ \$($REPO_DIR/install.sh --list | wc -w) -ge 20 ]"
     # --status 会调用 sudo launchctl/systemctl；仅在有免密 sudo 时断言（CI runner 满足）
     if sudo -n true 2>/dev/null; then
@@ -480,8 +484,9 @@ phase_routing() {
     # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
     assert "面板: --list-modules 注册 4 新模块（含子命令列）" bash -c '
         cd "$1" || exit 1
+        # SHOW_ALL=1 摆脱宿主平台过滤：本断言验证「注册与解析」，可见性由 platform-filter 单测覆盖
         for m in 1panel btpanel webmin casaos; do
-            line=$("./install.sh" --list-modules | grep -E "^${m}	") || { echo "缺 $m"; exit 1; }
+            line=$(UNIX_SCRIPT_SHOW_ALL=1 ./install.sh --list-modules | grep -E "^${m}	") || { echo "缺 $m"; exit 1; }
             echo "$line" | grep -q "install" || { echo "$m 子命令列缺 install"; exit 1; }
             echo "$line" | grep -q "uninstall" || { echo "$m 子命令列缺 uninstall"; exit 1; }
         done' _ "$REPO_DIR"
@@ -502,7 +507,8 @@ phase_routing() {
     assert "1panel: 支持 PANEL_* 非交互透传说明" bash -c "grep -q 'PANEL_NON_INTERACTIVE' \"$REPO_DIR/services/1panel/install.sh\""
     # search 命中（别名/描述联动）
     # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
-    assert "search: 「面板」命中 1panel/btpanel/webmin" bash -c '
+    assert "search: 「面板」命中 1panel/btpanel/webmin（Linux 宿主；darwin 上按平台过滤隐藏）" bash -c '
+        [ "$(uname)" = "Linux" ] || { echo "skip（非 Linux 宿主，面板模块被平台过滤隐藏）"; exit 0; }
         out=$("$1/install.sh" search 面板 2>/dev/null) || exit 1
         for m in 1panel btpanel webmin; do
             echo "$out" | grep -q "^  $m" || { echo "search 未命中 $m"; exit 1; }
@@ -697,7 +703,8 @@ phase_routing() {
         _uxs_completions
         # 不用 diff：极简容器（arch/RHEL 系）可能无 diffutils；sort+字符串比较仅依赖 POSIX 基础工具
         comp_list=$(printf "%s\n" "${COMPREPLY[@]}" | grep -vE "^(--.*|apply|check-update|cli|completions|doctor|export|scaffold|search|uninstall-cli|update)$" | sort)
-        reg_list=$("$1/install.sh" --list | tr " " "\n" | grep -v "^$" | sort)
+        # 补全清单=文件系统全量 manifest；对齐用 SHOW_ALL 全量 --list（补全不做平台过滤，见规格非目标）
+        reg_list=$(UNIX_SCRIPT_SHOW_ALL=1 "$1/install.sh" --list | tr " " "\n" | grep -v "^$" | sort)
         [ "$comp_list" = "$reg_list" ]' _ "$REPO_DIR"
     if command -v zsh >/dev/null 2>&1; then
         assert "补全: uxs.zsh 语法正确" zsh -n "$REPO_DIR/completions/uxs.zsh"
