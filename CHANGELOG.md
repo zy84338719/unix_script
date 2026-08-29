@@ -7,7 +7,12 @@
 ## [1.13.0] - 2026-08-29
 
 ### 新增
+- **支持矩阵联动**：`scripts/support_matrix.sh` 解析 ci.yml 矩阵渲染「支持的操作系统与 CI 状态」表格进 README，`support-matrix` 任务在 main 上自动刷新状态列（最新 run 的 job 结论，[skip ci] 防循环）
 - **换源矩阵升级落地（sys-setup，补 v1.11.2/v1.12.0 缺失的 #54）**：sys-setup platform 拆分为 `platform/{debian,rhel,suse,arch,alpine}.sh`（`plat_mirror_preview/apply` + `plat_autoupdate` 接口），AlmaLinux/Rocky/Fedora/openEuler/Anolis 自动换源（镜像站按发行版固定：almalinux/anolis→阿里云、rocky→USTC），deepin/uos 新增，换源前预览确认 + 非交互跳过；arch aarch64 路径修复。注：#54 曾误合入堆叠基底分支而未进 main，本版经 PR #58 救援落地
+
+### 变更
+- **CI 容器矩阵换血**：移除 Ubuntu 20.04/22.04、Debian 11、CentOS 7；新增 Ubuntu 26.04；opensuse-tumbleweed 降为单腿尽力而为；国产化 checkout 在 merge ref 已删时回退拉 head 分支
+- **ops-kit 单测去 python3 依赖**：`--json` 校验在无 python3 的精简容器回退结构校验（修 #56 引入的容器腿红）
 
 ## [1.12.0] - 2026-08-28
 

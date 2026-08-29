@@ -190,8 +190,9 @@ jobs:
             image: rockylinux:9
             expect_family: rhel
           # 独立发行版
-          - distro: opensuse-tumbleweed
+          - distro: opensuse-tumbleweed   # 滚动版上游源偶发超时，尽力而为
             image: opensuse/tumbleweed:latest
+            continue-on-error: true
             expect_id: opensuse-tumbleweed
             expect_family: suse
           - distro: arch
@@ -509,6 +510,8 @@ jobs:
     name: 支持矩阵刷新 / README
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - name: 渲染并回写支持矩阵（无变化则跳过提交）
