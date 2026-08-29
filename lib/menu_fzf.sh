@@ -29,7 +29,7 @@ menu_fzf_main() {
     export UXS_REPO_DIR="$SCRIPT_DIR"
 
     local lines="" mod state icon label desc path
-    for mod in $_REGISTRY_MODULES; do
+    for mod in $(registry_visible_modules); do
         state=$(status_state_get "$mod")
         icon=$(status_icon "$state")
         label=$(_reg_get "$mod" LABEL)

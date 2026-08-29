@@ -69,12 +69,12 @@ render_main_page() {
     echo "───────────────────────────────"
     menu "请选择分类："
     echo
-    local n=1 cat mods installed=0 total=0 mod state
+    local n=1 cat mod state vis installed=0 total=0
     for cat in $CATEGORY_ORDER; do
-        mods=$(registry_modules_in_category "$cat")
-        if [[ -z "$mods" ]]; then continue; fi
+        vis=$(category_items "$cat" "")
+        if [[ -z "$vis" ]]; then continue; fi
         total=0; installed=0
-        for mod in $mods; do
+        for mod in $vis; do
             total=$((total + 1))
             state=$(status_state_get "$mod")
             case "$state" in
@@ -105,6 +105,7 @@ category_items() {
     local lf
     lf=$(printf '%s' "$filter" | tr '[:upper:]' '[:lower:]')
     for mod in $(registry_modules_in_category "$cat"); do
+        uxs_module_visible "$mod" || continue
         if [[ -n "$lf" ]]; then
             label=$(_reg_get "$mod" LABEL)
             desc=$(registry_desc "$mod")
@@ -425,7 +426,7 @@ uninstall_menu_loop() {
             n=1
             cats=$(registry_categories)
             for c in $cats; do
-                if [[ -n "$(registry_modules_in_category "$c")" ]]; then
+                if [[ -n "$(category_items "$c" "")" ]]; then
                     printf "  %d) %s\n" "$n" "$c"
                     n=$((n + 1))
                 fi
@@ -441,7 +442,7 @@ uninstall_menu_loop() {
             fi
             n=1; found=""
             for c in $cats; do
-                if [[ -n "$(registry_modules_in_category "$c")" ]]; then
+                if [[ -n "$(category_items "$c" "")" ]]; then
                     if [[ $n -eq "$choice" ]]; then found="$c"; break; fi
                     n=$((n + 1))
                 fi
@@ -455,7 +456,7 @@ uninstall_menu_loop() {
             clear 2>/dev/null || true
             header "🗑️  卸载 · ${cur_cat}"
             echo "========================================"
-            items=$(registry_modules_in_category "$cur_cat")
+            items=$(category_items "$cur_cat" "")
             max=$(printf '%s' "$items" | wc -w)
             i=1
             for m in $items; do
