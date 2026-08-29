@@ -4,6 +4,15 @@
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-08-29
+
+### 新增
+- **平台可见性过滤**：`.manifest` 新增 `PLATFORMS` 声明（linux/darwin，缺省全平台），16 个受限模块补声明；不适用模块默认从**所有出口**隐藏（`--list` / `--list-modules` / `--list-categories` / `search` / 交互菜单（bash 与 fzf）/ 卸载菜单 / `--status` / `--status-json` / `export`）；直接安装不适用模块被框架拦截并给出解释与恢复指引；`apply` profile 跳过本机不适用行（profile 可跨机携带）；`UNIX_SCRIPT_SHOW_ALL=1` 恢复全量显示；绕过入口直调模块时内部平台检查仍生效（纵深防御）
+
+### 修复
+- `disk` 就绪分支不再输出 `VERSION=n/a`（此前在预装 parted 的环境拼成 `disk:installed:n/a` 污染 `--status-json`）
+- `nerd-font` 两处 `A && B || C` 改 if/else（CI shellcheck 版本报 SC2015）
+
 ## [1.16.0] - 2026-08-29
 
 ### 新增
