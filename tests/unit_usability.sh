@@ -44,8 +44,17 @@ if command_exists perl; then
     rc=$(uxs_with_timeout 1 sleep 5 >/dev/null 2>&1; echo $?)
     ELAPSED=$((SECONDS - S))
     t_eq "timeout: 超时 rc=124" "124" "$rc"
-    t_true "timeout: 超时及时返回（实测 ${ELAPSED}s ≤ 2s）" "(( ELAPSED <= 2 ))"
+    # 上限 3s：1s alarm + 1s KILL 宽限 ≈ 2s，CI 负载下实测会冲到 3s
+    t_true "timeout: 超时及时返回（实测 ${ELAPSED}s ≤ 3s）" "(( ELAPSED <= 3 ))"
 fi
+
+# 参数护栏：缺命令参数/非法秒数 → rc=2；secs=0 → 不设超时直通（GNU timeout 语义）
+rc=$(uxs_with_timeout 2>/dev/null; echo $?)
+t_eq "timeout: 缺命令参数 rc=2" "2" "$rc"
+rc=$(uxs_with_timeout abc true 2>/dev/null; echo $?)
+t_eq "timeout: 非法秒数 rc=2" "2" "$rc"
+rc=$(uxs_with_timeout 0 false >/dev/null 2>&1; echo $?)
+t_eq "timeout: 秒数 0 直通 rc=1" "1" "$rc"
 
 # ---------- ufw 三级降级链（仅 Linux；macOS 上 ufw status=n/a）----------
 if [[ "$(uname)" == "Linux" ]]; then
@@ -80,6 +89,9 @@ if [[ "$(uname)" == "Linux" ]]; then
     # 降级3：sudo 与 systemctl 全失败 → 兜底 installed，且必有输出
     out=$(PATH="$FAKE:$PATH" UXS_STATUS_MODE=machine bash "$UFW_SH" status </dev/null 2>/dev/null)
     t_true "ufw: 全失败兜底仍有 STATE= 输出" "printf '%s' \"\$out\" | grep -c '^STATE=' >/dev/null"
+    rc=$(PATH="$FAKE:$PATH" UXS_STATUS_MODE=machine bash "$UFW_SH" status </dev/null >/dev/null 2>&1; echo $?)
+    t_eq "ufw: 降级链退出码恒 0" "0" "$rc"
+    t_eq "ufw: 输出恰一行 STATE=" "1" "$(PATH="$FAKE:$PATH" UXS_STATUS_MODE=machine bash "$UFW_SH" status </dev/null 2>/dev/null | grep -c '^STATE=')"
     rm -rf "$FAKE"
 fi
 

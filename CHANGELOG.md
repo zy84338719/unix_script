@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+### 修复
+- `uxs_with_timeout` 参数护栏（缺参数/非法秒数 rc=2；秒数 0 直通对齐 GNU timeout）
+
+## [1.15.0] - 2026-08-29
+
 ### 新增
 - 管理面板批次①（4 个新模块，服务类 17→21）：`1panel`（官方 v2 脚本，透传 `PANEL_*` 非交互安装，info/update 子命令）、`btpanel`（宝塔面板，纯净度预检；`en` 子命令装 aaPanel 国际版）、`webmin`（官方 APT/YUM 仓库直连安装，不依赖 GitHub）、`casaos`（家庭云面板，80 端口冲突预检）
 
