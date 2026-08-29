@@ -3,3 +3,4 @@ CATEGORY=服务
 DEFAULT_ACTION=install
 HAS_SUBMENU=docker
 DESC=容器引擎（Engine / Desktop）
+NEXT_STEPS=装 dev-tui 获得 lazydocker/lazygit:./install.sh dev-tui;离线导出镜像用 docker-image:./install.sh docker-image

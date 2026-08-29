@@ -489,6 +489,31 @@ uninstall_menu_loop() {
 # ============================================================
 # 用法文本
 # ============================================================
+# show_next_steps <模块名> — 安装成功后的「下一步」引导块（批次②）。
+# 条目来自 .manifest 的 NEXT_STEPS（分号分隔，条目内冒号分隔「说明:命令」）。
+# 仅人类模式 + 非 dry-run 打印；机器模式与预览模式零输出。
+show_next_steps() {
+    local mod="$1" raw
+    raw=$(registry_next_steps "$mod")
+    [[ -z "$raw" ]] && return 0
+    if uxs_is_machine_mode; then return 0; fi
+    [[ "${UNIX_SCRIPT_DRY_RUN:-0}" == "1" ]] && return 0
+    local IFS=';'
+    local -a items
+    read -ra items <<< "$raw"
+    echo
+    info "💡 下一步："
+    local item
+    for item in ${items[@]+"${items[@]}"}; do
+        [[ -z "$item" ]] && continue
+        if [[ "$item" == *:* ]]; then
+            printf '   • %s → %s\n' "${item%%:*}" "${item#*:}"
+        else
+            printf '   • %s\n' "$item"
+        fi
+    done
+}
+
 show_usage() {
     cat <<EOF
 用法: $0 [选项] [模块名]

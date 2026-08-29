@@ -3,3 +3,4 @@ CATEGORY=开发环境
 DEFAULT_ACTION=install
 EXPORTABLE=registry
 DESC=Bun 运行时（含国内镜像加速）
+NEXT_STEPS=装 pnpm 包管理器:./install.sh pnpm;国内镜像加速:./install.sh bun mirror

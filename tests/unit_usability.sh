@@ -123,6 +123,8 @@ SCRIPT_DIR="$REPO_DIR"
 source "$REPO_DIR/lib/registry.sh"
 # shellcheck source=../lib/status.sh
 source "$REPO_DIR/lib/status.sh"
+# shellcheck source=../lib/menu.sh
+source "$REPO_DIR/lib/menu.sh"
 registry_scan
 
 status_batch_query __no_such_mod__ 2>/dev/null
@@ -152,6 +154,26 @@ cd - >/dev/null
 unset HOMEBREW_NO_AUTO_UPDATE
 uxs_install_sudo_shim
 t_eq "dry-run: shim 注入 HOMEBREW_NO_AUTO_UPDATE=1" "1" "${HOMEBREW_NO_AUTO_UPDATE:-}"
+
+# ---------- NEXT_STEPS 新手引导（批次②）----------
+# registry 解析 + show_next_steps 渲染（人类/机器/dry-run 三重 gate）
+NS_MANIFEST=$(mktemp)
+printf 'LABEL=测试模块\nCATEGORY=服务\nNEXT_STEPS=装配套甲:./install.sh foo;开箱即用无需操作\n' > "$NS_MANIFEST"
+_parse_manifest __test_ns__ "$NS_MANIFEST"
+t_eq "next-steps: manifest 原样存储" "装配套甲:./install.sh foo;开箱即用无需操作" "$(registry_next_steps __test_ns__)"
+
+NS_OUT=$(show_next_steps __test_ns__)
+t_eq "next-steps: 人类模式渲染 2 条" "2" "$(printf '%s' "$NS_OUT" | grep -c '•')"
+t_true "next-steps: 带命令条目渲染 →" "printf '%s' \"\$NS_OUT\" | grep -q '装配套甲 → ./install.sh foo'"
+t_true "next-steps: 无命令条目整句渲染" "printf '%s' \"\$NS_OUT\" | grep -q '• 开箱即用无需操作'"
+
+t_eq "next-steps: 机器模式零输出" "" "$(UXS_STATUS_MODE=machine show_next_steps __test_ns__)"
+t_eq "next-steps: dry-run 零输出" "" "$(UNIX_SCRIPT_DRY_RUN=1 show_next_steps __test_ns__)"
+# 无 NEXT_STEPS 字段的模块：用临时样本（真实模块随时可能接线，不能当反例）
+printf 'LABEL=测试模块乙\nCATEGORY=服务\n' > "$NS_MANIFEST"
+_parse_manifest __test_ns2__ "$NS_MANIFEST"
+t_eq "next-steps: 无字段的模块零输出" "" "$(show_next_steps __test_ns2__)"
+rm -f "$NS_MANIFEST"
 
 # ---------- 汇总 ----------
 echo "通过 $PASS / 失败 $FAIL"

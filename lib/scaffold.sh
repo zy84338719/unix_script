@@ -49,6 +49,7 @@ LABEL=$label
 CATEGORY=$category
 DESC=一句话中文描述（请替换）
 DEFAULT_ACTION=install
+# NEXT_STEPS=安装成功后的下一步提示;多条用分号分隔（可选，条目内冒号分隔「说明:命令」）
 EOF
 
     # install.sh template

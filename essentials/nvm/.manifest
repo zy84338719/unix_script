@@ -2,3 +2,4 @@ LABEL=nvm
 CATEGORY=装机必备
 DEFAULT_ACTION=install
 DESC=Node.js 多版本管理
+NEXT_STEPS=装 pnpm 包管理器:./install.sh pnpm

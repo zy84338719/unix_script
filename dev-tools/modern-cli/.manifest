@@ -3,3 +3,4 @@ CATEGORY=开发环境
 ALIASES=modern_cli,moderncli
 DEFAULT_ACTION=install
 DESC=bat/eza/ripgrep/fd/fzf/zoxide/starship
+NEXT_STEPS=新开终端生效;装 zsh_setup 组合终端体验:./install.sh zsh_setup

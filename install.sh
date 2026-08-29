@@ -81,7 +81,13 @@ dispatch_module() {
     if [[ "${action_args[0]:-}" == "install" ]]; then
         ensure_module_deps "$resolved"
     fi
-    run_in_dir "$mod_path" "$entry_script" "${action_args[@]}"
+    local rc=0
+    run_in_dir "$mod_path" "$entry_script" "${action_args[@]}" || rc=$?
+    # 批次②：默认安装动作成功后给「下一步」引导（内部有人类模式/dry-run gate）
+    if [[ "$rc" -eq 0 ]] && [[ "${action_args[0]:-}" == "install" ]]; then
+        show_next_steps "$resolved"
+    fi
+    return "$rc"
 }
 
 # 安装模块的缺失依赖（阶段 E）。
