@@ -3,7 +3,7 @@
 [![CI](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml/badge.svg)](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**macOS / Linux 服务与环境一键管理脚本库** — 54 个模块，统一子命令接口，覆盖服务部署、系统初始化、开发环境、AI 工具、系统运维全场景。支持 **x86_64 / ARM64 / ARMv7** 三大架构，适配银河麒麟 / 统信 UOS 等国产发行版。
+**macOS / Linux 服务与环境一键管理脚本库** — 58 个模块，统一子命令接口，覆盖服务部署、系统初始化、开发环境、AI 工具、系统运维全场景。支持 **x86_64 / ARM64 / ARMv7** 三大架构，适配银河麒麟 / 统信 UOS 等国产发行版。
 
 > 当前版本：[VERSION](VERSION)（v1.14.0） · 更新日志：[CHANGELOG.md](CHANGELOG.md) · AI 接口说明：[AGENTS.md](AGENTS.md)
 
@@ -12,7 +12,7 @@
 ## ✨ 核心特性
 
 - **一行安装**：无需 clone，`curl | bash` 即可拉起任意模块
-- **54 个模块**：服务 / 装机必备 / 开发环境 / AI 工具 / 系统工具，5 大分类全覆盖
+- **58 个模块**：服务 / 装机必备 / 开发环境 / AI 工具 / 系统工具，5 大分类全覆盖
 - **统一接口**：所有模块遵循 `install / uninstall / status / help` 约定
 - **注册表驱动**：模块自带 `.manifest` 元数据，自动发现、自动排序、自动别名
 - **AI / 脚本友好**：`--status-json`、`--list-modules`、`--list-categories` 三种机器可读输出
@@ -165,11 +165,11 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 
 ---
 
-## 📦 全部 54 个模块
+## 📦 全部 58 个模块
 
 > 平台：✅ 支持 · ❌ 不适用 · ✅* 引导安装。带「别名」的模块可用别名调用，如 `./install.sh pg` = postgres。
 
-### 🌐 服务（17 个）
+### 🌐 服务（21 个）
 
 | 模块 | 说明 | 别名 | Linux | macOS |
 |------|------|------|:-----:|:-----:|
@@ -188,6 +188,10 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 | [certbot](services/certbot) | Let's Encrypt 免费 SSL 证书 | letsencrypt | ✅ | ✅ |
 | [fail2ban](services/fail2ban) | SSH 暴力破解防护 | f2b | ✅ | ❌ |
 | [cockpit](services/cockpit) | Linux Web 管理面板 | — | ✅ | ❌ |
+| [1panel](services/1panel) | 新一代 Linux 服务器运维面板（v2） | 1p | ✅ | ❌ |
+| [btpanel](services/btpanel) | 宝塔 Linux 运维面板（en 装 aaPanel 国际版） | bt | ✅ | ❌ |
+| [webmin](services/webmin) | 经典 Web 系统管理面板（官方仓库） | — | ✅ | ❌ |
+| [casaos](services/casaos) | 家庭云/NAS 轻量面板（Docker 应用商店） | — | ✅ | ❌ |
 | [tailscale](services/tailscale) | 免公网 IP 的组网 VPN | ts | ✅ | ✅ |
 | [wireguard](services/wireguard) | 现代、快速、安全的 VPN | wg | ✅ | ✅ |
 

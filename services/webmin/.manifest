@@ -1,0 +1,5 @@
+LABEL=Webmin
+CATEGORY=服务
+DEFAULT_ACTION=install
+DESC=经典 Web 系统管理面板（官方仓库）
+NEXT_STEPS=浏览器访问 https://服务器IP:10000（root 账号登录）;查看面板端口:grep ^port= /etc/webmin/miniserv.conf
