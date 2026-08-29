@@ -79,6 +79,22 @@ t_eq "atuin: 已装无 rc 集成 → STATE=installed + EXTRA sync=off" \
 t_true "atuin: 导入子命令为 import auto（空格形式）" "grep -q 'import auto' '$ATUIN_SH'"
 t_true "atuin: manifest EXPORTABLE=sync" "grep -q '^EXPORTABLE=sync$' '$REPO_DIR/dev-tools/atuin/.manifest'"
 
+# ---------- ⑤ terminal 编排 ----------
+TERM_MANIFEST="$REPO_DIR/dev-tools/terminal/.manifest"
+TERM_SH="$REPO_DIR/dev-tools/terminal/install.sh"
+t_true "terminal: 模块文件存在且可执行" "[[ -f '$TERM_MANIFEST' && -x '$TERM_SH' ]]"
+t_true "terminal: manifest 无 EXPORTABLE（子模块自治声明）" \
+    "grep -q '^DESC=' '$TERM_MANIFEST' && ! grep -q '^EXPORTABLE=' '$TERM_MANIFEST'"
+
+# EXCLUDE 全排除 → install 幂等完成 rc=0，不触发任何子模块安装
+HOME="$FAKE/home" UXS_CONFIG_EXCLUDE="zsh,zsh_setup,modern-cli,nerd-font,atuin" \
+    bash "$TERM_SH" install </dev/null >/dev/null 2>&1
+t_eq "terminal: EXCLUDE 全排除 install rc=0" "0" "$?"
+
+out=$(PATH="$FAKE:$PATH" HOME="$FAKE/home" UXS_STATUS_MODE=machine bash "$TERM_SH" status </dev/null 2>/dev/null)
+t_eq "terminal: 全缺 → STATE=not_installed" "not_installed" "$(printf '%s' "$out" | sed -n 's/^STATE=//p' | head -1)"
+t_true "terminal: EXTRA=missing 含 modern-cli（桩无该命令）" "printf '%s' \"\$out\" | grep -q 'missing=.*modern-cli'"
+
 echo
 echo "通过: $PASS / 失败: $FAIL"
 [[ $FAIL -eq 0 ]]
