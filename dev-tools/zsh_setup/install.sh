@@ -213,12 +213,58 @@ uninstall_zsh_setup() {
     warn "如需彻底还原 zsh 环境，请手动检查 ~/.zshrc 是否有残留配置行"
 }
 
+# 非交互默认安装（DEFAULT_ACTION=install 的实现）：
+# zsh 本体 → 框架(UXS_CONFIG_FRAMEWORK, 默认 oh-my-zsh) → 基础插件 4 件套(仅 oh-my-zsh)
+# → 主题(UXS_CONFIG_THEME, 默认随框架; p10k 走 theme_install_p10k)
+install_zsh_setup_default() {
+    local framework="${UXS_CONFIG_FRAMEWORK:-oh-my-zsh}"
+    local theme="${UXS_CONFIG_THEME:-}"
+
+    if ! command_exists zsh; then
+        info "安装 zsh 本体..."
+        if ! pkg_install zsh; then
+            error "zsh 本体安装失败（请手动安装 zsh 后重试）"
+            return 1
+        fi
+    fi
+
+    framework_install "$framework"
+
+    # 基础插件：默认框架 oh-my-zsh 提供幂等的目录判断；
+    # 其他框架（prezto/zinit/sheldon）插件目录约定各异，提示用户用 plugin add 自行管理
+    if [ "$framework" = "oh-my-zsh" ]; then
+        local custom_dir="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+        local p
+        for p in zsh-autosuggestions zsh-syntax-highlighting zsh-completions zsh-history-substring-search; do
+            if [ -d "$custom_dir/plugins/$p" ]; then
+                info "插件已存在: $p"
+            else
+                plugin_add "$p" || warn "插件安装失败: $p（可稍后 plugin add $p 重试）"
+            fi
+        done
+    else
+        info "框架 $framework 的基础插件请用: $0 plugin add <name> 自行添加"
+    fi
+
+    case "$theme" in
+        ""|robbyrussell) : ;;                 # 框架默认主题，不动作
+        p10k|powerlevel10k) theme_install_p10k ;;
+        *) theme_set "$theme" ;;
+    esac
+
+    success "🎉 zsh_setup 默认安装完成（框架: $framework）"
+    info "新开终端或执行 exec zsh 生效"
+}
+
 # 主函数
 main() {
     local command="${1:-help}"
     shift || true
 
     case "$command" in
+        install)
+            install_zsh_setup_default
+            ;;
         framework)
             if [ -z "$1" ] || [ "$1" == "select" ]; then
                 framework_select
