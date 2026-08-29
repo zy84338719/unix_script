@@ -1,0 +1,5 @@
+LABEL=containerd
+CATEGORY=服务
+DEFAULT_ACTION=install
+DESC=容器运行时（含 ctr/nerdctl）
+NEXT_STEPS=本机跑容器用 docker:./install.sh docker;或 podman:./install.sh podman

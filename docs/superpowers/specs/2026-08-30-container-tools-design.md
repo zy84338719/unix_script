@@ -1,7 +1,7 @@
-# 容器工具批次①：Podman / kubectl / k9s / Helm 设计
+# 容器工具批次①：Podman / containerd / kubectl / k9s / Helm 设计
 
 - 日期：2026-08-30
-- 状态：已定稿（4 个模块），待实施
+- 状态：已定稿（5 个模块），待实施（containerd/nerdctl 为定稿后按用户要求追加）
 - 关联：`services/docker`（容器引擎模板 + mirror/registry 先例）、`dev-tools/minikube`、`sys-tools/dev-tui`
 
 ## 背景
@@ -18,14 +18,17 @@ k9s（k8s 终端管理面板，与 k7s 桌面版互补）、helm（k8s 包管理
 | 模块 | 位置 | 平台 | 安装来源 | CATEGORY |
 |------|------|------|----------|----------|
 | `podman` | `services/podman` | 全平台 | Linux=发行版仓库（pkg_install）；macOS=brew | 服务 |
+| `containerd` | `services/containerd` | 全平台 | Linux=发行版仓库（缺包回退 containerd.io）+ nerdctl GitHub release；macOS=brew（仅 CLI） | 服务 |
 | `kubectl` | `dev-tools/kubectl` | 全平台 | Linux=dl.k8s.io 官方二进制；macOS=brew | 开发环境 |
 | `k9s` | `dev-tools/k9s` | 全平台 | Linux=GitHub release 二进制；macOS=brew | 开发环境 |
 | `helm` | `dev-tools/helm` | 全平台 | Linux=get.helm.sh 官方 tarball；macOS=brew | 开发环境 |
 
-不纳入本批次（YAGNI，留待后续批次）：**containerd/nerdctl**（`ctr` 是 containerd 随附
-的底层 CLI、无法独立安装，独立装 containerd 需处理与 docker 的共存检测，主题也与
-podman「引擎替代」不同，单独成批）、buildah/skopeo（镜像构建/搬运）、kind、k3s、
+不纳入本批次（YAGNI，留待后续批次）：buildah/skopeo（镜像构建/搬运）、kind、k3s、
 harbor、数据库补齐（MySQL/MariaDB、MongoDB）、frp 内网穿透。
+
+> 追加说明：containerd/nerdctl 原列排除项（`ctr` 是 containerd 随附的底层 CLI、无法
+> 独立安装），定稿后按用户要求纳入——装 containerd 即有 ctr，模块同时附 nerdctl；
+> macOS 宿主无法运行 Linux 容器，status 标注 `cli-only`。
 
 ## 统一约定（对齐面板批次①与状态契约）
 
@@ -43,6 +46,20 @@ harbor、数据库补齐（MySQL/MariaDB、MongoDB）、frp 内网穿透。
 - 卸载默认保留容器/集群数据，删除数据需二次确认。
 
 ## 各模块设计
+
+### services/containerd
+
+- install（Linux）：`pkg_install containerd`（Deb 系包名 `containerd`；部分 RHEL 系
+  仅有 docker 仓库的 `containerd.io`，失败自动回退），`uxs_svc enable-now containerd`
+  启服务；nerdctl 经 GitHub release 二进制（`containerd/nerdctl`，资产
+  `nerdctl-<ver>-linux-<arch>.tar.gz`）装 `/usr/local/bin/nerdctl`，失败不阻断。
+- install（macOS）：`brew install containerd nerdctl`；显式警告宿主无法运行 Linux
+  容器，ctr/nerdctl 仅作客户端（`CONTAINERD_ADDRESS` 指向 VM/远程 socket）。
+- status：`containerd --version`（离线）→ VERSION；Linux 用 `uxs_svc is-active` 判
+  `installed:running/stopped`，EXTRA `nerdctl=yes|no`；macOS 恒 `installed` +
+  EXTRA `mode=cli-only`。
+- uninstall：Linux 卸载包 + 删 nerdctl 二进制，`/var/lib/containerd` 二次确认；并
+  提示 docker 若受影响可 `./install.sh docker` 重装。macOS brew uninstall。
 
 ### services/podman
 
@@ -101,8 +118,8 @@ harbor、数据库补齐（MySQL/MariaDB、MongoDB）、frp 内网穿透。
 
 ## 框架联动
 
-- 模块数 61 → 65；主 README 模块计数 3 处刷新；AGENTS.md 表格 services 21→22、
-  dev-tools 15→18、总数 61→65；CHANGELOG `[Unreleased]` 增「新增」条目。
+- 模块数 61 → 66；主 README 模块计数 3 处刷新；AGENTS.md 表格 services 21→23、
+  dev-tools 15→18、总数 61→66；CHANGELOG `[Unreleased]` 增「新增」条目。
 - registry / completions / search 均由 `.manifest` 自动发现，无需改 `lib/`。
 
 ## 测试与验收
@@ -110,7 +127,9 @@ harbor、数据库补齐（MySQL/MariaDB、MongoDB）、frp 内网穿透。
 - `./tests/ci_run.sh --phase static`：shellcheck 0 告警（含 info 级）。
 - `./tests/ci_run.sh --phase routing`：新模块 status/help exit 0、`set -u` 干净、
   `uninstall)` 分支存在、用法行可被 menu.sh 解析；`--list-modules` 与 `search` 能命中
-  4 个新模块。
-- macOS 冒烟：kubectl/k9s/helm/podman 的 status 输出 `not_installed` 且 exit 0。
-- 实装验证（不阻塞合入）：murphy-server（Ubuntu）实装 podman/kubectl/k9s/helm 各一次
-  验证 status 与基本功能；macOS 实装 kubectl/k9s/helm、podman machine init 走通。
+  5 个新模块。
+- macOS 冒烟：kubectl/k9s/helm/podman/containerd 的 status 输出正常（未装→
+  not_installed）且 exit 0。
+- 实装验证（不阻塞合入）：murphy-server（Ubuntu）实装
+  podman/containerd/kubectl/k9s/helm 各一次验证 status 与基本功能；macOS 实装
+  kubectl/k9s/helm、podman machine init 走通。
