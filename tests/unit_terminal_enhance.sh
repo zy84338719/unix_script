@@ -59,6 +59,14 @@ t_true "modern-cli: 安装脚本含 tealdeer/direnv" \
 t_true "modern-cli: status 检查含 tldr/direnv" "grep -q 'tldr direnv' '$MODERN_SH'"
 t_true "modern-cli: 存在 extras 标记块（向后兼容老 rc）" "grep -q 'modern-cli extras' '$MODERN_SH'"
 
+# ---------- ④ nerd-font ----------
+NF_MANIFEST="$REPO_DIR/dev-tools/nerd-font/.manifest"
+NF_SH="$REPO_DIR/dev-tools/nerd-font/install.sh"
+t_true "nerd-font: 模块文件存在且可执行" "[[ -f '$NF_MANIFEST' && -x '$NF_SH' ]]"
+t_true "nerd-font: manifest EXPORTABLE=fonts" "grep -q '^EXPORTABLE=fonts$' '$NF_MANIFEST'"
+t_true "nerd-font: 语法通过" "bash -n '$NF_SH'"
+t_true "nerd-font: 映射表用正确的 Cascadia cask 名(-nf)" "grep -q 'font-cascadia-code-nf' '$NF_SH'"
+
 echo
 echo "通过: $PASS / 失败: $FAIL"
 [[ $FAIL -eq 0 ]]
