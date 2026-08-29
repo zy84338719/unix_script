@@ -43,6 +43,42 @@ ELAPSED=$((SECONDS - S))
 t_eq "timeout: 超时 rc=124" "124" "$rc"
 t_true "timeout: 超时及时返回（实测 ${ELAPSED}s ≤ 2s）" "(( ELAPSED <= 2 ))"
 
+# ---------- ufw 三级降级链（仅 Linux；macOS 上 ufw status=n/a）----------
+if [[ "$(uname)" == "Linux" ]]; then
+    UFW_SH="$REPO_DIR/sys-tools/ufw/install.sh"
+    FAKE=$(mktemp -d)
+
+    # 注入假 ufw（推荐直接注入，不依赖测试机是否装了 ufw；command_exists 需可执行位）
+    printf '#!/bin/sh\nexit 0\n' > "$FAKE/ufw"
+    chmod +x "$FAKE/ufw"
+
+    # 降级1：sudo -n 成功（原语义保留）
+    printf '#!/bin/sh\necho "Status: active"\n' > "$FAKE/sudo"
+    chmod +x "$FAKE/sudo"
+    out=$(PATH="$FAKE:$PATH" UXS_STATUS_MODE=machine bash "$UFW_SH" status </dev/null 2>/dev/null)
+    t_eq "ufw: sudo 可用 active→configured" "configured" "$(printf '%s' "$out" | sed -n 's/^STATE=//p' | head -1)"
+
+    printf '#!/bin/sh\necho "Status: inactive"\n' > "$FAKE/sudo"
+    out=$(PATH="$FAKE:$PATH" UXS_STATUS_MODE=machine bash "$UFW_SH" status </dev/null 2>/dev/null)
+    t_eq "ufw: sudo 可用 inactive→not_configured" "not_configured" "$(printf '%s' "$out" | sed -n 's/^STATE=//p' | head -1)"
+
+    # 降级2：sudo -n 失败（无凭据/无 TTY），systemctl 兜底
+    printf '#!/bin/sh\nexit 1\n' > "$FAKE/sudo"
+    printf '#!/bin/sh\necho active\n' > "$FAKE/systemctl"
+    chmod +x "$FAKE/sudo" "$FAKE/systemctl"
+    out=$(PATH="$FAKE:$PATH" UXS_STATUS_MODE=machine bash "$UFW_SH" status </dev/null 2>/dev/null)
+    t_eq "ufw: sudo 失败 systemctl active→installed:running" "installed:running" "$(printf '%s' "$out" | sed -n 's/^STATE=//p' | head -1)"
+
+    printf '#!/bin/sh\nexit 3\n' > "$FAKE/systemctl"
+    out=$(PATH="$FAKE:$PATH" UXS_STATUS_MODE=machine bash "$UFW_SH" status </dev/null 2>/dev/null)
+    t_eq "ufw: sudo 失败 systemctl inactive→installed" "installed" "$(printf '%s' "$out" | sed -n 's/^STATE=//p' | head -1)"
+
+    # 降级3：sudo 与 systemctl 全失败 → 兜底 installed，且必有输出
+    out=$(PATH="$FAKE:$PATH" UXS_STATUS_MODE=machine bash "$UFW_SH" status </dev/null 2>/dev/null)
+    t_true "ufw: 全失败兜底仍有 STATE= 输出" "printf '%s' \"\$out\" | grep -q '^STATE='"
+    rm -rf "$FAKE"
+fi
+
 # ---------- 汇总 ----------
 echo "通过 $PASS / 失败 $FAIL"
 [[ "$FAIL" -eq 0 ]]

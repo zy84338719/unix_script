@@ -127,17 +127,34 @@ status_ufw() {
         emit_status "not_installed" "${RED}未安装${NC}"
         return
     fi
-    local ufw_status
-    ufw_status=$(sudo ufw status 2>/dev/null | head -1)
-    if [[ "$ufw_status" == *"active"* ]]; then
-        emit_status "configured" "${GREEN}已安装并启用${NC}"
-        if ! uxs_is_machine_mode; then
-            echo
-            sudo ufw status verbose
+    # 三级降级：sudo -n ufw status → systemctl is-active ufw → 兜底 installed。
+    # 防 set -e/pipefail 中止：所有命令替换带 || true，任何路径必须落到一个 emit_status。
+    local ufw_status sysd
+    ufw_status=""
+    if ufw_status=$(sudo -n ufw status 2>/dev/null | head -1 || true) && [[ -n "$ufw_status" ]]; then
+        # 精确匹配 active（排除 inactive 子串误匹配——"Status: inactive" 含 "active"）
+        if [[ "$ufw_status" == *"active"* && "$ufw_status" != *"inactive"* ]]; then
+            emit_status "configured" "${GREEN}已安装并启用${NC}"
+            if ! uxs_is_machine_mode; then
+                echo
+                sudo -n ufw status verbose 2>/dev/null || sudo ufw status verbose
+            fi
+        else
+            emit_status "not_configured" "${YELLOW}已安装但未启用${NC}"
         fi
-    else
-        emit_status "not_configured" "${YELLOW}已安装但未启用${NC}"
+        return
     fi
+    # sudo 不可用（无凭据/无 TTY）：降级 systemd 单元状态
+    if command_exists systemctl && sysd=$(systemctl is-active ufw 2>/dev/null || true); then
+        if [[ "$sysd" == "active" ]]; then
+            emit_status "installed:running" "${GREEN}已安装且服务运行中（降级检测）${NC}"
+        else
+            emit_status "installed" "${YELLOW}已安装（sudo 不可用，降级检测）${NC}"
+        fi
+        return
+    fi
+    # systemctl 也没有：命令存在即视为已装
+    emit_status "installed" "${YELLOW}已安装（无法读取详细状态）${NC}"
 }
 
 usage() {
