@@ -126,7 +126,7 @@ uninstall_terminal() {
 
 usage() {
     cat <<EOF
-用法: $0 {install|status|help}
+用法: $0 {install|uninstall|status|help}
 
   install     一键终端全家桶（zsh → zsh_setup → modern-cli → nerd-font → atuin）
               UXS_CONFIG_FRAMEWORK=oh-my-zsh      框架选择（透传 zsh_setup）
