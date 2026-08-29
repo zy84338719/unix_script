@@ -733,6 +733,31 @@ uxs_with_timeout() {
     ' "$secs" "$@"
 }
 
+# uxs_func_with_timeout <秒> <函数名> [参数...] — 带超时执行**当前 shell 内的函数**。
+# uxs_with_timeout 基于 perl exec 只能拉二进制，包不住函数；这里用
+# background + watchdog（sleep+kill）实现，bash 3.2 兼容。
+# 契约：超时返回空输出、rc=143（128+SIGTERM）；否则透传函数输出与退出码。
+# 注意：超时时 rc≠0，set -e 调用方须自行 `|| true` 兜底。
+uxs_func_with_timeout() {
+    local secs="$1" fn="$2"
+    shift 2
+    local outfile rc
+    outfile=$(mktemp "${TMPDIR:-/tmp}/uxs-func.XXXXXX") || return 125
+    "$fn" "$@" > "$outfile" 2>/dev/null &
+    local pid=$!
+    # watchdog 必须全重定向：否则它与 sleep 子进程持有命令替换
+    # raw=$(...) 的管道写端，函数结束后外层仍要等 sleep 睡满才返回
+    ( sleep "$secs"; kill "$pid" 2>/dev/null ) >/dev/null 2>&1 </dev/null &
+    local wd=$!
+    wait "$pid" 2>/dev/null
+    rc=$?
+    kill "$wd" 2>/dev/null
+    wait "$wd" 2>/dev/null
+    cat "$outfile"
+    rm -f "$outfile"
+    return "$rc"
+}
+
 # ---------------- 交互工具 ----------------
 # yes_no <prompt>  -> 输入 y/Y 返回 0，否则 1
 yes_no() {

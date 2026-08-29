@@ -87,6 +87,34 @@ if [[ "$(uname)" == "Darwin" ]]; then
     t_true "doctor: macOS 不再把缺 os-release 计为 WARNING" "! printf '%s' \"\$DOC_OUT\" | grep -q '未能识别发行版'"
     t_true "doctor: macOS 显示已跳过" "printf '%s' \"\$DOC_OUT\" | grep -q '不适用发行版检测'"
 fi
+# root 环境感知：root+非 TTY 走 success 分支，上述「跳过」断言不适用
+# （否则在 root 容器里套件会假失败）
+if [[ $EUID -eq 0 ]]; then
+    t_true "doctor: root 下显示以 root 运行" "printf '%s' \"\$DOC_OUT\" | grep -q '当前以 root 运行'"
+fi
+
+# ---------- uxs_func_with_timeout（函数级超时，批查子进程封顶用）----------
+# perl exec 只能拉二进制，包不住 shell 函数——所以批查用这套 background+watchdog 实现
+__usab_fast_fn() { echo "STATE=not_installed"; }
+__usab_slow_fn() { sleep 8; echo "STATE=installed"; }
+
+out=$(uxs_func_with_timeout 2 __usab_fast_fn); rc=$?
+t_eq "func-timeout: 快函数透传输出" "STATE=not_installed" "$out"
+t_eq "func-timeout: 快函数透传 rc=0" "0" "$rc"
+
+S=$SECONDS
+out=$(uxs_func_with_timeout 1 __usab_slow_fn); rc=$?
+ELAPSED=$((SECONDS - S))
+t_eq "func-timeout: 慢函数超时返回空" "" "$out"
+t_eq "func-timeout: 慢函数超时 rc=143（SIGTERM）" "143" "$rc"
+t_true "func-timeout: 超时及时返回（实测 ${ELAPSED}s ≤ 3s）" "(( ELAPSED <= 3 ))"
+
+# 回归：watchdog 不得持有命令替换的管道写端（否则快函数也要等 sleep 睡满才返回）
+S=$SECONDS
+out=$(uxs_func_with_timeout 8 __usab_fast_fn); rc=$?
+ELAPSED=$((SECONDS - S))
+t_eq "func-timeout: 快函数不被 watchdog 拖住 rc=0" "0" "$rc"
+t_true "func-timeout: 快函数立即返回（实测 ${ELAPSED}s ≤ 3s，防管道持有回归）" "(( ELAPSED <= 3 ))"
 
 # ---------- --status-json 防截断 + 批查容错 ----------
 # 直查 status_batch_query 需要注册表与状态层（install.sh 的 source 序：registry → status）

@@ -93,7 +93,7 @@ show_installed_services() {
 # ============================================================
 # 菜单状态层：内存态 + 并行批查 + TTL 跨进程缓存（UX 改造）
 #
-# 实测串行全量 status 查询 ~5.4s（52 模块），菜单重画不可接受。
+# 实测串行全量 status 查询 ~5.4s（模块数随版本增长，菜单重画不可接受）。
 # 三层：并行批查（UXS_STATUS_JOBS，默认 8）→ 内存变量 →
 #       /tmp TTL 缓存（UXS_STATUS_CACHE_TTL 秒，默认 300，0=禁用；
 #       UXS_STATUS_CACHE_DIR 可覆盖，测试用）。
@@ -203,16 +203,20 @@ status_cache_update() {
 }
 
 # --- 并行批查：固定并发跑 module_status_raw，解析 STATE+VERSION 进内存 ---
+# 子进程整体受 UXS_STATUS_MODULE_TIMEOUT（默认 30s）封顶：未来某个模块 status
+# 新出现挂起，只会拖慢自己所在的并发窗口，不会无限阻塞整轮批查。
 status_batch_query() {
     local jobs="${UXS_STATUS_JOBS:-8}"
     if ! [[ "$jobs" =~ ^[1-9][0-9]*$ ]]; then jobs=8; fi
+    local timeout="${UXS_STATUS_MODULE_TIMEOUT:-30}"
+    if ! [[ "$timeout" =~ ^[1-9][0-9]*$ ]]; then timeout=30; fi
     local tmpdir
     tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/uxs-status.XXXXXX")
     local mod running=0
     for mod in "$@"; do
         (
-            local raw
-            raw=$(module_status_raw "$mod" 2>/dev/null || true)
+            local raw=""
+            raw=$(uxs_func_with_timeout "$timeout" module_status_raw "$mod") || raw=""
             printf '%s' "$raw" > "$tmpdir/$mod"
         ) &
         running=$((running + 1))
