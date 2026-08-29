@@ -1,0 +1,5 @@
+LABEL=kubectl
+CATEGORY=开发环境
+DEFAULT_ACTION=install
+DESC=Kubernetes 命令行客户端
+NEXT_STEPS=本地集群:./install.sh minikube
