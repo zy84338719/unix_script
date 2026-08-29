@@ -60,6 +60,9 @@ case "$OS_TYPE" in
         uxs_module_supported docker;    t_rc "supported(linux): docker→0" 0 $?
         uxs_module_supported ufw;       t_rc "supported(linux): ufw→0" 0 $?
         uxs_module_supported brew;      t_rc "supported(linux): brew→1" 1 $?
+        # 纵深防御：brew 的 status 在 Linux 须报 n/a（install 是 darwin-gated，二者须自洽）
+        s=$(cd "$REPO_DIR/essentials/brew" && UXS_STATUS_MODE=machine bash install.sh status </dev/null 2>/dev/null | sed -n 's/^STATE=//p' | head -1)
+        t_eq "status(linux): brew 报 n/a 而非 not_installed" "n/a" "$s"
         ;;
 esac
 
