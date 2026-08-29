@@ -88,6 +88,38 @@ if [[ "$(uname)" == "Darwin" ]]; then
     t_true "doctor: macOS 显示已跳过" "printf '%s' \"\$DOC_OUT\" | grep -q '不适用发行版检测'"
 fi
 
+# ---------- --status-json 防截断 + 批查容错 ----------
+# 直查 status_batch_query 需要注册表与状态层（install.sh 的 source 序：registry → status）
+SCRIPT_DIR="$REPO_DIR"
+# shellcheck source=../lib/registry.sh
+source "$REPO_DIR/lib/registry.sh"
+# shellcheck source=../lib/status.sh
+source "$REPO_DIR/lib/status.sh"
+registry_scan
+
+status_batch_query __no_such_mod__ 2>/dev/null
+t_eq "批查: 不存在模块兜底 unknown" "unknown" "$(status_state_get __no_such_mod__)"
+
+# 批查必须同时填充 VERSION 缓存（--status-json 版本列依赖它；菜单只用 STATE 不受影响）
+if [[ "$(uname)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
+    status_batch_query brew
+    t_eq "批查: VERSION 缓存填充（brew）" "$(brew --version 2>/dev/null | head -1)" "$(_uxs_version_get brew)"
+fi
+
+cd "$REPO_DIR"
+N_LIST=$(./install.sh --list | tr ' ' '\n' | grep -c .)
+N_JSON=$(./install.sh --status-json | tail -n +4 | grep -c .)
+t_eq "status-json: 模块行数完整（防 ufw 式截断）" "$N_LIST" "$N_JSON"
+N_META=$(./install.sh --status-json | head -3 | grep -cE '^(os|arch|version):')
+t_eq "status-json: 头 3 行元数据仍在" "3" "$N_META"
+
+# 已装 bun 时：status-json 必须保留版本列（批查改造不丢 VERSION）
+if command -v bun >/dev/null 2>&1; then
+    t_eq "status-json: 版本列保留（bun）" "$(./install.sh --status-json | sed -n 's/^bun:installed://p')" "$(bun --version 2>/dev/null || echo __bun_absent__)"
+fi
+# shellcheck disable=SC2103  # cd 回原目录：PASS/FAIL 计数器在全局，不能收进子 shell
+cd - >/dev/null
+
 # ---------- 汇总 ----------
 echo "通过 $PASS / 失败 $FAIL"
 [[ "$FAIL" -eq 0 ]]

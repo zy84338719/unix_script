@@ -384,6 +384,7 @@ show_list_categories() {
 }
 
 # --status-json: key:value 格式输出各模块状态（无颜色、无 emoji）
+# 单模块故障（status 崩溃/超时/输出为空）不影响整体输出：批查恒定回填 unknown
 show_status_json() {
     detect_os
     detect_arch
@@ -391,12 +392,13 @@ show_status_json() {
     echo "arch:$ARCH_TYPE"
     echo "version:$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"
 
-    local mod raw state version line
+    local mod state version line
+    # shellcheck disable=SC2086  # $_REGISTRY_MODULES 为受控模块名列表，需要分词
+    status_batch_query $_REGISTRY_MODULES
     for mod in $_REGISTRY_MODULES; do
-        raw=$(module_status_raw "$mod")
-        state=$(echo "$raw" | sed -n 's/^STATE=//p' | head -1)
-        version=$(echo "$raw" | sed -n 's/^VERSION=//p' | head -1)
+        state=$(status_state_get "$mod")
         [[ -z "$state" ]] && state="unknown"
+        version=$(_uxs_version_get "$mod")
         line="$mod:$state"
         [[ -n "$version" ]] && line="$line:$version"
         printf '%s\n' "$line"

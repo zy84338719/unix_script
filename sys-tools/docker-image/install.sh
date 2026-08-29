@@ -307,7 +307,9 @@ do_status() {
     local state human_msg ver=""
     if command_exists docker; then
         ver=$(docker --version 2>/dev/null || echo "")
-        if docker info >/dev/null 2>&1; then
+        # docker info 在守护进程挂起时实测可阻塞 90s+（黑洞地址实测 93.3s），
+        # 套 5s 超时护栏（同 services/docker）：超时按未运行降级
+        if uxs_with_timeout 5 docker info >/dev/null 2>&1; then
             state="installed:running"
             human_msg="${GREEN}[SUCCESS]${NC} Docker 已安装且正在运行"
         else

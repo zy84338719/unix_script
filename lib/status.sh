@@ -123,6 +123,24 @@ status_state_get() {
     eval "echo \"\${${varname}:-}\""
 }
 
+# --- 版本内存态（--status-json 的版本列用；镜像 _uxs_state_* 模式）---
+_uxs_version_varname() {
+    local safe_mod="${1//-/_}"
+    echo "_UXS_VERSION_${safe_mod}"
+}
+
+_uxs_version_set() {
+    local varname
+    varname=$(_uxs_version_varname "$1")
+    eval "${varname}=\$2"
+}
+
+_uxs_version_get() {
+    local varname
+    varname=$(_uxs_version_varname "$1")
+    eval "echo \"\${${varname}:-}\""
+}
+
 # --- TTL 缓存目录：按仓库路径区分（多 clone 不互相污染）---
 _uxs_cache_dir() {
     local base key
@@ -184,7 +202,7 @@ status_cache_update() {
     fi
 }
 
-# --- 并行批查：固定并发跑 module_status_machine，结果进内存 ---
+# --- 并行批查：固定并发跑 module_status_raw，解析 STATE+VERSION 进内存 ---
 status_batch_query() {
     local jobs="${UXS_STATUS_JOBS:-8}"
     if ! [[ "$jobs" =~ ^[1-9][0-9]*$ ]]; then jobs=8; fi
@@ -193,10 +211,9 @@ status_batch_query() {
     local mod running=0
     for mod in "$@"; do
         (
-            local st
-            st=$(module_status_machine "$mod" 2>/dev/null || echo unknown)
-            [[ -z "$st" ]] && st=unknown
-            printf '%s' "$st" > "$tmpdir/$mod"
+            local raw
+            raw=$(module_status_raw "$mod" 2>/dev/null || true)
+            printf '%s' "$raw" > "$tmpdir/$mod"
         ) &
         running=$((running + 1))
         if (( running >= jobs )); then
@@ -205,12 +222,16 @@ status_batch_query() {
         fi
     done
     wait
+    local state version
     for mod in "$@"; do
+        state=""; version=""
         if [[ -f "$tmpdir/$mod" ]]; then
-            _uxs_state_set "$mod" "$(cat "$tmpdir/$mod")"
-        else
-            _uxs_state_set "$mod" unknown
+            state=$(sed -n 's/^STATE=//p' "$tmpdir/$mod" | head -1)
+            version=$(sed -n 's/^VERSION=//p' "$tmpdir/$mod" | head -1)
         fi
+        [[ -z "$state" ]] && state="unknown"
+        _uxs_state_set "$mod" "$state"
+        _uxs_version_set "$mod" "$version"
     done
     rm -rf "$tmpdir"
 }
