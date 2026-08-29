@@ -394,137 +394,21 @@ source completions/uxs.zsh        # 或手动 source（zsh）
 |------|------|-------------|--------|:--:|
 | 实机 | Ubuntu（runner 内置） | ubuntu-latest | apt | ✅ |
 | 实机 | macOS（runner 内置） | macos-latest | brew | ✅ |
-| 容器 | Ubuntu 26.04 | `ubuntu:26.04` | apt | ⏳ |
-| 容器 | Ubuntu 24.04 | `ubuntu:24.04` | apt | ❌ |
-| 容器 | Debian 12 | `debian:12` | apt | ❌ |
-| 容器 | Debian 13 | `debian:13` | apt | ❌ |
-| 容器 | Fedora | `fedora:latest` | dnf/yum | ❌ |
+| 容器 | Ubuntu 26.04 | `ubuntu:26.04` | apt | ✅ |
+| 容器 | Ubuntu 24.04 | `ubuntu:24.04` | apt | ✅ |
+| 容器 | Debian 12 | `debian:12` | apt | ✅ |
+| 容器 | Debian 13 | `debian:13` | apt | ✅ |
+| 容器 | Fedora | `fedora:latest` | dnf/yum | ✅ |
 | 容器 | CentOS Stream 9 | `quay.io/centos/centos:stream9` | dnf/yum | ✅ |
 | 容器 | AlmaLinux 9 | `almalinux:9` | dnf/yum | ✅ |
 | 容器 | Rocky Linux 9 | `rockylinux:9` | dnf/yum | ✅ |
 | 容器 | openSUSE Tumbleweed | `opensuse/tumbleweed:latest` | zypper | ❌ |
-| 容器 | Arch Linux | `archlinux:latest` | pacman | ❌ |
-| 容器 | Alpine Linux | `alpine:latest` | apk | ❌ |
+| 容器 | Arch Linux | `archlinux:latest` | pacman | ✅ |
+| 容器 | Alpine Linux | `alpine:latest` | apk | ✅ |
 | 国产化* | 银河麒麟 V10 SP3 | `docker.io/macrosan/kylin:v10-sp3-2403` | dnf/yum | ✅ |
 | 国产化* | 统信 UOS V20 | `docker.io/macrosan/uos:v20-1070` | dnf/yum | ✅ |
 | 国产化* | openEuler 24.03 LTS | `docker.io/openeuler/openeuler:24.03-lts` | dnf/yum | ✅ |
-| 国产化* | deepin 23 | `docker.io/linuxdeepin/deepin:latest` | apt | ❌ |
+| 国产化* | deepin 23 | `docker.io/linuxdeepin/deepin:latest` | apt | ✅ |
 | 国产化* | openKylin | `docker.io/openkylin/openkylin:latest` | apt | ✅ |
 
 > \* 国产化社区镜像为尽力而为（continue-on-error）：结果记入报告，不阻塞质量门禁。
-
-## ⚙️ 系统要求
-
-- **操作系统**：macOS 10.12+ 或任意主流 Linux 发行版（Ubuntu / Debian / CentOS / RHEL / Fedora / Alpine 等）
-- **CPU 架构**：x86_64 / ARM64 / ARMv7
-- **Bash**：3.2+（macOS 默认即可，建议 4.0+）
-- **权限**：多数服务需要 sudo（脚本内部 `require_sudo` 自动处理）
-- **网络**：安装时需要互联网连接
-- **依赖**：脚本自动检查 `curl`、`tar`、`git`；macOS 服务通常需要 [Homebrew](https://brew.sh/)
-- **CI 验证环境**：Ubuntu / macOS 实机；Ubuntu 20.04–24.04 / Debian 11–13 / Fedora / CentOS Stream9 / AlmaLinux / Rocky / openSUSE / Arch / Alpine 容器；麒麟 V10 / 统信 UOS / openEuler / deepin / openKylin 国产化容器
-
----
-
-## ✅ 本地质量检查
-
-```bash
-./scripts/check_issues.sh                  # bash -n + shellcheck
-./scripts/check_issues.sh --strict         # 严格模式
-./tests/ci_run.sh --phase static           # 静态检查（与 CI 一致）
-./tests/ci_run.sh --phase routing          # CLI 路由测试
-./tests/ci_run.sh --phase install --module docker   # 实装测试
-```
-
----
-
-## 🔁 持续集成
-
-[CI 工作流](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml) 在多个平台上验证脚本，每次 push / PR 自动运行：
-
-- **静态检查**：bash 语法 + shellcheck（Ubuntu / macOS）
-- **容器静态检查**：Debian 12 / CentOS Stream9 / AlmaLinux 9（覆盖不同 shellcheck 版本）
-- **路由测试**：CLI 参数解析与模块分发（Ubuntu / macOS）
-- **包解析 / 容器**：Ubuntu 20.04–24.04、Debian 11–13、Fedora、CentOS Stream9、AlmaLinux 9、Rocky 9、openSUSE、Arch、Alpine 容器内实机验证
-- **国产化平台验证**：银河麒麟 V10 SP3 / 统信 UOS V20 / openEuler 24.03 / deepin 23 / openKylin / CentOS 7 容器，对发行版识别结果做外部真值断言
-- **实装测试**：真实 VM 上安装指定模块（Ubuntu / macOS）
-
-测试报告可在 Action 页面的 **Artifacts** 区下载。
-
----
-
-## 🏗️ 架构
-
-```
-install.sh                 # 入口骨架（参数路由 + 库加载）
-bootstrap.sh               # 一行安装引导（curl | bash）
-uninstall.sh               # 卸载入口（注册表驱动）
-
-lib/                       # 框架核心（所有业务逻辑）
-  common.sh                #   共享函数库（颜色/平台/发行版与桌面检测/包管理/版本检查/dry-run）
-  core.sh                  #   run_in_dir / run_submenu（子目录执行）
-  registry.sh              #   模块注册表（.manifest 扫描/别名/查询 API）
-  deps.sh                  #   依赖图（REQUIRES 解析 / 拓扑排序 / 循环检测）
-  profile.sh               #   profile 导出与应用（配置复现）
-  status.sh                #   状态检查
-  submenus.sh              #   子菜单回调（docker/clash/sys-setup/dev-mirror 等）
-  menu.sh                  #   主菜单 / 交互循环 / 机器可读输出 / 卸载菜单
-  menu_fzf.sh              #   fzf 模糊搜索菜单（TAB 多选 / README 预览）
-  suggest.sh               #   did-you-mean 编辑距离建议
-  uxs_cli.sh               #   全局命令 uxs 安装与卸载
-  scaffold.sh              #   模块脚手架（生成新模块模板）
-  doctor.sh                #   环境诊断
-
-services/    (17)          # 服务类模块
-essentials/  (6)           # 装机必备模块
-dev-tools/   (12)          # 开发环境模块
-ai-tools/    (3)           # AI 工具模块
-sys-tools/   (16)          # 系统工具模块
-  <模块名>/
-    install.sh             #   模块入口（source ../../lib/common.sh）
-    .manifest              #   元数据（LABEL/CATEGORY/ALIASES/DEFAULT_ACTION/HAS_SUBMENU）
-    README.md              #   模块文档（可选）
-
-completions/               # Tab 自动补全
-  uxs.bash                 #   Bash 补全
-  uxs.zsh                  #   Zsh 补全
-scripts/                   # 辅助脚本（check_issues.sh 等）
-tests/                     # CI 测试（ci_run.sh）
-docs/                      # 文档
-```
-
-### 模块 `.manifest` 格式
-
-```ini
-LABEL=Caddy                          # 显示名称（必填）
-CATEGORY=服务                        # 分类（必填）
-DESC=现代 Web 服务器                  # 一句话中文描述（--list-modules 第 3 列）
-ALIASES=letsencrypt                  # 别名，逗号分隔（可选）
-DEFAULT_ACTION=install               # 默认动作（可选，默认 install）
-HAS_SUBMENU=clash                    # 标记有交互子菜单（可选）
-ENTRY_SCRIPT=install.sh             # 入口脚本名（可选，默认 install.sh）
-REQUIRES=docker                      # 依赖模块，逗号分隔（可选，安装时自动先装缺失依赖）
-EXPORTABLE=registry                  # 可导出配置键，逗号分隔（可选，profile 复现用）
-```
-
----
-
-## 🤝 贡献
-
-欢迎 Issue 和 PR！详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
-
-**新增模块**只需三步：
-
-```bash
-# 1. 用脚手架生成模板
-./install.sh scaffold my-tool --category 服务 --label "我的服务"
-
-# 2. 编辑生成的 services/my-tool/install.sh，实现 install/uninstall/status
-
-# 3. 接入主菜单与卸载菜单（注册表会自动发现 .manifest）
-```
-
----
-
-## 📄 许可证
-
-[MIT](LICENSE)
