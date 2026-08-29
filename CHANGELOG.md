@@ -4,7 +4,17 @@
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-08-29
+
+### 新增
+- 终端配置增强批次（模块 58→61，dev-tools 12→15）：
+  - `terminal` 一键终端全家桶编排：zsh → zsh_setup → modern-cli → nerd-font → atuin，幂等可重跑，`UXS_CONFIG_EXCLUDE` 裁剪环节
+  - `atuin` SQLite 化 shell 历史（全量模糊搜索/跨机端到端加密同步；默认纯本地，`UXS_CONFIG_SYNC=1` 开同步，自动 `atuin import auto` 迁移旧历史）
+  - `nerd-font` 终端图标字体安装器（macOS brew cask / Linux ~/.local/share/fonts；远程/无头机自动提示跳过——字体由本地终端渲染）
+- modern-cli 扩展：+tealdeer（`tldr` 命令例子速查，官方二进制回退）+direnv（目录级 .envrc 自动加载，extras 独立标记块兼容老 rc）
+
 ### 修复
+- `zsh_setup` 补 `install` 非交互默认入口——此前 `.manifest` 声明 `DEFAULT_ACTION=install` 但模块无该子命令，`./install.sh zsh_setup` 必报"未知命令"退出 1；同时支持 `UXS_CONFIG_FRAMEWORK/THEME`，`EXPORTABLE=framework,theme` 接入 profile 复现
 - `uxs_with_timeout` 参数护栏（缺参数/非法秒数 rc=2；秒数 0 直通对齐 GNU timeout）
 
 ## [1.15.0] - 2026-08-29

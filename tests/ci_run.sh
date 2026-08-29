@@ -519,6 +519,7 @@ phase_routing() {
 
     # 4c. 易用性快修包批次①：uxs_with_timeout 等单测
     assert "usability: 批次① 单测全过" bash "$REPO_DIR/tests/unit_usability.sh"
+    assert "terminal-enhance: 终端增强单测全过" bash "$REPO_DIR/tests/unit_terminal_enhance.sh"
 
     # 4d. 平台可见性过滤：PLATFORMS 解析 / 出口过滤 / 护栏单测
     assert "platform-filter: 平台可见性单测全过" bash "$REPO_DIR/tests/unit_platform_filter.sh"

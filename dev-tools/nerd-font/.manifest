@@ -1,0 +1,7 @@
+LABEL=Nerd Font
+CATEGORY=开发环境
+ALIASES=nerd_font,nerdfont
+DEFAULT_ACTION=install
+EXPORTABLE=fonts
+DESC=终端图标字体（p10k/starship/eza 图标依赖）
+NEXT_STEPS=终端模拟器设置里选 Nerd Font 字体生效;SSH 场景字体装在本地终端机:./install.sh nerd-font
