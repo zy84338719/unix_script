@@ -1,0 +1,6 @@
+LABEL=终端全家桶
+CATEGORY=开发环境
+ALIASES=terminal
+DEFAULT_ACTION=install
+DESC=一键终端配置：zsh+zsh_setup+modern-cli+nerd-font+atuin
+NEXT_STEPS=新开终端或 exec zsh 生效;微调框架/主题:./install.sh zsh_setup

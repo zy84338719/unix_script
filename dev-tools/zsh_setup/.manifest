@@ -4,3 +4,4 @@ ALIASES=zsh
 DEFAULT_ACTION=install
 DESC=Zsh + Oh My Zsh + 插件配置
 NEXT_STEPS=新开终端或执行 exec zsh 生效
+EXPORTABLE=framework,theme

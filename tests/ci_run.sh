@@ -513,6 +513,7 @@ phase_routing() {
 
     # 4c. 易用性快修包批次①：uxs_with_timeout 等单测
     assert "usability: 批次① 单测全过" bash "$REPO_DIR/tests/unit_usability.sh"
+    assert "terminal-enhance: 终端增强单测全过" bash "$REPO_DIR/tests/unit_terminal_enhance.sh"
 
     # 10. 阶段 E：模块依赖图（lib/deps.sh）
     assert "依赖图: lib/deps.sh 存在" bash -c "test -f \"$REPO_DIR/lib/deps.sh\""

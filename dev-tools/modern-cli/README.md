@@ -13,6 +13,8 @@
 | `fzf` | — | 模糊查找（Ctrl+R 搜历史、Ctrl+T 搜文件） |
 | `zoxide` (z) | cd | 智能跳转（记录常用目录） |
 | `starship` | PS1 | 跨 shell 提示符（git/语言/耗时） |
+| `tealdeer` (tldr) | man | 命令例子速查（`tldr tar` 直接给常用用法） |
+| `direnv` | — | 进目录自动加载/卸载 .envrc 环境变量 |
 
 ## 安装
 

@@ -15,6 +15,9 @@
 # 查看帮助
 ./zsh_setup/install.sh help
 
+# 非交互默认安装（zsh + oh-my-zsh + 基础插件；UXS_CONFIG_FRAMEWORK/UXS_CONFIG_THEME 可调）
+./zsh_setup/install.sh install
+
 # 安装框架（交互式选择）
 ./zsh_setup/install.sh framework
 
