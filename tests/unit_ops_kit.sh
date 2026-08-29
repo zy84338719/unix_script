@@ -97,7 +97,7 @@ t_eq "inspect: --json 合法" "rc0" "$(
     if [ "$rc" -eq 0 ] && printf '%s' "$out" | grep -q '^{"summary":{"crit":[0-9]*,"warn":[0-9]*},"checks":\[{.*\]}$'; then
         # 有 python3 则做严格 JSON 校验（精简容器无 python3，回退结构校验）
         if command -v python3 >/dev/null 2>&1; then
-            printf '%s' "$out" | python3 -m json.tool >/dev/null 2>&1 && echo rc0 || { echo "$out"; echo rc1; }
+            if printf '%s' "$out" | python3 -m json.tool >/dev/null 2>&1; then echo rc0; else echo "$out"; echo rc1; fi
         else
             echo rc0
         fi
