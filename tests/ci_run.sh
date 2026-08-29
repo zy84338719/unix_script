@@ -514,6 +514,9 @@ phase_routing() {
     # 4c. 易用性快修包批次①：uxs_with_timeout 等单测
     assert "usability: 批次① 单测全过" bash "$REPO_DIR/tests/unit_usability.sh"
 
+    # 4d. 平台可见性过滤：PLATFORMS 解析 / 出口过滤 / 护栏单测
+    assert "platform-filter: 平台可见性单测全过" bash "$REPO_DIR/tests/unit_platform_filter.sh"
+
     # 10. 阶段 E：模块依赖图（lib/deps.sh）
     assert "依赖图: lib/deps.sh 存在" bash -c "test -f \"$REPO_DIR/lib/deps.sh\""
     assert "依赖图: minikube .manifest 含 REQUIRES=docker" bash -c "grep -q '^REQUIRES=docker' \"$REPO_DIR/dev-tools/minikube/.manifest\""

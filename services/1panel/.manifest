@@ -4,3 +4,4 @@ ALIASES=1p
 DEFAULT_ACTION=install
 DESC=新一代 Linux 服务器运维面板（v2）
 NEXT_STEPS=查看面板地址与账号:sudo 1pctl user-info;面板服务管理:sudo 1pctl status
+PLATFORMS=linux

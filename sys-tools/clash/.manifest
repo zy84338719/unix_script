@@ -4,3 +4,4 @@ ALIASES=mihomo
 DEFAULT_ACTION=install
 HAS_SUBMENU=clash
 DESC=代理核心 + TUN 透明代理（mihomo）
+PLATFORMS=linux

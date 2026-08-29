@@ -4,3 +4,4 @@ ALIASES=ops,opskit
 DEFAULT_ACTION=inspect
 DESC=巡检报告/日志运维/systemd 服务/安全基线一站式（仅 Linux）
 HAS_SUBMENU=ops-kit
+PLATFORMS=linux

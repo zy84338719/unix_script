@@ -2,3 +2,4 @@ LABEL=Cockpit
 CATEGORY=服务
 DEFAULT_ACTION=install
 DESC=Linux Web 管理面板
+PLATFORMS=linux

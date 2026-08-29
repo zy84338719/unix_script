@@ -3,3 +3,4 @@ CATEGORY=服务
 DEFAULT_ACTION=install
 DESC=家庭云/NAS 轻量面板（Docker 应用商店）
 NEXT_STEPS=浏览器访问 http://服务器IP（首次访问创建管理员账号）;修改面板端口:CasaOS 网页设置 → 常规 → 端口
+PLATFORMS=linux

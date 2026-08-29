@@ -13,6 +13,7 @@
 #   ALIASES=别名1,别名2     （可选，逗号分隔）
 #   DEFAULT_ACTION=install  （可选，默认 install）
 #   HAS_SUBMENU=docker      （可选，非空则交互菜单进入子菜单）
+#   PLATFORMS=linux,darwin  （可选，声明适用 OS；缺省=全平台，不适用当前系统的模块在各出口隐藏）
 #
 # 目录结构：模块按分类组织在子目录中：
 #   services/    → 服务
@@ -80,6 +81,7 @@ _parse_manifest() {
     _reg_set "$mod" ENTRY_SCRIPT "install.sh"
     _reg_set "$mod" REQUIRES ""
     _reg_set "$mod" EXPORTABLE ""
+    _reg_set "$mod" PLATFORMS ""
 
     # 解析 key=value
     while IFS='=' read -r key value; do
@@ -97,6 +99,7 @@ _parse_manifest() {
             ENTRY_SCRIPT)     _reg_set "$mod" ENTRY_SCRIPT "$value" ;;
             REQUIRES)         _reg_set "$mod" REQUIRES "$value" ;;     # 阶段 E：依赖的模块（逗号分隔）
             EXPORTABLE)       _reg_set "$mod" EXPORTABLE "$value" ;;   # 阶段 D：可导出配置键（逗号分隔）
+            PLATFORMS)        _reg_set "$mod" PLATFORMS "$value" ;;    # 平台可见性：适用 OS（逗号分隔）
         esac
     done < "$manifest"
 
@@ -170,6 +173,38 @@ registry_entry_script()    { local v; v=$(_reg_get "$1" ENTRY_SCRIPT); echo "${v
 registry_requires()        { local v; v=$(_reg_get "$1" REQUIRES); echo "${v//,/ }"; }
 # 阶段 D：模块可导出的配置键（空格分隔）
 registry_exportable()      { local v; v=$(_reg_get "$1" EXPORTABLE); echo "${v//,/ }"; }
+
+# 平台可见性：模块声明的适用 OS（空格分隔；空=全平台适用）
+registry_platforms()        { local v; v=$(_reg_get "$1" PLATFORMS); echo "${v//,/ }"; }
+
+# uxs_module_supported <模块名> — 当前 OS 是否适用（rc 0=适用/未声明，1=不适用）。
+# OS_TYPE 未初始化时兜底 detect_os（单测等直接 source registry 的场景）。
+uxs_module_supported() {
+    local mod="$1" plats p
+    [[ -n "${OS_TYPE:-}" ]] || detect_os >/dev/null 2>&1 || true
+    plats=$(registry_platforms "$mod")
+    [[ -z "$plats" ]] && return 0
+    for p in $plats; do
+        [[ "$p" == "${OS_TYPE:-}" ]] && return 0
+    done
+    return 1
+}
+
+# uxs_module_visible <模块名> — escape hatch：UNIX_SCRIPT_SHOW_ALL=1 恒可见
+uxs_module_visible() {
+    [[ "${UNIX_SCRIPT_SHOW_ALL:-0}" == "1" ]] && return 0
+    uxs_module_supported "$1"
+}
+
+# registry_visible_modules — 当前系统可见的模块名（单个空格分隔串，注册序）。
+# 仅呈现层使用；dispatch/别名/依赖解析继续用全量 $_REGISTRY_MODULES。
+registry_visible_modules() {
+    local mod out=""
+    for mod in $_REGISTRY_MODULES; do
+        uxs_module_visible "$mod" && out="$out $mod"
+    done
+    echo "${out# }"
+}
 
 # 获取模块的物理相对路径（如 "services/docker"）
 registry_path() {
