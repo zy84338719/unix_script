@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-08-29
+
+### 新增
+- **换源矩阵升级落地（sys-setup，补 v1.11.2/v1.12.0 缺失的 #54）**：sys-setup platform 拆分为 `platform/{debian,rhel,suse,arch,alpine}.sh`（`plat_mirror_preview/apply` + `plat_autoupdate` 接口），AlmaLinux/Rocky/Fedora/openEuler/Anolis 自动换源（镜像站按发行版固定：almalinux/anolis→阿里云、rocky→USTC），deepin/uos 新增，换源前预览确认 + 非交互跳过；arch aarch64 路径修复。注：#54 曾误合入堆叠基底分支而未进 main，本版经 PR #58 救援落地
+
 ## [1.12.0] - 2026-08-28
 
 ### 新增
