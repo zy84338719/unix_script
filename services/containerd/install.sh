@@ -114,6 +114,8 @@ do_uninstall() {
 }
 
 do_status() {
+    # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
+    detect_os
     if ! command_exists ctr && ! command_exists containerd; then
         emit_status "not_installed" "❌ containerd 未安装"
         return 0

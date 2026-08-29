@@ -152,6 +152,8 @@ do_uninstall() {
 }
 
 do_status() {
+    # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
+    detect_os
     if ! command_exists podman; then
         emit_status "not_installed" "❌ podman 未安装"
         return 0
@@ -165,13 +167,13 @@ do_status() {
                 | grep -oE 'Running|Stopped|Saved' | head -1 || true)
             [[ -z "$mstate" ]] && mstate="present"
         fi
-        emit_status "installed" "✅ podman 已安装 ${ver:-(版本未知)}（machine: $mstate）"
+        emit_status "installed" "✅ podman 已安装 ${ver:-(版本未知)}（machine: ${mstate}）"
         emit_version "$ver"
         emit_extra "machine=$mstate"
     else
         local mode="root"
         [[ $EUID -ne 0 ]] && mode="rootless"
-        emit_status "installed" "✅ podman 已安装 ${ver:-(版本未知)}（$mode）"
+        emit_status "installed" "✅ podman 已安装 ${ver:-(版本未知)}（${mode}）"
         emit_version "$ver"
         emit_extra "mode=$mode"
     fi
