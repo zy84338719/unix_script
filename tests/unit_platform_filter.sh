@@ -2,7 +2,7 @@
 #
 # tests/unit_platform_filter.sh — 平台可见性过滤单测
 # 覆盖：PLATFORMS 解析 / uxs_module_supported / registry_visible_modules /
-#       CLI 出口过滤 + SHOW_ALL / dispatch 护栏 / apply 跳过（随任务分批追加）
+#       CLI 出口过滤 + SHOW_ALL / dispatch 护栏 / apply 跳过
 # 独立运行：bash tests/unit_platform_filter.sh（退出码 0=全过）
 # 也被 tests/ci_run.sh routing 阶段调用。
 set -u
@@ -67,13 +67,14 @@ esac
 VIS=$(registry_visible_modules)
 case "$OS_TYPE" in
     darwin)
-        t_true "visible(darwin): 含 docker" 'case " $VIS " in *" docker "*) true;; *) false;; esac'
-        t_true "visible(darwin): 不含 ufw" 'case " $VIS " in *" ufw "*) false;; *) true;; esac'
-        t_true "visible(darwin): 含 brew" 'case " $VIS " in *" brew "*) true;; *) false;; esac'
+        # shellcheck disable=SC2016  # \$VIS 交给 t_true 内 eval 展开（延迟求值）
+        t_true "visible(darwin): 含 docker" "printf '%s' \"\$VIS\" | grep -qw docker"
+        t_true "visible(darwin): 不含 ufw" "! printf '%s' \"\$VIS\" | grep -qw ufw"
+        t_true "visible(darwin): 含 brew" "printf '%s' \"\$VIS\" | grep -qw brew"
         ;;
     linux)
-        t_true "visible(linux): 含 ufw" 'case " $VIS " in *" ufw "*) true;; *) false;; esac'
-        t_true "visible(linux): 不含 brew" 'case " $VIS " in *" brew "*) false;; *) true;; esac'
+        t_true "visible(linux): 含 ufw" "printf '%s' \"$VIS\" | grep -qw ufw"
+        t_true "visible(linux): 不含 brew" "! printf '%s' \"$VIS\" | grep -qw brew"
         ;;
 esac
 UNIX_SCRIPT_SHOW_ALL=1
@@ -87,13 +88,13 @@ LST=$(run_install --list)
 LST_ALL=$(UNIX_SCRIPT_SHOW_ALL=1 run_install --list)
 case "$OS_TYPE" in
     darwin)
-        t_true "--list: 不含 ufw" 'case " $LST " in *" ufw "*) false;; *) true;; esac'
-        t_true "--list: 含 docker" 'case " $LST " in *" docker "*) true;; *) false;; esac'
-        t_true "SHOW_ALL --list: 含 ufw" 'case " $LST_ALL " in *" ufw "*) true;; *) false;; esac'
+        t_true "--list: 不含 ufw" "! printf '%s' \"$LST\" | grep -qw ufw"
+        t_true "--list: 含 docker" "printf '%s' \"$LST\" | grep -qw docker"
+        t_true "SHOW_ALL --list: 含 ufw" "printf '%s' \"$LST_ALL\" | grep -qw ufw"
         ;;
     linux)
-        t_true "--list: 不含 brew" 'case " $LST " in *" brew "*) false;; *) true;; esac'
-        t_true "SHOW_ALL --list: 含 brew" 'case " $LST_ALL " in *" brew "*) true;; *) false;; esac'
+        t_true "--list: 不含 brew" "! printf '%s' \"$LST\" | grep -qw brew"
+        t_true "SHOW_ALL --list: 含 brew" "printf '%s' \"$LST_ALL\" | grep -qw brew"
         ;;
 esac
 N_ALL=$(printf '%s' "$LST_ALL" | wc -w | tr -d ' ')
@@ -118,31 +119,33 @@ fi
 # --list-categories 不含隐藏模块行
 LC=$(run_install --list-categories)
 case "$OS_TYPE" in
-    darwin) t_true "--list-categories: 无 ufw 行" '! printf "%s" "$LC" | grep -q "^  ufw"' ;;
-    linux)  t_true "--list-categories: 无 brew 行" '! printf "%s" "$LC" | grep -q "^  brew"' ;;
+    darwin) t_true "--list-categories: 无 ufw 行" "! printf '%s' \"$LC\" | grep -q '^  ufw'" ;;
+    linux)  t_true "--list-categories: 无 brew 行" "! printf '%s' \"$LC\" | grep -q '^  brew'" ;;
 esac
 
 # ---------- category_items / 菜单可见性 ----------
 case "$OS_TYPE" in
     darwin)
-        t_true "category_items: 系统工具不含 ufw" 'case " $(category_items 系统工具 "") " in *" ufw "*) false;; *) true;; esac'
-        t_true "category_items: 系统工具含 disk-usage" 'case " $(category_items 系统工具 "") " in *" disk-usage "*) true;; *) false;; esac'
+        CAT_ST=$(category_items 系统工具 "")
+        t_true "category_items: 系统工具不含 ufw" "! printf '%s' \"$CAT_ST\" | grep -qw ufw"
+        t_true "category_items: 系统工具含 disk-usage" "printf '%s' \"$CAT_ST\" | grep -qw disk-usage"
         ;;
     linux)
-        t_true "category_items: 装机必备不含 brew" 'case " $(category_items 装机必备 "") " in *" brew "*) false;; *) true;; esac'
+        CAT_ES=$(category_items 装机必备 "")
+        t_true "category_items: 装机必备不含 brew" "! printf '%s' \"$CAT_ES\" | grep -qw brew"
         ;;
 esac
 
 # ---------- dispatch 平台护栏 ----------
 if [[ "$OS_TYPE" == "darwin" ]]; then
     OUT=$(run_install ufw </dev/null 2>&1); t_rc "gate: darwin 分发 ufw rc=1" 1 $?
-    t_true "gate: 报错含「不支持当前系统」" 'printf "%s" "$OUT" | grep -q "不支持当前系统"'
-    t_true "gate: 提示 SHOW_ALL 逃生口" 'printf "%s" "$OUT" | grep -q "UNIX_SCRIPT_SHOW_ALL=1"'
+    t_true "gate: 报错含「不支持当前系统」" "printf '%s' \"\$OUT\" | grep -q '不支持当前系统'"
+    t_true "gate: 提示 SHOW_ALL 逃生口" "printf '%s' \"\$OUT\" | grep -q 'UNIX_SCRIPT_SHOW_ALL=1'"
     OUT=$(UNIX_SCRIPT_SHOW_ALL=1 run_install ufw status </dev/null 2>&1); t_rc "gate: SHOW_ALL 放行透传 status rc=0" 0 $?
 fi
 if [[ "$OS_TYPE" == "linux" ]]; then
     OUT=$(run_install brew </dev/null 2>&1); t_rc "gate: linux 分发 brew rc=1" 1 $?
-    t_true "gate: 报错含「不支持当前系统」" 'printf "%s" "$OUT" | grep -q "不支持当前系统"'
+    t_true "gate: 报错含「不支持当前系统」" "printf '%s' \"\$OUT\" | grep -q '不支持当前系统'"
 fi
 
 # ---------- profile：export 过滤 / apply 跳过 ----------
@@ -150,15 +153,15 @@ if [[ "$OS_TYPE" == "darwin" ]]; then HIDDEN_MOD=ufw; else HIDDEN_MOD=brew; fi
 
 PFILE=$(mktemp)
 run_install export "$PFILE" >/dev/null 2>&1; t_rc "export: rc=0" 0 $?
-t_true "export: 文件含头注" 'grep -q "^# unix_script profile" "$PFILE"'
-t_true "export: 不导出不适用模块 $HIDDEN_MOD" "! grep -q \"^${HIDDEN_MOD}\" \"\$PFILE\""
+t_true "export: 文件含头注" "grep -q '^# unix_script profile' \"\$PFILE\""
+t_true "export: 不导出不适用模块 ${HIDDEN_MOD}" "! grep -q \"^${HIDDEN_MOD}\" \"\$PFILE\""
 rm -f "$PFILE"
 
 PROF=$(mktemp)
 printf '%s   # 测试不适用行\n' "$HIDDEN_MOD" > "$PROF"
 OUT=$(run_install apply "$PROF" --dry-run </dev/null 2>&1); t_rc "apply: 仅不适用行 rc=0（跳过不报错）" 0 $?
-t_true "apply: 输出跳过原因（不支持当前系统）" 'printf "%s" "$OUT" | grep -q "不支持当前系统"'
-t_true "apply: 汇总计跳过 1" 'printf "%s" "$OUT" | grep -q "跳过 1"'
+t_true "apply: 输出跳过原因（不支持当前系统）" "printf '%s' \"\$OUT\" | grep -q '不支持当前系统'"
+t_true "apply: 汇总计跳过 1" "printf '%s' \"\$OUT\" | grep -q '跳过 1'"
 rm -f "$PROF"
 
 echo "unit_platform_filter: 通过 $PASS / 失败 $FAIL"
