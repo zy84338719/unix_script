@@ -62,7 +62,7 @@ configure_rc() {
         {
             echo ""
             echo "$MARK"
-            [[ -x "$HOME/.atuin/bin/atuin" ]] && echo 'export PATH="$HOME/.atuin/bin:$PATH"'
+            [[ -x "$HOME/.atuin/bin/atuin" ]] && echo "export PATH=\"\$HOME/.atuin/bin:\$PATH\""
             echo "command -v atuin >/dev/null 2>&1 && eval \"\$(atuin init \$(basename \$SHELL))\""
             echo "$ENDMARK"
         } >> "$rc"
@@ -105,7 +105,7 @@ status_atuin() {
     if atuin_bin >/dev/null; then
         local sync="off"
         grep -qs "$MARK" "$HOME/.zshrc" "$HOME/.bashrc" 2>/dev/null && sync="on"
-        emit_status "installed" "${GREEN}✅ atuin 已安装（shell 集成: $sync）${NC}"
+        emit_status "installed" "${GREEN}✅ atuin 已安装（shell 集成: ${sync}）${NC}"
         emit_extra "sync=$sync"
     else
         emit_status "not_installed" "${RED}❌ 未安装${NC}"

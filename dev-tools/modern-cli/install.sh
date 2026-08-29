@@ -116,8 +116,7 @@ install_modern_cli() {
                         success "  ✅ tealdeer (官方二进制)"
                     else
                         warn "  ⚠️ tealdeer 安装失败（可 cargo install tealdeer）"
-                    fi
-                else
+                    fi                else
                     warn "  ⚠️ $pkg 安装失败"
                 fi
             fi

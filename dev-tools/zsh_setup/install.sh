@@ -239,7 +239,7 @@ install_zsh_setup_default() {
             if [ -d "$custom_dir/plugins/$p" ]; then
                 info "插件已存在: $p"
             else
-                plugin_add "$p" || warn "插件安装失败: $p（可稍后 plugin add $p 重试）"
+                plugin_add "$p" || warn "插件安装失败: ${p}（可稍后 plugin add ${p} 重试）"
             fi
         done
     else
@@ -252,7 +252,7 @@ install_zsh_setup_default() {
         *) theme_set "$theme" ;;
     esac
 
-    success "🎉 zsh_setup 默认安装完成（框架: $framework）"
+    success "🎉 zsh_setup 默认安装完成（框架: ${framework}）"
     info "新开终端或执行 exec zsh 生效"
 }
 
