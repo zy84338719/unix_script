@@ -79,5 +79,46 @@ VIS_ALL=$(registry_visible_modules)
 unset UNIX_SCRIPT_SHOW_ALL
 t_eq "visible: SHOW_ALL=1 输出全量注册表" "$_REGISTRY_MODULES" "$VIS_ALL"
 
+# ---------- CLI 出口过滤（子进程级，覆盖接线）----------
+run_install() { bash "$REPO_DIR/install.sh" "$@"; }
+LST=$(run_install --list)
+LST_ALL=$(UNIX_SCRIPT_SHOW_ALL=1 run_install --list)
+case "$OS_TYPE" in
+    darwin)
+        t_true "--list: 不含 ufw" 'case " $LST " in *" ufw "*) false;; *) true;; esac'
+        t_true "--list: 含 docker" 'case " $LST " in *" docker "*) true;; *) false;; esac'
+        t_true "SHOW_ALL --list: 含 ufw" 'case " $LST_ALL " in *" ufw "*) true;; *) false;; esac'
+        ;;
+    linux)
+        t_true "--list: 不含 brew" 'case " $LST " in *" brew "*) false;; *) true;; esac'
+        t_true "SHOW_ALL --list: 含 brew" 'case " $LST_ALL " in *" brew "*) true;; *) false;; esac'
+        ;;
+esac
+N_ALL=$(printf '%s' "$LST_ALL" | wc -w | tr -d ' ')
+N_VIS=$(printf '%s' "$LST" | wc -w | tr -d ' ')
+t_true "--list: 可见数 ≤ 全量数（${N_VIS}/${N_ALL}）" "(( $N_VIS <= $N_ALL ))"
+
+# --status-json 关键不变量：默认零 n/a 行；SHOW_ALL 行数=全量模块数；头 3 行元数据不动
+J=$(run_install --status-json | tail -n +4)
+J_ALL=$(UNIX_SCRIPT_SHOW_ALL=1 run_install --status-json)
+t_eq "status-json: 默认零 n/a 行" "0" "$(printf '%s\n' "$J" | grep -c ':n/a' || true)"
+t_eq "status-json: 默认行数=可见模块数" "$N_VIS" "$(printf '%s\n' "$J" | grep -c . || true)"
+t_eq "status-json: SHOW_ALL 行数=全量模块数" "$N_ALL" "$(printf '%s\n' "$J_ALL" | tail -n +4 | grep -c . || true)"
+t_eq "status-json: 头 3 行元数据仍在" "3" "$(printf '%s\n' "$J_ALL" | head -3 | grep -cE '^(os|arch|version):' || true)"
+
+# search：隐藏模块无匹配 rc=1；SHOW_ALL 命中 rc=0
+if [[ "$OS_TYPE" == "darwin" ]]; then
+    run_install search ufw >/dev/null 2>&1; t_rc "search: darwin 搜 ufw 无匹配 rc=1" 1 $?
+    UNIX_SCRIPT_SHOW_ALL=1 run_install search ufw >/dev/null 2>&1; t_rc "search: SHOW_ALL 搜 ufw rc=0" 0 $?
+    run_install search 容器 >/dev/null 2>&1; t_rc "search: 通用关键字 rc=0" 0 $?
+fi
+
+# --list-categories 不含隐藏模块行
+LC=$(run_install --list-categories)
+case "$OS_TYPE" in
+    darwin) t_true "--list-categories: 无 ufw 行" '! printf "%s" "$LC" | grep -q "^  ufw"' ;;
+    linux)  t_true "--list-categories: 无 brew 行" '! printf "%s" "$LC" | grep -q "^  brew"' ;;
+esac
+
 echo "unit_platform_filter: 通过 $PASS / 失败 $FAIL"
 [[ $FAIL -eq 0 ]]

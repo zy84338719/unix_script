@@ -344,7 +344,7 @@ module_subcommands() {
 # --list-modules: TSV 输出模块名 + 支持子命令 + 描述（第 3 列）
 show_list_modules() {
     local mod line reqs desc
-    for mod in $_REGISTRY_MODULES; do
+    for mod in $(registry_visible_modules); do
         local entry_script mod_path
         entry_script=$(registry_entry_script "$mod")
         mod_path=$(registry_path "$mod")
@@ -362,11 +362,12 @@ show_list_modules() {
 
 # --list-categories: 按分类列出所有模块
 show_list_categories() {
-    local cat mod label
+    local cat mod label vis
+    vis=$(registry_visible_modules)
     for cat in $CATEGORY_ORDER; do
         local has_any=false
         local items=""
-        for mod in $_REGISTRY_MODULES; do
+        for mod in $vis; do
             [[ "$(_reg_get "$mod" CATEGORY)" == "$cat" ]] || continue
             has_any=true
             label=$(_reg_get "$mod" LABEL)
@@ -374,7 +375,7 @@ show_list_categories() {
         done
         $has_any || continue
         echo "[$cat]"
-        for mod in $_REGISTRY_MODULES; do
+        for mod in $vis; do
             [[ "$(_reg_get "$mod" CATEGORY)" == "$cat" ]] || continue
             label=$(_reg_get "$mod" LABEL)
             echo "  $mod	$label"
@@ -392,10 +393,11 @@ show_status_json() {
     echo "arch:$ARCH_TYPE"
     echo "version:$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"
 
-    local mod state version line
-    # shellcheck disable=SC2086  # $_REGISTRY_MODULES 为受控模块名列表，需要分词
-    status_batch_query $_REGISTRY_MODULES
-    for mod in $_REGISTRY_MODULES; do
+    local mod state version line vis
+    vis=$(registry_visible_modules)
+    # shellcheck disable=SC2086  # $vis 为受控模块名列表，需要分词
+    status_batch_query $vis
+    for mod in $vis; do
         state=$(status_state_get "$mod")
         [[ -z "$state" ]] && state="unknown"
         version=$(_uxs_version_get "$mod")
@@ -500,7 +502,9 @@ show_search_results() {
     local -a hits=()
     local mod cat cat_mods group label desc aliases line
     while IFS= read -r mod; do
-        [[ -n "$mod" ]] && hits+=("$mod")
+        [[ -n "$mod" ]] || continue
+        uxs_module_visible "$mod" || continue
+        hits+=("$mod")
     done < <(registry_search "$@")
     if [[ ${#hits[@]} -eq 0 ]]; then
         warn "无匹配模块。试试更短的关键字，或用 --list-categories 查看全部"
@@ -572,6 +576,7 @@ show_usage() {
   --list            列出可用模块名后退出
   --list-modules    机器可读：模块名 + 支持子命令 + 描述（TSV，供 AI/脚本）
   --list-categories 按分类列出所有模块
+                      （--list* 与 search 默认仅显示本机适用模块；UNIX_SCRIPT_SHOW_ALL=1 显示全量）
   --status-json     机器可读：模块状态 key:value（无颜色，供 AI/脚本）
   check-update      检查远端是否有新版本（不修改本地）
   update            安全检查 + 确认后执行 git pull 更新本地仓库
@@ -585,7 +590,7 @@ show_usage() {
 EOF
     local cat mod label desc mods
     for cat in $CATEGORY_ORDER; do
-        mods=$(registry_modules_in_category "$cat")
+        mods=$(category_items "$cat" "")
         if [[ -z "$mods" ]]; then continue; fi
         echo "  [$cat]"
         for mod in $mods; do
