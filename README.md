@@ -3,7 +3,7 @@
 [![CI](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml/badge.svg)](https://github.com/zy84338719/unix_script/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**macOS / Linux 服务与环境一键管理脚本库** — 58 个模块，统一子命令接口，覆盖服务部署、系统初始化、开发环境、AI 工具、系统运维全场景。支持 **x86_64 / ARM64 / ARMv7** 三大架构，适配银河麒麟 / 统信 UOS 等国产发行版。
+**macOS / Linux 服务与环境一键管理脚本库** — 61 个模块，统一子命令接口，覆盖服务部署、系统初始化、开发环境、AI 工具、系统运维全场景。支持 **x86_64 / ARM64 / ARMv7** 三大架构，适配银河麒麟 / 统信 UOS 等国产发行版。
 
 > 当前版本：[VERSION](VERSION)（v1.15.0） · 更新日志：[CHANGELOG.md](CHANGELOG.md) · AI 接口说明：[AGENTS.md](AGENTS.md)
 
@@ -12,7 +12,7 @@
 ## ✨ 核心特性
 
 - **一行安装**：无需 clone，`curl | bash` 即可拉起任意模块
-- **58 个模块**：服务 / 装机必备 / 开发环境 / AI 工具 / 系统工具，5 大分类全覆盖
+- **61 个模块**：服务 / 装机必备 / 开发环境 / AI 工具 / 系统工具，5 大分类全覆盖
 - **统一接口**：所有模块遵循 `install / uninstall / status / help` 约定
 - **注册表驱动**：模块自带 `.manifest` 元数据，自动发现、自动排序、自动别名
 - **AI / 脚本友好**：`--status-json`、`--list-modules`、`--list-categories` 三种机器可读输出
@@ -166,7 +166,7 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 
 ---
 
-## 📦 全部 58 个模块
+## 📦 全部 61 个模块
 
 > 平台：✅ 支持 · ❌ 不适用 · ✅* 引导安装。带「别名」的模块可用别名调用，如 `./install.sh pg` = postgres。
 
@@ -207,7 +207,7 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 | [swap](essentials/swap) | 创建 / 调整 swap 虚拟内存 | — | ✅ | ❌ |
 | [bbr](essentials/bbr) | TCP BBR 拥塞控制加速 | — | ✅ | ❌ |
 
-### 👨‍💻 开发环境（12 个）
+### 👨‍💻 开发环境（15 个）
 
 | 模块 | 说明 | 别名 | Linux | macOS |
 |------|------|------|:-----:|:-----:|
@@ -219,8 +219,11 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 | [dev-mirror](dev-tools/dev-mirror) | 开发换源加速（npm/Go/Rust/pip） | dev_mirror, devmirror | ✅ | ✅ |
 | [dev-enhance](dev-tools/dev-enhance) | Neovim+LazyVim / git delta / tmux 配置 | — | ✅ | ✅ |
 | [dev-tui](dev-tools/dev-tui) | lazydocker + lazygit | dev_tui, tui | ✅ | ✅ |
-| [modern-cli](dev-tools/modern-cli) | bat/eza/ripgrep/fd/fzf/zoxide/starship | modern_cli, moderncli | ✅ | ✅ |
+| [modern-cli](dev-tools/modern-cli) | bat/eza/ripgrep/fd/fzf/zoxide/starship/tldr/direnv | modern_cli, moderncli | ✅ | ✅ |
 | [zsh_setup](dev-tools/zsh_setup) | Zsh + Oh My Zsh + 插件配置 | zsh | ✅ | ✅ |
+| [terminal](dev-tools/terminal) | 一键终端全家桶（zsh+ohmyzsh+现代 CLI+字体+atuin） | — | ✅ | ✅ |
+| [nerd-font](dev-tools/nerd-font) | 终端图标字体（p10k/starship/eza 依赖） | nerd_font, nerdfont | ✅ | ✅ |
+| [atuin](dev-tools/atuin) | SQLite 化 shell 历史（搜索/同步） | — | ✅ | ✅ |
 | [code-lint](dev-tools/code-lint) | 代码分析工具集 | codelint, code_lint, lint-tools | ✅ | ✅ |
 | [minikube](dev-tools/minikube) | 本地 Kubernetes 开发环境 | — | ✅ | ✅ |
 
