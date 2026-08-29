@@ -75,22 +75,23 @@ if [[ "$(uname)" == "Linux" ]]; then
 
     # 降级3：sudo 与 systemctl 全失败 → 兜底 installed，且必有输出
     out=$(PATH="$FAKE:$PATH" UXS_STATUS_MODE=machine bash "$UFW_SH" status </dev/null 2>/dev/null)
-    t_true "ufw: 全失败兜底仍有 STATE= 输出" "printf '%s' \"\$out\" | grep -q '^STATE='"
+    t_true "ufw: 全失败兜底仍有 STATE= 输出" "printf '%s' \"\$out\" | grep -c '^STATE=' >/dev/null"
     rm -rf "$FAKE"
 fi
 
 # ---------- doctor 无 TTY（管道即无 TTY，测试天然满足）----------
 DOC_OUT=$(bash "$REPO_DIR/install.sh" doctor </dev/null 2>&1)
-t_true "doctor: 无 TTY 时 sudo 项跳过不误报" "printf '%s' \"\$DOC_OUT\" | grep -q '无法检测 sudo'"
-t_true "doctor: 无 TTY 时无 sudo 不可用误报" "! printf '%s' \"\$DOC_OUT\" | grep -q 'sudo 不可用'"
-if [[ "$(uname)" == "Darwin" ]]; then
-    t_true "doctor: macOS 不再把缺 os-release 计为 WARNING" "! printf '%s' \"\$DOC_OUT\" | grep -q '未能识别发行版'"
-    t_true "doctor: macOS 显示已跳过" "printf '%s' \"\$DOC_OUT\" | grep -q '不适用发行版检测'"
-fi
-# root 环境感知：root+非 TTY 走 success 分支，上述「跳过」断言不适用
-# （否则在 root 容器里套件会假失败）
+# root 环境感知：root+非 TTY 走「当前以 root 运行」success 分支，「跳过」文案不存在
+# ——断言必须按 EUID 分支，否则在 root 容器腿（alpine/debian 等）假失败
 if [[ $EUID -eq 0 ]]; then
-    t_true "doctor: root 下显示以 root 运行" "printf '%s' \"\$DOC_OUT\" | grep -q '当前以 root 运行'"
+    t_true "doctor: root 下显示以 root 运行" "printf '%s' \"\$DOC_OUT\" | grep -c '当前以 root 运行' >/dev/null"
+else
+    t_true "doctor: 无 TTY 时 sudo 项跳过不误报" "printf '%s' \"\$DOC_OUT\" | grep -c '无法检测 sudo' >/dev/null"
+    t_true "doctor: 无 TTY 时无 sudo 不可用误报" "! printf '%s' \"\$DOC_OUT\" | grep -c 'sudo 不可用' >/dev/null"
+fi
+if [[ "$(uname)" == "Darwin" ]]; then
+    t_true "doctor: macOS 不再把缺 os-release 计为 WARNING" "! printf '%s' \"\$DOC_OUT\" | grep -c '未能识别发行版' >/dev/null"
+    t_true "doctor: macOS 显示已跳过" "printf '%s' \"\$DOC_OUT\" | grep -c '不适用发行版检测' >/dev/null"
 fi
 
 # ---------- uxs_func_with_timeout（函数级超时，批查子进程封顶用）----------
@@ -164,8 +165,8 @@ t_eq "next-steps: manifest 原样存储" "装配套甲:./install.sh foo;开箱�
 
 NS_OUT=$(show_next_steps __test_ns__)
 t_eq "next-steps: 人类模式渲染 2 条" "2" "$(printf '%s' "$NS_OUT" | grep -c '•')"
-t_true "next-steps: 带命令条目渲染 →" "printf '%s' \"\$NS_OUT\" | grep -q '装配套甲 → ./install.sh foo'"
-t_true "next-steps: 无命令条目整句渲染" "printf '%s' \"\$NS_OUT\" | grep -q '• 开箱即用无需操作'"
+t_true "next-steps: 带命令条目渲染 →" "printf '%s' \"\$NS_OUT\" | grep -c '装配套甲 → ./install.sh foo' >/dev/null"
+t_true "next-steps: 无命令条目整句渲染" "printf '%s' \"\$NS_OUT\" | grep -c '• 开箱即用无需操作' >/dev/null"
 
 t_eq "next-steps: 机器模式零输出" "" "$(UXS_STATUS_MODE=machine show_next_steps __test_ns__)"
 t_eq "next-steps: dry-run 零输出" "" "$(UNIX_SCRIPT_DRY_RUN=1 show_next_steps __test_ns__)"
@@ -176,16 +177,16 @@ t_eq "next-steps: 无字段的模块零输出" "" "$(show_next_steps __test_ns2_
 rm -f "$NS_MANIFEST"
 
 # ---------- uxs search 命令行搜索（批次③）----------
-t_true "search: 模块名命中" "registry_search docker | grep -qw docker"
-t_true "search: 别名命中（pg→postgres）" "registry_search pg | grep -qw postgres"
-t_true "search: DESC 中文命中（反向代理→nginx）" "registry_search 反向代理 | grep -qw nginx"
-t_true "search: AND 语义（docker+镜像 命中 docker-image）" "registry_search docker 镜像 | grep -qw docker-image"
-t_true "search: AND 语义（docker+键盘 不命中 docker）" "! registry_search docker 键盘 | grep -qw docker"
+t_true "search: 模块名命中" "registry_search docker | grep -cw docker >/dev/null"
+t_true "search: 别名命中（pg→postgres）" "registry_search pg | grep -cw postgres >/dev/null"
+t_true "search: DESC 中文命中（反向代理→nginx）" "registry_search 反向代理 | grep -cw nginx >/dev/null"
+t_true "search: AND 语义（docker+镜像 命中 docker-image）" "registry_search docker 镜像 | grep -cw docker-image >/dev/null"
+t_true "search: AND 语义（docker+键盘 不命中 docker）" "! registry_search docker 键盘 | grep -cw docker >/dev/null"
 t_eq "search: 大小写不敏感（DOCKER 命中 docker/docker-image）" "2" "$(registry_search DOCKER | grep -cw docker)"
 t_eq "search: 无命中空输出" "" "$(registry_search zzxxqqyyzz)"
 
-t_true "search: 人类输出含分类组头" "printf '%s' \"\$(show_search_results docker)\" | grep -q '^\\['"
-t_true "search: 人类输出含别名段（pg）" "printf '%s' \"\$(show_search_results pg)\" | grep -q '别名'"
+t_true "search: 人类输出含分类组头" "printf '%s' \"\$(show_search_results docker 2>/dev/null)\" | grep -c '^\\[' >/dev/null"
+t_true "search: 人类输出含别名段（pg）" "printf '%s' \"\$(show_search_results pg 2>/dev/null)\" | grep -c '别名' >/dev/null"
 SR_RC=$(show_search_results docker >/dev/null 2>&1; echo $?)
 t_eq "search: 有匹配 rc=0" "0" "$SR_RC"
 SR_N=$(UXS_STATUS_MODE=machine show_search_results docker | head -1 | awk -F'\t' '{print NF}')

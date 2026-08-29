@@ -25,7 +25,7 @@ run_doctor() {
         success "Bash $bash_ver ✓"
     else
         warn "Bash ${bash_ver}（建议 4.0+，部分功能可能受限）"
-        ((issues++))
+        issues=$((issues + 1))
     fi
 
     # Essential commands
@@ -36,7 +36,7 @@ run_doctor() {
             success "$cmd ✓"
         else
             error "$cmd ✗（缺失）"
-            ((issues++))
+            issues=$((issues + 1))
         fi
     done
 
@@ -83,7 +83,7 @@ run_doctor() {
         success "包管理器：$PKG_MANAGER"
     else
         error "未检测到支持的包管理器"
-        ((issues++))
+        issues=$((issues + 1))
     fi
 
     # Disk space
@@ -99,7 +99,7 @@ run_doctor() {
         success "可用空间：${avail}GB ✓"
     else
         warn "可用空间不足：${avail}GB（建议至少 1GB）"
-        ((issues++))
+        issues=$((issues + 1))
     fi
 
     # Network
@@ -108,7 +108,7 @@ run_doctor() {
         success "GitHub API 可达 ✓"
     else
         warn "GitHub API 不可达（可能影响版本检查和下载）"
-        ((issues++))
+        issues=$((issues + 1))
     fi
 
     # Sudo
@@ -125,7 +125,7 @@ run_doctor() {
         success "sudo 可用 ✓"
     else
         warn "sudo 不可用（部分安装操作可能失败）"
-        ((issues++))
+        issues=$((issues + 1))
     fi
 
     # Summary
