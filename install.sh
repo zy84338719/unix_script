@@ -44,6 +44,19 @@ should_auto_check_update() {
     return 0
 }
 
+# ---------------- 平台可见性护栏 ----------------
+# 模块不适用当前系统时拦截并给指引（UNIX_SCRIPT_SHOW_ALL=1 放行）。
+# 放行路径 return 0；拦截路径 error + exit 1。
+platform_gate_or_die() {
+    local resolved="$1" input="${2:-$1}"
+    uxs_module_visible "$resolved" && return 0
+    local sup
+    sup=$(registry_platforms "$resolved")
+    error "模块 ${input} 不支持当前系统（${OS_TYPE:-未知}，仅支持：${sup:-无}）"
+    info "查看适用模块: $0 --list-categories ｜ 强制显示全量: UNIX_SCRIPT_SHOW_ALL=1 $0 ${input}"
+    exit 1
+}
+
 # ---------------- 模块名 -> 安装动作（非交互用，注册表驱动） ----------------
 dispatch_module() {
     local name="$1"
@@ -66,6 +79,9 @@ dispatch_module() {
         info "查看全部模块: $0 --list-categories"
         exit 1
     fi
+
+    # 平台护栏：不适用模块在分发层拦截（模块内部检查保留为纵深防御）
+    platform_gate_or_die "$resolved" "$name"
 
     local default_action
     default_action=$(registry_default_action "$resolved")
@@ -100,6 +116,11 @@ ensure_module_deps() {
     [[ -z "$deps" ]] && return 0
     local dep dep_path dep_entry dep_state
     for dep in $deps; do
+        # 依赖不适用当前系统时明确报错，而非装到一半失败
+        if ! uxs_module_visible "$dep"; then
+            error "模块 $mod 依赖 $dep，但 $dep 不支持当前系统（仅支持：$(registry_platforms "$dep")）"
+            exit 1
+        fi
         dep_state=$(module_status_machine "$dep")
         if [[ "$dep_state" == "not_installed" ]]; then
             info "自动安装依赖模块：$dep（被 $mod 需要）"
@@ -119,6 +140,7 @@ dispatch_module_or_passthrough() {
         mod_path=$(registry_path "$resolved")
         entry_script=$(registry_entry_script "$resolved")
         if [[ -d "$SCRIPT_DIR/$mod_path" ]] && [[ -f "$SCRIPT_DIR/$mod_path/$entry_script" ]]; then
+            platform_gate_or_die "$resolved" "$1"
             local mod="$1"; shift
             info "执行模块 $mod: $entry_script $*"
             run_in_dir "$mod_path" "$entry_script" "$@"
