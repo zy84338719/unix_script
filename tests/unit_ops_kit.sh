@@ -94,7 +94,14 @@ t_eq "inspect: --json 合法" "rc0" "$(
     T=$(_inspect_stub_env)
     out=$(PATH="$T:$PATH" cmd_inspect --json </dev/null 2>&1); rc=$?
     rm -rf "$T"
-    if [ "$rc" -eq 0 ] && printf '%s' "$out" | python3 -m json.tool >/dev/null 2>&1; then echo rc0; else echo "$out"; echo rc1; fi)"
+    if [ "$rc" -eq 0 ] && printf '%s' "$out" | grep -q '^{"summary":{"crit":[0-9]*,"warn":[0-9]*},"checks":\[{.*\]}$'; then
+        # 有 python3 则做严格 JSON 校验（精简容器无 python3，回退结构校验）
+        if command -v python3 >/dev/null 2>&1; then
+            printf '%s' "$out" | python3 -m json.tool >/dev/null 2>&1 && echo rc0 || { echo "$out"; echo rc1; }
+        else
+            echo rc0
+        fi
+    else echo "$out"; echo rc1; fi)"
 
 # ---------- log ----------
 t_eq "log: vacuum 无参数拒绝" "rc1" "$(cmd_log vacuum </dev/null >/dev/null 2>&1 && echo rc0 || echo rc1)"

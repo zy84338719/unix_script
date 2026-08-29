@@ -157,21 +157,13 @@ jobs:
           # Debian 系 —— 主流多版本
           # expect_id/expect_family: 该发行版的外部真值，注入给 ci_run.sh 的
           # 「发行版识别」断言（UXS_EXPECT_DISTRO_*），防止检测逻辑自我循环论证
-          - distro: ubuntu-20.04
-            image: ubuntu:20.04
-            expect_id: ubuntu
-            expect_family: debian
-          - distro: ubuntu-22.04
-            image: ubuntu:22.04
+          - distro: ubuntu-26.04          # 当前 LTS（20.04/22.04 已移出矩阵）
+            image: ubuntu:26.04
             expect_id: ubuntu
             expect_family: debian
           - distro: ubuntu-24.04
             image: ubuntu:24.04
             expect_id: ubuntu
-            expect_family: debian
-          - distro: debian-11
-            image: debian:11
-            expect_id: debian
             expect_family: debian
           - distro: debian-12
             image: debian:12
@@ -311,10 +303,6 @@ jobs:
             expect_family: debian
           # 麒麟桌面版/统信桌面版无公开容器镜像，其识别由 ci_run.sh 的
           # 「桌面发行版」os-release 仿真夹具断言覆盖（见 routing 阶段 20a-2）。
-          - distro: centos-7               # 主流遗留版本（已 EOL，须切 vault 源）
-            image: docker.io/library/centos:7
-            expect_id: centos
-            expect_family: rhel
     steps:
       - name: 安装基础工具（bash/git/curl/sudo）
         shell: sh
@@ -341,8 +329,10 @@ jobs:
           git init -q "$GITHUB_WORKSPACE"
           cd "$GITHUB_WORKSPACE"
           git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
-          # GITHUB_REF 同时覆盖 push（refs/heads/*）与 PR（refs/pull/*/merge）
-          git fetch -q --depth 1 origin "$GITHUB_REF"
+          # GITHUB_REF 覆盖 push（refs/heads/*）与 PR（refs/pull/*/merge）；
+          # PR 合并瞬间触发时 merge ref 已被删，回退拉 head 分支 ref
+          git fetch -q --depth 1 origin "$GITHUB_REF" || \
+            { [ -n "${GITHUB_HEAD_REF:-}" ] && git fetch -q --depth 1 origin "refs/heads/${GITHUB_HEAD_REF}"; }
           git checkout -q FETCH_HEAD
 
       - name: 运行路由测试（含发行版识别断言）
