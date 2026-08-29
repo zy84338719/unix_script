@@ -120,6 +120,11 @@ fi
 # shellcheck disable=SC2103  # cd 回原目录：PASS/FAIL 计数器在全局，不能收进子 shell
 cd - >/dev/null
 
+# ---------- dry-run：brew auto-update 副作用压制 ----------
+unset HOMEBREW_NO_AUTO_UPDATE
+uxs_install_sudo_shim
+t_eq "dry-run: shim 注入 HOMEBREW_NO_AUTO_UPDATE=1" "1" "${HOMEBREW_NO_AUTO_UPDATE:-}"
+
 # ---------- 汇总 ----------
 echo "通过 $PASS / 失败 $FAIL"
 [[ "$FAIL" -eq 0 ]]

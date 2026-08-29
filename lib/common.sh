@@ -689,6 +689,8 @@ dry_run_sudo() {
 # 直接书写的 `sudo ...`（apt/systemd/写 /etc 等 root 操作）降级为打印。
 # 顶层 install.sh 解析 --dry-run 后需显式调用一次（其 source 时还没解析到）。
 uxs_install_sudo_shim() {
+    # dry-run 顺带压制 brew auto-update：纯网络副作用（更新 tap）违背预览语义且拖慢执行
+    export HOMEBREW_NO_AUTO_UPDATE="${HOMEBREW_NO_AUTO_UPDATE:-1}"
     sudo() {
         info "[dry-run] sudo $*"
         return 0
