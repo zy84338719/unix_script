@@ -331,3 +331,50 @@ manage_shutdown_timer() {
     info "已从自动关机管理返回主菜单。"
     read -r -p "按回车键继续..."
 }
+
+# ============================================================
+# 运维工具箱子菜单（inspect 巡检 / log 日志 / svc 服务 / audit 基线）
+# ============================================================
+_ops_kit_menu_status() { echo "当前状态: $(module_status ops-kit)"; }
+_ops_kit_menu_display() {
+    echo "  1) 一键巡检报告（inspect，只读）"
+    echo "  2) 巡检结果 JSON 输出"
+    echo "  3) 日志占用概览（log status）"
+    echo "  4) 清理 journald（log vacuum，写操作）"
+    echo "  5) logrotate 条目列表（rotate list）"
+    echo "  6) systemd 失败单元排查（svc failed）"
+    echo "  7) 查看服务日志（svc logs）"
+    echo "  8) 服务启停管理（svc start/stop/restart/enable/disable）"
+    echo "  9) 安全基线自查（audit all，只读）"
+}
+_ops_kit_menu_action() {
+    local a u
+    case "$1" in
+        1) run_in_dir sys-tools/ops-kit install.sh inspect ;;
+        2) run_in_dir sys-tools/ops-kit install.sh inspect --json ;;
+        3) run_in_dir sys-tools/ops-kit install.sh log status ;;
+        4)
+            read -r -p "清理目标（如 200M / 2weeks）: " a
+            run_in_dir sys-tools/ops-kit install.sh log vacuum "$a"
+            ;;
+        5) run_in_dir sys-tools/ops-kit install.sh log rotate list ;;
+        6) run_in_dir sys-tools/ops-kit install.sh svc failed ;;
+        7)
+            read -r -p "服务单元 (如 nginx.service): " a
+            run_in_dir sys-tools/ops-kit install.sh svc logs "$a"
+            ;;
+        8)
+            read -r -p "动作 (start/stop/restart/enable/disable): " a
+            read -r -p "服务单元: " u
+            run_in_dir sys-tools/ops-kit install.sh svc "$a" "$u"
+            ;;
+        9) run_in_dir sys-tools/ops-kit install.sh audit all ;;
+        *) error "无效选项，请重新输入！"; sleep 1; return 0 ;;
+    esac
+    echo; read -r -p "按回车键继续..."
+    return 0
+}
+manage_ops-kit() {
+    [ -f "$SCRIPT_DIR/sys-tools/ops-kit/install.sh" ] || { error "脚本不存在"; sleep 2; return; }
+    run_submenu "🧰 运维工具箱（巡检/日志/服务/安全基线，仅 Linux）" _ops_kit_menu_status _ops_kit_menu_display _ops_kit_menu_action
+}
