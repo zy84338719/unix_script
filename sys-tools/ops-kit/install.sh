@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # sys-tools/ops-kit/install.sh
+# 用法: ops-kit {inspect|log|svc|audit|install|uninstall|status|help}
 #
 # 运维工具箱 —— inspect 聚合巡检 + log/svc/audit 三组日常运维（仅 Linux）。
 # 只读优先；写操作 = 显式参数 + 交互确认 + 全局 --dry-run。

@@ -455,6 +455,17 @@ phase_routing() {
         done' _ "$REPO_DIR"
 
 
+    # 9g. ops-kit 运维工具箱：manifest、护栏与子命令入口（status/help 由注册表循环自动覆盖）
+    local ops_path
+    ops_path=$(resolve_module_path ops-kit)
+    assert "ops-kit: .manifest DEFAULT_ACTION=inspect（只读默认）" bash -c "grep -q '^DEFAULT_ACTION=inspect$' \"$REPO_DIR/$ops_path/.manifest\""
+    assert "ops-kit: 子命令枚举完整（供 --list-modules/补全解析）" bash -c "grep -qF '{inspect|log|svc|audit|install|uninstall|status|help}' \"$REPO_DIR/$ops_path/install.sh\""
+    assert "ops-kit: vacuum 无参数护栏存在" bash -c "grep -qF '用法: ops-kit log vacuum' \"$REPO_DIR/$ops_path/install.sh\""
+    assert "ops-kit: 写操作交互终端护栏存在" bash -c "grep -qF '仅允许在交互终端执行' \"$REPO_DIR/$ops_path/install.sh\""
+    assert "ops-kit: source 守护存在（单测可复用纯函数）" bash -c "grep -q 'BASH_SOURCE\[0\]' \"$REPO_DIR/$ops_path/install.sh\""
+    assert "ops-kit: 纯函数单测全过" bash "$REPO_DIR/tests/unit_ops_kit.sh"
+    assert "ops-kit: 子菜单入口存在" bash -c "grep -q 'manage_ops-kit()' \"$REPO_DIR/lib/submenus.sh\""
+
     # 4b. status 契约：machine 模式下每个模块首行必须是合法 STATE=
     check_status_contract
 
