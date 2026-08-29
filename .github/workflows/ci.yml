@@ -499,3 +499,29 @@ jobs:
             echo "::warning::国产化平台验证 (install-container-domestic) 结果为 ${{ needs.install-container-domestic.result }}，详见报告（社区镜像/国产源网络不受控，不阻塞整体）"
           fi
           echo "所有核心阶段通过"
+
+  # ============================================================
+  # Job 6: 支持矩阵刷新 —— main 上将最近 CI 结论回写 README 表格
+  #   解析 ci.yml 矩阵 + GitHub API job 结论，渲染进 README 标记区间；
+  #   提交信息带 [skip ci] 防止循环触发。
+  # ============================================================
+  support-matrix:
+    name: 支持矩阵刷新 / README
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 渲染并回写支持矩阵（无变化则跳过提交）
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          bash scripts/support_matrix.sh update README.md
+          if git diff --quiet README.md; then
+            echo "表格无变化，跳过提交"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "docs: 刷新支持矩阵（[skip ci]）"
+            git push
+          fi
