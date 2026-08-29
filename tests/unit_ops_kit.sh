@@ -85,7 +85,7 @@ t_eq "inspect: 汇总行+rc0" "rc0" "$(
     T=$(_inspect_stub_env)
     out=$(PATH="$T:$PATH" cmd_inspect </dev/null 2>&1); rc=$?
     rm -rf "$T"
-    printf '%s' "$out" | grep -q '巡检汇总' && [ "$rc" -eq 0 ] && echo rc0 || { echo "$out" | tail -3; echo rc1; })"
+    if printf '%s' "$out" | grep -q '巡检汇总' && [ "$rc" -eq 0 ]; then echo rc0; else echo "$out" | tail -3; echo rc1; fi)"
 t_eq "inspect: 91% 判 crit" "rc0" "$(
     T=$(_inspect_stub_env)
     out=$(PATH="$T:$PATH" cmd_inspect </dev/null 2>&1); rm -rf "$T"
@@ -104,7 +104,7 @@ t_eq "log: vacuum dry-run 只打印" "rc0" "$(
     printf '#!/bin/sh\ncase "$*" in *--disk-usage*) echo "take up 300M";; *vacuum*) echo vacuumed;; esac\n' >"$T/journalctl"; chmod +x "$T/journalctl"
     out=$(UNIX_SCRIPT_DRY_RUN=1 PATH="$T:$PATH" cmd_log vacuum 200M </dev/null 2>&1); rc=$?
     rm -rf "$T"
-    printf '%s' "$out" | grep -q 'dry-run' && [ "$rc" -eq 0 ] && echo rc0 || { echo "$out" | tail -3; echo rc1; })"
+    if printf '%s' "$out" | grep -q 'dry-run' && [ "$rc" -eq 0 ]; then echo rc0; else echo "$out" | tail -3; echo rc1; fi)"
 t_eq "log: rotate list 注入目录" "rc0" "$(
     T=$(mktemp -d); mkdir -p "$T/etc"; echo 'nginx{}' >"$T/etc/nginx"
     out=$(OPS_LOGROTATE_DIR="$T/etc" cmd_log rotate list </dev/null 2>&1)
@@ -119,7 +119,7 @@ t_eq "svc: failed stub 输出 unit" "rc0" "$(
     printf '#!/bin/sh\necho "Aug 28 log line"\n' >"$T/journalctl"; chmod +x "$T/journalctl"
     out=$(PATH="$T:$PATH" cmd_svc failed </dev/null 2>&1); rc=$?
     rm -rf "$T"
-    printf '%s' "$out" | grep -q 'nginx.service' && [ "$rc" -eq 0 ] && echo rc0 || { echo "$out" | tail -3; echo rc1; })"
+    if printf '%s' "$out" | grep -q 'nginx.service' && [ "$rc" -eq 0 ]; then echo rc0; else echo "$out" | tail -3; echo rc1; fi)"
 t_eq "svc: 无 systemd 优雅降级" "rc0" "$(
     T=$(mktemp -d)
     out=$(PATH="$T" cmd_svc failed </dev/null 2>&1); rc=$?
@@ -132,16 +132,16 @@ t_eq "audit: ssh 输出+指路" "rc0" "$(
     T=$(mktemp -d); printf '#!/bin/sh\necho "permitrootlogin yes"\n' >"$T/sshd"; chmod +x "$T/sshd"
     out=$(PATH="$T:$PATH" cmd_audit ssh </dev/null 2>&1); rc=$?
     rm -rf "$T"
-    printf '%s' "$out" | grep -q 'permitrootlogin' && printf '%s' "$out" | grep -q 'sys-setup ssh' && [ "$rc" -eq 0 ] && echo rc0 || { echo "$out" | tail -3; echo rc1; })"
+    if printf '%s' "$out" | grep -q 'permitrootlogin' && printf '%s' "$out" | grep -q 'sys-setup ssh' && [ "$rc" -eq 0 ]; then echo rc0; else echo "$out" | tail -3; echo rc1; fi)"
 t_eq "audit: ports 公网清单+ufw 指路" "rc0" "$(
     T=$(mktemp -d); printf '#!/bin/sh\necho "Netid State Local"\necho "tcp LISTEN 0.0.0.0:22 sshd"\n' >"$T/ss"; chmod +x "$T/ss"
     out=$(PATH="$T:$PATH" cmd_audit ports </dev/null 2>&1); rc=$?
     rm -rf "$T"
-    printf '%s' "$out" | grep -q '0.0.0.0:22' && printf '%s' "$out" | grep -q 'ufw' && [ "$rc" -eq 0 ] && echo rc0 || { echo "$out" | tail -3; echo rc1; })"
+    if printf '%s' "$out" | grep -q '0.0.0.0:22' && printf '%s' "$out" | grep -q 'ufw' && [ "$rc" -eq 0 ]; then echo rc0; else echo "$out" | tail -3; echo rc1; fi)"
 t_eq "audit: updates apt 计数" "rc0" "$(
     T=$(mktemp -d); printf '#!/bin/sh\necho "Inst pkg"\necho "Inst pkg2"\n' >"$T/apt-get"; chmod +x "$T/apt-get"
     out=$(PATH="$T:$PATH" cmd_audit updates </dev/null 2>&1); rc=$?; rm -rf "$T"
-    printf '%s' "$out" | grep -q '2 个' && [ "$rc" -eq 0 ] && echo rc0 || { echo "$out" | tail -3; echo rc1; })"
+    if printf '%s' "$out" | grep -q '2 个' && [ "$rc" -eq 0 ]; then echo rc0; else echo "$out" | tail -3; echo rc1; fi)"
 t_eq "audit: 未知目标拒绝" "rc1" "$(cmd_audit nosuch </dev/null >/dev/null 2>&1 && echo rc0 || echo rc1)"
 
 # ---------- 结论 ----------

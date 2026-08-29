@@ -79,8 +79,8 @@ _ops_is_public_addr() {
     local a="$1"
     [[ -z "$a" ]] && return 1
     case "$a" in
-        127.*|::1*|\[::1\]*|\[::1\]:*) return 1 ;;
-        0.0.0.0*|\[::\]*|\[::\]:*) return 0 ;;
+        127.*|::1*|\[::1\]*) return 1 ;;
+        0.0.0.0*|\[::\]*) return 0 ;;
         10.*|172.1[6-9].*|172.2[0-9].*|172.3[0-1].*|192.168.*|169.254.*|fe80*|\[fe80*) return 1 ;;
         *:*|*.*) return 0 ;;
         *) return 1 ;;
@@ -132,7 +132,7 @@ _ops_updates_count() {
     echo "${n:-0}"
 }
 
-_ops_json_escape() { printf '%s' "${1:-}" | tr -d '"\\' ; }
+_ops_json_escape() { printf '%s' "${1:-}" | tr -d '\042\134' ; }  # \042=" \134=\
 
 # ============================================================
 # inspect 聚合巡检（只读）
@@ -213,7 +213,10 @@ cmd_inspect() {
         else
             local fu; fu=$(_ops_failed_units "$(systemctl --failed --no-legend 2>/dev/null || true)")
             if [[ -z "$fu" ]]; then _ops_check_add ok "systemd" "无失败单元"
-            else _ops_check_add crit "systemd 失败单元" "$(printf '%s ' $fu)——排查: ./install.sh ops-kit svc failed"; fi
+            else
+                local fu_flat="${fu//$'\n'/ }"
+                _ops_check_add crit "systemd 失败单元" "${fu_flat}——排查: ./install.sh ops-kit svc failed"
+            fi
         fi
     else
         _ops_check_add skip "systemd" "systemctl 不可用"
@@ -331,6 +334,7 @@ _ops_log_vacuum() {
     info "✅ journal 清理完成"
 }
 
+# shellcheck disable=SC2016  # nginx 模板里的 $(cat ...) 是要写入文件的字面量
 _ops_log_rotate_tpl() {  # <app> → 模板文本（未知输出空）
     case "$1" in
         nginx) printf '/var/log/nginx/*.log {\n  daily\n  rotate 14\n  compress\n  delaycompress\n  missingok\n  notifempty\n  sharedscripts\n  postrotate\n    [ -f /var/run/nginx.pid ] && kill -USR1 "$(cat /var/run/nginx.pid)"\n  endscript\n}\n' ;;
