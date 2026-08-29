@@ -154,6 +154,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # 说明：opensuse/leap 精简镜像缺 tar，actions/checkout 解包需要它，
+          # 故在最前面按包系预装（先于 checkout 执行）
           # Debian 系 —— 主流多版本
           # expect_id/expect_family: 该发行版的外部真值，注入给 ci_run.sh 的
           # 「发行版识别」断言（UXS_EXPECT_DISTRO_*），防止检测逻辑自我循环论证
@@ -203,6 +205,14 @@ jobs:
             expect_id: alpine
             expect_family: alpine
     steps:
+      - name: Pre-checkout 预装解包依赖（leap 精简镜像缺 tar）
+        shell: sh
+        run: |
+          if command -v zypper >/dev/null 2>&1; then
+            zypper --non-interactive install tar >/dev/null 2>&1 || true
+          elif command -v apk >/dev/null 2>&1; then
+            apk add --no-cache tar >/dev/null 2>&1 || true
+          fi
       - uses: actions/checkout@v4
 
       - name: 安装基础依赖（容器极简镜像需要）
