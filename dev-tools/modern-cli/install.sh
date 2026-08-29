@@ -13,6 +13,8 @@
 #   fzf       → 模糊查找（Ctrl+R 搜历史、Ctrl+T 搜文件）
 #   zoxide    → cd（智能跳转，z 命令，记录常用目录）
 #   starship  → 跨 shell 提示符（显示 git/语言/时间）
+#   tealdeer  → tldr（命令例子速查，替代啃 man）
+#   direnv    → 目录级环境变量（进目录自动加载 .envrc）
 #
 # 子命令：install | uninstall | status | help
 #
@@ -24,7 +26,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../lib/common.sh"
 
 # 工具列表（包名，部分发行版名字不同）
-TOOLS=(bat eza ripgrep fd-find fzf zoxide starship)
+TOOLS=(bat eza ripgrep fd-find fzf zoxide starship tealdeer direnv)
 
 # 包名映射（某些发行版名字不同）
 pkg_name_for() {
@@ -45,6 +47,28 @@ pkg_name_for() {
     esac
 }
 
+# tealdeer 官方预编译二进制回退（musl 静态链接，glibc/musl 通用）。
+# 信任模型：GitHub 官方 release（HTTPS），github_latest_tag 解析版本以增强可审计性；
+# 资产名以 release 页实际清单为准：tealdeer-linux-<arch>-musl.tar.gz
+install_tealdeer_from_release() {
+    local ver arch url tmp
+    ver=$(github_latest_tag "tealdeer-rs/tealdeer" 2>/dev/null) || return 1
+    case "$(uname -m)" in
+        x86_64)        arch="x86_64" ;;
+        aarch64|arm64) arch="aarch64" ;;
+        *) warn "tealdeer: 架构 $(uname -m) 无预编译包"; return 1 ;;
+    esac
+    url="https://github.com/tealdeer-rs/tealdeer/releases/download/${ver}/tealdeer-linux-${arch}-musl.tar.gz"
+    tmp=$(mktemp -d)
+    if curl -fsSL "$url" | tar -xz -C "$tmp" 2>/dev/null && [[ -f "$tmp/tealdeer" ]]; then
+        local sudo_prefix=""
+        [[ $EUID -ne 0 ]] && sudo_prefix="sudo"
+        $sudo_prefix install -m 755 "$tmp/tealdeer" /usr/local/bin/tldr
+    else
+        return 1
+    fi
+}
+
 preflight() {
     detect_os
     check_commands curl
@@ -52,7 +76,7 @@ preflight() {
 
 install_modern_cli() {
     preflight
-    info "⚡ 安装现代 CLI 工具集（bat/eza/rg/fd/fzf/zoxide/starship）"
+    info "⚡ 安装现代 CLI 工具集（bat/eza/rg/fd/fzf/zoxide/starship/tldr/direnv）"
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
         if ! command_exists brew; then
@@ -61,7 +85,7 @@ install_modern_cli() {
         fi
         info "通过 Homebrew 安装..."
         # macOS 的包名：fd-find → fd
-        brew install bat eza ripgrep fd fzf zoxide starship
+        brew install bat eza ripgrep fd fzf zoxide starship tealdeer direnv
     else
         detect_pkg_manager
         info "通过 $PKG_MANAGER 安装..."
@@ -87,6 +111,12 @@ install_modern_cli() {
                     fi
                 elif [[ "$tool" == "eza" ]] && ! command_exists eza; then
                     warn "  ⚠️ $pkg 不在仓库（可从 https://github.com/eza-community/eza 手动装）"
+                elif [[ "$tool" == "tealdeer" ]] && ! command_exists tldr; then
+                    if install_tealdeer_from_release; then
+                        success "  ✅ tealdeer (官方二进制)"
+                    else
+                        warn "  ⚠️ tealdeer 安装失败（可 cargo install tealdeer）"
+                    fi
                 else
                     warn "  ⚠️ $pkg 安装失败"
                 fi
@@ -102,6 +132,15 @@ install_modern_cli() {
 
     # 配置 shell 集成（fzf + zoxide + starship + 别名）
     configure_shell_integration
+
+    # tealdeer 缓存（首次使用前必须更新）
+    if command_exists tldr; then
+        if tldr --update >/dev/null 2>&1; then
+            info "tealdeer 缓存已更新"
+        else
+            warn "tealdeer 缓存更新失败（可稍后 tldr --update）"
+        fi
+    fi
 
     echo
     success "🎉 现代 CLI 工具集安装完成！"
@@ -148,6 +187,24 @@ configure_shell_integration() {
         info "已为 $(basename "$rc") 添加现代 CLI 集成"
     done
 
+    # extras 块：tldr/direnv（新增于 v1.15.0，独立标记块保证老 rc 也能补上）
+    local emark="# >>> unix_script modern-cli extras >>>"
+    local eendmark="# <<< unix_script modern-cli extras <<<"
+    for rc in "$HOME/.bashrc" "$HOME/.zshrc"; do
+        [[ -f "$rc" ]] || continue
+        if grep -q "$emark" "$rc" 2>/dev/null; then
+            continue  # 已配置
+        fi
+        {
+            echo ""
+            echo "$emark"
+            echo "# direnv（进目录自动加载 .envrc）"
+            echo "command -v direnv >/dev/null 2>&1 && eval \"\$(direnv hook \$(basename \$SHELL))\""
+            echo "$eendmark"
+        } >> "$rc"
+        info "已为 $(basename "$rc") 添加 direnv 集成"
+    done
+
     # starship 默认配置（若不存在）
     if command_exists starship && [[ ! -f "$HOME/.config/starship.toml" ]]; then
         mkdir -p "$HOME/.config"
@@ -175,9 +232,11 @@ STARSHIPEOF
 uninstall_modern_cli() {
     detect_os
     warn "modern-cli 卸载说明："
-    echo "  工具:    brew uninstall bat eza ripgrep fd fzf zoxide starship"
-    echo "           或 sudo <pkgmgr> remove bat eza ripgrep fd fzf zoxide"
-    echo "  shell:   删除 rc 文件中 '# >>> unix_script modern-cli >>>' 之间的行"
+    echo "  工具:    brew uninstall bat eza ripgrep fd fzf zoxide starship tealdeer direnv"
+    echo "           或 sudo <pkgmgr> remove bat eza ripgrep fd fzf zoxide tealdeer direnv"
+    echo "  shell:   删除 rc 文件中 '# >>> unix_script modern-cli >>>' 与"
+    echo "           '# >>> unix_script modern-cli extras >>>' 标记块之间的行"
+    echo "  缓存:    rm -rf ~/.cache/tealdeer"
     echo "  配置:    rm ~/.config/starship.toml"
     info "（按需手动清理）"
 }
@@ -186,7 +245,7 @@ status_modern_cli() {
     detect_os
     local found=0 total=${#TOOLS[@]}
     local missing=() t
-    for t in bat eza rg fd fzf zoxide starship; do
+    for t in bat eza rg fd fzf zoxide starship tldr direnv; do
         if command_exists "$t"; then
             found=$((found + 1))
         else
@@ -210,7 +269,7 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装现代 CLI 工具集（bat/eza/rg/fd/fzf/zoxide/starship）
+  install     安装现代 CLI 工具集（bat/eza/rg/fd/fzf/zoxide/starship/tldr/direnv）
   uninstall   显示卸载说明
   status      查看状态
 EOF

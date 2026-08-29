@@ -52,6 +52,13 @@ t_true "zsh_setup: install 不再报未知命令" "! printf '%s' \"\$err\" | gre
 t_true "zsh_setup: manifest 声明 EXPORTABLE=framework,theme" \
     "grep -q '^EXPORTABLE=framework,theme$' '$REPO_DIR/dev-tools/zsh_setup/.manifest'"
 
+# ---------- ② modern-cli 扩展 ----------
+MODERN_SH="$REPO_DIR/dev-tools/modern-cli/install.sh"
+t_true "modern-cli: 安装脚本含 tealdeer/direnv" \
+    "grep -q 'tealdeer' '$MODERN_SH' && grep -q 'direnv' '$MODERN_SH'"
+t_true "modern-cli: status 检查含 tldr/direnv" "grep -q 'tldr direnv' '$MODERN_SH'"
+t_true "modern-cli: 存在 extras 标记块（向后兼容老 rc）" "grep -q 'modern-cli extras' '$MODERN_SH'"
+
 echo
 echo "通过: $PASS / 失败: $FAIL"
 [[ $FAIL -eq 0 ]]
