@@ -31,17 +31,21 @@ source "$REPO_DIR/lib/common.sh"
 set +e +o pipefail
 
 # ---------- uxs_with_timeout ----------
+# 快/失败命令透传：无 perl 时降级直通，这两条仍成立
 rc=$(uxs_with_timeout 2 true; echo $?)
 t_eq "timeout: 快命令透传 rc=0" "0" "$rc"
 
 rc=$(uxs_with_timeout 2 false; echo $?)
 t_eq "timeout: 失败命令透传 rc=1" "1" "$rc"
 
-S=$SECONDS
-rc=$(uxs_with_timeout 1 sleep 5 >/dev/null 2>&1; echo $?)
-ELAPSED=$((SECONDS - S))
-t_eq "timeout: 超时 rc=124" "124" "$rc"
-t_true "timeout: 超时及时返回（实测 ${ELAPSED}s ≤ 2s）" "(( ELAPSED <= 2 ))"
+# 超时行为依赖 perl（无 perl 降级为直通，行为退化为无护栏）——按环境分支
+if command_exists perl; then
+    S=$SECONDS
+    rc=$(uxs_with_timeout 1 sleep 5 >/dev/null 2>&1; echo $?)
+    ELAPSED=$((SECONDS - S))
+    t_eq "timeout: 超时 rc=124" "124" "$rc"
+    t_true "timeout: 超时及时返回（实测 ${ELAPSED}s ≤ 2s）" "(( ELAPSED <= 2 ))"
+fi
 
 # ---------- ufw 三级降级链（仅 Linux；macOS 上 ufw status=n/a）----------
 if [[ "$(uname)" == "Linux" ]]; then
