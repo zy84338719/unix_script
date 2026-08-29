@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### 修复
+- `uxs_with_timeout` 参数护栏（缺参数/非法秒数 rc=2；秒数 0 直通对齐 GNU timeout）
+
 ## [1.15.0] - 2026-08-29
 
 ### 新增

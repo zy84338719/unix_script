@@ -706,8 +706,18 @@ fi
 # perl 缺失（极简容器）时不套超时直接执行，行为退化为无护栏。
 # 实现：perl fork + alarm + kill。不能 exec——exec 后 alarm 虽存活但无法返回 124。
 uxs_with_timeout() {
+    # 参数护栏（须在取 $1 前判 $#，否则 set -u 直接炸）：缺命令参数/非法秒数 → rc=2
+    if [[ $# -lt 2 ]] || ! [[ "$1" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+        echo "[ERROR] uxs_with_timeout 用法: uxs_with_timeout <秒> <命令...>" >&2
+        return 2
+    fi
     local secs="$1"
     shift
+    # secs=0 → 不设超时直通（对齐 GNU timeout）
+    if [[ "$secs" == "0" ]]; then
+        "$@"
+        return
+    fi
     if ! command_exists perl; then
         "$@"
         return

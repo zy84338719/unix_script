@@ -127,6 +127,7 @@ version:1.15.0
 node_exporter:not_installed
 docker:installed:running
 bun:installed:v1.3.14
+tailscale:installed:connected
 
 # 3) 按分类分组（人类可读）
 $ ./install.sh --list-categories
