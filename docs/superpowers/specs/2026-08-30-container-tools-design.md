@@ -1,7 +1,7 @@
-# 容器工具批次①：Podman / k9s / Helm 设计
+# 容器工具批次①：Podman / kubectl / k9s / Helm 设计
 
 - 日期：2026-08-30
-- 状态：设计中（待用户确认后实现）
+- 状态：已定稿（4 个模块），待实施
 - 关联：`services/docker`（容器引擎模板 + mirror/registry 先例）、`dev-tools/minikube`、`sys-tools/dev-tui`
 
 ## 背景
@@ -9,7 +9,8 @@
 库内容器生态已有 docker（Engine/Desktop 双平台 + compose/buildx 插件 + mirror/registry
 换源）与 minikube / k7s / docker-image，但缺 **podman**（用户点名补充）。RHEL 系与国产
 系统（麒麟、openEuler、统信服务器版）默认容器引擎即 podman：无守护进程、原生 rootless、
-CLI 与 docker 兼容，是 docker 的重要替代/补充。本批次顺带补齐 k8s 生态两个高频 CLI：
+CLI 与 docker 兼容，是 docker 的重要替代/补充。本批次同时补齐 k8s 客户端三件套：
+kubectl（独立客户端，远程管集群必备——库内有 minikube/k7s 但无 kubectl，缺口明显）、
 k9s（k8s 终端管理面板，与 k7s 桌面版互补）、helm（k8s 包管理器，minikube 装完即用）。
 
 ## 模块清单
@@ -17,11 +18,14 @@ k9s（k8s 终端管理面板，与 k7s 桌面版互补）、helm（k8s 包管理
 | 模块 | 位置 | 平台 | 安装来源 | CATEGORY |
 |------|------|------|----------|----------|
 | `podman` | `services/podman` | 全平台 | Linux=发行版仓库（pkg_install）；macOS=brew | 服务 |
+| `kubectl` | `dev-tools/kubectl` | 全平台 | Linux=dl.k8s.io 官方二进制；macOS=brew | 开发环境 |
 | `k9s` | `dev-tools/k9s` | 全平台 | Linux=GitHub release 二进制；macOS=brew | 开发环境 |
 | `helm` | `dev-tools/helm` | 全平台 | Linux=get.helm.sh 官方 tarball；macOS=brew | 开发环境 |
 
-不纳入本批次（YAGNI，留待后续批次）：kind、k3s、nerdctl、podman-desktop、skopeo、
-containerd 独立安装；数据库补齐（MySQL/MariaDB、MongoDB）、frp 内网穿透另立批次。
+不纳入本批次（YAGNI，留待后续批次）：**containerd/nerdctl**（`ctr` 是 containerd 随附
+的底层 CLI、无法独立安装，独立装 containerd 需处理与 docker 的共存检测，主题也与
+podman「引擎替代」不同，单独成批）、buildah/skopeo（镜像构建/搬运）、kind、k3s、
+harbor、数据库补齐（MySQL/MariaDB、MongoDB）、frp 内网穿透。
 
 ## 统一约定（对齐面板批次①与状态契约）
 
@@ -64,6 +68,18 @@ containerd 独立安装；数据库补齐（MySQL/MariaDB、MongoDB）、frp 内
 - 明确**不装 `podman-docker`**（会把 docker 命令改指向 podman，与 docker 模块冲突），
   README 说明等价用法 `alias docker=podman` 由用户自选。
 
+### dev-tools/kubectl
+
+- install（Linux）：版本取 `https://dl.k8s.io/release/stable.txt`（官方稳定版接口，
+  无需 GitHub API），二进制
+  `https://dl.k8s.io/release/v<ver>/bin/linux/<arch>/kubectl`（arch 映射同 k9s），
+  直接放 `/usr/local/bin/kubectl`（sudo）。dl.k8s.io 不可达时给出手动下载指引。
+- install（macOS）：`brew install kubectl`。
+- status：`kubectl version --client` 离线探测（不连集群）→ VERSION。
+- uninstall：Linux 删二进制；macOS `brew uninstall kubectl`。不动 `~/.kube`（用户
+  集群凭据，二次确认后才删）。
+- NEXT_STEPS：`本地集群:./install.sh minikube`。
+
 ### dev-tools/k9s
 
 - install：Linux 用 GitHub release 二进制（`derailed/k9s`，`github_latest_tag` 取版
@@ -85,8 +101,8 @@ containerd 独立安装；数据库补齐（MySQL/MariaDB、MongoDB）、frp 内
 
 ## 框架联动
 
-- 模块数 61 → 64；主 README 模块计数 3 处刷新；AGENTS.md 表格 services 21→22、
-  dev-tools 15→17、总数 61→64；CHANGELOG `[Unreleased]` 增「新增」条目。
+- 模块数 61 → 65；主 README 模块计数 3 处刷新；AGENTS.md 表格 services 21→22、
+  dev-tools 15→18、总数 61→65；CHANGELOG `[Unreleased]` 增「新增」条目。
 - registry / completions / search 均由 `.manifest` 自动发现，无需改 `lib/`。
 
 ## 测试与验收
@@ -94,7 +110,7 @@ containerd 独立安装；数据库补齐（MySQL/MariaDB、MongoDB）、frp 内
 - `./tests/ci_run.sh --phase static`：shellcheck 0 告警（含 info 级）。
 - `./tests/ci_run.sh --phase routing`：新模块 status/help exit 0、`set -u` 干净、
   `uninstall)` 分支存在、用法行可被 menu.sh 解析；`--list-modules` 与 `search` 能命中
-  3 个新模块。
-- macOS 冒烟：k9s/helm/podman 的 status 输出 `not_installed` 且 exit 0。
-- 实装验证（不阻塞合入）：murphy-server（Ubuntu）实装 podman/k9s/helm 各一次验证
-  status 与基本功能；macOS 实装 k9s/helm、podman machine init 走通。
+  4 个新模块。
+- macOS 冒烟：kubectl/k9s/helm/podman 的 status 输出 `not_installed` 且 exit 0。
+- 实装验证（不阻塞合入）：murphy-server（Ubuntu）实装 podman/kubectl/k9s/helm 各一次
+  验证 status 与基本功能；macOS 实装 kubectl/k9s/helm、podman machine init 走通。
