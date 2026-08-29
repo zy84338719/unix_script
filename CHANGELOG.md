@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-08-28
+
+### 新增
+- **ops-kit 运维工具箱（sys-tools/ops-kit，仅 Linux）**：一站式日常运维，四组子命令——`inspect` 聚合巡检（磁盘空间/SMART 总评/systemd 失败单元/journal 占用/SSH 基线/公网监听/待更新/登录失败，✅⚠️🔴 分级 + 汇总行，`--json` 机器可读，依赖缺失降级"跳过"不中止）；`log` 日志运维（journal 占用概览、`vacuum` 清理、`rotate` 按内置模板生成 logrotate 条目）；`svc` systemd 服务运维（失败单元排查含 journal 尾行、日志查看、启停透传）；`audit` 安全基线自查（SSH 配置核对/公网端口清单/待更新计数，只读并指路 sys-setup ssh / ufw / unattended）。写操作三重护栏：显式参数必填 + 非交互终端拒绝 + 交互 yes 确认，全局 `--dry-run` 支持。主菜单新增子菜单入口（系统工具 → 运维工具箱）。模块数 53 → 54
+
+## [1.11.2] - 2026-08-28
+
 ### 修复
 - **disk 模块无法经统一入口调用（v1.10.0 起的别名遮蔽）**：`./install.sh disk` 实际落到 disk-usage——其别名 `disk` 在注册表序中先于 disk 模块的正式名命中（`registry_resolve_alias` 单趟逐模块「先比正式名再比别名」，序在先的模块可凭别名遮蔽后续模块名）。三处根治：disk-usage 别名收窄为 `du, disk_usage`（disk 模块冗余的自名别名一并移除）；`registry_resolve_alias` 改为「正式名优先、别名回落」两段解析；routing 阶段新增两条断言（全仓库别名不得与其他模块正式名冲突 + disk/du 解析回归）
 
