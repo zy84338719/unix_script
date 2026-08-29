@@ -44,6 +44,7 @@ display_name() {
         almalinux-9)         echo "AlmaLinux 9" ;;
         rocky-9)             echo "Rocky Linux 9" ;;
         opensuse-tumbleweed) echo "openSUSE Tumbleweed" ;;
+        opensuse-leap)       echo "openSUSE Leap 15.6" ;;
         arch)                echo "Arch Linux" ;;
         alpine)              echo "Alpine Linux" ;;
         kylin-v10-sp3)       echo "银河麒麟 V10 SP3" ;;

@@ -190,9 +190,10 @@ jobs:
             image: rockylinux:9
             expect_family: rhel
           # 独立发行版
-          - distro: opensuse-tumbleweed   # 滚动版上游源偶发超时，尽力而为
-            image: opensuse/tumbleweed:latest
-            continue-on-error: true
+          - distro: opensuse-leap         # Leap 15.6（Tumbleweed 滚动版上游源持续超时，换稳定版）
+            image: opensuse/leap:15.6
+            expect_id: opensuse-leap
+            expect_family: suse
             expect_id: opensuse-tumbleweed
             expect_family: suse
           - distro: arch
