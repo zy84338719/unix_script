@@ -316,11 +316,21 @@ phase_routing() {
     assert "dev-mirror: 非法源标识报错 (exit 1)" bash -c "! \"$REPO_DIR/$dm_path/install.sh\" install go __bad_source__ >/dev/null 2>&1"
 
     # 9c. sys-setup：apt 换源需感知 deb822（Ubuntu 24.04+ 发行版源在 sources.list.d/*.sources）
+    # （2026-08-28 platform 拆分后，apt 逻辑位于 platform/debian.sh）
     local ss_path
     ss_path=$(resolve_module_path sys-setup)
-    assert "sys-setup: mirror 重写 deb822 ubuntu.sources" bash -c "grep -q 'sources.list.d/ubuntu.sources' \"$REPO_DIR/$ss_path/install.sh\""
-    assert "sys-setup: 停用残留源逻辑存在" bash -c "grep -q '_apt_disable_distro_sources()' \"$REPO_DIR/$ss_path/install.sh\""
+    assert "sys-setup: mirror 重写 deb822 ubuntu.sources" bash -c "grep -q 'sources.list.d/ubuntu.sources' \"$REPO_DIR/$ss_path/platform/debian.sh\""
+    assert "sys-setup: 停用残留源逻辑存在" bash -c "grep -q '_apt_disable_distro_sources()' \"$REPO_DIR/$ss_path/platform/debian.sh\""
     assert "sys-setup: status 镜像检测覆盖 sources.list.d" bash -c "grep -qF '/etc/apt/sources.list.d/*.sources' \"$REPO_DIR/$ss_path/install.sh\""
+
+    # 9c+. sys-setup：platform 拆分 + 换源矩阵（platform-abstraction 2026-08-28）
+    assert "sys-setup: platform 五文件齐全" bash -c "for f in debian rhel suse arch alpine; do test -f \"$REPO_DIR/$ss_path/platform/\$f.sh\"; done"
+    assert "sys-setup: do_mirror 含预览确认" bash -c "grep -q '换源预览' \"$REPO_DIR/$ss_path/install.sh\""
+    assert "sys-setup: 非交互跳过逻辑" bash -c "grep -q '非交互环境' \"$REPO_DIR/$ss_path/install.sh\""
+    assert "sys-setup: alma/rocky/fedora 模板指向实测可用站" bash -c "grep -q 'mirrors.aliyun.com/almalinux' \"$REPO_DIR/$ss_path/platform/rhel.sh\" && grep -q 'mirrors.ustc.edu.cn/rocky' \"$REPO_DIR/$ss_path/platform/rhel.sh\" && grep -q 'mirrors.tuna.tsinghua.edu.cn/fedora' \"$REPO_DIR/$ss_path/platform/rhel.sh\""
+    assert "sys-setup: openEuler/Anolis sed 存在" bash -c "grep -q 'mirror.openeuler.org' \"$REPO_DIR/$ss_path/platform/rhel.sh\" && grep -q 'openanolis' \"$REPO_DIR/$ss_path/platform/rhel.sh\""
+    assert "sys-setup: arch 分支含 archlinuxarm 与 uname -m" bash -c "grep -q 'archlinuxarm' \"$REPO_DIR/$ss_path/platform/arch.sh\" && grep -q 'uname -m' \"$REPO_DIR/$ss_path/platform/arch.sh\""
+    assert "sys-setup: 不再手写 os-release 识别" bash -c "! grep -qE '\. /etc/os-release' \"$REPO_DIR/$ss_path/install.sh\""
 
     # 9d. disk 模块：manifest、护栏与子命令入口（status/help 由注册表循环 + status 契约自动覆盖）
     local disk_path

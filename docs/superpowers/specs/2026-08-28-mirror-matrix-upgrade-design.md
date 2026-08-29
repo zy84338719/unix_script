@@ -55,21 +55,32 @@ Alma/Rocky/RHEL/Fedora 只打印帮助链接（却被提示文案列为"支持"�
 
 ### rpm 系
 
+> **2026-08-28 实测修订**：TUNA 已无 almalinux/rocky/anolis 仓库（逐站 curl 验证），
+> 原"固定 TUNA"约束按发行版调整为"按发行版固定到有货的国内站"（仍无用户选择 UI）：
+> almalinux→阿里云、rocky→USTC、anolis→阿里云(sed)、fedora/openeuler→TUNA。
+
 - **CentOS Stream 9**：现状保留（整写 centos.repo）
 - **AlmaLinux（新增）**：整写 `/etc/yum.repos.d/almalinux.repo`，
-  BaseOS/AppStream/CRB/Extras 四节，`https://mirrors.tuna.tsinghua.edu.cn/almalinux/$releasever/.../$basearch/os`，
-  gpgkey 沿用 `file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-*`
-- **Rocky（新增）**：整写 `rocky.repo`，同结构
-  `/rocky/$releasever/.../$basearch/os`
+  BaseOS/AppStream/CRB/extras 四节，`https://mirrors.aliyun.com/almalinux/$releasever/.../$basearch/os/`
+  （阿里云四节路径 200 实测；Alma 的 `$releasever` 无小版本，可原生交给 dnf 展开），
+  gpgkey 沿用 `file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-$releasever`
+- **Rocky（新增）**：整写 `rocky.repo`，指向 USTC
+  `https://mirrors.ustc.edu.cn/rocky/<主版本>/.../$basearch/os/`。
+  **注意 USTC 目录按主版本组织**（`/rocky/9/` 200、`/rocky/9.6/` 404，实测），
+  而 Rocky 的 `$releasever` 展开为 `9.6`，故 URL/gpgkey 用主版本号
+  （`rpm -E '%{rhel}'` 取值，回退 `VERSION_ID` 首段）
 - **Fedora（新增）**：整写 `fedora.repo` + `fedora-updates.repo`
-  （`/fedora/releases/$releasever/Everything/$basearch/os` 与
-  `/fedora/updates/$releasever/Everything/$basearch/os`）
-- **RHEL**：TUNA 无公开镜像（订阅授权），维持打印指引——从"支持"文案降级
-  为"仅指引"，`*)` 兜底提示文案同步改为与实际行为一致
+  （`/fedora/releases/$releasever/Everything/$basearch/os/` 与
+  `/fedora/updates/$releasever/Everything/$basearch/`——TUNA 帮助页核对，
+  updates 路径无 `/os` 后缀）
+- **openEuler（新增）**：sed `mirror.openeuler.org`（及 `repo.openeuler.org`）→
+  `mirrors.tuna.tsinghua.edu.cn/openeuler`（TUNA 仓库 200 实测），作用于
+  `/etc/yum.repos.d/*.repo`
+- **Anolis OS（新增）**：sed `mirrors.openanolis.cn` / `mirrors.anolis.org` →
+  `mirrors.aliyun.com/anolis`（阿里云 `anolis/8/BaseOS` 200 实测）
+- **RHEL / 麒麟(服务器)**：无公开镜像（订阅授权；TUNA kylin 路径 404 实测），
+  维持打印指引，`*)` 兜底提示文案与实际行为一致
 - 整写前备份整个 `/etc/yum.repos.d`（现状已有）；写后 `dnf clean all && makecache`
-- **实现纪律**：所有 repo 模板以 TUNA 对应 help 页为准（help/almalinux、
-  help/rocky、help/fedora），实现时逐页核对；`$releasever/$basearch` 用发行版
-  原生变量（yum/dnf 自行展开），不本地硬编码版本号
 
 ### Arch 系（修路径 bug）
 
