@@ -189,8 +189,8 @@ main() {
         -v|--version) echo "unix_script $(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"; exit 0 ;;
         -s|--status)  INTERACTIVE=false; show_installed_services; exit 0 ;;
         --list)
-            # 动态列出所有有 manifest 的模块
-            for mod in $_REGISTRY_MODULES; do printf '%s ' "$mod"; done
+            # 动态列出所有有 manifest 的模块（按平台可见性过滤；SHOW_ALL=1 全量）
+            for mod in $(registry_visible_modules); do printf '%s ' "$mod"; done
             echo
             exit 0
             ;;

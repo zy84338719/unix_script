@@ -58,17 +58,18 @@ show_installed_services() {
     header "📊 已安装状态"
     echo "========================================"
 
-    local cat mod label
+    local cat mod label vis
+    vis=$(registry_visible_modules)
     for cat in $CATEGORY_ORDER; do
         local has_module=false
-        for mod in $_REGISTRY_MODULES; do
+        for mod in $vis; do
             [[ "$(_reg_get "$mod" CATEGORY)" == "$cat" ]] && { has_module=true; break; }
         done
         $has_module || continue
 
         echo
         echo "--- $cat ---"
-        for mod in $_REGISTRY_MODULES; do
+        for mod in $vis; do
             [[ "$(_reg_get "$mod" CATEGORY)" == "$cat" ]] || continue
             label=$(_reg_get "$mod" LABEL)
             printf "  %-16s %s\n" "$label:" "$(module_status "$mod")"
