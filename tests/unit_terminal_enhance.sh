@@ -67,6 +67,18 @@ t_true "nerd-font: manifest EXPORTABLE=fonts" "grep -q '^EXPORTABLE=fonts$' '$NF
 t_true "nerd-font: 语法通过" "bash -n '$NF_SH'"
 t_true "nerd-font: 映射表用正确的 Cascadia cask 名(-nf)" "grep -q 'font-cascadia-code-nf' '$NF_SH'"
 
+# ---------- ③ atuin ----------
+ATUIN_SH="$REPO_DIR/dev-tools/atuin/install.sh"
+t_true "atuin: 模块文件存在且可执行" "[[ -x '$ATUIN_SH' ]]"
+
+printf '#!/bin/sh\necho "atuin 18.0.0"\n' > "$FAKE/atuin"; chmod +x "$FAKE/atuin"
+out=$(PATH="$FAKE:$PATH" HOME="$FAKE/home" UXS_STATUS_MODE=machine bash "$ATUIN_SH" status </dev/null 2>/dev/null)
+t_eq "atuin: 已装无 rc 集成 → STATE=installed + EXTRA sync=off" \
+    "installed sync=off" \
+    "$(printf '%s' "$out" | sed -n 's/^STATE=//p' | head -1) $(printf '%s' "$out" | sed -n 's/^EXTRA=sync=//p')"
+t_true "atuin: 导入子命令为 import auto（空格形式）" "grep -q 'import auto' '$ATUIN_SH'"
+t_true "atuin: manifest EXPORTABLE=sync" "grep -q '^EXPORTABLE=sync$' '$REPO_DIR/dev-tools/atuin/.manifest'"
+
 echo
 echo "通过: $PASS / 失败: $FAIL"
 [[ $FAIL -eq 0 ]]

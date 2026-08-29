@@ -1,0 +1,7 @@
+LABEL=Atuin Shell 历史
+CATEGORY=开发环境
+ALIASES=atuin
+DEFAULT_ACTION=install
+EXPORTABLE=sync
+DESC=SQLite 化 shell 历史（全量搜索/跨机加密同步）
+NEXT_STEPS=开启同步先注册:atuin register;新开终端生效:exec zsh
