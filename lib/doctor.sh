@@ -62,6 +62,8 @@ run_doctor() {
     detect_distro
     if [[ -n "$DISTRO_ID" ]]; then
         success "发行版：$DISTRO_NAME（ID=$DISTRO_ID 版本=${DISTRO_VERSION_ID:-未知}，${DISTRO_FAMILY} 系）"
+    elif [[ "$OS_TYPE" == "darwin" ]]; then
+        info "macOS 不适用发行版检测（已跳过）"
     else
         warn "未能识别发行版（缺少 /etc/os-release，包系族按包管理器判定）"
     fi
@@ -114,6 +116,9 @@ run_doctor() {
     info "检查 sudo 权限..."
     if [[ $EUID -eq 0 ]]; then
         success "当前以 root 运行 ✓"
+    elif [[ ! -t 0 ]]; then
+        # 无 TTY 时 sudo -v 无法交互输密码，检测必然失败——按跳过处理，不计问题
+        info "无法检测 sudo（非交互环境），已跳过"
     elif sudo -n true 2>/dev/null; then
         success "sudo 可用（免密） ✓"
     elif sudo -v 2>/dev/null; then

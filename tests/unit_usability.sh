@@ -79,6 +79,15 @@ if [[ "$(uname)" == "Linux" ]]; then
     rm -rf "$FAKE"
 fi
 
+# ---------- doctor 无 TTY（管道即无 TTY，测试天然满足）----------
+DOC_OUT=$(bash "$REPO_DIR/install.sh" doctor </dev/null 2>&1)
+t_true "doctor: 无 TTY 时 sudo 项跳过不误报" "printf '%s' \"\$DOC_OUT\" | grep -q '无法检测 sudo'"
+t_true "doctor: 无 TTY 时无 sudo 不可用误报" "! printf '%s' \"\$DOC_OUT\" | grep -q 'sudo 不可用'"
+if [[ "$(uname)" == "Darwin" ]]; then
+    t_true "doctor: macOS 不再把缺 os-release 计为 WARNING" "! printf '%s' \"\$DOC_OUT\" | grep -q '未能识别发行版'"
+    t_true "doctor: macOS 显示已跳过" "printf '%s' \"\$DOC_OUT\" | grep -q '不适用发行版检测'"
+fi
+
 # ---------- 汇总 ----------
 echo "通过 $PASS / 失败 $FAIL"
 [[ "$FAIL" -eq 0 ]]
