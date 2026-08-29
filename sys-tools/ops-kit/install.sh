@@ -18,6 +18,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
 source "$SCRIPT_DIR/../../lib/common.sh"
+detect_os >/dev/null 2>&1 || true   # 初始化 OS_TYPE，供平台护栏判断
 
 OPS_OK='✅'; OPS_WARN='⚠️ '; OPS_CRIT='🔴'; OPS_SKIP='⬜'
 OPS_LOGROTATE_DIR="${OPS_LOGROTATE_DIR:-/etc/logrotate.d}"
@@ -557,7 +558,7 @@ main() {
         uninstall) cmd_uninstall ;;
         status)    status_ops_kit ;;
         help|-h|--help) usage ;;
-        *) error "未知子命令: $sub"; usage; return 1 ;;
+        *) error "未知子命令: $sub"; usage; exit 1 ;;
     esac
 }
 
