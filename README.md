@@ -118,12 +118,14 @@ node_exporter  install uninstall status help  Prometheus 系统指标收集器
 bun            install mirror unmirror uninstall status help  Bun 运行时（含国内镜像加速）
 clash          install uninstall status start stop restart enable disable help  代理核心 + TUN 透明代理（mihomo）
 
-# 2) 当前安装状态（key:value，无颜色无 emoji）
+# 2) 当前安装状态（key:value，无颜色无 emoji；首 3 行为框架元数据 os/arch/version）
 $ ./install.sh --status-json
+os:darwin
+arch:ARM64
+version:1.13.0
 node_exporter:not_installed
 docker:installed:running
 bun:installed:v1.3.14
-tailscale:installed:connected
 
 # 3) 按分类分组（人类可读）
 $ ./install.sh --list-categories

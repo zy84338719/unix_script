@@ -4,6 +4,15 @@
 
 ## [Unreleased]
 
+### 新增
+- `uxs_with_timeout` 可移植超时护栏（perl fork+alarm，rc=124 对齐 GNU）
+
+### 修复
+- `--status-json` 并行批查（STATE+VERSION 双缓存）+ 单模块故障恒定输出 unknown
+- ufw status 三级降级链——sudo -n 探测 + systemctl 兜底，杜绝无 TTY 静默中止
+- doctor 无 TTY 时 sudo 检测按跳过处理；macOS 缺 os-release 降为 INFO
+- dry-run 压制 Homebrew auto-update 网络副作用（HOMEBREW_NO_AUTO_UPDATE=1）
+
 ## [1.13.0] - 2026-08-29
 
 ### 新增

@@ -55,6 +55,14 @@ unix_script 是一个 macOS/Linux 脚本库，提供 52 个模块的安装、配
 # bun:installed:v1.3.14
 ```
 
+输出首部固定 3 行框架元数据（AI 解析时跳过前 3 行，或按 key 是否为模块名判断）：
+
+```
+os:darwin       # 宿主 OS（darwin/linux）
+arch:ARM64      # CPU 架构
+version:1.13.0  # unix_script 自身版本
+```
+
 状态码含义（state 字段）：
 
 | 状态码 | 含义 |
