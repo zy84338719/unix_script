@@ -36,6 +36,8 @@ SCRIPT_DIR="$REPO_DIR"
 source "$REPO_DIR/lib/common.sh"
 # shellcheck source=../lib/registry.sh
 source "$REPO_DIR/lib/registry.sh"
+# shellcheck source=../lib/menu.sh
+source "$REPO_DIR/lib/menu.sh"
 set +e +o pipefail
 detect_os >/dev/null 2>&1 || true
 registry_scan
@@ -118,6 +120,17 @@ LC=$(run_install --list-categories)
 case "$OS_TYPE" in
     darwin) t_true "--list-categories: 无 ufw 行" '! printf "%s" "$LC" | grep -q "^  ufw"' ;;
     linux)  t_true "--list-categories: 无 brew 行" '! printf "%s" "$LC" | grep -q "^  brew"' ;;
+esac
+
+# ---------- category_items / 菜单可见性 ----------
+case "$OS_TYPE" in
+    darwin)
+        t_true "category_items: 系统工具不含 ufw" 'case " $(category_items 系统工具 "") " in *" ufw "*) false;; *) true;; esac'
+        t_true "category_items: 系统工具含 disk-usage" 'case " $(category_items 系统工具 "") " in *" disk-usage "*) true;; *) false;; esac'
+        ;;
+    linux)
+        t_true "category_items: 装机必备不含 brew" 'case " $(category_items 装机必备 "") " in *" brew "*) false;; *) true;; esac'
+        ;;
 esac
 
 echo "unit_platform_filter: 通过 $PASS / 失败 $FAIL"
