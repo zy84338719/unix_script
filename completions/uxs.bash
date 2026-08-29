@@ -24,7 +24,7 @@ _uxs_completions() {
                 fi
             done
         done
-        globals="--status --status-json --list --list-modules --list-categories --dry-run --no-deps --version --help update check-update cli uninstall-cli doctor scaffold export apply completions"
+        globals="--status --status-json --list --list-modules --list-categories --dry-run --no-deps --version --help update check-update cli uninstall-cli doctor scaffold export apply completions search"
         COMPREPLY=( $(compgen -W "$modules $globals" -- "$cur") )
         return 0
     fi

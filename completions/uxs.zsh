@@ -39,6 +39,7 @@ _uxs() {
         'uninstall-cli:卸载全局命令 uxs'
         'completions:安装 Tab 补全'
         'doctor:环境诊断'
+        'search:搜索模块（名称/别名/描述）'
         'scaffold:创建新模块模板'
         'export:导出已装模块为 profile'
         'apply:从 profile 应用配置'

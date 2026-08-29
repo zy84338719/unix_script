@@ -660,7 +660,7 @@ phase_routing() {
         source "$1/completions/uxs.bash"
         _uxs_completions
         # 不用 diff：极简容器（arch/RHEL 系）可能无 diffutils；sort+字符串比较仅依赖 POSIX 基础工具
-        comp_list=$(printf "%s\n" "${COMPREPLY[@]}" | grep -vE "^(--.*|apply|check-update|cli|completions|doctor|export|scaffold|uninstall-cli|update)$" | sort)
+        comp_list=$(printf "%s\n" "${COMPREPLY[@]}" | grep -vE "^(--.*|apply|check-update|cli|completions|doctor|export|scaffold|search|uninstall-cli|update)$" | sort)
         reg_list=$("$1/install.sh" --list | tr " " "\n" | grep -v "^$" | sort)
         [ "$comp_list" = "$reg_list" ]' _ "$REPO_DIR"
     if command -v zsh >/dev/null 2>&1; then

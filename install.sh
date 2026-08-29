@@ -196,6 +196,11 @@ main() {
             ;;
         --list-modules)    show_list_modules; exit 0 ;;
         --list-categories) show_list_categories; exit 0 ;;
+        search)
+            shift
+            show_search_results "$@"
+            exit $?
+            ;;
         --status-json)     show_status_json; exit 0 ;;
         check-update)
             info "检查远端最新版本..."

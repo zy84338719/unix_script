@@ -79,6 +79,7 @@ git clone https://github.com/zy84338719/unix_script.git && cd unix_script
 | `./install.sh --list` | 列出所有模块名（空格分隔，适合脚本） |
 | `./install.sh --list-modules` | TSV：模块名 + 支持的子命令 + 描述（AI / 脚本友好） |
 | `./install.sh --list-categories` | 按分类分组列出模块 |
+| `./install.sh search <关键字>` | 搜索模块（名称/别名/描述，多关键字 AND；无匹配退出 1） |
 | `./install.sh --status-json` | key:value 状态（无颜色无 emoji，AI 友好） |
 
 ### 工具链命令

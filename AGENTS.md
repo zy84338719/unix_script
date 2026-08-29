@@ -205,7 +205,7 @@ curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstr
 ## AI agent 典型工作流
 
 1. `./install.sh --status-json` → 了解当前已装/未装
-2. `./install.sh --list-modules` → 了解可用模块及子命令
+2. `./install.sh --list-modules` → 了解可用模块及子命令（或 `./install.sh search <关键字>` 按名称/别名/描述精准搜索）
 3. `./install.sh <需要的模块>` → 安装
 4. `./install.sh <模块> status` → 确认结果
 

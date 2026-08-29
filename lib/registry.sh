@@ -144,6 +144,25 @@ registry_desc()            { _reg_get "$1" DESC; }
 registry_category()        { _reg_get "$1" CATEGORY; }
 registry_aliases()         { _reg_get "$1" ALIASES; }
 registry_next_steps()      { _reg_get "$1" NEXT_STEPS; }
+
+# registry_search <关键字...> — 全注册表搜索（批次③）。
+# 匹配域：模块名+别名+LABEL+DESC 拼接；大小写不敏感子串；多关键字 AND。
+# 输出命中模块名（注册表序，每行一个）；无匹配输出空。
+registry_search() {
+    [[ $# -eq 0 ]] && return 0
+    local mod hay kw ok
+    for mod in $_REGISTRY_MODULES; do
+        hay="$mod|$(_reg_get "$mod" ALIASES)|$(_reg_get "$mod" LABEL)|$(_reg_get "$mod" DESC)"
+        hay=$(printf '%s' "$hay" | tr '[:upper:]' '[:lower:]')
+        ok=1
+        for kw in "$@"; do
+            kw=$(printf '%s' "$kw" | tr '[:upper:]' '[:lower:]')
+            if [[ "$hay" != *"$kw"* ]]; then ok=0; break; fi
+        done
+        [[ "$ok" -eq 1 ]] && printf '%s\n' "$mod"
+    done
+    return 0
+}
 registry_default_action()  { local v; v=$(_reg_get "$1" DEFAULT_ACTION); echo "${v:-install}"; }
 registry_has_submenu()     { _reg_get "$1" HAS_SUBMENU; }
 registry_entry_script()    { local v; v=$(_reg_get "$1" ENTRY_SCRIPT); echo "${v:-install.sh}"; }

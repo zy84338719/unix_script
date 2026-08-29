@@ -175,6 +175,24 @@ _parse_manifest __test_ns2__ "$NS_MANIFEST"
 t_eq "next-steps: 无字段的模块零输出" "" "$(show_next_steps __test_ns2__)"
 rm -f "$NS_MANIFEST"
 
+# ---------- uxs search 命令行搜索（批次③）----------
+t_true "search: 模块名命中" "registry_search docker | grep -qw docker"
+t_true "search: 别名命中（pg→postgres）" "registry_search pg | grep -qw postgres"
+t_true "search: DESC 中文命中（反向代理→nginx）" "registry_search 反向代理 | grep -qw nginx"
+t_true "search: AND 语义（docker+镜像 命中 docker-image）" "registry_search docker 镜像 | grep -qw docker-image"
+t_true "search: AND 语义（docker+键盘 不命中 docker）" "! registry_search docker 键盘 | grep -qw docker"
+t_eq "search: 大小写不敏感（DOCKER 命中 docker/docker-image）" "2" "$(registry_search DOCKER | grep -cw docker)"
+t_eq "search: 无命中空输出" "" "$(registry_search zzxxqqyyzz)"
+
+t_true "search: 人类输出含分类组头" "printf '%s' \"\$(show_search_results docker)\" | grep -q '^\\['"
+t_true "search: 人类输出含别名段（pg）" "printf '%s' \"\$(show_search_results pg)\" | grep -q '别名'"
+SR_RC=$(show_search_results docker >/dev/null 2>&1; echo $?)
+t_eq "search: 有匹配 rc=0" "0" "$SR_RC"
+SR_N=$(UXS_STATUS_MODE=machine show_search_results docker | head -1 | awk -F'\t' '{print NF}')
+t_eq "search: 机器模式 TSV 两列" "2" "$SR_N"
+show_search_results zzxxqqyyzz >/dev/null 2>&1; t_eq "search: 无匹配 rc=1" "1" "$?"
+show_search_results >/dev/null 2>&1; t_eq "search: 缺关键字 rc=1" "1" "$?"
+
 # ---------- 汇总 ----------
 echo "通过 $PASS / 失败 $FAIL"
 [[ "$FAIL" -eq 0 ]]

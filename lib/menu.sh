@@ -489,6 +489,52 @@ uninstall_menu_loop() {
 # ============================================================
 # 用法文本
 # ============================================================
+# show_search_results <关键字...> — search 子命令展示（批次③）。
+# 人类模式按分类分组：<模块名>  <LABEL> — <DESC>  [别名: ..]；机器模式 TSV（模块名<TAB>DESC）。
+# 缺关键字 / 无匹配 rc=1（供脚本判定），有匹配 rc=0。
+show_search_results() {
+    if [[ $# -eq 0 ]]; then
+        error "用法: ./install.sh search <关键字> [关键字...]（匹配模块名/别名/描述，多关键字 AND）"
+        return 1
+    fi
+    local -a hits=()
+    local mod cat cat_mods group label desc aliases line
+    while IFS= read -r mod; do
+        [[ -n "$mod" ]] && hits+=("$mod")
+    done < <(registry_search "$@")
+    if [[ ${#hits[@]} -eq 0 ]]; then
+        warn "无匹配模块。试试更短的关键字，或用 --list-categories 查看全部"
+        return 1
+    fi
+    if uxs_is_machine_mode; then
+        for mod in "${hits[@]}"; do
+            printf '%s\t%s\n' "$mod" "$(registry_desc "$mod")"
+        done
+        return 0
+    fi
+    for cat in $CATEGORY_ORDER; do
+        cat_mods=$(registry_modules_in_category "$cat")
+        group=""
+        for mod in "${hits[@]}"; do
+            [[ " $cat_mods " == *" $mod "* ]] && group="$group $mod"
+        done
+        [[ -z "$group" ]] && continue
+        echo "[$cat]"
+        for mod in $group; do
+            label=$(_reg_get "$mod" LABEL)
+            desc=$(registry_desc "$mod")
+            aliases=$(_reg_get "$mod" ALIASES)
+            line="  $mod"
+            [[ -n "$label" ]] && line="$line  $label"
+            [[ -n "$desc" ]] && line="$line — $desc"
+            [[ -n "$aliases" ]] && line="$line  [别名: $aliases]"
+            printf '%s\n' "$line"
+        done
+    done
+    info "共 ${#hits[@]} 个匹配"
+    return 0
+}
+
 # show_next_steps <模块名> — 安装成功后的「下一步」引导块（批次②）。
 # 条目来自 .manifest 的 NEXT_STEPS（分号分隔，条目内冒号分隔「说明:命令」）。
 # 仅人类模式 + 非 dry-run 打印；机器模式与预览模式零输出。
