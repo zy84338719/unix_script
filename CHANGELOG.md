@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+### 新增
+- 容器工具批次①（模块 61→65，services 21→22、dev-tools 15→18）：
+  - `podman` 无守护进程容器引擎（rootless；Linux 系统仓库含 podman-compose，macOS brew + podman machine 交互初始化），`mirror`/`unmirror` 写 containers 原生 registries 配置实现 docker.io 国内加速；刻意不装 podman-docker 避免与 docker 模块冲突
+  - `kubectl` Kubernetes 命令行客户端（Linux dl.k8s.io 官方稳定版二进制，macOS brew；卸载默认保留 ~/.kube）
+  - `k9s` Kubernetes 终端管理面板（Linux GitHub release 二进制，macOS brew；与桌面版 k7s 互补）
+  - `helm` Kubernetes 包管理器（Linux get.helm.sh 官方 tarball，版本经 GitHub API 获取避开 raw.githubusercontent；macOS brew）
+
 ## [1.17.0] - 2026-08-29
 
 ### 新增
