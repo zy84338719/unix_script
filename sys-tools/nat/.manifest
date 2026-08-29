@@ -3,3 +3,4 @@ CATEGORY=系统工具
 ALIASES=port-forward,forward,nat-manager
 DEFAULT_ACTION=install
 DESC=NAT 端口转发
+PLATFORMS=linux
