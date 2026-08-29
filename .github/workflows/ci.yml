@@ -194,8 +194,6 @@ jobs:
             image: opensuse/leap:15.6
             expect_id: opensuse-leap
             expect_family: suse
-            expect_id: opensuse-tumbleweed
-            expect_family: suse
           - distro: arch
             image: archlinux:latest
             expect_id: arch
