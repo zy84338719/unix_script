@@ -4,6 +4,16 @@
 
 ## [Unreleased]
 
+### 新增
+- 容器工具批次②（模块 66→73，services 23→28、dev-tools 18→19）：
+  - `buildah` OCI 镜像构建工具（仅 Linux，PLATFORMS=linux；macOS 无本地容器存储）
+  - `skopeo` 镜像搬运/检查工具（纯 registry 客户端，全平台可用）
+  - `kind` Docker 内本地 Kubernetes 集群（REQUIRES=docker；Linux GitHub release 二进制 / macOS brew）
+  - `k3s` 轻量级 Kubernetes（PLATFORMS=linux；get.k3s.io 官方脚本，--write-kubeconfig-mode 644）
+  - `harbor` 自托管镜像仓库（PLATFORMS=linux，REQUIRES=docker；offline installer 到 /opt/harbor，http 模式，admin 密码非交互随机生成一次性回显）
+  - `mysql` MySQL 数据库服务端（Linux 发行版仓库三段回退，服务 enable-now；补齐库内只有 postgres/redis 的缺口）
+  - `frp` 内网穿透 frps/frpc（GitHub release 二进制；Linux 附 systemd unit 默认不启用 + /etc/frp 完整配置样例不覆盖）
+
 ## [1.18.0] - 2026-08-30
 
 ### 新增

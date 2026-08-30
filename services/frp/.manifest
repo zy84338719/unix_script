@@ -1,0 +1,5 @@
+LABEL=frp
+CATEGORY=服务
+DEFAULT_ACTION=install
+DESC=内网穿透（frps/frpc）
+NEXT_STEPS=动态域名:./install.sh ddns-go;组网 VPN:./install.sh tailscale

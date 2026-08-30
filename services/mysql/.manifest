@@ -1,0 +1,5 @@
+LABEL=MySQL
+CATEGORY=服务
+DEFAULT_ACTION=install
+DESC=MySQL 数据库（服务端）
+NEXT_STEPS=安全加固:mysql_secure_installation;缓存库:./install.sh redis

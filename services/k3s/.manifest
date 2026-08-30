@@ -1,0 +1,6 @@
+LABEL=k3s
+CATEGORY=服务
+PLATFORMS=linux
+DEFAULT_ACTION=install
+DESC=轻量级 Kubernetes（边缘/服务器）
+NEXT_STEPS=终端面板:./install.sh k9s;包管理:./install.sh helm

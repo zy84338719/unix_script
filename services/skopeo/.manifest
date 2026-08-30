@@ -1,0 +1,5 @@
+LABEL=skopeo
+CATEGORY=服务
+DEFAULT_ACTION=install
+DESC=镜像搬运/检查工具
+NEXT_STEPS=镜像构建:./install.sh buildah;容器引擎:./install.sh podman
