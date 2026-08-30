@@ -1,0 +1,5 @@
+LABEL=Helm
+CATEGORY=开发环境
+DEFAULT_ACTION=install
+DESC=Kubernetes 包管理器
+NEXT_STEPS=本地集群:./install.sh minikube
