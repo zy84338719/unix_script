@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-08-30
+
 ### 新增
 - 容器工具批次①（模块 61→66，services 21→23、dev-tools 15→18）：
   - `podman` 无守护进程容器引擎（rootless；Linux 系统仓库含 podman-compose，macOS brew + podman machine 交互初始化），`mirror`/`unmirror` 写 containers 原生 registries 配置实现 docker.io 国内加速；刻意不装 podman-docker 避免与 docker 模块冲突
