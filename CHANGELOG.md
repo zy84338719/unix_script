@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.19.0] - 2026-08-30
+
 ### 新增
 - 容器工具批次②（模块 66→73，services 23→28、dev-tools 18→19）：
   - `buildah` OCI 镜像构建工具（仅 Linux，PLATFORMS=linux；macOS 无本地容器存储）

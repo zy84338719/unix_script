@@ -60,7 +60,7 @@ unix_script 是一个 macOS/Linux 脚本库，提供 73 个模块的安装、配
 ```
 os:darwin       # 宿主 OS（darwin/linux）
 arch:ARM64      # CPU 架构
-version:1.18.0  # unix_script 自身版本
+version:1.19.0  # unix_script 自身版本
 ```
 
 状态码含义（state 字段）：
