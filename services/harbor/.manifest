@@ -1,0 +1,7 @@
+LABEL=Harbor
+CATEGORY=服务
+PLATFORMS=linux
+REQUIRES=docker
+DEFAULT_ACTION=install
+DESC=自托管镜像仓库（Docker）
+NEXT_STEPS=镜像搬运:./install.sh skopeo;容器引擎:./install.sh docker

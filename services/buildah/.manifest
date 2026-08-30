@@ -1,0 +1,6 @@
+LABEL=buildah
+CATEGORY=服务
+PLATFORMS=linux
+DEFAULT_ACTION=install
+DESC=OCI 镜像构建工具（仅 Linux）
+NEXT_STEPS=镜像搬运:./install.sh skopeo;容器引擎:./install.sh podman

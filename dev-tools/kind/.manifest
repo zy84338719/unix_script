@@ -1,0 +1,6 @@
+LABEL=kind
+CATEGORY=开发环境
+REQUIRES=docker
+DEFAULT_ACTION=install
+DESC=Docker 内本地 Kubernetes（CI 向）
+NEXT_STEPS=创建集群:kind create cluster --name demo;终端面板:./install.sh k9s
