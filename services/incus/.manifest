@@ -1,0 +1,6 @@
+LABEL=Incus
+CATEGORY=服务
+PLATFORMS=linux
+DEFAULT_ACTION=install
+DESC=系统容器/虚拟化管理（LXD 分支）
+NEXT_STEPS=初始化:sudo incus admin init;容器引擎:./install.sh podman
