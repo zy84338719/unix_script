@@ -1,0 +1,5 @@
+LABEL=MariaDB
+CATEGORY=服务
+DEFAULT_ACTION=install
+DESC=MariaDB 数据库（MySQL 兼容）
+NEXT_STEPS=安全加固:mariadb-secure-installation;MySQL 8:./install.sh mysql
