@@ -78,7 +78,9 @@ fetch_statuses() {
     local api="https://api.github.com" run_id
     run_id=$(curl -sfL "${curl_args[@]+"${curl_args[@]}"}" \
         "$api/repos/$REPO_SLUG/actions/workflows/ci.yml/runs?branch=main&per_page=10" 2>/dev/null |
-        jq -r '[.workflow_runs[] | select(.status=="completed")][0].id // empty' 2>/dev/null) || return 0
+        # 排除 cancelled：合并 push 被 supersede 取消的 run 其 job 全是 cancelled，
+        # 若取样到会把整列写成 🚫（2026-08-30 v1.18/v1.19 合并后矩阵大面积变红即此因）
+        jq -r '[.workflow_runs[] | select(.status=="completed" and .conclusion!="cancelled")][0].id // empty' 2>/dev/null) || return 0
     [ -n "$run_id" ] || return 0
     curl -sfL "${curl_args[@]+"${curl_args[@]}"}" "$api/repos/$REPO_SLUG/actions/runs/$run_id/jobs?per_page=100" 2>/dev/null |
         jq -r '.jobs[] | .name + "\t" + (.conclusion // "pending")' 2>/dev/null || true
