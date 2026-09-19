@@ -131,7 +131,7 @@ _configure_timesyncd() {
     fi
 
     # 重启 timesyncd 使配置生效
-    sudo systemctl restart systemd-timesyncd 2>/dev/null || true
+    uxs_svc restart systemd-timesyncd 2>/dev/null || true
 }
 
 # 配置 chrony 的 NTP 服务器
@@ -154,7 +154,7 @@ _configure_chrony() {
         echo "server $s iburst" | sudo tee -a "$conf" >/dev/null
     done
 
-    sudo systemctl restart chrony 2>/dev/null || sudo systemctl restart chronyd 2>/dev/null || true
+    uxs_svc restart chrony 2>/dev/null || uxs_svc restart chronyd 2>/dev/null || true
 }
 
 # 配置 ntpd 的 NTP 服务器
@@ -174,7 +174,7 @@ _configure_ntpd() {
         echo "server $s iburst" | sudo tee -a "$conf" >/dev/null
     done
 
-    sudo systemctl restart ntpd 2>/dev/null || true
+    uxs_svc restart ntpd 2>/dev/null || true
 }
 
 # 设置 NTP 服务器（自动检测后端）
@@ -183,22 +183,22 @@ set_ntp_servers() {
     detect_distro
 
     # 检测使用哪个 NTP 后端
-    if systemctl is-active --quiet systemd-timesyncd 2>/dev/null || \
-       systemctl list-unit-files 2>/dev/null | grep -q systemd-timesyncd; then
+    if uxs_svc is-active systemd-timesyncd 2>/dev/null || \
+       uxs_svc list-unit-files 2>/dev/null | grep -q systemd-timesyncd; then
         if _configure_timesyncd "$servers"; then
             success "已配置 systemd-timesyncd: $servers"
         else
             error "配置 systemd-timesyncd 失败"; return 1
         fi
-    elif systemctl is-active --quiet chrony 2>/dev/null || \
-         systemctl is-active --quiet chronyd 2>/dev/null || \
+    elif uxs_svc is-active chrony 2>/dev/null || \
+         uxs_svc is-active chronyd 2>/dev/null || \
          command_exists chronyc; then
         if _configure_chrony "$servers"; then
             success "已配置 chrony: $servers"
         else
             error "配置 chrony 失败"; return 1
         fi
-    elif systemctl is-active --quiet ntpd 2>/dev/null || \
+    elif uxs_svc is-active ntpd 2>/dev/null || \
          command_exists ntpd; then
         if _configure_ntpd "$servers"; then
             success "已配置 ntpd: $servers"
@@ -234,7 +234,7 @@ show_ntp_status() {
         timedatectl status 2>/dev/null | grep -E 'Local time|Time zone|NTP|synchronized' | sed 's/^/  /'
     fi
     # 显示实际使用的 NTP 服务器
-    if systemctl is-active --quiet systemd-timesyncd 2>/dev/null; then
+    if uxs_svc is-active systemd-timesyncd 2>/dev/null; then
         echo "  后端: systemd-timesyncd"
         local conf="/etc/systemd/timesyncd.conf"
         if [[ -f "$conf" ]] && grep -q '^NTP=' "$conf"; then
@@ -332,8 +332,8 @@ do_timezone() {
         sudo timedatectl set-timezone "$tz"
         success "时区已设置为 $tz"
         # 优先启用 systemd-timesyncd
-        if systemctl list-unit-files 2>/dev/null | grep -q systemd-timesyncd; then
-            sudo systemctl enable --now systemd-timesyncd 2>/dev/null || true
+        if uxs_svc list-unit-files 2>/dev/null | grep -q systemd-timesyncd; then
+            uxs_svc enable-now systemd-timesyncd 2>/dev/null || true
             sudo timedatectl set-ntp true 2>/dev/null || true
             success "已启用 systemd-timesyncd (NTP)"
         fi
@@ -343,7 +343,7 @@ do_timezone() {
     fi
 
     # 没有 timesyncd 时回退装 chrony（unit 名是名词：debian 系 chrony、rhel 系 chronyd）
-    if ! systemctl is-active --quiet systemd-timesyncd 2>/dev/null; then
+    if ! uxs_svc is-active systemd-timesyncd 2>/dev/null; then
         if pkg_install chrony 2>/dev/null; then
             local unit="chronyd"
             [[ "$DISTRO_FAMILY" == "debian" ]] && unit="chrony"
@@ -420,7 +420,7 @@ EOF
     success "已写入 SSH 加固配置（${dropin}）"
 
     if command_exists systemctl; then
-        sudo systemctl reload sshd 2>/dev/null || sudo systemctl reload ssh 2>/dev/null || true
+        uxs_svc reload sshd 2>/dev/null || uxs_svc reload ssh 2>/dev/null || true
         success "sshd 已 reload（配置在新连接生效）"
     fi
 }
@@ -478,7 +478,7 @@ status_sys_setup() {
     ntp_sync=$(timedatectl show -p NTP --value 2>/dev/null || echo '未知')
     # NTP 服务器（含后端）
     local ntp_servers="(系统默认)" ntp_backend="" ntp_val=""
-    if systemctl is-active --quiet systemd-timesyncd 2>/dev/null; then
+    if uxs_svc is-active systemd-timesyncd 2>/dev/null; then
         ntp_backend="timesyncd"
         local ntp_conf="/etc/systemd/timesyncd.conf"
         if [[ -f "$ntp_conf" ]] && grep -q '^NTP=' "$ntp_conf" 2>/dev/null; then

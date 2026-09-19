@@ -107,7 +107,7 @@ install_postgres() {
         esac
 
         info "启用并启动 postgresql 服务..."
-        sudo systemctl enable --now postgresql
+        uxs_svc enable-now postgresql
     fi
 
     # 验证安装
@@ -166,8 +166,8 @@ uninstall_postgres() {
         success "PostgreSQL 已卸载（macOS）"
     else
         require_sudo
-        sudo systemctl stop postgresql 2>/dev/null || true
-        sudo systemctl disable postgresql 2>/dev/null || true
+        uxs_svc stop postgresql 2>/dev/null || true
+        uxs_svc disable postgresql 2>/dev/null || true
         local pkgs_str
         pkgs_str=$(pg_pkg_names)
         local -a pkgs

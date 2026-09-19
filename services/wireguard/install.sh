@@ -110,9 +110,9 @@ configure_service() {
 
     info "Enabling WireGuard service for interface '${interface}'..."
     if [[ "$OS" == "Linux" ]]; then
-        sudo systemctl enable wg-quick@${interface}.service
-        sudo systemctl restart wg-quick@${interface}.service
-        if systemctl is-active --quiet "wg-quick@${interface}"; then
+        uxs_svc enable "wg-quick@${interface}.service"
+        uxs_svc restart "wg-quick@${interface}.service"
+        if uxs_svc is-active "wg-quick@${interface}"; then
             success "WireGuard service for ${interface} is enabled and started."
         else
             error "Failed to start WireGuard service. Check your configuration with 'sudo wg-quick up ${interface}' and logs with 'sudo journalctl -u wg-quick@${interface}'."
@@ -173,10 +173,10 @@ uninstall_service() {
 
     local interface="wg0"
     if [[ "$OS" == "Linux" ]]; then
-        sudo systemctl stop "wg-quick@${interface}" &>/dev/null || true
-        sudo systemctl disable "wg-quick@${interface}" &>/dev/null || true
+        uxs_svc stop "wg-quick@${interface}" &>/dev/null || true
+        uxs_svc disable "wg-quick@${interface}" &>/dev/null || true
         sudo rm -f "/etc/systemd/system/wg-quick@${interface}.service"
-        sudo systemctl daemon-reload
+        uxs_svc daemon-reload
         success "WireGuard service for ${interface} has been disabled and stopped."
     elif [[ "$OS" == "Darwin" ]]; then
         local plist_file="/Library/LaunchDaemons/com.wireguard.${interface}.plist"
@@ -195,7 +195,7 @@ status_wireguard() {
     local os_kernel; os_kernel="$(uname -s)"
     command_exists wg && wg_installed=true
     if [[ "$os_kernel" == "Linux" ]]; then
-        systemctl is-active --quiet "wg-quick@${interface}" 2>/dev/null && service_running=true
+        uxs_svc is-active "wg-quick@${interface}" 2>/dev/null && service_running=true
     elif [[ "$os_kernel" == "Darwin" ]]; then
         sudo launchctl list 2>/dev/null | grep -q "com.wireguard.${interface}" && service_running=true
     fi

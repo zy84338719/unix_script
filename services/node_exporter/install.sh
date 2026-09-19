@@ -60,7 +60,7 @@ handle_existing_installation() {
 
     info "正在停止现有服务..."
     if [[ "$OS_TYPE" == "linux" ]]; then
-        sudo systemctl stop node_exporter &>/dev/null || true
+        uxs_svc stop node_exporter &>/dev/null || true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         if sudo launchctl list | grep -q "node_exporter"; then
             sudo launchctl bootout system "$NE_PLIST" &>/dev/null || true
@@ -144,8 +144,8 @@ EOF
     success "systemd 服务文件创建成功"
 
     info "正在启动服务..."
-    sudo systemctl daemon-reload
-    if sudo systemctl enable --now node_exporter; then
+    uxs_svc daemon-reload
+    if uxs_svc enable-now node_exporter; then
         success "node_exporter 服务已启动并设置为开机自启"
     else
         error "服务启动失败"
@@ -332,10 +332,10 @@ uninstall_node_exporter() {
     require_sudo
     info "正在卸载 Node Exporter..."
     if [[ "$OS_TYPE" == "linux" ]]; then
-        sudo systemctl stop node_exporter &>/dev/null || true
-        sudo systemctl disable node_exporter &>/dev/null || true
+        uxs_svc stop node_exporter &>/dev/null || true
+        uxs_svc disable node_exporter &>/dev/null || true
         sudo rm -f /etc/systemd/system/node_exporter.service
-        sudo systemctl daemon-reload &>/dev/null || true
+        uxs_svc daemon-reload &>/dev/null || true
         sudo rm -f "$NE_BIN"
         if id node_exporter &>/dev/null; then
             sudo userdel node_exporter

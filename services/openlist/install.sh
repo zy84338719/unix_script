@@ -106,8 +106,8 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 EOF
-        sudo systemctl daemon-reload
-        sudo systemctl enable --now "$SERVICE_NAME"
+        uxs_svc daemon-reload
+        uxs_svc enable-now "$SERVICE_NAME"
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         info "创建 launchd 服务..."
         sudo tee "$PLIST_FILE" >/dev/null <<EOF
@@ -182,7 +182,7 @@ uninstall_openlist() {
     service_stop "$SERVICE_NAME" "$PLIST_FILE"
     if [[ "$OS_TYPE" == "linux" ]]; then
         sudo rm -f /etc/systemd/system/${SERVICE_NAME}.service
-        sudo systemctl daemon-reload 2>/dev/null || true
+        uxs_svc daemon-reload 2>/dev/null || true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         sudo rm -f "$PLIST_FILE"
     fi

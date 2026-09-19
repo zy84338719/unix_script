@@ -83,7 +83,7 @@ do_install() {
             "$tmpdir/frp_${ver}_${OS_TYPE}_${arch}/conf/frps_full_example.toml" "$CONF_DIR/frps.toml"
         write_unit frpc "frp client"
         write_unit frps "frp server"
-        sudo systemctl daemon-reload
+        uxs_svc daemon-reload
         success "配置样例已放 $CONF_DIR（完整示例，编辑后使用）；systemd unit 已装（默认不启用）"
         info "服务端启用：sudo systemctl enable --now frps"
         info "客户端启用：sudo systemctl enable --now frpc"
@@ -103,9 +103,9 @@ do_uninstall() {
     if [[ "$OS_TYPE" == "linux" ]]; then
         uxs_svc stop frpc 2>/dev/null || true
         uxs_svc stop frps 2>/dev/null || true
-        sudo systemctl disable frpc frps 2>/dev/null || true
+        uxs_svc disable frpc frps 2>/dev/null || true
         sudo rm -f /etc/systemd/system/frpc.service /etc/systemd/system/frps.service
-        sudo systemctl daemon-reload
+        uxs_svc daemon-reload
     fi
     sudo rm -f /usr/local/bin/frpc /usr/local/bin/frps
     success "frp 已卸载"

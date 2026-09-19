@@ -147,7 +147,7 @@ uninstall_webmin() {
     if ! yes_no "确认卸载 Webmin（含 /etc/webmin 配置）？"; then
         info "已取消"; return 0
     fi
-    sudo systemctl stop webmin 2>/dev/null || true
+    uxs_svc stop webmin 2>/dev/null || true
     pkg_remove webmin 2>/dev/null || warn "webmin 包移除失败，请手动卸载"
     sudo rm -f /etc/apt/sources.list.d/webmin-stable.list \
         /etc/yum.repos.d/webmin-stable.repo /etc/zypp/repos.d/webmin-stable.repo \
@@ -171,7 +171,7 @@ status_webmin() {
     if [[ -n "${ver}" ]]; then
         emit_version "${ver}"
     fi
-    if systemctl is-active --quiet webmin 2>/dev/null; then
+    if uxs_svc is-active webmin 2>/dev/null; then
         emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
     else
         emit_status "installed:stopped" "${YELLOW}⚠️  已安装（服务未运行）${NC}"

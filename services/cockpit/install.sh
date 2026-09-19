@@ -53,7 +53,7 @@ install_cockpit() {
     fi
 
     info "启用并启动 cockpit.socket（按需激活的 socket，更安全）..."
-    sudo systemctl enable --now cockpit.socket 2>/dev/null || sudo systemctl enable --now cockpit 2>/dev/null || true
+    uxs_svc enable-now cockpit.socket 2>/dev/null || uxs_svc enable-now cockpit 2>/dev/null || true
 
     # 放行防火墙（若存在）
     if command_exists firewall-cmd; then
@@ -68,7 +68,7 @@ install_cockpit() {
 
     info "验证..."
     sleep 2
-    if systemctl is-active --quiet cockpit.socket 2>/dev/null || systemctl is-active --quiet cockpit 2>/dev/null; then
+    if uxs_svc is-active cockpit.socket 2>/dev/null || uxs_svc is-active cockpit 2>/dev/null; then
         success "Cockpit socket/service 运行正常"
     else
         warn "Cockpit 服务未运行（socket 模式下首次访问才激活，属正常）"
@@ -92,8 +92,8 @@ uninstall_cockpit() {
     if ! yes_no "确认卸载 Cockpit？"; then
         info "已取消"; return 0
     fi
-    sudo systemctl disable --now cockpit.socket 2>/dev/null || true
-    sudo systemctl disable --now cockpit 2>/dev/null || true
+    uxs_svc disable-now cockpit.socket 2>/dev/null || true
+    uxs_svc disable-now cockpit 2>/dev/null || true
     pkg_remove cockpit 2>/dev/null || warn "cockpit 包移除失败，请手动卸载"
     if command_exists firewall-cmd; then
         sudo firewall-cmd --remove-service=cockpit --permanent 2>/dev/null || true
@@ -110,7 +110,7 @@ status_cockpit() {
     if ! command_exists cockpit-bridge 2>/dev/null && ! rpm -q cockpit >/dev/null 2>&1 && ! dpkg -s cockpit >/dev/null 2>&1; then
         emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
     fi
-    if systemctl is-active --quiet cockpit.socket 2>/dev/null || systemctl is-active --quiet cockpit 2>/dev/null; then
+    if uxs_svc is-active cockpit.socket 2>/dev/null || uxs_svc is-active cockpit 2>/dev/null; then
         emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
     else
         emit_status "installed:stopped" "${YELLOW}⚠️  已安装（socket 模式，访问时激活）${NC}"

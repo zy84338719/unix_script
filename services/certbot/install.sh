@@ -58,12 +58,12 @@ do_install() {
     # Linux: 检查续期定时器
     if [[ "$OS_TYPE" == "linux" ]]; then
         info "检查证书自动续期..."
-        if systemctl is-active --quiet certbot.timer 2>/dev/null; then
+        if uxs_svc is-active certbot.timer 2>/dev/null; then
             success "certbot.timer 已激活，证书将自动续期"
-        elif systemctl list-unit-files certbot.timer >/dev/null 2>&1; then
+        elif uxs_svc list-unit-files certbot.timer >/dev/null 2>&1; then
             info "certbot.timer 存在但未启用，正在启用..."
-            sudo systemctl enable --now certbot.timer 2>/dev/null || warn "启用 certbot.timer 失败"
-        elif systemctl is-active --quiet certbot-renew.timer 2>/dev/null; then
+            uxs_svc enable-now certbot.timer 2>/dev/null || warn "启用 certbot.timer 失败"
+        elif uxs_svc is-active certbot-renew.timer 2>/dev/null; then
             success "certbot-renew.timer 已激活，证书将自动续期"
         else
             warn "未检测到 certbot 续期定时器。"
@@ -178,10 +178,10 @@ do_status() {
     # 检查续期定时器
     local renewal_status="" autorenew=""
     if [[ "$OS_TYPE" == "linux" ]]; then
-        if systemctl is-active --quiet certbot.timer 2>/dev/null; then
+        if uxs_svc is-active certbot.timer 2>/dev/null; then
             renewal_status="续期定时器运行中"
             autorenew="enabled"
-        elif systemctl is-active --quiet certbot-renew.timer 2>/dev/null; then
+        elif uxs_svc is-active certbot-renew.timer 2>/dev/null; then
             renewal_status="续期定时器运行中"
             autorenew="enabled"
         else

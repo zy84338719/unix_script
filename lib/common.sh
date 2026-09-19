@@ -633,26 +633,43 @@ service_start() {
 }
 
 # uxs_svc <action> <unit>... — systemd 服务动作封装（Linux-only）。
-# action: start|stop|restart|reload|enable|disable|enable-now|is-active。
-# 除只读的 is-active 外均走 dry_run_sudo（--dry-run 下仅打印）；非 Linux 返回 1。
+# action: start|stop|restart|reload|enable|disable|enable-now|disable-now|
+#         daemon-reload|is-active|is-enabled|list-unit-files
+# 写类动作走 dry_run_sudo（--dry-run 下仅打印）；is-active/is-enabled/list-unit-files
+# 为只读直跑。daemon-reload 无 unit 参数，其余 action 缺 unit 报错。非 Linux 返回 1。
 # 与 service_start/stop/is_active 并存：那组是 systemd+launchd 双平台签名，
 # Linux-only 模块用本函数，签名更简单。
 uxs_svc() {
     local action="$1"; shift
-    if [[ $# -lt 1 ]]; then
-        error "uxs_svc: 缺少 unit 参数"
+    if [[ "$action" != "daemon-reload" ]] && [[ $# -lt 1 ]]; then
+        error "uxs_svc: 缺少 unit 参数" >&2
         return 1
     fi
+    # OS_TYPE 未初始化时兜底探测。内联 uname 判定而不调 detect_os()：
+    # 部分模块（如 wireguard）以自有实现遮蔽了同名函数，且其版本对
+    # apk/pacman/zypper 系统会 exit 1，函数内 exit 无法被 || true 拦截。
+    if [[ -z "${OS_TYPE:-}" ]]; then
+        case "$(uname -s)" in
+            Linux)  OS_TYPE="linux"  ;;
+            Darwin) OS_TYPE="darwin" ;;
+            *)      OS_TYPE="unknown" ;;
+        esac
+    fi
     if [[ "${OS_TYPE:-}" != "linux" ]]; then
-        warn "uxs_svc 仅支持 systemd（Linux），当前：${OS_TYPE:-unknown}"
+        # 走 stderr：机器模式（UXS_STATUS_MODE=machine）的 stdout 必须保持 STATE= 首行契约
+        warn "uxs_svc 仅支持 systemd（Linux），当前：${OS_TYPE:-unknown}" >&2
         return 1
     fi
     case "$action" in
-        is-active)  systemctl is-active --quiet "$@" ;;
+        is-active)       systemctl is-active --quiet "$@" ;;
+        is-enabled)      systemctl is-enabled "$@" ;;
+        list-unit-files) systemctl list-unit-files "$@" ;;
+        daemon-reload)   dry_run_sudo "systemctl daemon-reload" systemctl daemon-reload ;;
         start|stop|restart|reload|enable|disable)
             dry_run_sudo "systemctl $action" systemctl "$action" "$@" ;;
-        enable-now) dry_run_sudo "systemctl enable --now" systemctl enable --now "$@" ;;
-        *)          error "uxs_svc: 未知 action：$action"; return 1 ;;
+        enable-now)  dry_run_sudo "systemctl enable --now" systemctl enable --now "$@" ;;
+        disable-now) dry_run_sudo "systemctl disable --now" systemctl disable --now "$@" ;;
+        *)          error "uxs_svc: 未知 action：$action" >&2; return 1 ;;
     esac
 }
 

@@ -91,13 +91,13 @@ install_fail2ban() {
     gen_jail_local | sudo tee "$JAIL_LOCAL" >/dev/null
 
     info "启用并启动 fail2ban..."
-    sudo systemctl enable --now fail2ban
-    sudo systemctl restart fail2ban
+    uxs_svc enable-now fail2ban
+    uxs_svc restart fail2ban
 
     # 验证
     info "验证..."
     sleep 2
-    if systemctl is-active --quiet fail2ban; then
+    if uxs_svc is-active fail2ban; then
         success "fail2ban 服务运行正常"
     else
         error "fail2ban 服务未正常运行，请检查日志："
@@ -126,7 +126,7 @@ uninstall_fail2ban() {
         return 0
     fi
 
-    sudo systemctl disable --now fail2ban 2>/dev/null || true
+    uxs_svc disable-now fail2ban 2>/dev/null || true
     pkg_remove fail2ban 2>/dev/null || warn "fail2ban 包移除失败，请手动卸载"
 
     if [[ -f "$JAIL_LOCAL" ]]; then
@@ -148,7 +148,7 @@ status_fail2ban() {
         emit_status "not_installed" "${RED}❌ 未安装${NC}"
         return
     fi
-    if systemctl is-active --quiet fail2ban 2>/dev/null; then
+    if uxs_svc is-active fail2ban 2>/dev/null; then
         emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
     else
         emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC}"

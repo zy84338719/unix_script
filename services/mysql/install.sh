@@ -17,8 +17,7 @@ source "$SCRIPT_DIR/../../lib/common.sh"
 
 # 各发行版服务名不同：Deb 系 mysql，RHEL 系 mysqld
 svc_name() {
-    if systemctl list-unit-files mysql.service >/dev/null 2>&1 \
-        && systemctl list-unit-files mysql.service 2>/dev/null | grep -q "^mysql"; then
+    if uxs_svc list-unit-files mysql.service 2>/dev/null | grep -q "^mysql"; then
         echo "mysql"
     else
         echo "mysqld"

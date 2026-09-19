@@ -81,7 +81,7 @@ install_redis() {
         local svc
         svc=$(redis_service_name)
         info "启用并启动 $svc 服务..."
-        sudo systemctl enable --now "$svc"
+        uxs_svc enable-now "$svc"
     fi
 
     # 验证安装
@@ -133,8 +133,8 @@ uninstall_redis() {
         require_sudo
         local svc
         svc=$(redis_service_name)
-        sudo systemctl stop "$svc" 2>/dev/null || true
-        sudo systemctl disable "$svc" 2>/dev/null || true
+        uxs_svc stop "$svc" 2>/dev/null || true
+        uxs_svc disable "$svc" 2>/dev/null || true
         local pkg
         pkg=$(redis_pkg_name)
         pkg_remove "$pkg"
@@ -154,7 +154,7 @@ status_redis() {
     if [[ "$OS_TYPE" == "linux" ]]; then
         local svc
         svc=$(redis_service_name)
-        systemctl is-active --quiet "$svc" 2>/dev/null && running=true
+        uxs_svc is-active "$svc" 2>/dev/null && running=true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         pgrep -x redis-server >/dev/null 2>&1 && running=true
     fi

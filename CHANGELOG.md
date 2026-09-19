@@ -12,6 +12,17 @@
   - `incus` 系统容器/虚拟化管理（LXD 社区分支，仅 Linux；Deb 系 Zabbly 稳定仓，RHEL 系发行版/EPEL 包）
   - `nomad` HashiCorp 工作负载编排（Linux GitHub release zip；macOS brew）
 
+### 变更
+- 平台动词收敛 Phase 3 落地：`uxs_svc` 新增 `daemon-reload`（免 unit 参数）/ `disable-now` / `is-enabled` / `list-unit-files`（后两者只读直跑），26 个模块的手写 `systemctl` 全量迁移到 `uxs_svc`——统一 `--dry-run` 语义与参数校验（fail2ban、nginx、cockpit、docker、postgres、redis、grafana、caddy、certbot、tailscale、webmin、1panel、casaos、sys-setup、ollama、clash、nat、ufw、ddns-go、gitea、node_exporter、openlist、prometheus、wireguard、frp、mysql）
+- `run_submenu` 清屏加 TTY 守卫：非终端环境（管道驱动/输出捕获）不再输出 clear 转义序列
+
+### 修复
+- `uxs_svc` 的 OS 护栏告警改走 stderr、`OS_TYPE` 未初始化时内联 `uname -s` 兜底判定——机器模式（`UXS_STATUS_MODE=machine`）的 stdout 不再被污染，`STATE=` 首行契约稳定；刻意不调 `detect_os()` 兜底：wireguard 等模块以自有实现遮蔽了同名函数，其版本对 apk/pacman/zypper 系统会 `exit 1`，函数内 exit 无法被 `|| true` 拦截
+- ops-kit 依赖计数变量与库内数组变量同名，触发新版 shellcheck SC2178/SC2128 告警
+- `mysql` 服务名探测重复调用两次 `list-unit-files`，合并为一次
+- `wireguard` `wg-quick@${interface}.service` unit 参数补引号（含特殊字符的接口名不再碎裂）
+- `caddy` apt 安装路径手写 `apt-get update` 收敛到 `pkg_update`
+
 ## [1.19.0] - 2026-08-30
 
 ### 新增

@@ -63,7 +63,7 @@ handle_existing_installation() {
 
     info "正在停止现有服务..."
     if [[ "$OS_TYPE" == "linux" ]]; then
-        sudo systemctl stop prometheus &>/dev/null || true
+        uxs_svc stop prometheus &>/dev/null || true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         sudo launchctl bootout system "$PROM_PLIST" &>/dev/null || true
     fi
@@ -169,8 +169,8 @@ EOF
     success "systemd 服务文件创建成功"
 
     info "正在启动服务..."
-    sudo systemctl daemon-reload
-    sudo systemctl enable --now prometheus
+    uxs_svc daemon-reload
+    uxs_svc enable-now prometheus
     success "Prometheus 服务已启动并设置为开机自启"
 }
 
@@ -373,7 +373,7 @@ uninstall_prometheus() {
 
     if [[ "$OS_TYPE" == "linux" ]]; then
         sudo rm -f /etc/systemd/system/prometheus.service
-        sudo systemctl daemon-reload &>/dev/null || true
+        uxs_svc daemon-reload &>/dev/null || true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         sudo rm -f "$PROM_PLIST"
         sudo rm -f /var/log/prometheus.log /var/log/prometheus.err

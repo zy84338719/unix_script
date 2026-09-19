@@ -113,7 +113,7 @@ CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 [Install]
 WantedBy=multi-user.target
 EOF
-    sudo systemctl daemon-reload
+    uxs_svc daemon-reload
 
     # 若无配置，生成示例
     if [[ ! -f "$CONFIG_FILE" ]]; then
@@ -228,9 +228,9 @@ do_tun_off() {
 }
 
 # 服务管理
-do_start()   { preflight; require_sudo; sudo systemctl enable --now "$SERVICE_NAME"; success "mihomo 已启动"; }
-do_stop()    { preflight; require_sudo; sudo systemctl stop "$SERVICE_NAME" 2>/dev/null || true; success "mihomo 已停止"; }
-do_restart() { preflight; require_sudo; sudo systemctl restart "$SERVICE_NAME"; success "mihomo 已重启"; }
+do_start()   { preflight; require_sudo; uxs_svc enable-now "$SERVICE_NAME"; success "mihomo 已启动"; }
+do_stop()    { preflight; require_sudo; uxs_svc stop "$SERVICE_NAME" 2>/dev/null || true; success "mihomo 已停止"; }
+do_restart() { preflight; require_sudo; uxs_svc restart "$SERVICE_NAME"; success "mihomo 已重启"; }
 
 status_clash() {
     detect_os
@@ -240,7 +240,7 @@ status_clash() {
     if [[ ! -x "$BIN" ]]; then
         emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
     fi
-    if systemctl is-active --quiet "$SERVICE_NAME" 2>/dev/null; then
+    if uxs_svc is-active "$SERVICE_NAME" 2>/dev/null; then
         emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
     else
         emit_status "installed:stopped" "${YELLOW}⚠️  已安装但未运行${NC}"
@@ -253,10 +253,10 @@ uninstall_clash() {
     if ! yes_no "确认卸载 mihomo（clash）？"; then
         info "已取消"; return 0
     fi
-    sudo systemctl stop "$SERVICE_NAME" 2>/dev/null || true
-    sudo systemctl disable "$SERVICE_NAME" 2>/dev/null || true
+    uxs_svc stop "$SERVICE_NAME" 2>/dev/null || true
+    uxs_svc disable "$SERVICE_NAME" 2>/dev/null || true
     sudo rm -f "$SERVICE_FILE"
-    sudo systemctl daemon-reload 2>/dev/null || true
+    uxs_svc daemon-reload 2>/dev/null || true
     sudo rm -f "$BIN"
     if yes_no "是否删除配置目录 ${CONFIG_DIR}（含订阅/节点）？"; then
         sudo rm -rf "$CONFIG_DIR"

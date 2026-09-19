@@ -89,8 +89,8 @@ install_grafana_linux() {
 
     # 启动服务
     info "正在启动 Grafana 服务..."
-    sudo systemctl daemon-reload
-    sudo systemctl enable --now grafana-server
+    uxs_svc daemon-reload
+    uxs_svc enable-now grafana-server
     success "Grafana 服务已启动并设置为开机自启"
 }
 
@@ -221,8 +221,8 @@ uninstall_grafana() {
 
     # 停止服务
     if [[ "$OS_TYPE" == "linux" ]]; then
-        sudo systemctl stop grafana-server &>/dev/null || true
-        sudo systemctl disable grafana-server &>/dev/null || true
+        uxs_svc stop grafana-server &>/dev/null || true
+        uxs_svc disable grafana-server &>/dev/null || true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         if command_exists brew; then
             brew services stop grafana 2>/dev/null || true

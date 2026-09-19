@@ -34,7 +34,7 @@ check_existing_installation() {
         fi
         info "正在停止并卸载现有服务..."
         if [[ "$OS_TYPE" == "linux" ]]; then
-            sudo systemctl stop ddns-go &>/dev/null || true
+            uxs_svc stop ddns-go &>/dev/null || true
         fi
         sudo "$DDNS_BIN" -s uninstall &>/dev/null || true
     fi
@@ -128,7 +128,7 @@ install_ddns_go() {
 
     info "正在启动服务..."
     if [[ "$OS_TYPE" == "linux" ]]; then
-        if sudo systemctl enable --now ddns-go; then
+        if uxs_svc enable-now ddns-go; then
             success "ddns-go 服务已启动并设置为开机自启"
         else
             error "服务启动失败"; rm -rf "$tmpdir"; exit 1
@@ -194,9 +194,9 @@ uninstall_ddns_go() {
     require_sudo
     info "正在卸载 DDNS-GO..."
     if [[ "$OS_TYPE" == "linux" ]]; then
-        sudo systemctl stop ddns-go &>/dev/null || true
-        sudo systemctl disable ddns-go &>/dev/null || true
-        sudo systemctl daemon-reload
+        uxs_svc stop ddns-go &>/dev/null || true
+        uxs_svc disable ddns-go &>/dev/null || true
+        uxs_svc daemon-reload
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         sudo launchctl bootout system "$DDNS_PLIST" &>/dev/null || true
         sudo rm -f "$DDNS_PLIST"

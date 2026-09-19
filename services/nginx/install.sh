@@ -61,8 +61,8 @@ do_install() {
     # 启动服务
     if [[ "$OS_TYPE" == "linux" ]]; then
         info "启用并启动 Nginx 服务..."
-        sudo systemctl enable --now nginx
-        if systemctl is-active --quiet nginx; then
+        uxs_svc enable-now nginx
+        if uxs_svc is-active nginx; then
             success "Nginx 服务已启动"
         else
             warn "Nginx 服务未正常启动，请检查日志："
@@ -125,7 +125,7 @@ do_uninstall() {
 
     # 停止服务
     if [[ "$OS_TYPE" == "linux" ]]; then
-        sudo systemctl disable --now nginx 2>/dev/null || true
+        uxs_svc disable-now nginx 2>/dev/null || true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         if command_exists brew; then
             sudo brew services stop nginx 2>/dev/null || brew services stop nginx 2>/dev/null || true
@@ -171,7 +171,7 @@ do_status() {
     local active=false
 
     if [[ "$OS_TYPE" == "linux" ]]; then
-        if systemctl is-active --quiet nginx 2>/dev/null; then
+        if uxs_svc is-active nginx 2>/dev/null; then
             active=true
         fi
     elif [[ "$OS_TYPE" == "darwin" ]]; then
