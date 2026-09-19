@@ -356,17 +356,17 @@ ExecStop=$SCRIPT_DIR/install.sh _flush
 WantedBy=multi-user.target
 EOF
 
-    sudo systemctl daemon-reload
-    sudo systemctl enable nat-manager.service
+    uxs_svc daemon-reload
+    uxs_svc enable nat-manager.service
     success "nat-manager.service 已启用（开机自动加载规则）"
 }
 
 remove_systemd_service() {
     info "移除 systemd 持久化服务..."
-    sudo systemctl disable nat-manager.service 2>/dev/null || true
-    sudo systemctl stop nat-manager.service 2>/dev/null || true
+    uxs_svc disable nat-manager.service 2>/dev/null || true
+    uxs_svc stop nat-manager.service 2>/dev/null || true
     sudo rm -f "$SERVICE_FILE"
-    sudo systemctl daemon-reload
+    uxs_svc daemon-reload
     success "nat-manager.service 已移除"
 }
 
@@ -439,8 +439,8 @@ do_status() {
         gw_count=$(grep -cvE '^\s*$|^\s*#' "$GATEWAY_FILE" 2>/dev/null || echo 0)
     fi
     local svc_state="未启用"
-    if systemctl is-enabled nat-manager.service >/dev/null 2>&1; then
-        if systemctl is-active nat-manager.service >/dev/null 2>&1; then
+    if uxs_svc is-enabled nat-manager.service >/dev/null 2>&1; then
+        if uxs_svc is-active nat-manager.service >/dev/null 2>&1; then
             svc_state="已启用并运行"
         else
             svc_state="已启用但未运行"

@@ -78,7 +78,7 @@ install_linux() {
     fi
 
     info "启用并启动 docker 服务..."
-    sudo systemctl enable --now docker
+    uxs_svc enable-now docker
 
     # 将当前用户加入 docker 组，使其免 sudo 使用 docker
     if id -nG "$USER" 2>/dev/null | grep -qw docker; then
@@ -152,7 +152,7 @@ uninstall_docker() {
         return 0
     fi
 
-    sudo systemctl disable --now docker 2>/dev/null || true
+    uxs_svc disable-now docker 2>/dev/null || true
     detect_pkg_manager
     # 尝试卸载 Docker 相关包（包名因发行版/安装方式不同，逐个尝试）
     local docker_pkgs=(docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker docker-engine docker.io runc)
@@ -182,7 +182,7 @@ status_docker() {
     local ver
     ver=$(docker --version 2>/dev/null || echo "")
     if [[ "$OS_TYPE" == "linux" ]]; then
-        if systemctl is-active --quiet docker 2>/dev/null; then
+        if uxs_svc is-active docker 2>/dev/null; then
             emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} ($ver)"
         else
             emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC} ($ver)"

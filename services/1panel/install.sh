@@ -128,7 +128,7 @@ status_1panel() {
     if [[ -n "${ver}" ]]; then
         emit_version "${ver}"
     fi
-    if systemctl is-active --quiet 1panel 2>/dev/null; then
+    if uxs_svc is-active 1panel 2>/dev/null; then
         emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
     else
         emit_status "installed:stopped" "${YELLOW}⚠️  已安装（服务未运行）${NC}"

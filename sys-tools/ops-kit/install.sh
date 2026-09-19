@@ -503,19 +503,19 @@ status_ops_kit() {
 cmd_install() {
     _ops_platform_check
     header "🧰 ops-kit 依赖检查"
-    local t missing=0
+    local t miss_cnt=0
     for t in systemctl journalctl ss logrotate; do
         if command -v "$t" >/dev/null 2>&1; then
             info "✔ $t 可用"
         else
             warn "✘ $t 缺失（相关子命令将降级）"
-            missing=$((missing+1))
+            miss_cnt=$((miss_cnt+1))
         fi
     done
-    if (( missing == 0 )); then
+    if (( miss_cnt == 0 )); then
         info "🎉 依赖齐备。试试: ./install.sh ops-kit inspect"
     else
-        info "缺 $missing 项——ops-kit 不自动安装系统组件，缺啥用啥，其余子命令不受影响"
+        info "缺 $miss_cnt 项——ops-kit 不自动安装系统组件，缺啥用啥，其余子命令不受影响"
     fi
     return 0
 }

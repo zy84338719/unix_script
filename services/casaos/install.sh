@@ -123,7 +123,7 @@ status_casaos() {
     if ! is_installed; then
         emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
     fi
-    if systemctl is-active --quiet casaos 2>/dev/null; then
+    if uxs_svc is-active casaos 2>/dev/null; then
         emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
         emit_extra "port=${CASAOS_PORT}"
     else

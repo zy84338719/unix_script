@@ -86,7 +86,7 @@ do_status() {
     fi
     local running=false
     if [[ "$OS_TYPE" == "linux" ]]; then
-        systemctl is-active --quiet "$SERVICE_NAME" 2>/dev/null && running=true
+        uxs_svc is-active "$SERVICE_NAME" 2>/dev/null && running=true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         pgrep -x ollama >/dev/null 2>&1 && running=true
     fi
@@ -108,10 +108,10 @@ uninstall_ollama() {
     if ! yes_no "确认卸载 Ollama？"; then
         info "已取消"; return 0
     fi
-    sudo systemctl stop "$SERVICE_NAME" 2>/dev/null || true
-    sudo systemctl disable "$SERVICE_NAME" 2>/dev/null || true
+    uxs_svc stop "$SERVICE_NAME" 2>/dev/null || true
+    uxs_svc disable "$SERVICE_NAME" 2>/dev/null || true
     sudo rm -f "/etc/systemd/system/${SERVICE_NAME}.service" /usr/local/bin/ollama
-    sudo systemctl daemon-reload 2>/dev/null || true
+    uxs_svc daemon-reload 2>/dev/null || true
     if yes_no "是否删除所有已下载模型（~/.ollama，可能很大）？"; then
         sudo rm -rf ~/.ollama /usr/share/ollama/.ollama 2>/dev/null || true
         success "模型数据已删除"

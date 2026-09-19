@@ -76,7 +76,7 @@ handle_existing_installation() {
     fi
     info "正在停止现有服务..."
     if [[ "$OS_TYPE" == "linux" ]]; then
-        sudo systemctl stop gitea 2>/dev/null || true
+        uxs_svc stop gitea 2>/dev/null || true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         sudo launchctl bootout system "$GITEA_PLIST" 2>/dev/null || true
     fi
@@ -134,8 +134,8 @@ WantedBy=multi-user.target
 EOF
     success "systemd 服务文件创建成功"
 
-    sudo systemctl daemon-reload
-    if sudo systemctl enable --now gitea; then
+    uxs_svc daemon-reload
+    if uxs_svc enable-now gitea; then
         success "Gitea 服务已启动并设置为开机自启"
     else
         error "服务启动失败"
@@ -339,10 +339,10 @@ uninstall_gitea() {
 
     if [[ "$OS_TYPE" == "linux" ]]; then
         require_sudo
-        sudo systemctl stop gitea 2>/dev/null || true
-        sudo systemctl disable gitea 2>/dev/null || true
+        uxs_svc stop gitea 2>/dev/null || true
+        uxs_svc disable gitea 2>/dev/null || true
         sudo rm -f "$GITEA_SYSTEMD"
-        sudo systemctl daemon-reload 2>/dev/null || true
+        uxs_svc daemon-reload 2>/dev/null || true
         sudo rm -f "$GITEA_BIN"
         # 删除配置目录
         sudo rm -rf /etc/gitea

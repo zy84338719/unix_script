@@ -56,7 +56,7 @@ install_tailscale() {
             error "官方安装脚本执行失败，请检查网络或手动安装"
             exit 1
         fi
-        sudo systemctl enable --now tailscaled || true
+        uxs_svc enable-now tailscaled || true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         info "通过 Homebrew 安装 Tailscale..."
         brew install tailscale
@@ -96,7 +96,7 @@ uninstall_tailscale() {
 
     if [[ "$OS_TYPE" == "linux" ]]; then
         require_sudo
-        sudo systemctl disable --now tailscaled 2>/dev/null || true
+        uxs_svc disable-now tailscaled 2>/dev/null || true
         detect_pkg_manager
         if ! pkg_remove tailscale; then
             warn "自动卸载失败（${PKG_MANAGER}），请手动卸载 tailscale"
@@ -117,7 +117,7 @@ status_tailscale() {
     fi
     local running=false
     if [[ "$OS_TYPE" == "linux" ]]; then
-        systemctl is-active --quiet tailscaled 2>/dev/null && running=true
+        uxs_svc is-active tailscaled 2>/dev/null && running=true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         brew services list 2>/dev/null | grep -q "tailscale.*started" && running=true
     fi

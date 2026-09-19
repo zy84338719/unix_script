@@ -43,7 +43,7 @@ install_caddy_apt() {
         | sudo tee /etc/apt/sources.list.d/caddy-stable.list >/dev/null
 
     info "正在安装 Caddy..."
-    apt-get update -y
+    pkg_update
     apt-get install -y caddy
 }
 
@@ -106,7 +106,7 @@ install_caddy() {
                 ;;
         esac
         # 确保服务已启动
-        sudo systemctl enable --now caddy 2>/dev/null || true
+        uxs_svc enable-now caddy 2>/dev/null || true
     fi
 
     if ! command_exists caddy; then
@@ -172,11 +172,11 @@ uninstall_caddy() {
 
     if [[ "$OS_TYPE" == "linux" ]]; then
         require_sudo
-        sudo systemctl stop caddy 2>/dev/null || true
-        sudo systemctl disable caddy 2>/dev/null || true
+        uxs_svc stop caddy 2>/dev/null || true
+        uxs_svc disable caddy 2>/dev/null || true
         detect_pkg_manager
         pkg_remove caddy 2>/dev/null || true
-        sudo systemctl daemon-reload 2>/dev/null || true
+        uxs_svc daemon-reload 2>/dev/null || true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         brew services stop caddy 2>/dev/null || true
         brew uninstall caddy 2>/dev/null || true

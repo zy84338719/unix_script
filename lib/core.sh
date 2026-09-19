@@ -24,7 +24,8 @@ run_in_dir() {
 run_submenu() {
     local title="$1" status_fn="$2" display_fn="$3" action_fn="$4"
     while true; do
-        clear
+        # 非 TTY（管道驱动/CI 捕获）时跳过清屏：clear 的转义序列会打乱输出
+        if [[ -t 1 ]]; then clear 2>/dev/null || true; fi
         header "$title"
         echo "========================================"
         if [[ -n "$status_fn" ]] && type "$status_fn" &>/dev/null; then
