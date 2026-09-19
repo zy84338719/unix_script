@@ -645,10 +645,15 @@ uxs_svc() {
         error "uxs_svc: 缺少 unit 参数" >&2
         return 1
     fi
-    # OS_TYPE 未初始化时兜底探测（模块自有 OS 变量、未跑 detect_os 的场景），
-    # 与 registry 的 uxs_module_supported 同款兜底。
+    # OS_TYPE 未初始化时兜底探测。内联 uname 判定而不调 detect_os()：
+    # 部分模块（如 wireguard）以自有实现遮蔽了同名函数，且其版本对
+    # apk/pacman/zypper 系统会 exit 1，函数内 exit 无法被 || true 拦截。
     if [[ -z "${OS_TYPE:-}" ]]; then
-        detect_os >/dev/null 2>&1 || true
+        case "$(uname -s)" in
+            Linux)  OS_TYPE="linux"  ;;
+            Darwin) OS_TYPE="darwin" ;;
+            *)      OS_TYPE="unknown" ;;
+        esac
     fi
     if [[ "${OS_TYPE:-}" != "linux" ]]; then
         # 走 stderr：机器模式（UXS_STATUS_MODE=machine）的 stdout 必须保持 STATE= 首行契约

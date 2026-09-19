@@ -17,7 +17,7 @@
 - `run_submenu` 清屏加 TTY 守卫：非终端环境（管道驱动/输出捕获）不再输出 clear 转义序列
 
 ### 修复
-- `uxs_svc` 的 OS 护栏告警改走 stderr 且 `OS_TYPE` 未初始化时自动兜底探测——机器模式（`UXS_STATUS_MODE=machine`）的 stdout 不再被污染，`STATE=` 首行契约稳定（wireguard 类自带 OS 变量、未跑 `detect_os` 的模块受影响）
+- `uxs_svc` 的 OS 护栏告警改走 stderr、`OS_TYPE` 未初始化时内联 `uname -s` 兜底判定——机器模式（`UXS_STATUS_MODE=machine`）的 stdout 不再被污染，`STATE=` 首行契约稳定；刻意不调 `detect_os()` 兜底：wireguard 等模块以自有实现遮蔽了同名函数，其版本对 apk/pacman/zypper 系统会 `exit 1`，函数内 exit 无法被 `|| true` 拦截
 - ops-kit 依赖计数变量与库内数组变量同名，触发新版 shellcheck SC2178/SC2128 告警
 - `mysql` 服务名探测重复调用两次 `list-unit-files`，合并为一次
 - `wireguard` `wg-quick@${interface}.service` unit 参数补引号（含特殊字符的接口名不再碎裂）
