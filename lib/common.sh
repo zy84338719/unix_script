@@ -642,11 +642,17 @@ service_start() {
 uxs_svc() {
     local action="$1"; shift
     if [[ "$action" != "daemon-reload" ]] && [[ $# -lt 1 ]]; then
-        error "uxs_svc: 缺少 unit 参数"
+        error "uxs_svc: 缺少 unit 参数" >&2
         return 1
     fi
+    # OS_TYPE 未初始化时兜底探测（模块自有 OS 变量、未跑 detect_os 的场景），
+    # 与 registry 的 uxs_module_supported 同款兜底。
+    if [[ -z "${OS_TYPE:-}" ]]; then
+        detect_os >/dev/null 2>&1 || true
+    fi
     if [[ "${OS_TYPE:-}" != "linux" ]]; then
-        warn "uxs_svc 仅支持 systemd（Linux），当前：${OS_TYPE:-unknown}"
+        # 走 stderr：机器模式（UXS_STATUS_MODE=machine）的 stdout 必须保持 STATE= 首行契约
+        warn "uxs_svc 仅支持 systemd（Linux），当前：${OS_TYPE:-unknown}" >&2
         return 1
     fi
     case "$action" in
@@ -658,7 +664,7 @@ uxs_svc() {
             dry_run_sudo "systemctl $action" systemctl "$action" "$@" ;;
         enable-now)  dry_run_sudo "systemctl enable --now" systemctl enable --now "$@" ;;
         disable-now) dry_run_sudo "systemctl disable --now" systemctl disable --now "$@" ;;
-        *)          error "uxs_svc: 未知 action：$action"; return 1 ;;
+        *)          error "uxs_svc: 未知 action：$action" >&2; return 1 ;;
     esac
 }
 
