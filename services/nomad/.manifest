@@ -1,0 +1,5 @@
+LABEL=Nomad
+CATEGORY=服务
+DEFAULT_ACTION=install
+DESC=HashiCorp 工作负载编排
+NEXT_STEPS=体验:nomad agent -dev;容器运行时:./install.sh docker

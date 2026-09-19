@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+### 新增
+- 工具批次③（模块 73→78，services 28→33）：
+  - `mariadb` MariaDB 数据库（MySQL 兼容分支；检测到 MySQL 时警告 3306 端口冲突）
+  - `mongodb` MongoDB 文档数据库（仅 Linux；官方 GPG key + TUNA 镜像仓库，mongodb-org 8.0，Deb 系按代号白名单）
+  - `podman-desktop` 容器/K8s 桌面管理台（macOS brew cask；Linux Flatpak/flathub）
+  - `incus` 系统容器/虚拟化管理（LXD 社区分支，仅 Linux；Deb 系 Zabbly 稳定仓，RHEL 系发行版/EPEL 包）
+  - `nomad` HashiCorp 工作负载编排（Linux GitHub release zip；macOS brew）
+
 ## [1.19.0] - 2026-08-30
 
 ### 新增

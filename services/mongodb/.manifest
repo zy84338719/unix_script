@@ -1,0 +1,6 @@
+LABEL=MongoDB
+CATEGORY=服务
+PLATFORMS=linux
+DEFAULT_ACTION=install
+DESC=MongoDB 文档数据库（仅 Linux）
+NEXT_STEPS=关系库:./install.sh mysql;缓存:./install.sh redis

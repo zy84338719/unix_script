@@ -1,0 +1,5 @@
+LABEL=Podman Desktop
+CATEGORY=服务
+DEFAULT_ACTION=install
+DESC=容器/K8s 桌面管理台（GUI）
+NEXT_STEPS=容器运行时:./install.sh podman;K8s 终端面板:./install.sh k9s
