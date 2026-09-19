@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.20.0] - 2026-09-20
+
 ### 新增
 - 工具批次③（模块 73→78，services 28→33）：
   - `mariadb` MariaDB 数据库（MySQL 兼容分支；检测到 MySQL 时警告 3306 端口冲突）
