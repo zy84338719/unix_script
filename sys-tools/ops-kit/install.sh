@@ -185,7 +185,7 @@ cmd_inspect() {
             if   (( pct >= 90 )); then _ops_check_add crit "磁盘空间 $mount" "已用 ${pct}%"
             elif (( pct >= 80 )); then _ops_check_add warn "磁盘空间 $mount" "已用 ${pct}%"; fi
         done < <(_ops_df_parse "$(df -P 2>/dev/null)")
-        (( worst > 0 && worst < 80 )) && _ops_check_add ok "磁盘空间" "最大使用率 ${worst}%（$wline）"
+        (( worst > 0 && worst < 80 )) && _ops_check_add ok "磁盘空间" "最大使用率 ${worst}%（${wline}）"
         (( worst == 0 )) && _ops_check_add ok "磁盘空间" "无真实文件系统可报"
     else
         _ops_check_add skip "磁盘空间" "df 不可用"

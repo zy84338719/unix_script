@@ -61,7 +61,7 @@ run_doctor() {
     # Distro detection（发行版识别，覆盖麒麟/统信/openEuler 等国产系统）
     detect_distro
     if [[ -n "$DISTRO_ID" ]]; then
-        success "发行版：$DISTRO_NAME（ID=$DISTRO_ID 版本=${DISTRO_VERSION_ID:-未知}，${DISTRO_FAMILY} 系）"
+        success "发行版：${DISTRO_NAME}（ID=$DISTRO_ID 版本=${DISTRO_VERSION_ID:-未知}，${DISTRO_FAMILY} 系）"
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         info "macOS 不适用发行版检测（已跳过）"
     else

@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### 修复
+- `bootstrap.sh` 无参数模式尾部崩溃：`$INSTALL_DIR，` 全角逗号紧跟变量，C locale 下 bash 把多字节字符吞进变量名报 unbound variable（2026-09-20 实机报障复现）；全库扫掉同类 21 处（bootstrap/install.sh/lib 与 12 个模块的 `$var，`/`$var（` 写法统一加 `${var}` 花括号；mongodb 文档中转义字面量 `el\$releasever` 刻意保留）
+- macOS 菜单/状态查询弹 sudo 密码（实测最多连弹两次）：`service_is_active` 的 darwin 分支与 wireguard status 改 `sudo -n`（凭据已缓存则真查，否则静默按未运行处理，绝不弹窗）；uptime-kuma status 的 `sudo docker ps` 去 sudo（docker CLI 走 socket 本无需提权）——status 查询永不弹密码
+
 ### 变更
 - 新增 lib helper `install_systemd_unit <unit-name>`（stdin 读 unit 内容 → 写入 `/etc/systemd/system/` → 自动 daemon-reload），7 个模块的手写「`sudo tee` + reload」模式收敛（openlist、node_exporter、gitea、prometheus、frp、nat、clash）；OS 兜底探测提取为 `_uxs_os_type` 与 `uxs_svc` 共用
 - `uptime-kuma` 声明 `REQUIRES=docker`：安装时框架自动先装缺失的 docker（与 harbor 同款），不再只报错提示手动安装

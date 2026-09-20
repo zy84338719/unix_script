@@ -592,13 +592,15 @@ do_self_update() {
 
 # ---------------- 服务管理封装（systemd / launchd 双平台） ----------------
 # service_is_active <systemd_name> <launchd_label>
+# macOS 分支用 sudo -n：status 查询绝不弹密码——sudo 凭据已缓存则真查，
+# 否则静默失败（按未运行处理）；安装/停止路径的 service_start/stop 才允许提示。
 service_is_active() {
     local sd_name="$1"
     local ld_label="$2"
     if [[ "$OS_TYPE" == "linux" ]]; then
         systemctl is-active --quiet "$sd_name" 2>/dev/null
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        sudo launchctl list 2>/dev/null | grep -q "$ld_label"
+        sudo -n launchctl list 2>/dev/null | grep -q "$ld_label"
     else
         return 1
     fi

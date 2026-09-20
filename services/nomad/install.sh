@@ -28,7 +28,7 @@ arch_for_nomad() {
     case "$ARCH_TYPE_LOWER" in
         x86_64) echo "amd64" ;;
         arm64)  echo "arm64" ;;
-        *)      error "不支持的架构：$ARCH_TYPE（仅支持 x86_64/arm64）"; return 1 ;;
+        *)      error "不支持的架构：${ARCH_TYPE}（仅支持 x86_64/arm64）"; return 1 ;;
     esac
 }
 

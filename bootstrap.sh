@@ -134,7 +134,7 @@ show_alias_hint() {
     echo
     b_header "💡 日常使用"
     echo "───────────────────────────────"
-    b_info "仓库已就绪：$INSTALL_DIR，进目录即可用："
+    b_info "仓库已就绪：${INSTALL_DIR}，进目录即可用："
     echo "    cd \"$INSTALL_DIR\" && ./install.sh    # 交互式菜单（fzf 模糊搜索/多选）"
     echo
     b_info "全局命令 uxs 已安装，重新加载 shell 后任意目录可用："

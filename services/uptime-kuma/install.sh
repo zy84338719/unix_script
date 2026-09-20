@@ -97,9 +97,10 @@ status_uptime_kuma() {
     if ! command_exists docker; then
         emit_status "not_installed" "${RED}❌ 未安装（需 Docker）${NC}"; return
     fi
-    if sudo docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
+    # docker CLI 走 socket 无需 sudo；status 查询绝不弹密码
+    if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
         emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
-    elif sudo docker ps -a --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
+    elif docker ps -a --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
         emit_status "installed:stopped" "${YELLOW}⚠️  容器已创建但未运行${NC}"
     else
         emit_status "not_installed" "${RED}❌ 未安装${NC}"

@@ -39,7 +39,7 @@ gen_password() {
 do_install() {
     preflight
     if [[ -d "$HARBOR_DIR" ]]; then
-        yes_no "已检测到 $HARBOR_DIR（Harbor 可能已安装），是否重新安装？" || { info "已取消"; exit 0; }
+        yes_no "已检测到 ${HARBOR_DIR}（Harbor 可能已安装），是否重新安装？" || { info "已取消"; exit 0; }
     fi
     info "获取 Harbor 最新版本（GitHub API）..."
     local ver
@@ -75,14 +75,14 @@ do_install() {
     (cd "$HARBOR_DIR" && sudo ./install.sh) || { error "Harbor 编排安装失败，可查看 $HARBOR_DIR 排查"; exit 1; }
     echo
     success "Harbor v$ver 安装完成：http://$ip"
-    warn "admin 密码：$admin_pwd（请妥善保存，仅此一次回显）"
+    warn "admin 密码：${admin_pwd}（请妥善保存，仅此一次回显）"
     info "Docker 客户端使用该仓库需配 insecure-registries（纯 http 时），见 README"
 }
 
 do_uninstall() {
     preflight
     if [[ ! -d "$HARBOR_DIR" ]]; then
-        warn "Harbor 未安装（未找到 $HARBOR_DIR）"
+        warn "Harbor 未安装（未找到 ${HARBOR_DIR}）"
         exit 0
     fi
     yes_no "确认卸载 Harbor（停止并移除全部容器）？" || { info "已取消"; exit 0; }
