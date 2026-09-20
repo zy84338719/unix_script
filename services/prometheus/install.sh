@@ -145,7 +145,7 @@ EOF
 # --- 创建 systemd 服务（Linux） ---
 setup_systemd_service() {
     info "正在创建 systemd 服务..."
-    sudo tee /etc/systemd/system/prometheus.service >/dev/null <<EOF
+    install_systemd_unit prometheus.service <<EOF
 [Unit]
 Description=Prometheus Monitoring System
 Wants=network-online.target
@@ -169,7 +169,6 @@ EOF
     success "systemd 服务文件创建成功"
 
     info "正在启动服务..."
-    uxs_svc daemon-reload
     uxs_svc enable-now prometheus
     success "Prometheus 服务已启动并设置为开机自启"
 }

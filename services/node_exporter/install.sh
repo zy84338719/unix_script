@@ -121,7 +121,7 @@ setup_systemd_service() {
     fi
 
     info "正在创建 systemd 服务..."
-    if ! sudo tee /etc/systemd/system/node_exporter.service >/dev/null <<EOF; then
+    if ! install_systemd_unit node_exporter.service <<EOF; then
 [Unit]
 Description=Prometheus Node Exporter
 Wants=network-online.target
@@ -144,7 +144,6 @@ EOF
     success "systemd 服务文件创建成功"
 
     info "正在启动服务..."
-    uxs_svc daemon-reload
     if uxs_svc enable-now node_exporter; then
         success "node_exporter 服务已启动并设置为开机自启"
     else

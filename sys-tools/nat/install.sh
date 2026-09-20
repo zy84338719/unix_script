@@ -339,7 +339,7 @@ flush_all_rules() {
 install_systemd_service() {
     info "配置 systemd 持久化服务..."
 
-    sudo tee "$SERVICE_FILE" >/dev/null <<EOF
+    install_systemd_unit nat-manager.service <<EOF
 [Unit]
 Description=NAT Manager - 加载端口转发与 MASQUERADE 规则
 After=network-pre.target
@@ -356,7 +356,6 @@ ExecStop=$SCRIPT_DIR/install.sh _flush
 WantedBy=multi-user.target
 EOF
 
-    uxs_svc daemon-reload
     uxs_svc enable nat-manager.service
     success "nat-manager.service 已启用（开机自动加载规则）"
 }

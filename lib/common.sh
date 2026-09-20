@@ -632,6 +632,20 @@ service_start() {
     fi
 }
 
+# _uxs_os_type — 确保 OS_TYPE 已初始化；未初始化时内联 uname 判定。
+# 刻意不调 detect_os()：部分模块（如 wireguard）以自有实现遮蔽了同名函数，
+# 且其版本对 apk/pacman/zypper 系统会 exit 1，函数内 exit 无法被 || true 拦截。
+_uxs_os_type() {
+    if [[ -n "${OS_TYPE:-}" ]]; then
+        return 0
+    fi
+    case "$(uname -s)" in
+        Linux)  OS_TYPE="linux"  ;;
+        Darwin) OS_TYPE="darwin" ;;
+        *)      OS_TYPE="unknown" ;;
+    esac
+}
+
 # uxs_svc <action> <unit>... — systemd 服务动作封装（Linux-only）。
 # action: start|stop|restart|reload|enable|disable|enable-now|disable-now|
 #         daemon-reload|is-active|is-enabled|list-unit-files
@@ -645,16 +659,7 @@ uxs_svc() {
         error "uxs_svc: 缺少 unit 参数" >&2
         return 1
     fi
-    # OS_TYPE 未初始化时兜底探测。内联 uname 判定而不调 detect_os()：
-    # 部分模块（如 wireguard）以自有实现遮蔽了同名函数，且其版本对
-    # apk/pacman/zypper 系统会 exit 1，函数内 exit 无法被 || true 拦截。
-    if [[ -z "${OS_TYPE:-}" ]]; then
-        case "$(uname -s)" in
-            Linux)  OS_TYPE="linux"  ;;
-            Darwin) OS_TYPE="darwin" ;;
-            *)      OS_TYPE="unknown" ;;
-        esac
-    fi
+    _uxs_os_type
     if [[ "${OS_TYPE:-}" != "linux" ]]; then
         # 走 stderr：机器模式（UXS_STATUS_MODE=machine）的 stdout 必须保持 STATE= 首行契约
         warn "uxs_svc 仅支持 systemd（Linux），当前：${OS_TYPE:-unknown}" >&2
@@ -671,6 +676,36 @@ uxs_svc() {
         disable-now) dry_run_sudo "systemctl disable --now" systemctl disable --now "$@" ;;
         *)          error "uxs_svc: 未知 action：$action" >&2; return 1 ;;
     esac
+}
+
+# install_systemd_unit <unit-name> — 从 stdin 读 unit 内容写入 /etc/systemd/system/
+# 并 daemon-reload。用法：
+#     install_systemd_unit myapp.service <<EOF
+#     [Unit]
+#     ...
+#     EOF
+# heredoc 引号语义（变量展开与否）由调用方决定；dry-run 下仅打印不写入；
+# 写入或 daemon-reload 失败返回非 0；非 Linux 告警（stderr）返回 1。
+install_systemd_unit() {
+    local unit="$1"
+    if [[ -z "$unit" ]]; then
+        error "install_systemd_unit: 缺少 unit 名参数" >&2
+        return 1
+    fi
+    _uxs_os_type
+    if [[ "${OS_TYPE:-}" != "linux" ]]; then
+        warn "install_systemd_unit 仅支持 systemd（Linux），当前：${OS_TYPE:-unknown}" >&2
+        return 1
+    fi
+    local target="/etc/systemd/system/$unit"
+    # 真跑时 >/dev/null 抑制 tee 的内容回显；dry-run 下该重定向会连
+    # 提示一起吞掉，故 dry-run 分支单独打印。
+    if [[ "$UNIX_SCRIPT_DRY_RUN" == "1" ]]; then
+        info "[dry-run] 写入 $target: sudo tee $target"
+    else
+        sudo tee "$target" >/dev/null
+    fi
+    uxs_svc daemon-reload
 }
 
 # ---------------- Dry-run 模式 ----------------

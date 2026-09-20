@@ -189,6 +189,7 @@ EXTRA=<key=value>        # 可选，附加信息
 |--------|------|
 | `uxs_os_release <KEY> [file]` | 读 os-release 字段值（ID/VERSION_ID/VERSION_CODENAME…），替代手写 `. /etc/os-release` |
 | `uxs_svc <action> <unit>...` | systemd 服务动作（start/stop/restart/reload/enable/disable/enable-now/disable-now/daemon-reload + 只读 is-active/is-enabled/list-unit-files），原生兼容 `--dry-run`；双平台（macOS launchd）场景仍用 `service_start` 等 |
+| `install_systemd_unit <unit-name>`（stdin） | 从 stdin 读 unit 内容写入 `/etc/systemd/system/` 并自动 daemon-reload（替代手写 `sudo tee` + reload；heredoc 引号语义由调用方决定；dry-run 兼容） |
 | `pkg_install` / `pkg_remove` / `pkg_installed` | 跨包管理器安装/卸载/查询（存量，直接用） |
 
 归属原则：跨模块复用的「动词」进 lib；单模块专用的平台差异放模块内 `platform/` 文件（样板见 `essentials/sys-setup`）。

@@ -34,7 +34,7 @@ arch_for_frp() {
 
 write_unit() {
     local name="$1" desc="$2"
-    sudo tee "/etc/systemd/system/${name}.service" >/dev/null <<EOF
+    install_systemd_unit "${name}.service" <<EOF
 [Unit]
 Description=${desc}
 After=network.target
@@ -83,7 +83,6 @@ do_install() {
             "$tmpdir/frp_${ver}_${OS_TYPE}_${arch}/conf/frps_full_example.toml" "$CONF_DIR/frps.toml"
         write_unit frpc "frp client"
         write_unit frps "frp server"
-        uxs_svc daemon-reload
         success "配置样例已放 $CONF_DIR（完整示例，编辑后使用）；systemd unit 已装（默认不启用）"
         info "服务端启用：sudo systemctl enable --now frps"
         info "客户端启用：sudo systemctl enable --now frpc"
