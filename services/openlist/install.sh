@@ -197,11 +197,14 @@ status_openlist() {
     if [[ ! -x "$OPENLIST_BIN" ]]; then
         emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
     fi
+    local ver
+    ver=$("$OPENLIST_BIN" version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)
     if service_is_active "$SERVICE_NAME" "$PLIST_LABEL"; then
         emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
     else
         emit_status "installed:stopped" "${YELLOW}⚠️  已安装但未运行${NC}"
     fi
+    [[ -n "$ver" ]] && emit_version "$ver"
 }
 
 usage() {

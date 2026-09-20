@@ -121,11 +121,14 @@ status_tailscale() {
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         brew services list 2>/dev/null | grep -q "tailscale.*started" && running=true
     fi
+    local ver
+    ver=$(tailscale version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)
     if $running; then
         emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
     else
         emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC}"
     fi
+    [[ -n "$ver" ]] && emit_version "$ver"
 }
 
 # 用法

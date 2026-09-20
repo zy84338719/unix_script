@@ -6,6 +6,8 @@
 
 ### 变更
 - 新增 lib helper `install_systemd_unit <unit-name>`（stdin 读 unit 内容 → 写入 `/etc/systemd/system/` → 自动 daemon-reload），7 个模块的手写「`sudo tee` + reload」模式收敛（openlist、node_exporter、gitea、prometheus、frp、nat、clash）；OS 兜底探测提取为 `_uxs_os_type` 与 `uxs_svc` 共用
+- `uptime-kuma` 声明 `REQUIRES=docker`：安装时框架自动先装缺失的 docker（与 harbor 同款），不再只报错提示手动安装
+- 7 个模块 status 补 `emit_version`（tailscale、ollama、openlist、wireguard、atuin、minikube、zsh_setup）——`--status-json` / 菜单状态批查的 VERSION 列补全；工具集合/配置类模块（modern-cli、terminal 等）无单一版本语义，刻意不加
 
 ## [1.20.0] - 2026-09-20
 
