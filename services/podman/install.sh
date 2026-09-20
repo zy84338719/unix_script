@@ -98,7 +98,7 @@ do_mirror() {
         local conf_dir="/etc/containers/registries.conf.d"
         sudo mkdir -p "$conf_dir"
         printf '%s\n' "$MIRRORS_CONTENT" | sudo tee "$conf_dir/$MIRROR_CONF_NAME" >/dev/null
-        success "已写入 $conf_dir/$MIRROR_CONF_NAME，下次拉取即生效"
+        success "已写入 $conf_dir/${MIRROR_CONF_NAME}，下次拉取即生效"
     fi
 }
 

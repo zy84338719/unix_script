@@ -197,7 +197,7 @@ uxs_module_visible() {
 }
 
 # registry_visible_modules — 当前系统可见的模块名（单个空格分隔串，注册序）。
-# 仅呈现层使用；dispatch/别名/依赖解析继续用全量 $_REGISTRY_MODULES。
+# 仅呈现层使用；dispatch/别名/依赖解析继续用全量 ${_REGISTRY_MODULES}。
 registry_visible_modules() {
     local mod out=""
     for mod in $_REGISTRY_MODULES; do

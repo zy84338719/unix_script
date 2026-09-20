@@ -209,7 +209,7 @@ uninstall_zsh_setup() {
         rm -rf "$cfg_dir"
         success "已移除配置目录：$cfg_dir"
     else
-        info "未发现配置目录：$cfg_dir（无需清理）"
+        info "未发现配置目录：${cfg_dir}（无需清理）"
     fi
     warn "如需彻底还原 zsh 环境，请手动检查 ~/.zshrc 是否有残留配置行"
 }

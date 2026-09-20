@@ -118,12 +118,12 @@ ensure_module_deps() {
     for dep in $deps; do
         # 依赖不适用当前系统时明确报错，而非装到一半失败
         if ! uxs_module_visible "$dep"; then
-            error "模块 $mod 依赖 $dep，但 $dep 不支持当前系统（仅支持：$(registry_platforms "$dep")）"
+            error "模块 $mod 依赖 ${dep}，但 $dep 不支持当前系统（仅支持：$(registry_platforms "$dep")）"
             exit 1
         fi
         dep_state=$(module_status_machine "$dep")
         if [[ "$dep_state" == "not_installed" ]]; then
-            info "自动安装依赖模块：$dep（被 $mod 需要）"
+            info "自动安装依赖模块：${dep}（被 $mod 需要）"
             dep_path=$(registry_path "$dep")
             dep_entry=$(registry_entry_script "$dep")
             run_in_dir "$dep_path" "$dep_entry" install

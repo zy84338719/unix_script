@@ -50,7 +50,7 @@ do_install() {
         if [[ -f /var/log/mysqld.log ]]; then
             local tp
             tp=$(grep -m1 'temporary password' /var/log/mysqld.log 2>/dev/null | awk '{print $NF}' || true)
-            [[ -n "$tp" ]] && warn "RHEL 系 root 临时密码：$tp（登录后请立即改密）"
+            [[ -n "$tp" ]] && warn "RHEL 系 root 临时密码：${tp}（登录后请立即改密）"
         fi
         info "Deb 系 root 默认走 auth_socket（sudo mysql 直登）；建议尽快跑 mysql_secure_installation"
     fi

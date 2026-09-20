@@ -197,7 +197,8 @@ status_wireguard() {
     if [[ "$os_kernel" == "Linux" ]]; then
         uxs_svc is-active "wg-quick@${interface}" 2>/dev/null && service_running=true
     elif [[ "$os_kernel" == "Darwin" ]]; then
-        sudo launchctl list 2>/dev/null | grep -q "com.wireguard.${interface}" && service_running=true
+        # status 查询不弹密码：sudo -n 未缓存凭据则静默失败
+        sudo -n launchctl list 2>/dev/null | grep -q "com.wireguard.${interface}" && service_running=true
     fi
     if $wg_installed; then
         if $service_running; then

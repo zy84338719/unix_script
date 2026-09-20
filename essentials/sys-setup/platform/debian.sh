@@ -25,7 +25,7 @@ _apt_disable_distro_sources() {
         [[ "$f" == "$primary" ]] && continue
         if sudo grep -Eq "$pattern" "$f" 2>/dev/null; then
             sudo mv "$f" "${f}.bak.$ts" 2>/dev/null || { warn "停用失败（权限？）：$f"; continue; }
-            warn "已停用重复/残留源文件：$f（恢复：sudo mv ${f}.bak.$ts $f）"
+            warn "已停用重复/残留源文件：${f}（恢复：sudo mv ${f}.bak.$ts ${f}）"
         fi
     done
 }
@@ -86,7 +86,7 @@ plat_mirror_apply() {
             if [[ "$primary" == *.sources ]]; then
                 if [[ "$DISTRO_ID" == "debian" ]]; then
                     sudo tee "$primary" >/dev/null <<EOF
-# 由 unix_script sys-setup 生成（原文件已备份为 ${primary}.bak.$ts）
+# 由 unix_script sys-setup 生成（原文件已备份为 ${primary}.bak.${ts}）
 Types: deb
 URIs: ${MIRROR_BASE}/debian/
 Suites: ${codename} ${codename}-updates ${codename}-backports
@@ -101,7 +101,7 @@ Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 EOF
                 else
                     sudo tee "$primary" >/dev/null <<EOF
-# 由 unix_script sys-setup 生成（原文件已备份为 ${primary}.bak.$ts）
+# 由 unix_script sys-setup 生成（原文件已备份为 ${primary}.bak.${ts}）
 Types: deb
 URIs: ${MIRROR_BASE}/ubuntu/
 Suites: ${codename} ${codename}-updates ${codename}-backports ${codename}-security
@@ -139,7 +139,7 @@ EOF
             primary=/etc/apt/sources.list
             sudo cp -a "$primary" "${primary}.bak.$ts" 2>/dev/null || true
             sudo tee "$primary" >/dev/null <<EOF
-# 由 unix_script sys-setup 生成（原文件已备份为 ${primary}.bak.$ts）
+# 由 unix_script sys-setup 生成（原文件已备份为 ${primary}.bak.${ts}）
 deb ${MIRROR_BASE}/deepin/ ${codename} main community
 EOF
             _apt_disable_distro_sources "$primary" "$ts"

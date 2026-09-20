@@ -28,7 +28,7 @@ arch_for_frp() {
     case "$ARCH_TYPE_LOWER" in
         x86_64) echo "amd64" ;;
         arm64)  echo "arm64" ;;
-        *)      error "不支持的架构：$ARCH_TYPE（仅支持 x86_64/arm64）"; return 1 ;;
+        *)      error "不支持的架构：${ARCH_TYPE}（仅支持 x86_64/arm64）"; return 1 ;;
     esac
 }
 
@@ -83,7 +83,7 @@ do_install() {
             "$tmpdir/frp_${ver}_${OS_TYPE}_${arch}/conf/frps_full_example.toml" "$CONF_DIR/frps.toml"
         write_unit frpc "frp client"
         write_unit frps "frp server"
-        success "配置样例已放 $CONF_DIR（完整示例，编辑后使用）；systemd unit 已装（默认不启用）"
+        success "配置样例已放 ${CONF_DIR}（完整示例，编辑后使用）；systemd unit 已装（默认不启用）"
         info "服务端启用：sudo systemctl enable --now frps"
         info "客户端启用：sudo systemctl enable --now frpc"
     else
@@ -109,7 +109,7 @@ do_uninstall() {
     sudo rm -f /usr/local/bin/frpc /usr/local/bin/frps
     success "frp 已卸载"
     if [[ -d "$CONF_DIR" ]]; then
-        if yes_no "是否删除配置目录 $CONF_DIR（含你的 token 与穿透规则）？"; then
+        if yes_no "是否删除配置目录 ${CONF_DIR}（含你的 token 与穿透规则）？"; then
             sudo rm -rf "$CONF_DIR" && success "配置已删除"
         else
             info "保留配置"

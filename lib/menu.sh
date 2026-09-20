@@ -255,7 +255,7 @@ interactive_main_bash() {
                             cur_cat="$found"; page="cat"
                             break
                         fi
-                        menu_error "无效选项: $choice（共 ${n} 个分类）"
+                        menu_error "无效选项: ${choice}（共 ${n} 个分类）"
                         continue
                         ;;
                 esac
@@ -294,7 +294,7 @@ category_page_loop() {
                         continue
                     fi
                     if ! nums=$(parse_multiselect "$input" "$max"); then
-                        menu_error "无效编号: $input（范围 1-${max}）"
+                        menu_error "无效编号: ${input}（范围 1-${max}）"
                         continue
                     fi
                     local -a sel mods
