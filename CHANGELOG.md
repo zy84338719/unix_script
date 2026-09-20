@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.21.0] - 2026-09-20
+
 ### 修复
 - `bootstrap.sh` 无参数模式尾部崩溃：`$INSTALL_DIR，` 全角逗号紧跟变量，C locale 下 bash 把多字节字符吞进变量名报 unbound variable（2026-09-20 实机报障复现）；全库扫掉同类 21 处（bootstrap/install.sh/lib 与 12 个模块的 `$var，`/`$var（` 写法统一加 `${var}` 花括号；mongodb 文档中转义字面量 `el\$releasever` 刻意保留）
 - macOS 菜单/状态查询弹 sudo 密码（实测最多连弹两次）：`service_is_active` 的 darwin 分支与 wireguard status 改 `sudo -n`（凭据已缓存则真查，否则静默按未运行处理，绝不弹窗）；uptime-kuma status 的 `sudo docker ps` 去 sudo（docker CLI 走 socket 本无需提权）——status 查询永不弹密码
