@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### 变更
+- 新增 lib helper `install_systemd_unit <unit-name>`（stdin 读 unit 内容 → 写入 `/etc/systemd/system/` → 自动 daemon-reload），7 个模块的手写「`sudo tee` + reload」模式收敛（openlist、node_exporter、gitea、prometheus、frp、nat、clash）；OS 兜底探测提取为 `_uxs_os_type` 与 `uxs_svc` 共用
+
 ## [1.20.0] - 2026-09-20
 
 ### 新增

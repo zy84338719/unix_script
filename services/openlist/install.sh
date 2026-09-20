@@ -91,7 +91,7 @@ install_openlist() {
     # 配置服务
     if [[ "$OS_TYPE" == "linux" ]]; then
         info "创建 systemd 服务..."
-        sudo tee /etc/systemd/system/${SERVICE_NAME}.service >/dev/null <<EOF
+        install_systemd_unit "${SERVICE_NAME}.service" <<EOF
 [Unit]
 Description=Alist File List Service
 After=network.target
@@ -106,7 +106,6 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 EOF
-        uxs_svc daemon-reload
         uxs_svc enable-now "$SERVICE_NAME"
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         info "创建 launchd 服务..."

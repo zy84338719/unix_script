@@ -113,7 +113,7 @@ create_directories() {
 # --- 创建 systemd 服务（Linux） ---
 setup_systemd_service() {
     info "创建 systemd 服务..."
-    sudo tee "$GITEA_SYSTEMD" >/dev/null <<EOF
+    install_systemd_unit gitea.service <<EOF
 [Unit]
 Description=Gitea (Git with a cup of tea)
 After=network.target
@@ -134,7 +134,6 @@ WantedBy=multi-user.target
 EOF
     success "systemd 服务文件创建成功"
 
-    uxs_svc daemon-reload
     if uxs_svc enable-now gitea; then
         success "Gitea 服务已启动并设置为开机自启"
     else

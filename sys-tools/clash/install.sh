@@ -94,7 +94,7 @@ install_clash() {
 
     # systemd 服务（前台运行，日志走 journalctl）
     info "创建 systemd 服务..."
-    sudo tee "$SERVICE_FILE" >/dev/null <<EOF
+    install_systemd_unit "${SERVICE_NAME}.service" <<EOF
 [Unit]
 Description=mihomo (Clash.Meta) Service
 After=network-online.target
@@ -113,7 +113,6 @@ CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 [Install]
 WantedBy=multi-user.target
 EOF
-    uxs_svc daemon-reload
 
     # 若无配置，生成示例
     if [[ ! -f "$CONFIG_FILE" ]]; then
