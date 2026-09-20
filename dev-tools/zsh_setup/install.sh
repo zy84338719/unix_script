@@ -142,6 +142,7 @@ EOF
     # 机器模式：先 emit STATE=，再 emit_extra，抑制人类详情块
     if uxs_is_machine_mode; then
         emit_status "$state" ""
+        emit_version "$VERSION"
         emit_extra "framework=${fw}"
         emit_extra "theme=${theme:-none}"
         emit_extra "backups=${backup_count}"

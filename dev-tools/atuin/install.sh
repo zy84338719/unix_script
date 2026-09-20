@@ -107,6 +107,9 @@ status_atuin() {
         grep -qs "$MARK" "$HOME/.zshrc" "$HOME/.bashrc" 2>/dev/null && sync="on"
         emit_status "installed" "${GREEN}✅ atuin 已安装（shell 集成: ${sync}）${NC}"
         emit_extra "sync=$sync"
+        local ver
+        ver=$(atuin_bin --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)
+        [[ -n "$ver" ]] && emit_version "$ver"
     else
         emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi

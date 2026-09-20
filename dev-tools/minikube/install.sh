@@ -570,6 +570,9 @@ do_status() {
             emit_status "installed" "${YELLOW}⚠️  已安装但 PATH 未配置${NC}"
             emit_extra "path=unconfigured"
         fi
+        local mk_ver
+        mk_ver=$("$install_dir/bin/minikube" version --short 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)
+        [[ -n "$mk_ver" ]] && emit_version "$mk_ver"
     else
         emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi

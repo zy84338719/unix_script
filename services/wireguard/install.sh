@@ -206,6 +206,9 @@ status_wireguard() {
         else
             emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC}"
         fi
+        local wg_ver
+        wg_ver=$(wg --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)
+        [[ -n "$wg_ver" ]] && emit_version "$wg_ver"
     else
         emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
