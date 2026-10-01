@@ -4,8 +4,13 @@
 
 ## [Unreleased]
 
+### 变更
+- `node_exporter` 版本来源统一为 GitHub 官方 release：macOS 装了 Homebrew 也不再走 brew（`install_via_brew` 降级为 `install_via_brew_fallback`，仅在官方二进制下载失败时兜底并显式告警版本可能落后）。Homebrew Core 同步上游有延迟，只要还走 brew 就无法保证「装到的就是官方最新版」；统一走官方源后，上游发新版重跑 `install` 即可，本仓库无需再改
+
 ### 修复
-- `node_exporter` macOS brew 路径重跑形同虚设（实机复现：10.10.10.99 停留在 v1.9.1，重跑 install 报「安装完成」但版本纹丝不动）：`brew install` 对已安装的 formula 是 no-op（仅提示 already installed 后 exit 0），`brew services start` 对已运行的服务同理（提示 already started 后 exit 0），两者都不报错，脚本照常报成功。改为已装走 `brew upgrade`（失败回退 `reinstall`）、按服务实际状态 restart/start（升级换了二进制但旧进程仍占着 9100），并在结尾打印实际版本；brew 落后上游时（Homebrew Core 同步有延迟）显式告警而非静默通过
+- `node_exporter` macOS 重跑不升级（实机复现：10.10.10.99 停留在 v1.9.1，重跑 install 报「安装完成」但版本纹丝不动）：`brew install` 对已安装的 formula 是 no-op（仅提示 already installed 后 exit 0），`brew services start` 对已运行的服务同理（提示 already started 后 exit 0），两者都不报错，脚本照常报成功
+- `node_exporter` 停止旧服务的判断漏掉 brew 安装：brew 那份在 `/opt/homebrew/bin`，非交互 shell 或别的账号下不在 PATH，原来的 `command -v node_exporter` 早返回会直接漏停，brew 服务的 9100 与新装进程冲突。改为独立探测 brew 服务状态，先问「是否继续」再停（取消安装不会先把服务停了）
+- `node_exporter` 安装结果改为打印实际装上的版本（`print_install_summary` 读 `node_exporter --version`），不再只报「安装完成」
 
 ## [1.21.0] - 2026-09-20
 
