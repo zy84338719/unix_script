@@ -68,7 +68,7 @@ handle_existing_installation() {
 
     # 先问再停：用户取消的话不该已经把服务停了
     if $found_install || $brew_managed; then
-        if ! yes_no "是否继续并覆盖安装官方最新版本？"; then
+        if ! yes_no "是否继续并升级到最新版本？"; then
             info "安装已取消"
             exit 0
         fi
@@ -83,10 +83,6 @@ handle_existing_installation() {
         fi
         if $brew_managed; then
             brew services stop node_exporter &>/dev/null || true
-            if brew list --versions node_exporter &>/dev/null; then
-                warn "Homebrew 里仍留有 node_exporter 副本，本脚本不会使用它，也不自动卸载"
-                info "如需清理手动执行：brew uninstall node_exporter"
-            fi
         fi
     fi
 }
@@ -280,51 +276,81 @@ print_install_summary() {
     fi
 }
 
-# --- macOS 兜底：Homebrew ---
-# 只在官方 GitHub 二进制下载失败（网络受限）时才走到这里。
-# brew 装的是 Homebrew Core 的版本，同步上游有延迟，**不保证是官方最新 tag**，
-# 所以它只能兜底、不能当默认路径——否则「装官方最新版」这个承诺兑现不了。
-install_via_brew_fallback() {
-    warn "官方 GitHub 二进制不可用，回退到 Homebrew 安装"
-    warn "注意：Homebrew Core 同步上游有延迟，装到的可能不是官方最新版本"
-
+# --- macOS：Homebrew 安装 / 升级 ---
+# Homebrew 是 macOS 的核心安装载体，本模块以 brew 为主路径。
+# 但 brew 有两个必须显式绕开的 no-op，二者都不报错，直接串起来会让「重跑即升级」
+# 变成空操作、还照常报成功（实机复现：10.10.10.99 卡在 v1.9.1，重跑多少次都不动）：
+#   brew install <已装>          → 提示 already installed 后 exit 0，二进制不动
+#   brew services start <已跑>  → 提示 already started 后 exit 0，旧进程继续占着 9100
+# 所以：已装必须显式 upgrade，升级后必须 restart。
+install_via_brew() {
+    local installed_ver="" new_ver="" latest_ver="" ne_path="node_exporter"
     if brew list --versions node_exporter &>/dev/null; then
-        local installed_ver
         installed_ver=$(brew list --versions node_exporter 2>/dev/null | awk '{print $2}')
-        # brew install 对已装 formula 是 no-op 并 exit 0，必须显式 upgrade
-        info "已安装 v${installed_ver}，执行 brew upgrade..."
-        brew upgrade node_exporter || brew reinstall node_exporter || return 1
+        info "已安装 v${installed_ver}，执行 brew upgrade 拉取最新版..."
+        if ! brew upgrade node_exporter; then
+            warn "brew upgrade 未成功，回退到 brew reinstall"
+            brew reinstall node_exporter || return 1
+        fi
     else
         brew install node_exporter || return 1
     fi
 
-    # 升级换了二进制但旧进程还在监听 9100，restart 才真正生效
+    # 换了二进制但旧进程还在监听 9100，不 restart 的话跑的还是老版本
     if brew services list 2>/dev/null | awk '$1=="node_exporter" && $2=="started" {f=1} END {exit !f}'; then
+        info "服务运行中，执行 restart 使新版本生效..."
         brew services restart node_exporter &>/dev/null || true
     else
         brew services start node_exporter &>/dev/null || true
     fi
+
+    # brew 装的在 /opt/homebrew/bin，非交互 shell 下未必在 PATH 里
+    command_exists node_exporter || ne_path="$NE_BIN"
+    new_ver=$("$ne_path" --version 2>&1 | grep -o 'version [0-9.]*' | cut -d' ' -f2 || true)
+
+    local ip_addr
+    ip_addr=$(get_local_ip)
+    success "🎉 Node Exporter 安装完成！（Homebrew 管理）"
+    if [[ -n "$new_ver" ]]; then
+        info "当前版本：v${new_ver}"
+    fi
+
+    # brew 装的是 Homebrew Core 的版本，同步上游有延迟，可能还不是官方最新 tag。
+    # 这里如实报出差距——否则「已装到最新版」就是句空头承诺。
+    latest_ver=$(get_latest_version 2>/dev/null || true)
+    if [[ -n "$latest_ver" && -n "$new_ver" ]] && version_gt "$latest_ver" "$new_ver"; then
+        warn "Homebrew Core 同步上游有延迟：官方最新 v${latest_ver}，brew 当前提供 v${new_ver}"
+        info "等 Homebrew 同步后重跑本脚本即可，本仓库无需改动"
+    fi
+    info "指标地址：http://${ip_addr}:9100/metrics"
+    info "常用命令：brew services info node_exporter"
 }
 
 # --- 安装主逻辑 ---
 install_node_exporter() {
     detect_os
     check_commands curl tar
-    # 提前取 sudo 凭据：handle_existing_installation（bootout）与 install_binary
-    # 都要用，提前缓存可避免流程中途反复弹密码
-    require_sudo
     handle_existing_installation
 
     info "🚀 Node Exporter 跨平台安装脚本"
     echo "=========================================="
 
-    # 版本一律取 GitHub 官方 release，且不硬编码：上游发新版时重跑本脚本即可，
-    # 不需要回来改这个仓库。macOS 装了 brew 也不再改走 brew——Homebrew Core
-    # 同步上游有延迟，只有官方源能兑现「装到的就是官方最新版」。
+    # macOS 走 Homebrew（macOS 核心安装载体，且自带服务管理）；
+    # Linux 与「没装 brew 的 macOS」走 GitHub 官方二进制。
+    # 两条路径的版本都是动态取的（brew upgrade / github_latest_tag），
+    # 上游发新版重跑即可，本仓库不需要跟着改。
+    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+        install_via_brew || return 1
+        return 0
+    fi
+
+    require_sudo
+
+    # 官方源取版本（不硬编码，上游发新版重跑即可）
     info "正在获取官方最新版本信息..."
     local latest
     latest=$(get_latest_version) || return 1
-    success "官方最新版本：v$latest"
+    success "官方最新版本：v${latest}"
 
     # 确定架构
     local arch_suffix
@@ -349,14 +375,7 @@ install_node_exporter() {
     trap 'rm -rf "$tmpdir"' EXIT
 
     if ! download_and_extract "$latest" "$arch_suffix" "$tmpdir"; then
-        # 官方源拿不到时才退而求其次；brew 版本可能落后，函数内已显式告警
-        if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
-            rm -rf "$tmpdir"; trap - EXIT
-            install_via_brew_fallback || return 1
-            print_install_summary
-            return 0
-        fi
-        error "下载失败，且本机没有可用的 Homebrew 兜底"
+        error "下载失败"
         return 1
     fi
 
