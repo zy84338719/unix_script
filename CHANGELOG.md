@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+### 修复
+- `node_exporter` macOS 重跑不升级（实机复现：10.10.10.99 停留在 v1.9.1，重跑 install 报「安装完成」但版本纹丝不动）：`brew install` 对已安装的 formula 是 no-op（提示 already installed 后 exit 0），`brew services start` 对已运行的服务同理（提示 already started 后 exit 0），两者都不报错，脚本照常报成功。改为已装走 `brew upgrade`（失败回退 `reinstall`），并按服务真实状态 restart/start
+- `node_exporter` 停止旧服务可能漏掉 brew 装的那份：它在 `/opt/homebrew/bin`，非交互 shell 或别的账号下不在 PATH，原来的 `if ! command -v node_exporter; then return 0` 早返回会直接跳过停服，brew 服务的 9100 与新装进程冲突。改为独立探测 brew 服务状态；且改为**先问「是否继续」再停**，取消安装不会先把服务停了
+- `node_exporter` brew 路径读完版本后打印实际装上的版本，并在 brew 落后于官方最新 tag 时显式告警具体差距（`官方最新 vX / brew 当前提供 vY`）——Homebrew Core 同步上游有延迟，不报出来的话「已装到最新版」就是句空头承诺
+
 ## [1.21.0] - 2026-09-20
 
 ### 修复

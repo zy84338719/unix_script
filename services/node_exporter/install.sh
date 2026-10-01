@@ -46,26 +46,42 @@ detect_arch_suffix() {
 }
 
 # --- 检查已有安装并处理 ---
+# brew 装的 node_exporter 落在 /opt/homebrew/bin，PATH 里未必有（服务跑在别的账号、
+# 或非交互 shell 下 brew 不在 PATH 时都会漏）。而它和我们要装的绑同一个 9100，
+# 所以「停旧服务」不能挂在 command -v node_exporter 这个判断上，否则会漏停，
+# 新起的进程直接抢不到端口。
 handle_existing_installation() {
-    if ! command -v node_exporter &>/dev/null; then
-        return 0
+    local found_install=false brew_managed=false
+    if command -v node_exporter &>/dev/null || [[ -f "$NE_BIN" ]]; then
+        found_install=true
+        local current_version ne_path="node_exporter"
+        # /usr/local/bin 不在非交互 shell 的默认 PATH 里，只认 command -v 会读不到版本
+        command_exists node_exporter || ne_path="$NE_BIN"
+        current_version=$("$ne_path" --version 2>&1 | grep -o 'version [0-9.]*' | cut -d' ' -f2 2>/dev/null || true)
+        warn "检测到已安装 node_exporter v${current_version:-未知版本}"
     fi
-    local current_version
-    current_version=$(node_exporter --version 2>&1 | grep -o 'version [0-9.]*' | cut -d' ' -f2 2>/dev/null || echo "未知版本")
-    warn "检测到已安装 node_exporter v$current_version"
-    if ! yes_no "是否继续并覆盖安装最新版本？"; then
-        info "安装已取消"
-        exit 0
+    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+        if brew services list 2>/dev/null | awk '$1=="node_exporter" && $2=="started" {f=1} END {exit !f}'; then
+            brew_managed=true
+        fi
+    fi
+
+    # 先问再停：用户取消的话不该已经把服务停了
+    if $found_install || $brew_managed; then
+        if ! yes_no "是否继续并升级到最新版本？"; then
+            info "安装已取消"
+            exit 0
+        fi
     fi
 
     info "正在停止现有服务..."
     if [[ "$OS_TYPE" == "linux" ]]; then
         uxs_svc stop node_exporter &>/dev/null || true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        if sudo launchctl list | grep -q "node_exporter"; then
+        if sudo launchctl list 2>/dev/null | grep -q "$NE_PLIST_LABEL"; then
             sudo launchctl bootout system "$NE_PLIST" &>/dev/null || true
         fi
-        if command -v brew &>/dev/null && brew services list | grep -q "node_exporter"; then
+        if $brew_managed; then
             brew services stop node_exporter &>/dev/null || true
         fi
     fi
@@ -230,13 +246,19 @@ verify_install() {
 
 # --- 打印安装结果 ---
 print_install_summary() {
-    local ip_addr
+    local ip_addr installed_ver ne_path="node_exporter"
     ip_addr=$(get_local_ip)
+    # brew 兜底装的位置在 /opt/homebrew/bin，不一定在 PATH 里
+    command_exists node_exporter || ne_path="$NE_BIN"
+    installed_ver=$("$ne_path" --version 2>&1 | grep -o 'version [0-9.]*' | cut -d' ' -f2 || true)
 
     echo
     echo "========================================"
     success "🎉 Node Exporter 安装完成！"
     echo
+    if [[ -n "$installed_ver" ]]; then
+        info "已安装版本：v$installed_ver"
+    fi
     info "服务信息："
     echo "  - 监听地址：http://0.0.0.0:9100"
     echo "  - 指标地址：http://${ip_addr}:9100/metrics"
@@ -254,6 +276,56 @@ print_install_summary() {
     fi
 }
 
+# --- macOS：Homebrew 安装 / 升级 ---
+# Homebrew 是 macOS 的核心安装载体，本模块以 brew 为主路径。
+# 但 brew 有两个必须显式绕开的 no-op，二者都不报错，直接串起来会让「重跑即升级」
+# 变成空操作、还照常报成功（实机复现：10.10.10.99 卡在 v1.9.1，重跑多少次都不动）：
+#   brew install <已装>          → 提示 already installed 后 exit 0，二进制不动
+#   brew services start <已跑>  → 提示 already started 后 exit 0，旧进程继续占着 9100
+# 所以：已装必须显式 upgrade，升级后必须 restart。
+install_via_brew() {
+    local installed_ver="" new_ver="" latest_ver="" ne_path="node_exporter"
+    if brew list --versions node_exporter &>/dev/null; then
+        installed_ver=$(brew list --versions node_exporter 2>/dev/null | awk '{print $2}')
+        info "已安装 v${installed_ver}，执行 brew upgrade 拉取最新版..."
+        if ! brew upgrade node_exporter; then
+            warn "brew upgrade 未成功，回退到 brew reinstall"
+            brew reinstall node_exporter || return 1
+        fi
+    else
+        brew install node_exporter || return 1
+    fi
+
+    # 换了二进制但旧进程还在监听 9100，不 restart 的话跑的还是老版本
+    if brew services list 2>/dev/null | awk '$1=="node_exporter" && $2=="started" {f=1} END {exit !f}'; then
+        info "服务运行中，执行 restart 使新版本生效..."
+        brew services restart node_exporter &>/dev/null || true
+    else
+        brew services start node_exporter &>/dev/null || true
+    fi
+
+    # brew 装的在 /opt/homebrew/bin，非交互 shell 下未必在 PATH 里
+    command_exists node_exporter || ne_path="$NE_BIN"
+    new_ver=$("$ne_path" --version 2>&1 | grep -o 'version [0-9.]*' | cut -d' ' -f2 || true)
+
+    local ip_addr
+    ip_addr=$(get_local_ip)
+    success "🎉 Node Exporter 安装完成！（Homebrew 管理）"
+    if [[ -n "$new_ver" ]]; then
+        info "当前版本：v${new_ver}"
+    fi
+
+    # brew 装的是 Homebrew Core 的版本，同步上游有延迟，可能还不是官方最新 tag。
+    # 这里如实报出差距——否则「已装到最新版」就是句空头承诺。
+    latest_ver=$(get_latest_version 2>/dev/null || true)
+    if [[ -n "$latest_ver" && -n "$new_ver" ]] && version_gt "$latest_ver" "$new_ver"; then
+        warn "Homebrew Core 同步上游有延迟：官方最新 v${latest_ver}，brew 当前提供 v${new_ver}"
+        info "等 Homebrew 同步后重跑本脚本即可，本仓库无需改动"
+    fi
+    info "指标地址：http://${ip_addr}:9100/metrics"
+    info "常用命令：brew services info node_exporter"
+}
+
 # --- 安装主逻辑 ---
 install_node_exporter() {
     detect_os
@@ -263,25 +335,22 @@ install_node_exporter() {
     info "🚀 Node Exporter 跨平台安装脚本"
     echo "=========================================="
 
-    # macOS 优先 brew（含 launchd 服务管理）
+    # macOS 走 Homebrew（macOS 核心安装载体，且自带服务管理）；
+    # Linux 与「没装 brew 的 macOS」走 GitHub 官方二进制。
+    # 两条路径的版本都是动态取的（brew upgrade / github_latest_tag），
+    # 上游发新版重跑即可，本仓库不需要跟着改。
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
-        info "通过 Homebrew 安装 node_exporter..."
-        brew install node_exporter
-        brew services start node_exporter 2>/dev/null || true
-        local ip_addr; ip_addr=$(get_local_ip)
-        success "🎉 Node Exporter 安装完成！（brew 管理）"
-        info "指标地址：http://${ip_addr}:9100/metrics"
-        info "常用命令：brew services info node_exporter"
+        install_via_brew || return 1
         return 0
     fi
 
     require_sudo
 
-    # 获取最新版本
-    info "正在获取最新版本信息..."
+    # 官方源取版本（不硬编码，上游发新版重跑即可）
+    info "正在获取官方最新版本信息..."
     local latest
     latest=$(get_latest_version) || return 1
-    success "最新版本：v$latest"
+    success "官方最新版本：v${latest}"
 
     # 确定架构
     local arch_suffix
@@ -290,7 +359,7 @@ install_node_exporter() {
 
     # 确认安装
     echo
-    info "即将安装 Node Exporter v$latest"
+    info "即将安装 Node Exporter v${latest}（官方 GitHub release）"
     info "安装位置：$NE_BIN"
     info "服务端口：9100"
     echo
@@ -305,7 +374,10 @@ install_node_exporter() {
     tmpdir=$(mktemp -d)
     trap 'rm -rf "$tmpdir"' EXIT
 
-    download_and_extract "$latest" "$arch_suffix" "$tmpdir" || return 1
+    if ! download_and_extract "$latest" "$arch_suffix" "$tmpdir"; then
+        error "下载失败"
+        return 1
+    fi
 
     # 安装二进制
     install_binary "$latest" "$arch_suffix" "$tmpdir" || return 1
