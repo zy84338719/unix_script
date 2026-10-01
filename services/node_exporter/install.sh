@@ -254,6 +254,48 @@ print_install_summary() {
     fi
 }
 
+# --- macOS：Homebrew 安装 / 升级 ---
+# brew install 对已安装的 formula 是 no-op（仅提示 already installed 并 exit 0）；
+# brew services start 对已运行的服务同理（提示 already started 并 exit 0）。
+# 二者都不报错，所以重跑脚本会「装完什么都没变」还照常报成功——必须显式 upgrade + restart。
+install_via_brew() {
+    local installed_ver=""
+    if brew list --versions node_exporter &>/dev/null; then
+        installed_ver=$(brew list --versions node_exporter 2>/dev/null | awk '{print $2}')
+        info "已安装 v${installed_ver}，执行 brew upgrade 拉取最新版..."
+        if ! brew upgrade node_exporter; then
+            warn "brew upgrade 未成功，回退到 brew reinstall"
+            brew reinstall node_exporter || return 1
+        fi
+    else
+        brew install node_exporter || return 1
+    fi
+
+    # 升级换了二进制但旧进程还在监听 9100，必须重启才真正生效
+    if brew services list 2>/dev/null | awk '$1=="node_exporter" && $2=="started" {found=1} END {exit !found}'; then
+        info "服务运行中，执行 restart 使新版本生效..."
+        brew services restart node_exporter &>/dev/null || true
+    else
+        brew services start node_exporter &>/dev/null || true
+    fi
+
+    local new_ver latest_ver ip_addr
+    new_ver=$(node_exporter --version 2>&1 | grep -o 'version [0-9.]*' | cut -d' ' -f2 || true)
+    ip_addr=$(get_local_ip)
+
+    success "🎉 Node Exporter 安装完成！（brew 管理）"
+    if [[ -n "$new_ver" ]]; then
+        info "当前版本：v${new_ver}"
+    fi
+    # Homebrew Core 同步上游有延迟，brew 装到的可能不是 GitHub 最新 tag
+    latest_ver=$(get_latest_version 2>/dev/null || true)
+    if [[ -n "$latest_ver" && -n "$new_ver" ]] && version_gt "$latest_ver" "$new_ver"; then
+        warn "brew 源仍落后于上游最新 v${latest_ver}（Homebrew Core 同步有延迟，可稍后再试）"
+    fi
+    info "指标地址：http://${ip_addr}:9100/metrics"
+    info "常用命令：brew services info node_exporter"
+}
+
 # --- 安装主逻辑 ---
 install_node_exporter() {
     detect_os
@@ -265,13 +307,7 @@ install_node_exporter() {
 
     # macOS 优先 brew（含 launchd 服务管理）
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
-        info "通过 Homebrew 安装 node_exporter..."
-        brew install node_exporter
-        brew services start node_exporter 2>/dev/null || true
-        local ip_addr; ip_addr=$(get_local_ip)
-        success "🎉 Node Exporter 安装完成！（brew 管理）"
-        info "指标地址：http://${ip_addr}:9100/metrics"
-        info "常用命令：brew services info node_exporter"
+        install_via_brew || return 1
         return 0
     fi
 
