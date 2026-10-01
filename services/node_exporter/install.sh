@@ -54,9 +54,11 @@ handle_existing_installation() {
     local found_install=false brew_managed=false
     if command -v node_exporter &>/dev/null || [[ -f "$NE_BIN" ]]; then
         found_install=true
-        local current_version
-        current_version=$(node_exporter --version 2>&1 | grep -o 'version [0-9.]*' | cut -d' ' -f2 2>/dev/null || echo "未知版本")
-        warn "检测到已安装 node_exporter v$current_version"
+        local current_version ne_path="node_exporter"
+        # /usr/local/bin 不在非交互 shell 的默认 PATH 里，只认 command -v 会读不到版本
+        command_exists node_exporter || ne_path="$NE_BIN"
+        current_version=$("$ne_path" --version 2>&1 | grep -o 'version [0-9.]*' | cut -d' ' -f2 2>/dev/null || true)
+        warn "检测到已安装 node_exporter v${current_version:-未知版本}"
     fi
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
         if brew services list 2>/dev/null | awk '$1=="node_exporter" && $2=="started" {f=1} END {exit !f}'; then
@@ -331,7 +333,7 @@ install_node_exporter() {
 
     # 确认安装
     echo
-    info "即将安装 Node Exporter v$latest（官方 GitHub release）"
+    info "即将安装 Node Exporter v${latest}（官方 GitHub release）"
     info "安装位置：$NE_BIN"
     info "服务端口：9100"
     echo
