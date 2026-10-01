@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### 修复
+- `node_exporter` macOS brew 路径重跑形同虚设（实机复现：10.10.10.99 停留在 v1.9.1，重跑 install 报「安装完成」但版本纹丝不动）：`brew install` 对已安装的 formula 是 no-op（仅提示 already installed 后 exit 0），`brew services start` 对已运行的服务同理（提示 already started 后 exit 0），两者都不报错，脚本照常报成功。改为已装走 `brew upgrade`（失败回退 `reinstall`）、按服务实际状态 restart/start（升级换了二进制但旧进程仍占着 9100），并在结尾打印实际版本；brew 落后上游时（Homebrew Core 同步有延迟）显式告警而非静默通过
+
 ## [1.21.0] - 2026-09-20
 
 ### 修复
