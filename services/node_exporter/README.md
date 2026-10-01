@@ -21,6 +21,8 @@ chmod +x node_exporter/install.sh
 
 macOS 上优先通过 `brew install node_exporter` 安装；Linux 从 GitHub 下载二进制并创建专用系统用户 `node_exporter`。
 
+重复执行 `install` 即为升级：脚本会拉取 GitHub 最新 tag（Linux）或 `brew upgrade` 到 Homebrew 最新版（macOS），并重启服务使新版本生效。
+
 ## 验证
 
 ```bash
