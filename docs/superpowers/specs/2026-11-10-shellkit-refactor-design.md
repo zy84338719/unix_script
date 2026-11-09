@@ -366,6 +366,17 @@ str_suggest WORD [CANDIDATE...]   编辑距离最近的候选（纯 bash，bash 
 > **过渡门面是必须的**：Stage 1 不动 78 个模块脚本，若直接删除 `info/pkg_install` 等旧名，全部模块立刻崩。
 > 门禁靠「行为快照对比」保证门面转发与原实现**逐字等价**。
 
+**Stage 1 的细化（实施时确定，写入实施计划）**：
+
+1. **只换「能力函数」，不换「呈现函数」**。`info/success/warn/error/header/menu` 走 **stdout**
+   且标签是 `[SUCCESS]`/`[WARNING]`；shellkit 的 `log_*` 走 **stderr** 且标签是 `[ OK ]`/`[WARN]`。
+   直接换会同时打破快照与 AI agent 的解析约定 ⇒ 呈现函数留到 **Stage 3 随 78 个模块的 msgid 化一起收敛**。
+2. **快照只覆盖三类确定性输出**：`--list` / `--list-modules` / `--list-categories`。
+   `--status-json` 与各模块 `status` 依赖**本机实际安装状态**，跨机器必然不同 ⇒ 改成**结构判据**
+   （每行 `key:value`、状态码在有限集里），不做逐字基线。
+3. **profile 模块在 shellkit 侧只提供文件格式原语**（写/追加/解析/转环境变量）；
+   「导哪些模块、哪些键」「apply 时怎么装」是领域逻辑，留 unix_script。
+
 ### 7.3 模块契约 v2
 
 - `.manifest` 的 11 个字段名与含义**不变**（`registry` 模块直接索引）。
