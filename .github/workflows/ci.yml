@@ -72,6 +72,23 @@ jobs:
           chmod +x tests/ci_run.sh
           ./tests/ci_run.sh --phase routing --out routing-report.md
 
+      - name: 行为快照比对
+        shell: bash
+        run: |
+          # 行为快照门禁：模块清单输出必须与入库基线逐字一致。
+          # 基线按 <os>-<arch> 分目录存放（模块清单受平台可见性过滤影响，
+          # 跨平台共用一份基线必然误报）。
+          # 本平台无基线时先生成一份并作为产物上传 —— 不阻断本次运行，
+          # 但下一轮该平台就有基线可比对了。
+          rc=0
+          bash tools/check_snapshot.sh || rc=$?
+          if [ "$rc" -eq 2 ]; then
+            echo "::warning::本平台无快照基线，已生成一份供后续比对（见 snapshot-baseline 产物）"
+            bash tools/snapshot.sh
+            exit 0
+          fi
+          exit "$rc"
+
       - name: 上传报告
         if: always()
         uses: actions/upload-artifact@v4
@@ -79,6 +96,14 @@ jobs:
           name: routing-report-${{ matrix.os }}
           path: routing-report.md
           if-no-files-found: error
+
+      - name: 上传快照基线（供本平台缺基线时补录）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapshot-baseline-${{ matrix.os }}
+          path: tests/snapshot/
+          if-no-files-found: warn
 
   # ============================================================
   # Job 2b: 容器静态检查 —— 多 Linux 发行版（补充 VM 矩阵未覆盖的 shellcheck 版本）

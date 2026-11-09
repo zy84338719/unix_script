@@ -1,0 +1,58 @@
+caddy	install uninstall status help	现代 Web 服务器（自动 HTTPS）
+certbot	install uninstall status help	Let's Encrypt 免费 SSL 证书
+containerd	install uninstall status help	容器运行时（含 ctr/nerdctl）
+ddns-go	install uninstall status help	动态域名解析服务
+docker	install mirror registry uninstall status help	容器引擎（Engine / Desktop）
+frp	install uninstall status help	内网穿透（frps/frpc）
+gitea	install uninstall status help	自托管 Git 服务
+grafana	install uninstall status help	监控可视化面板
+mariadb	install uninstall status help	MariaDB 数据库（MySQL 兼容）
+mysql	install uninstall status help	MySQL 数据库（服务端）
+nginx	install uninstall status help	Web 服务器 / 反向代理
+node_exporter	install uninstall status help	Prometheus 系统指标收集器
+nomad	install uninstall status help	HashiCorp 工作负载编排
+openlist	install uninstall status help	文件列表 / 网盘聚合（原 Alist）
+podman-desktop	install uninstall status help	容器/K8s 桌面管理台（GUI）
+podman	install mirror unmirror uninstall status help	无守护进程容器引擎（rootless）
+postgres	install uninstall status help	PostgreSQL 数据库
+prometheus	install uninstall status help	监控系统（时间序列数据库）
+redis	install uninstall status help	内存数据库 / 缓存
+skopeo	install uninstall status help	镜像搬运/检查工具
+tailscale	install uninstall status	免公网 IP 的组网 VPN
+uptime-kuma	install uninstall status help  requires:docker	服务可用性监控面板（Docker）
+wireguard	install uninstall status help	现代、快速、安全的 VPN
+brew	install uninstall mirror unmirror status help	Homebrew 包管理器
+essential-pkgs	install uninstall status help	curl/git/vim/htop/tmux/jq 等一键装齐
+nvm	install uninstall status help	Node.js 多版本管理
+atuin	install sync uninstall status help	SQLite 化 shell 历史（全量搜索/跨机加密同步）
+bun	install mirror unmirror uninstall status help	Bun 运行时（含国内镜像加速）
+code-lint	install install-go install-rust install-java install-python install-semgrep go-lint rust-lint java-lint py-lint security-scan lint-all uninstall status help	代码分析工具集
+deno	install uninstall status help	Deno 运行时
+dev-enhance	install uninstall status help	Neovim+LazyVim / git delta / tmux 配置
+dev-mirror	install status uninstall 	开发换源加速（npm/Go/Rust/pip）
+dev-tui	install uninstall status help	lazydocker + lazygit
+go	install uninstall status help	Go 语言环境
+helm	install uninstall status help	Kubernetes 包管理器
+k9s	install uninstall status help	Kubernetes 终端管理面板
+kind	install uninstall status help  requires:docker	Docker 内本地 Kubernetes（CI 向）
+kubectl	install uninstall status help	Kubernetes 命令行客户端
+minikube	install uninstall status help  requires:docker	本地 Kubernetes 开发环境
+modern-cli	install uninstall status help	bat/eza/ripgrep/fd/fzf/zoxide/starship/tldr/direnv
+nerd-font	install list uninstall status help	终端图标字体（p10k/starship/eza 图标依赖）
+pnpm	install uninstall status help	Node.js 包管理器
+rust	install uninstall status help	Rust 语言环境
+terminal	install uninstall status help	一键终端配置：zsh+zsh_setup+modern-cli+nerd-font+atuin
+zsh_setup	config install list status uninstall 	Zsh + Oh My Zsh + 插件配置
+ollama	install pull status uninstall help	本地大模型运行时
+opencode	install uninstall status help	终端 AI 编程助手
+pi	install uninstall status help	Pi AI 编程代理框架
+deskflow	install uninstall status help	键鼠共享（Flatpak / Homebrew）
+disk-usage	status top monitor clean help	磁盘空间管理
+docker-image	save status help	镜像导出为 .tar.gz（离线分发）
+k7s	install uninstall status help	Kubernetes 桌面监控
+process_manager_tool	install uninstall status help	智能搜索和管理系统进程
+restic	install uninstall status help	增量加密备份工具
+safe-rm	install on off status uninstall help	安全删除替代 rm，防误删
+shutdown_timer	install status uninstall 	定时 / 倒计时关机管理
+sys-cmd	all status uninstall 	系统诊断命令集（cpu/mem/port/disk/net）
+upftp	install uninstall status help	轻量级 FTP 文件分享工具

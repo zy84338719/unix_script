@@ -1,0 +1,87 @@
+[服务]
+  1panel	1Panel
+  btpanel	宝塔面板
+  buildah	buildah
+  caddy	Caddy
+  casaos	CasaOS
+  certbot	Certbot (Let's Encrypt)
+  cockpit	Cockpit
+  containerd	containerd
+  ddns-go	DDNS-GO
+  docker	Docker
+  fail2ban	Fail2ban
+  frp	frp
+  gitea	Gitea
+  grafana	Grafana
+  harbor	Harbor
+  incus	Incus
+  k3s	k3s
+  mariadb	MariaDB
+  mongodb	MongoDB
+  mysql	MySQL
+  nginx	Nginx
+  node_exporter	Node Exporter
+  nomad	Nomad
+  openlist	OpenList
+  podman-desktop	Podman Desktop
+  podman	Podman
+  postgres	PostgreSQL
+  prometheus	Prometheus
+  redis	Redis
+  skopeo	skopeo
+  tailscale	Tailscale
+  uptime-kuma	Uptime Kuma
+  webmin	Webmin
+  wireguard	WireGuard
+
+[装机必备]
+  bbr	BBR 网络加速
+  essential-pkgs	装机必备工具包
+  nvm	nvm
+  swap	Swap 虚拟内存
+  sys-setup	系统初始化配置
+
+[开发环境]
+  atuin	Atuin Shell 历史
+  bun	Bun
+  code-lint	代码分析工具集
+  deno	Deno
+  dev-enhance	开发工具增强
+  dev-mirror	dev-mirror
+  dev-tui	终端 TUI 工具
+  go	Go
+  helm	Helm
+  k9s	k9s
+  kind	kind
+  kubectl	kubectl
+  minikube	minikube
+  modern-cli	现代 CLI 工具
+  nerd-font	Nerd Font
+  pnpm	pnpm
+  rust	Rust
+  terminal	终端全家桶
+  zsh_setup	Zsh & Oh My Zsh
+
+[AI工具]
+  ollama	Ollama
+  opencode	OpenCode
+  pi	Pi
+
+[系统工具]
+  clash	Clash (mihomo)
+  deskflow	Deskflow
+  disk-usage	磁盘空间管理
+  disk	磁盘管理
+  docker-image	Docker 镜像导出
+  k7s	k7s
+  multi-net	多网卡策略路由
+  nat	NAT 端口转发
+  ops-kit	运维工具箱
+  process_manager_tool	进程管理工具
+  restic	Restic 备份工具
+  safe-rm	safe-rm 回收站
+  shutdown_timer	自动关机管理
+  sys-cmd	系统诊断命令
+  ufw	UFW 防火墙
+  upftp	upftp
+

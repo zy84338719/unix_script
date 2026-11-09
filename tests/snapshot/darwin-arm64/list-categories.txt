@@ -1,0 +1,68 @@
+[服务]
+  caddy	Caddy
+  certbot	Certbot (Let's Encrypt)
+  containerd	containerd
+  ddns-go	DDNS-GO
+  docker	Docker
+  frp	frp
+  gitea	Gitea
+  grafana	Grafana
+  mariadb	MariaDB
+  mysql	MySQL
+  nginx	Nginx
+  node_exporter	Node Exporter
+  nomad	Nomad
+  openlist	OpenList
+  podman-desktop	Podman Desktop
+  podman	Podman
+  postgres	PostgreSQL
+  prometheus	Prometheus
+  redis	Redis
+  skopeo	skopeo
+  tailscale	Tailscale
+  uptime-kuma	Uptime Kuma
+  wireguard	WireGuard
+
+[装机必备]
+  brew	Homebrew
+  essential-pkgs	装机必备工具包
+  nvm	nvm
+
+[开发环境]
+  atuin	Atuin Shell 历史
+  bun	Bun
+  code-lint	代码分析工具集
+  deno	Deno
+  dev-enhance	开发工具增强
+  dev-mirror	dev-mirror
+  dev-tui	终端 TUI 工具
+  go	Go
+  helm	Helm
+  k9s	k9s
+  kind	kind
+  kubectl	kubectl
+  minikube	minikube
+  modern-cli	现代 CLI 工具
+  nerd-font	Nerd Font
+  pnpm	pnpm
+  rust	Rust
+  terminal	终端全家桶
+  zsh_setup	Zsh & Oh My Zsh
+
+[AI工具]
+  ollama	Ollama
+  opencode	OpenCode
+  pi	Pi
+
+[系统工具]
+  deskflow	Deskflow
+  disk-usage	磁盘空间管理
+  docker-image	Docker 镜像导出
+  k7s	k7s
+  process_manager_tool	进程管理工具
+  restic	Restic 备份工具
+  safe-rm	safe-rm 回收站
+  shutdown_timer	自动关机管理
+  sys-cmd	系统诊断命令
+  upftp	upftp
+
