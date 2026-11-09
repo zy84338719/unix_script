@@ -34,6 +34,14 @@
   - shellkit：`/Users/zhangyi/shellkit`（独立 git 仓，当前分支 `main`）
   - unix_script：`/Users/zhangyi/unix_script`（独立 git 仓，本计划在分支 `refactor/shellkit-stage1` 上工作）
 - **不在本计划范围内**：CLI 重设计（Stage 2）、78 个模块脚本迁移与 msgid 化（Stage 3）、发版（Stage 4）。
+- **新增模块的任务必须同时更新文档产物与模块数**：shellkit 的 `make check` 里含
+  `docs-check`（生成物必须与源码一致）与 `module-count-check`（文档里的模块数必须等于
+  `lib/modules.txt` 的行数）。所以**每个新增模块的任务（Task 4/5/6/7/8）**都要：
+  ① 跑 `make docs` 重生成 `docs/REFERENCE.md`、`AGENTS.md`、`skills/shellkit/SKILL.md`；
+  ② 把 `README.md`、`docs/MIGRATING.md`、`site/index.md`、`site/guide/index.md`、
+  `site/guide/modules.md`、`site/guide/faq.md` 与英文站对应页面里的模块数改成新值；
+  ③ 把这些生成物与文档改动**一起提交**（否则该任务的 `make check` 必然红）。
+  Task 12 因此只做最终核对与 CHANGELOG。
 
 ### Stage 1 的关键范围决定（与规格 §7.2 的细化）
 
@@ -2251,16 +2259,15 @@ grep -vE '^\s*(#|$)' lib/modules.txt | wc -l
 ```
 期望：23（18 + svc/ver/status/registry/profile）。
 
-- [ ] **Step 2: 改文档里的模块数**
+- [ ] **Step 2: 核对文档里的模块数**
 
-把 `README.md`、`docs/MIGRATING.md`、`site/index.md`、`site/guide/index.md`、`site/guide/modules.md`、
-`site/guide/faq.md` 里的「18 个模块」改成「23 个模块」；英文站对应页面里的「18 modules」改成「23 modules」。
+模块数已由 Task 4/5/6/7/8 各自更新（见 Global Constraints）。这里只核对残留：
 
 ```bash
 cd /Users/zhangyi/shellkit
-grep -rn '18 个模块\|18 modules' README.md docs site | cat
+grep -rn '18 个模块\|18 modules\|19 个模块\|19 modules\|20 个模块\|20 modules\|21 个模块\|21 modules\|22 个模块\|22 modules' README.md docs site | cat
 ```
-逐个改完再跑 Step 3 确认没有残留。
+期望：无输出。有输出说明某个模块任务漏改，按 Step 3 定位。
 
 - [ ] **Step 3: 跑门禁**
 
@@ -2279,7 +2286,8 @@ make docs
 make docs-check
 git status --short
 ```
-期望：`docs/REFERENCE.md`、`AGENTS.md`、`skills/shellkit/SKILL.md` 有变更（新增模块的 API）。
+期望：`docs/REFERENCE.md`、`AGENTS.md`、`skills/shellkit/SKILL.md` 无未提交变更
+（各模块任务已经生成并提交过；这里只是确认没有漂移）。
 
 - [ ] **Step 5: 补 CHANGELOG**
 
