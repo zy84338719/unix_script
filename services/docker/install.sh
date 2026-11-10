@@ -189,7 +189,7 @@ status_docker() {
         fi
     else
         # docker info 在守护进程挂起/socket 无响应时实测可阻塞 90s+（黑洞地址实测 93.3s），
-        # 套 5s 超时护栏：超时(rc=124)按未运行降级，避免拖垮 --status-json 并行批查
+        # 套 5s 超时护栏：超时(rc=124)按未运行降级，避免拖垮 status --json 并行批查
         if uxs_with_timeout 5 docker info >/dev/null 2>&1; then
             emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} ($ver)"
         else

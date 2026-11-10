@@ -10,7 +10,7 @@ _uxs() {
     comp_file=${(%):-%x}
     repo_root=${comp_file:A:h}/..
 
-    # 模块清单：扫描各分类目录 .manifest（与 install.sh --list 同源）
+    # 模块清单：扫描各分类目录 .manifest（与 uxs list 同源）
     modules=()
     for mf in "$repo_root"/services/*/.manifest(N) \
               "$repo_root"/essentials/*/.manifest(N) \
@@ -24,25 +24,22 @@ _uxs() {
     done
 
     globals=(
-        '--status:查看所有模块状态'
-        '--status-json:机器可读状态'
-        '--list:列出模块名'
-        '--list-modules:列出模块及子命令'
-        '--list-categories:列出模块分类'
-        '--dry-run:预览模式'
-        '--no-deps:跳过依赖自动安装'
-        '--version:查看版本'
-        '--help:帮助信息'
-        'update:更新到最新版'
-        'check-update:检查新版本'
-        'cli:安装全局命令 uxs'
-        'uninstall-cli:卸载全局命令 uxs'
-        'completions:安装 Tab 补全'
-        'doctor:环境诊断'
+        'install:安装模块'
+        'remove:卸载模块'
+        'status:查看状态（--json 机器可读）'
+        'list:列出模块（--full / --grouped / --category）'
         'search:搜索模块（名称/别名/描述）'
-        'scaffold:创建新模块模板'
+        'info:查看模块明细'
+        'doctor:环境诊断'
         'export:导出已装模块为 profile'
         'apply:从 profile 应用配置'
+        'update:更新到最新版（--check 只查不更）'
+        'scaffold:创建新模块模板'
+        'completions:安装 Tab 补全'
+        'cli:安装/卸载全局命令 uxs'
+        'help:帮助信息'
+        'version:查看版本'
+        '--list-all:全量模块清单（TSV）'
     )
 
     _arguments -C \

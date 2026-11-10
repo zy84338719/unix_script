@@ -69,8 +69,8 @@ uxs dev-mirror             # npm/Go/Rust/Python 换国内源
 ## 日常维护
 
 ```bash
-uxs --status               # 查看所有模块安装状态
-uxs --list                 # 列出所有可用模块
+uxs status               # 查看所有模块安装状态
+uxs list                 # 列出所有可用模块
 uxs update                 # 更新 unix_script 自身到最新
 uxs sys-setup status       # 查看系统配置状态
 ```

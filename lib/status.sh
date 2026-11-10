@@ -141,7 +141,7 @@ status_state_get() {
     eval "echo \"\${${varname}:-}\""
 }
 
-# --- 版本内存态（--status-json 的版本列用；镜像 _uxs_state_* 模式）---
+# --- 版本内存态（status --json 的版本列用；镜像 _uxs_state_* 模式）---
 _uxs_version_varname() {
     local safe_mod="${1//-/_}"
     echo "_UXS_VERSION_${safe_mod}"

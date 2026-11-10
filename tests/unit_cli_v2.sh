@@ -91,6 +91,8 @@ t_has "未知模块: 报错含模块名" "nosuchmodulexyz" "$out"
 
 # ---------------- list ----------------
 out=$("$UXS" list 2>/dev/null)
+rc=$?
+t_rc "list: 退出码 0" 0 "$rc"
 t_has "list: 含 docker" "docker" "$out"
 n_all=$(printf '%s' "$out" | wc -w | tr -d ' ')
 if [[ "$n_all" -ge 20 ]]; then
@@ -101,10 +103,12 @@ else
 fi
 
 tsv=$("$UXS" list --full 2>/dev/null)
+t_rc "list --full: 退出码 0" 0 $?
 bad=$(printf '%s' "$tsv" | awk -F'\t' 'NF<3 || $3==""')
 t_eq "list --full: 每行三列且描述非空" "" "$bad"
 
 grp=$("$UXS" list --grouped 2>/dev/null)
+t_rc "list --grouped: 退出码 0" 0 $?
 t_has "list --grouped: 含分类标题" "[" "$grp"
 
 one=$("$UXS" list --category 服务 2>/dev/null | wc -w | tr -d ' ')
@@ -117,6 +121,7 @@ fi
 
 # ---------------- status ----------------
 js=$("$UXS" status --json 2>/dev/null)
+t_rc "status --json: 退出码 0" 0 $?
 t_eq "status --json: 头 3 行元数据" "3" "$(printf '%s\n' "$js" | head -3 | grep -cE '^(os|arch|version):')"
 # 状态行格式：key:state[:version] —— version 里可能有冒号和空格（如 "nginx version: nginx/1.31.6"），
 # 所以只校验 key 与 state 属于有限集，version 之后不约束。
@@ -127,6 +132,7 @@ t_has "status <模块> --json: 单行 key:state" "docker:" "$one_js"
 
 # ---------------- info ----------------
 info=$("$UXS" info docker 2>/dev/null)
+t_rc "info docker: 退出码 0" 0 $?
 t_has "info docker: 含 category" "category:" "$info"
 t_has "info docker: 含 subcommands" "subcommands:" "$info"
 t_has "info docker: 含 platforms" "platforms:" "$info"
@@ -135,6 +141,7 @@ t_rc "info 未知模块: 退出码 3" 3 $?
 
 # ---------------- search ----------------
 hit=$("$UXS" search docker 2>/dev/null)
+t_rc "search docker: 退出码 0" 0 $?
 t_has "search docker: 有命中" "docker" "$hit"
 "$UXS" search zzzqqq >/dev/null 2>&1
 t_rc "search 无匹配: 退出码 1" 1 $?

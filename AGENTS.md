@@ -21,7 +21,7 @@ unix_script 是一个 macOS/Linux 脚本库，提供 78 个模块的安装、配
 ### 列出所有模块
 
 ```bash
-./install.sh --list
+./install.sh list
 # 输出：空格分隔的模块名
 # node_exporter ddns-go wireguard tailscale docker ...
 ```
@@ -29,7 +29,7 @@ unix_script 是一个 macOS/Linux 脚本库，提供 78 个模块的安装、配
 ### 机器可读的模块清单（含子命令）
 
 ```bash
-./install.sh --list-modules
+./install.sh list --full
 # 输出 TSV：模块名\t支持子命令[  requires:...]\t描述
 # node_exporter	install uninstall status help	Prometheus 系统指标收集器
 # bun	install mirror unmirror uninstall status help	Bun 运行时（含国内镜像加速）
@@ -41,14 +41,14 @@ unix_script 是一个 macOS/Linux 脚本库，提供 78 个模块的安装、配
 ### 按分类列出模块
 
 ```bash
-./install.sh --list-categories
+./install.sh list --grouped
 # 输出：按分类分组的模块列表（服务/装机必备/开发环境/AI工具/系统工具）
 ```
 
 ### 机器可读状态
 
 ```bash
-./install.sh --status-json
+./install.sh status --json
 # 输出 key:value（每行一个，无颜色无 emoji）
 # node_exporter:not_installed
 # docker:installed:running
@@ -75,10 +75,10 @@ version:1.21.0  # unix_script 自身版本
 | `not_configured` | 未配置 |
 | `n/a` | 当前平台不适用 |
 
-自 v1.15.0 起，`--status-json` 默认仅输出**本机适用**的模块（平台不适用的模块被隐藏，正常输出中不出现 `n/a` 行）。需要全量清单（含不适用模块）时：
+自 v1.15.0 起，`status --json` 默认仅输出**本机适用**的模块（平台不适用的模块被隐藏，正常输出中不出现 `n/a` 行）。需要全量清单（含不适用模块）时：
 
 ```bash
-UNIX_SCRIPT_SHOW_ALL=1 ./install.sh --status-json
+UNIX_SCRIPT_SHOW_ALL=1 ./install.sh status --json
 ```
 
 ### 安装/操作模块
@@ -88,7 +88,7 @@ UNIX_SCRIPT_SHOW_ALL=1 ./install.sh --status-json
 ./install.sh <模块名>           # 默认动作（通常=install）
 ./install.sh <模块名> install   # 显式安装
 ./install.sh bun mirror         # 模块子命令透传
-./install.sh --no-deps <模块名> # 安装但跳过依赖自动安装（阶段 E）
+./install.sh install <模块名> --no-deps # 安装但跳过依赖自动安装（阶段 E）
 
 # 示例
 ./install.sh docker             # 安装 Docker
@@ -100,10 +100,10 @@ UNIX_SCRIPT_SHOW_ALL=1 ./install.sh --status-json
 
 ### 模块依赖与配置复现（阶段 E + D）
 
-**依赖图（阶段 E）**：模块可在 `.manifest` 中声明 `REQUIRES=<模块名>[,...]`。安装时框架自动先装缺失的依赖（拓扑序），循环依赖会被检测并报错。`--list-modules` 对有依赖的模块追加 `requires:...` 列。
+**依赖图（阶段 E）**：模块可在 `.manifest` 中声明 `REQUIRES=<模块名>[,...]`。安装时框架自动先装缺失的依赖（拓扑序），循环依赖会被检测并报错。`list --full` 对有依赖的模块追加 `requires:...` 列。
 
 ```bash
-./install.sh --no-deps minikube   # 跳过自动装依赖
+./install.sh install minikube --no-deps   # 跳过自动装依赖
 UNIX_SCRIPT_NO_DEPS=1 ./install.sh minikube   # 等价环境变量
 ```
 
@@ -111,7 +111,7 @@ UNIX_SCRIPT_NO_DEPS=1 ./install.sh minikube   # 等价环境变量
 
 ```bash
 ./install.sh export                  # 导出到 ~/.config/unix_script/profile.txt
-./install.sh export /path/profile    # 导出到指定文件
+./install.sh export --out /path/profile  # 导出到指定文件
 ./install.sh apply                   # 应用默认 profile（已装模块跳过）
 ./install.sh apply /path/profile --force    # 强制重装
 ./install.sh apply /path/profile --dry-run  # 预览
@@ -122,8 +122,8 @@ profile 行格式：`<模块名> [key=value ...]   # 注释`。apply 时把 `key
 ### 平台可见性（PLATFORMS 声明 + SHOW_ALL）
 
 模块可在 `.manifest` 中声明适用 OS：`PLATFORMS=linux[,darwin]`（缺省 = 全平台适用）。
-不适用当前系统的模块默认从**所有出口**隐藏：`--list` / `--list-modules` / `--list-categories` /
-`search` / 交互菜单（bash 与 fzf）/ 卸载菜单 / `--status` / `--status-json` / `export`。
+不适用当前系统的模块默认从**所有出口**隐藏：`list` / `list --full` / `list --grouped` /
+`search` / 交互菜单（bash 与 fzf）/ 卸载菜单 / `status` / `status --json` / `export`。
 
 - 直接安装不适用模块（如 macOS 上 `./install.sh ufw`）被框架拦截，给出解释性报错与恢复指引
 - `apply` profile 时跳过本机不适用行（profile 可跨机器携带）
@@ -135,8 +135,8 @@ profile 行格式：`<模块名> [key=value ...]   # 注释`。apply 时把 `key
 所有输出支持 `NO_COLOR=1` 环境变量（或管道自动检测）：
 
 ```bash
-NO_COLOR=1 ./install.sh --status
-./install.sh --status-json       # --status-json 始终无颜色
+NO_COLOR=1 ./install.sh status
+./install.sh status --json       # status --json 始终无颜色
 ```
 
 ### 调试模式
@@ -144,8 +144,32 @@ NO_COLOR=1 ./install.sh --status
 `UXS_DEBUG=1` 会把库内原本静默的 stderr（`2>/dev/null`，如 GitHub API 请求/解析失败）透出到终端，便于排查：
 
 ```bash
-UXS_DEBUG=1 ./install.sh check-update
+UXS_DEBUG=1 ./install.sh update --check
 ```
+
+
+### CLI v2：旧写法已删除（无兼容期）
+
+CLI 一次性切换到分组子命令面，旧扁平写法**全部删除**。命中旧写法会报错退出（退出码 2 = 用法错）并给一行迁移指引 —— 命令照样失败，**不是兼容路径**。
+
+| 旧写法 | 新写法 |
+|---|---|
+| `--list` | `uxs list` |
+| `--list-modules` | `uxs list --full` |
+| `--list-categories` | `uxs list --grouped` |
+| `--status` | `uxs status` |
+| `--status-json` | `uxs status --json` |
+| `--dry-run <模块>` | `uxs install <模块> --dry-run` |
+| `--no-deps <模块>` | `uxs install <模块> --no-deps` |
+| `check-update` | `uxs update --check` |
+| `export` / `export-profile` | `uxs export [--out 文件]` |
+| `apply` / `apply-profile` | `uxs apply <profile>` |
+| `cli` / `install-cli` | `uxs cli install` |
+| `uninstall-cli` / `remove-cli` | `uxs cli uninstall` |
+| `completions` | `uxs completions [shell]` |
+| `scaffold` / `doctor` / `update` | 同名分组命令（`uxs scaffold` / `uxs doctor` / `uxs update`） |
+
+新增：`uxs info <模块>`（模块明细：标签/分类/依赖/子命令/适用平台）、`uxs --list-all`（全量 TSV 清单，含平台不适用）。
 
 ## 模块子命令约定
 
@@ -158,7 +182,7 @@ UXS_DEBUG=1 ./install.sh check-update
 | `status` | 查看状态（输出一行结论） |
 | `help` | 用法说明 |
 
-部分模块有额外子命令（如 `bun mirror`、`clash start`、`sys-setup all`），用 `--list-modules` 查询。
+部分模块有额外子命令（如 `bun mirror`、`clash start`、`sys-setup all`），用 `list --full` 查询。
 
 ### 机器可读 status（模块内部）
 
@@ -211,7 +235,7 @@ EXTRA=<key=value>        # 可选，附加信息
 
 | 码 | 含义 | 典型场景 |
 |---|---|---|
-| 0 | 成功 | 含**状态类子命令**（`status` / `--status` / `--status-json`）——探测语义，恒 0 |
+| 0 | 成功 | 含**状态类子命令**（`status` / `status --json`）——探测语义，恒 0 |
 | 1 | 一般错误 | 未归类的失败 |
 | 2 | 用法错 | 参数不对、未知选项、未知子命令 |
 | 3 | 前置不满足 | 模块不存在、平台不适用、缺命令、非 root、交互无默认值 |
@@ -244,10 +268,10 @@ curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstr
 
 ## AI agent 典型工作流
 
-1. `./install.sh --status-json` → 了解当前已装/未装
-2. `./install.sh --list-modules` → 了解可用模块及子命令（或 `./install.sh search <关键字>` 按名称/别名/描述精准搜索）
-3. `./install.sh <需要的模块>` → 安装
-4. `./install.sh <模块> status` → 确认结果
+1. `./install.sh status --json` → 了解当前已装/未装
+2. `./install.sh list --full` → 了解可用模块及子命令（或 `./install.sh search <关键字>` 按名称/别名/描述精准搜索）
+3. `./install.sh install <需要的模块>` → 安装
+4. `./install.sh status <模块>` → 确认结果
 
 ## 注意事项
 

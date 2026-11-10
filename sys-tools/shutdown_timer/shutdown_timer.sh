@@ -272,7 +272,7 @@ cancel_daily_shutdown_linux() {
     success "每日定时关机任务已成功取消。"
 }
 
-# 机器可读状态（供 --status-json / module_status_machine 复用）。
+# 机器可读状态（供 status --json / module_status_machine 复用）。
 # 契约：UXS_STATUS_MODE=machine 时输出 STATE=，否则输出人类可读中文（emit_status 双轨）。
 status_shutdown_timer() {
     detect_os

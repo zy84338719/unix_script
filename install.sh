@@ -64,7 +64,7 @@ dispatch_module() {
                 echo "  其他候选: ${others}"
             fi
         fi
-        info "查看全部模块: $0 --list-categories"
+        info "查看全部模块: $0 list --grouped"
         exit "$SK_PRECOND"
     fi
 
@@ -133,7 +133,7 @@ main() {
             echo "    git clone https://github.com/zy84338719/unix_script && cd unix_script && ./install.sh"
             echo
             info "或通过 bootstrap 透传参数（非交互），例如："
-            echo "    curl -fsSL .../bootstrap.sh | bash -s -- --status"
+            echo "    curl -fsSL .../bootstrap.sh | bash -s -- status"
             echo "    curl -fsSL .../bootstrap.sh | bash -s -- docker"
             echo
             show_usage

@@ -138,11 +138,11 @@ show_alias_hint() {
     echo "    cd \"$INSTALL_DIR\" && ./install.sh    # 交互式菜单（fzf 模糊搜索/多选）"
     echo
     b_info "全局命令 uxs 已安装，重新加载 shell 后任意目录可用："
-    echo "    source ~/.zshrc 2>/dev/null || source ~/.bashrc 2>/dev/null; uxs --status"
+    echo "    source ~/.zshrc 2>/dev/null || source ~/.bashrc 2>/dev/null; uxs status"
     echo
     b_info "更新 / 透传（非交互，适合脚本/CI）都用同一条 bootstrap 命令："
     echo "    curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstrap.sh | bash        # 更新"
-    echo "    curl -fsSL .../bootstrap.sh | bash -s -- <模块或子命令>    # 如 docker / --status / bun mirror"
+    echo "    curl -fsSL .../bootstrap.sh | bash -s -- <模块或子命令>    # 如 docker / status / bun mirror"
 }
 
 # ---------------- 安装全局命令 uxs ----------------
@@ -181,11 +181,11 @@ main() {
             b_info "已安装模块状态："
             if bash "$install_script" --help 2>/dev/null | grep -q '\-\-status-json'; then
                 # pipefail 下 head -20 提前关管道会触发上游 SIGPIPE → 用 || true 兜底（仅展示用）
-                bash "$install_script" --status-json 2>/dev/null | grep -vE '^(os|arch|version):' | head -20 || true
+                bash "$install_script" status --json 2>/dev/null | grep -vE '^(os|arch|version):' | head -20 || true
             else
-                bash "$install_script" --status 2>/dev/null | head -20 || true
+                bash "$install_script" status 2>/dev/null | head -20 || true
             fi
-            echo "    （完整状态：uxs --status）"
+            echo "    （完整状态：uxs status）"
             echo
             local ver
             ver=$(bash "$install_script" --version 2>/dev/null | awk '{print $2}')

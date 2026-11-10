@@ -342,7 +342,7 @@ module_subcommands() {
     echo "$subs"
 }
 
-# --list-modules: TSV 输出模块名 + 支持子命令 + 描述（第 3 列）
+# list --full: TSV 输出模块名 + 支持子命令 + 描述（第 3 列）
 show_list_modules() {
     local mod line reqs desc
     for mod in $(registry_visible_modules); do
@@ -418,7 +418,7 @@ show_module_info() {
     return 0
 }
 
-# --status-json: key:value 格式输出各模块状态（无颜色、无 emoji）
+# status --json: key:value 格式输出各模块状态（无颜色、无 emoji）
 # 单模块故障（status 崩溃/超时/输出为空）不影响整体输出：批查恒定回填 unknown
 show_status_json() {
     detect_os
@@ -541,7 +541,7 @@ show_search_results() {
         hits+=("$mod")
     done < <(registry_search "$@")
     if [[ ${#hits[@]} -eq 0 ]]; then
-        warn "无匹配模块。试试更短的关键字，或用 --list-categories 查看全部"
+        warn "无匹配模块。试试更短的关键字，或用 list --grouped 查看全部"
         return 1
     fi
     if uxs_is_machine_mode; then
@@ -629,7 +629,7 @@ show_usage() {
   [其他]
     <模块> [子命令]          直接操作某模块（如: $0 docker / $0 bun mirror）
     --help / --version       帮助 / 版本
-    --list-all               全量模块清单（TSV，含平台不适用）
+    list-all               全量模块清单（TSV，含平台不适用）
 
 模块（按分类）:
 EOF

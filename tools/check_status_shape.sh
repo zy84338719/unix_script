@@ -2,7 +2,7 @@
 #
 # 状态输出的结构判据。
 #
-# 为什么不做逐字基线：--status-json 与各模块 status 的内容依赖**本机实际安装状态**，
+# 为什么不做逐字基线：status --json 与各模块 status 的内容依赖**本机实际安装状态**，
 # 同一份代码在两台机器上必然不同。逐字基线会变成永远的红。
 # 能固定的是**形状**：每行 key:value、状态码在有限集里。
 #
@@ -16,8 +16,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." &>/dev/null && pwd)"
 VALID_STATES="not_installed installed installed:running installed:stopped configured not_configured n/a unknown"
 
 cd "$ROOT"
-OUT="$(./install.sh --status-json 2>/dev/null)" || {
-    printf 'check_status_shape: --status-json 执行失败\n' >&2
+OUT="$(./install.sh status --json 2>/dev/null)" || {
+    printf 'check_status_shape: status --json 执行失败\n' >&2
     exit 1
 }
 

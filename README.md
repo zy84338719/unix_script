@@ -15,7 +15,7 @@
 - **78 个模块**：服务 / 装机必备 / 开发环境 / AI 工具 / 系统工具，5 大分类全覆盖
 - **统一接口**：所有模块遵循 `install / uninstall / status / help` 约定
 - **注册表驱动**：模块自带 `.manifest` 元数据，自动发现、自动排序、自动别名
-- **AI / 脚本友好**：`--status-json`、`--list-modules`、`--list-categories` 三种机器可读输出
+- **AI / 脚本友好**：`status --json`、`list --full`、`list --grouped` 三种机器可读输出
 - **交互 + 非交互双模**：终端用户用菜单，AI / CI 用参数透传
 - **全局命令 `uxs`**：装一次，任意目录可用
 - **Tab 补全**：bash / zsh 自动补全模块名与子命令
@@ -39,7 +39,7 @@ curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstr
 # 非交互：直接安装指定模块
 curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstrap.sh | bash -s -- docker
 curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstrap.sh | bash -s -- tailscale
-curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstrap.sh | bash -s -- --status-json
+curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstrap.sh | bash -s -- status --json
 
 # 子命令透传
 curl -fsSL .../bootstrap.sh | bash -s -- bun mirror
@@ -68,7 +68,7 @@ git clone https://github.com/zy84338719/unix_script.git && cd unix_script
 | `./install.sh` | 进入交互式主菜单 |
 | `./install.sh <模块>` | 非交互安装该模块（默认动作） |
 | `./install.sh <模块> <子命令>` | 透传子命令到模块（如 `clash start`） |
-| `./install.sh -s` / `--status` | 查看所有模块安装状态 |
+| `./install.sh status` | 查看所有模块安装状态 |
 
 ### 信息查询
 
@@ -76,27 +76,52 @@ git clone https://github.com/zy84338719/unix_script.git && cd unix_script
 |------|------|
 | `./install.sh -h` / `--help` | 显示帮助（含所有模块名） |
 | `./install.sh -v` / `--version` | 显示版本 |
-| `./install.sh --list` | 列出所有模块名（空格分隔，适合脚本） |
-| `./install.sh --list-modules` | TSV：模块名 + 支持的子命令 + 描述（AI / 脚本友好） |
-| `./install.sh --list-categories` | 按分类分组列出模块 |
+| `./install.sh list` | 列出所有模块名（空格分隔，适合脚本） |
+| `./install.sh list --full` | TSV：模块名 + 支持的子命令 + 描述（AI / 脚本友好） |
+| `./install.sh list --grouped` | 按分类分组列出模块 |
 | `./install.sh search <关键字>` | 搜索模块（名称/别名/描述，多关键字 AND；无匹配退出 1） |
-| `./install.sh --status-json` | key:value 状态（无颜色无 emoji，AI 友好） |
+| `./install.sh status --json` | key:value 状态（无颜色无 emoji，AI 友好） |
 
 ### 工具链命令
 
 | 命令 | 说明 |
 |------|------|
 | `./install.sh doctor` | 环境诊断：Bash 版本 / 必要工具 / 包管理器 / 磁盘 / 网络 / sudo |
-| `./install.sh check-update` | 检查远端是否有新版本（不修改本地） |
+| `./install.sh update --check` | 检查远端是否有新版本（不修改本地） |
 | `./install.sh update` | 安全检查 + 确认后 `git pull` 更新 |
-| `./install.sh --dry-run <模块>` | 预览模式：只打印将执行的操作，不实际执行 |
-| `./install.sh --no-deps <模块>` | 安装但跳过依赖自动安装 |
-| `./install.sh export [文件]` | 导出已装模块+配置为 profile（默认 `~/.config/unix_script/profile.txt`） |
+| `./install.sh install <模块> --dry-run` | 预览模式：只打印将执行的操作，不实际执行 |
+| `./install.sh install <模块> --no-deps` | 安装但跳过依赖自动安装 |
+| `./install.sh export [--out 文件]` | 导出已装模块+配置为 profile（默认 `~/.config/unix_script/profile.txt`） |
 | `./install.sh apply [文件] [--force\|--dry-run]` | 从 profile 复现安装（已装跳过；`--force` 重装） |
-| `./install.sh cli` | 安装全局命令 `uxs` 到 `~/.tools/bin` |
-| `./install.sh uninstall-cli` | 卸载全局命令 `uxs` |
-| `./install.sh completions` | 安装 Tab 自动补全到当前 shell 配置 |
+| `./install.sh cli install` | 安装全局命令 `uxs` 到 `~/.tools/bin` |
+| `./install.sh cli uninstall` | 卸载全局命令 `uxs` |
+| `./install.sh completions [shell]` | 安装 Tab 自动补全（bash / zsh / fish，缺省=当前 shell） |
 | `./install.sh scaffold <名称> [选项]` | 生成新模块脚手架 |
+
+
+### CLI v2：旧写法已删除（无兼容期）
+
+CLI 一次性切换到分组子命令面，旧扁平写法**全部删除**。命中旧写法会报错退出（退出码 2 = 用法错）并给一行迁移指引 —— 命令照样失败，**不是兼容路径**。
+
+| 旧写法 | 新写法 |
+|---|---|
+| `--list` | `uxs list` |
+| `--list-modules` | `uxs list --full` |
+| `--list-categories` | `uxs list --grouped` |
+| `--status` | `uxs status` |
+| `--status-json` | `uxs status --json` |
+| `--dry-run <模块>` | `uxs install <模块> --dry-run` |
+| `--no-deps <模块>` | `uxs install <模块> --no-deps` |
+| `check-update` | `uxs update --check` |
+| `export` / `export-profile` | `uxs export [--out 文件]` |
+| `apply` / `apply-profile` | `uxs apply <profile>` |
+| `cli` / `install-cli` | `uxs cli install` |
+| `uninstall-cli` / `remove-cli` | `uxs cli uninstall` |
+| `completions` | `uxs completions [shell]` |
+| `scaffold` / `doctor` / `update` | 同名分组命令（`uxs scaffold` / `uxs doctor` / `uxs update`） |
+
+新增：`uxs info <模块>`（模块明细：标签/分类/依赖/子命令/适用平台）、`uxs --list-all`（全量 TSV 清单，含平台不适用）。
+
 
 #### `scaffold` 选项
 
@@ -114,13 +139,13 @@ git clone https://github.com/zy84338719/unix_script.git && cd unix_script
 
 ```bash
 # 1) 模块名 + 子命令 + 描述（TSV，解析最方便；第 3 列为 DESC 描述）
-$ ./install.sh --list-modules
+$ ./install.sh list --full
 node_exporter  install uninstall status help  Prometheus 系统指标收集器
 bun            install mirror unmirror uninstall status help  Bun 运行时（含国内镜像加速）
 clash          install uninstall status start stop restart enable disable help  代理核心 + TUN 透明代理（mihomo）
 
 # 2) 当前安装状态（key:value，无颜色无 emoji；首 3 行为框架元数据 os/arch/version）
-$ ./install.sh --status-json
+$ ./install.sh status --json
 os:darwin
 arch:ARM64
 version:1.15.0
@@ -130,7 +155,7 @@ bun:installed:v1.3.14
 tailscale:installed:connected
 
 # 3) 按分类分组（人类可读）
-$ ./install.sh --list-categories
+$ ./install.sh list --grouped
 [服务] docker nginx redis ...
 [装机必备] sys-setup nvm brew ...
 ```
@@ -138,8 +163,8 @@ $ ./install.sh --list-categories
 **去除颜色**（管道 / 日志场景）：
 
 ```bash
-NO_COLOR=1 ./install.sh --status    # 强制无颜色
-./install.sh --status-json          # --status-json 始终无颜色
+NO_COLOR=1 ./install.sh status    # 强制无颜色
+./install.sh status --json          # status --json 始终无颜色
 ```
 
 > AI agent 的典型工作流详见 [AGENTS.md](AGENTS.md)。
@@ -273,7 +298,7 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 
 ### 模块扩展子命令
 
-部分模块提供额外子命令（用 `--list-modules` 查询完整列表）：
+部分模块提供额外子命令（用 `list --full` 查询完整列表）：
 
 ```bash
 # 开发环境 —— 国内镜像加速
@@ -338,12 +363,12 @@ NO_COLOR=1 ./install.sh --status    # 强制无颜色
 安装一次后，任意目录都可调用：
 
 ```bash
-./install.sh cli                  # 安装 uxs 到 ~/.tools/bin（自动配置 PATH）
+./install.sh cli install                  # 安装 uxs 到 ~/.tools/bin（自动配置 PATH）
 uxs docker                        # 任意目录安装 docker
 uxs bun mirror                    # 任意目录换源
-uxs --status-json                 # 任意目录查状态
+uxs status --json                 # 任意目录查状态
 uxs doctor                        # 任意目录环境诊断
-uxs uninstall-cli                 # 卸载 uxs 自身
+uxs cli uninstall                 # 卸载 uxs 自身
 ```
 
 支持 bash / zsh / fish 的 PATH 配置，自动备份 shell rc 文件。

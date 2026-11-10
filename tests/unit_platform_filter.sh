@@ -87,26 +87,26 @@ t_eq "visible: SHOW_ALL=1 输出全量注册表" "$_REGISTRY_MODULES" "$VIS_ALL"
 
 # ---------- CLI 出口过滤（子进程级，覆盖接线）----------
 run_install() { bash "$REPO_DIR/install.sh" "$@"; }
-LST=$(run_install --list)
-LST_ALL=$(UNIX_SCRIPT_SHOW_ALL=1 run_install --list)
+LST=$(run_install list)
+LST_ALL=$(UNIX_SCRIPT_SHOW_ALL=1 run_install list)
 case "$OS_TYPE" in
     darwin)
-        t_true "--list: 不含 ufw" "! printf '%s' \"$LST\" | grep -qw ufw"
-        t_true "--list: 含 docker" "printf '%s' \"$LST\" | grep -qw docker"
-        t_true "SHOW_ALL --list: 含 ufw" "printf '%s' \"$LST_ALL\" | grep -qw ufw"
+        t_true "list: 不含 ufw" "! printf '%s' \"$LST\" | grep -qw ufw"
+        t_true "list: 含 docker" "printf '%s' \"$LST\" | grep -qw docker"
+        t_true "SHOW_ALL list: 含 ufw" "printf '%s' \"$LST_ALL\" | grep -qw ufw"
         ;;
     linux)
-        t_true "--list: 不含 brew" "! printf '%s' \"$LST\" | grep -qw brew"
-        t_true "SHOW_ALL --list: 含 brew" "printf '%s' \"$LST_ALL\" | grep -qw brew"
+        t_true "list: 不含 brew" "! printf '%s' \"$LST\" | grep -qw brew"
+        t_true "SHOW_ALL list: 含 brew" "printf '%s' \"$LST_ALL\" | grep -qw brew"
         ;;
 esac
 N_ALL=$(printf '%s' "$LST_ALL" | wc -w | tr -d ' ')
 N_VIS=$(printf '%s' "$LST" | wc -w | tr -d ' ')
-t_true "--list: 可见数 ≤ 全量数（${N_VIS}/${N_ALL}）" "(( $N_VIS <= $N_ALL ))"
+t_true "list: 可见数 ≤ 全量数（${N_VIS}/${N_ALL}）" "(( $N_VIS <= $N_ALL ))"
 
-# --status-json 关键不变量：默认零 n/a 行；SHOW_ALL 行数=全量模块数；头 3 行元数据不动
-J=$(run_install --status-json | tail -n +4)
-J_ALL=$(UNIX_SCRIPT_SHOW_ALL=1 run_install --status-json)
+# status --json 关键不变量：默认零 n/a 行；SHOW_ALL 行数=全量模块数；头 3 行元数据不动
+J=$(run_install status --json | tail -n +4)
+J_ALL=$(UNIX_SCRIPT_SHOW_ALL=1 run_install status --json)
 t_eq "status-json: 默认零 n/a 行" "0" "$(printf '%s\n' "$J" | grep -c ':n/a' || true)"
 t_eq "status-json: 默认行数=可见模块数" "$N_VIS" "$(printf '%s\n' "$J" | grep -c . || true)"
 t_eq "status-json: SHOW_ALL 行数=全量模块数" "$N_ALL" "$(printf '%s\n' "$J_ALL" | tail -n +4 | grep -c . || true)"
@@ -119,11 +119,11 @@ if [[ "$OS_TYPE" == "darwin" ]]; then
     run_install search 容器 >/dev/null 2>&1; t_rc "search: 通用关键字 rc=0" 0 $?
 fi
 
-# --list-categories 不含隐藏模块行
-LC=$(run_install --list-categories)
+# list --grouped 不含隐藏模块行
+LC=$(run_install list --grouped)
 case "$OS_TYPE" in
-    darwin) t_true "--list-categories: 无 ufw 行" "! printf '%s' \"$LC\" | grep -q '^  ufw'" ;;
-    linux)  t_true "--list-categories: 无 brew 行" "! printf '%s' \"$LC\" | grep -q '^  brew'" ;;
+    darwin) t_true "list --grouped: 无 ufw 行" "! printf '%s' \"$LC\" | grep -q '^  ufw'" ;;
+    linux)  t_true "list --grouped: 无 brew 行" "! printf '%s' \"$LC\" | grep -q '^  brew'" ;;
 esac
 
 # ---------- category_items / 菜单可见性 ----------

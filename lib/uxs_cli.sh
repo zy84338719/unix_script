@@ -59,7 +59,7 @@ install_cli() {
     local wrapper="$UXS_TOOLS_BIN/$UXS_CMD_NAME"
     cat > "$wrapper" <<EOF
 #!/usr/bin/env bash
-# 由 unix_script install.sh cli 生成 —— 全局命令 uxs
+# 由 unix_script install.sh cli install install 生成 —— 全局命令 uxs
 # 透传所有参数给仓库的 install.sh
 exec bash "$repo_install" "\$@"
 EOF
@@ -108,7 +108,7 @@ EOF
         echo "    # 或重新打开终端"
     fi
     echo
-    info "用法示例：uxs docker-image  |  uxs --status  |  uxs check-update  |  uxs update"
+    info "用法示例：uxs docker-image  |  uxs status  |  uxs update --check  |  uxs update"
 }
 
 # 卸载 uxs 命令：删除 wrapper，并清理 PATH 配置（可选）
@@ -176,7 +176,7 @@ install_completions() {
         else
             {
                 echo ""
-                echo "# unix_script Tab 补全（由 install.sh completions 添加）"
+                echo "# unix_script Tab 补全（由 uxs completions 添加）"
                 echo "$source_line"
             } >> "$UXS_SHELL_RC"
             success "已添加 Bash 补全到 $UXS_SHELL_RC"
@@ -195,7 +195,7 @@ install_completions() {
         else
             {
                 echo ""
-                echo "# unix_script Tab 补全（由 install.sh completions 添加）"
+                echo "# unix_script Tab 补全（由 uxs completions 添加）"
                 echo "$source_line"
             } >> "$UXS_SHELL_RC"
             success "已添加 Zsh 补全到 $UXS_SHELL_RC"

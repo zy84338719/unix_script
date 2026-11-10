@@ -447,8 +447,13 @@ cli_v2_dispatch() {
                 printf 'unix_script %s\n' "$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"
                 exit 0
                 ;;
+            *)
+                error "未知命令: $first" >&2
+                exit "$SK_USAGE"
+                ;;
         esac
-        exit "$SK_USAGE"
+        # case 匹配成功 ⇒ 正常退出（失败路径各分支自己 exit 了）
+        exit 0
     fi
 
     # 已删除的旧子命令（check-update / export-profile / install-cli …）：

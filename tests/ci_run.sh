@@ -172,8 +172,8 @@ check_status_contract() {
     # 输出 STATE=。此处保留断言作为回归守卫：确保去特判后它们仍输出合法状态码。
     local p5_mod
     for p5_mod in shutdown_timer process_manager_tool; do
-        # 从 --status-json 提取该模块的状态行
-        state=$("$REPO_DIR/install.sh" --status-json 2>/dev/null \
+        # 从 status --json 提取该模块的状态行
+        state=$("$REPO_DIR/install.sh" status --json 2>/dev/null \
                  | sed -n "s/^${p5_mod}://p" | head -1)
         # 状态行可能含 version 后缀（如 installed:running:1.2.3），取第一个字段
         state="${state%%:*}"
@@ -200,22 +200,22 @@ phase_routing() {
     assert "install.sh --help (exit 0)" bash "$REPO_DIR/install.sh" --help
     assert "install.sh --version (含版本号)" bash -c "\"$REPO_DIR/install.sh\" --version | grep -q 'unix_script'"
     # shellcheck disable=SC2016 # $1/$(uname)/$KEY 故意交给内层 bash -c 求值
-    assert "install.sh --list (含关键模块)" bash -c '
+    assert "install.sh list (含关键模块)" bash -c '
         # 平台可见性过滤后，fail2ban 仅 Linux 可见；darwin 用 brew 代表本宿主可见模块
         if [ "$(uname)" = "Linux" ]; then KEY=fail2ban; else KEY=brew; fi
-        "$1/install.sh" --list | grep -q tailscale && "$1/install.sh" --list | grep -q "$KEY"' _ "$REPO_DIR"
-    assert "install.sh --list (模块数 >= 20)" bash -c "[ \$($REPO_DIR/install.sh --list | wc -w) -ge 20 ]"
-    # --status 会调用 sudo launchctl/systemctl；仅在有免密 sudo 时断言（CI runner 满足）
+        "$1/install.sh" list | grep -q tailscale && "$1/install.sh" list | grep -q "$KEY"' _ "$REPO_DIR"
+    assert "install.sh list (模块数 >= 20)" bash -c "[ \$($REPO_DIR/install.sh list | wc -w) -ge 20 ]"
+    # status 会调用 sudo launchctl/systemctl；仅在有免密 sudo 时断言（CI runner 满足）
     if sudo -n true 2>/dev/null; then
-        assert "install.sh --status (非交互正常退出)" bash -c "\"$REPO_DIR/install.sh\" --status >/dev/null 2>&1"
+        assert "uxs status (非交互正常退出)" bash -c "\"$REPO_DIR/install.sh\" status >/dev/null 2>&1"
     else
-        report_row "install.sh --status (非交互)" skip "本机无免密 sudo（CI runner 有）"
+        report_row "uxs status (非交互)" skip "本机无免密 sudo（CI runner 有）"
     fi
     assert "install.sh 未知模块报错 (exit 1)" bash -c "! \"$REPO_DIR/install.sh\" __nope__ >/dev/null 2>&1"
 
     # 2b. 版本更新检查子命令
-    # check-update 即使无网络/无 release 也必须正常退出（容错）
-    assert "install.sh check-update (exit 0)" bash "$REPO_DIR/install.sh" check-update
+    # update --check 即使无网络/无 release 也必须正常退出（容错）
+    assert "install.sh update --check (exit 0)" bash "$REPO_DIR/install.sh" update --check
     # update 不应真正执行 git pull（破坏仓库）：记录运行前后 HEAD，应相同。
     # 用 </dev/null 让所有确认 read 立即返回非 y（取消），不依赖工作区是否 clean。
     assert "install.sh update (不改变 HEAD)" bash -c "before=\$(git -C \"$REPO_DIR\" rev-parse HEAD); \"$REPO_DIR/install.sh\" update </dev/null >/dev/null 2>&1; after=\$(git -C \"$REPO_DIR\" rev-parse HEAD); [ \"\$before\" = \"\$after\" ]"
@@ -237,7 +237,8 @@ phase_routing() {
     # 2d. install.sh 非 TTY 无参（curl|bash 管道场景）：应优雅打印帮助+退出 0，而非卡死/刷屏
     #     复现并固化修复：stdin 非 tty 且无参数时不能进入交互菜单
     assert "install.sh 非 TTY 无参 → 打印帮助 (exit 0)" bash -c "bash \"$REPO_DIR/install.sh\" </dev/null 2>&1 | grep -q '检测到非交互环境'"
-    assert "install.sh 非 TTY 无参 → 含用法说明 (exit 0)" bash -c "bash \"$REPO_DIR/install.sh\" </dev/null 2>&1 | grep -q '显示本帮助'"
+    # 断「用法:」而不是旧帮助里的「显示本帮助」——CLI v2 的帮助首行就是用法说明
+    assert "install.sh 非 TTY 无参 → 含用法说明 (exit 0)" bash -c "bash \"$REPO_DIR/install.sh\" </dev/null 2>&1 | grep -q '用法:'"
 
     # 3. uninstall.sh
     assert "uninstall.sh --help (exit 0)" bash "$REPO_DIR/uninstall.sh" --help
@@ -345,7 +346,7 @@ phase_routing() {
     assert "disk: DEFAULT_ACTION=list（非交互默认最安全）" bash -c "grep -q '^DEFAULT_ACTION=list$' \"$REPO_DIR/$disk_path/.manifest\""
     assert "disk: 系统盘硬拒绝护栏存在" bash -c "grep -q '_disk_is_protected()' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: 护栏拒绝非交互终端" bash -c "grep -qF '仅允许在交互终端执行' \"$REPO_DIR/$disk_path/install.sh\""
-    assert "disk: usage 子命令枚举完整（供 --list-modules/补全解析）" bash -c "grep -qF '{list|wizard|partition|format|mount|umount|fstab|smart|scan|wipe|install|uninstall|status|help}' \"$REPO_DIR/$disk_path/install.sh\""
+    assert "disk: usage 子命令枚举完整（供 list --full/补全解析）" bash -c "grep -qF '{list|wizard|partition|format|mount|umount|fstab|smart|scan|wipe|install|uninstall|status|help}' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: smart 判定纯函数存在（可单测）" bash -c "grep -q '_smart_verdict()' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: smart 判定单测全过" bash "$REPO_DIR/tests/unit_disk_smart.sh"
     assert "platform: lib helper 单测全过" bash "$REPO_DIR/tests/unit_platform.sh"
@@ -475,7 +476,7 @@ phase_routing() {
     local ops_path
     ops_path=$(resolve_module_path ops-kit)
     assert "ops-kit: .manifest DEFAULT_ACTION=inspect（只读默认）" bash -c "grep -q '^DEFAULT_ACTION=inspect$' \"$REPO_DIR/$ops_path/.manifest\""
-    assert "ops-kit: 子命令枚举完整（供 --list-modules/补全解析）" bash -c "grep -qF '{inspect|log|svc|audit|install|uninstall|status|help}' \"$REPO_DIR/$ops_path/install.sh\""
+    assert "ops-kit: 子命令枚举完整（供 list --full/补全解析）" bash -c "grep -qF '{inspect|log|svc|audit|install|uninstall|status|help}' \"$REPO_DIR/$ops_path/install.sh\""
     assert "ops-kit: vacuum 无参数护栏存在" bash -c "grep -qF '用法: ops-kit log vacuum' \"$REPO_DIR/$ops_path/install.sh\""
     assert "ops-kit: 写操作交互终端护栏存在" bash -c "grep -qF '仅允许在交互终端执行' \"$REPO_DIR/$ops_path/install.sh\""
     assert "ops-kit: source 守护存在（单测可复用纯函数）" bash -c "grep -q 'BASH_SOURCE\[0\]' \"$REPO_DIR/$ops_path/install.sh\""
@@ -484,15 +485,15 @@ phase_routing() {
 
     # 9p. 管理面板批次①：1panel/btpanel/webmin/casaos（status/help 由注册表循环自动覆盖）
     # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
-    assert "面板: --list-modules 注册 4 新模块（含子命令列）" bash -c '
+    assert "面板: list --full 注册 4 新模块（含子命令列）" bash -c '
         cd "$1" || exit 1
         # SHOW_ALL=1 摆脱宿主平台过滤：本断言验证「注册与解析」，可见性由 platform-filter 单测覆盖
         for m in 1panel btpanel webmin casaos; do
-            line=$(UNIX_SCRIPT_SHOW_ALL=1 ./install.sh --list-modules | grep -E "^${m}	") || { echo "缺 $m"; exit 1; }
+            line=$(UNIX_SCRIPT_SHOW_ALL=1 ./install.sh list --full | grep -E "^${m}	") || { echo "缺 $m"; exit 1; }
             echo "$line" | grep -q "install" || { echo "$m 子命令列缺 install"; exit 1; }
             echo "$line" | grep -q "uninstall" || { echo "$m 子命令列缺 uninstall"; exit 1; }
         done' _ "$REPO_DIR"
-    # 用法行枚举完整（供 --list-modules/菜单/补全解析，lib/menu.sh 取首个「用法:」行）
+    # 用法行枚举完整（供 list --full/菜单/补全解析，lib/menu.sh 取首个「用法:」行）
     assert "1panel: 用法行枚举完整" bash -c "grep -qF '{install|info|update|uninstall|status|help}' \"$REPO_DIR/services/1panel/install.sh\""
     assert "btpanel: 用法行枚举完整（含 en=aaPanel）" bash -c "grep -qF '{install|en|info|uninstall|status|help}' \"$REPO_DIR/services/btpanel/install.sh\" && grep -qE '^        en\)' \"$REPO_DIR/services/btpanel/install.sh\""
     assert "webmin: 用法行枚举完整" bash -c "grep -qF '{install|uninstall|status|help}' \"$REPO_DIR/services/webmin/install.sh\""
@@ -525,6 +526,20 @@ phase_routing() {
 
     # 4d. 平台可见性过滤：PLATFORMS 解析 / 出口过滤 / 护栏单测
     assert "platform-filter: 平台可见性单测全过" bash "$REPO_DIR/tests/unit_platform_filter.sh"
+    assert "cli-v2: CLI v2 命令面单测全过" bash "$REPO_DIR/tests/unit_cli_v2.sh"
+
+    # CLI v2 的核心判据：旧扁平写法必须失败（退出码 2 = 用法错），且给迁移指引。
+    # 没有这条断言，删旧 flag 这件事就没有判据能力 —— 旧写法悄悄还能用也没人知道。
+    # shellcheck disable=SC2016  # $1/$2/$? 故意交给内层 bash -c 求值
+    for old_flag in --list --list-modules --list-categories --status --status-json --dry-run --no-deps; do
+        assert "CLI v2: 旧写法 $old_flag 已删除（退出码 2）" bash -c \
+            '"$1/install.sh" "$2" >/dev/null 2>&1; [ $? -eq 2 ]' _ "$REPO_DIR" "$old_flag"
+    done
+    # shellcheck disable=SC2016  # $1/$2/$? 故意交给内层 bash -c 求值
+    for old_cmd in check-update export-profile apply-profile install-cli uninstall-cli remove-cli; do
+        assert "CLI v2: 旧子命令 $old_cmd 已删除（退出码 2）" bash -c \
+            '"$1/install.sh" "$2" >/dev/null 2>&1; [ $? -eq 2 ]' _ "$REPO_DIR" "$old_cmd"
+    done
 
     # 10. 阶段 E：模块依赖图（lib/deps.sh）
     assert "依赖图: lib/deps.sh 存在" bash -c "test -f \"$REPO_DIR/lib/deps.sh\""
@@ -558,13 +573,15 @@ phase_routing() {
          rc=0; ( resolve_deps alpha ) >/dev/null 2>&1 || rc=1
          rm -rf "$cyc"
          [ "$rc" -eq 1 ]' _ "$REPO_DIR"
-    # --list-modules 对 minikube 输出 requires:docker
-    assert "依赖图: --list-modules 含 minikube requires:docker" bash -c \
-        "\"$REPO_DIR/install.sh\" --list-modules | grep '^minikube' | grep -q 'requires:docker'"
-    # --no-deps 解析（无模块参数 → 显示用法 exit 0）
+    # list --full 对 minikube 输出 requires:docker
+    assert "依赖图: list --full 含 minikube requires:docker" bash -c \
+        "\"$REPO_DIR/install.sh\" list --full | grep '^minikube' | grep -q 'requires:docker'"
+    # CLI v2：--no-deps 是子命令级 flag（uxs install <模块> --no-deps）。
+    # 顶层 --no-deps 已删除。这里断言「install --no-deps 缺模块名 → 用法错 2」——
+    # 若 --no-deps 被当成模块名，就会变成「未知模块」3 ⇒ 退出码能区分解析对错。
     # shellcheck disable=SC2016 # $1 故意交给内层 bash -c 求值
-    assert "依赖图: --no-deps 解析正常" bash -c \
-        'UNIX_SCRIPT_NO_UPDATE_CHECK=1 "$1/install.sh" --no-deps </dev/null >/dev/null 2>&1' _ "$REPO_DIR"
+    assert "依赖图: uxs install --no-deps 缺模块名 → 用法错 2" bash -c \
+        'UNIX_SCRIPT_NO_UPDATE_CHECK=1 "$1/install.sh" install --no-deps </dev/null >/dev/null 2>&1; [ $? -eq 2 ]' _ "$REPO_DIR"
 
     # 11. 阶段 D：profile 导出/应用（lib/profile.sh）
     assert "profile: lib/profile.sh 存在" bash -c "test -f \"$REPO_DIR/lib/profile.sh\""
@@ -611,13 +628,13 @@ phase_routing() {
          rm -f "$tmp"
          [ "$rc" -eq 1 ] && ! echo "$_REGISTRY_MODULES" | grep -qw __uxs_fake__' _ "$REPO_DIR"
 
-    # 13. DESC 数据完整性：--list-modules 三列且第 3 列（描述）非空
+    # 13. DESC 数据完整性：list --full 三列且第 3 列（描述）非空
     local desc_bad
-    desc_bad=$("$REPO_DIR/install.sh" --list-modules 2>/dev/null | awk -F'\t' 'NF<3 || $3==""')
+    desc_bad=$("$REPO_DIR/install.sh" list --full 2>/dev/null | awk -F'\t' 'NF<3 || $3==""')
     if [[ -z "$desc_bad" ]]; then
-        report_row "DESC: --list-modules 三列非空" pass
+        report_row "DESC: list --full 三列非空" pass
     else
-        report_row "DESC: --list-modules 三列非空" fail "缺描述: $(printf '%s' "$desc_bad" | head -3 | tr '\n' ' ')"
+        report_row "DESC: list --full 三列非空" fail "缺描述: $(printf '%s' "$desc_bad" | head -3 | tr '\n' ' ')"
     fi
     # shellcheck disable=SC2016
     assert "DESC: registry_desc(docker) 非空" bash -c \
@@ -706,16 +723,16 @@ phase_routing() {
             [ "$(resolve_menu_mode)" = "bash" ]
          fi' _ "$REPO_DIR"
 
-    # 19. 补全：注册表驱动（与 --list 同源）
+    # 19. 补全：注册表驱动（与 list 同源）
     # shellcheck disable=SC2016
     assert "补全: bash 模块清单与注册表一致" bash -c '
         COMP_WORDS=(uxs ""); COMP_CWORD=1
         source "$1/completions/uxs.bash"
         _uxs_completions
         # 不用 diff：极简容器（arch/RHEL 系）可能无 diffutils；sort+字符串比较仅依赖 POSIX 基础工具
-        comp_list=$(printf "%s\n" "${COMPREPLY[@]}" | grep -vE "^(--.*|apply|check-update|cli|completions|doctor|export|scaffold|search|uninstall-cli|update)$" | sort)
-        # 补全清单=文件系统全量 manifest；对齐用 SHOW_ALL 全量 --list（补全不做平台过滤，见规格非目标）
-        reg_list=$(UNIX_SCRIPT_SHOW_ALL=1 "$1/install.sh" --list | tr " " "\n" | grep -v "^$" | sort)
+        comp_list=$(printf "%s\n" "${COMPREPLY[@]}" | grep -vE "^(--.*|apply|cli|completions|doctor|export|help|info|install|list|remove|scaffold|search|status|update|version)$"
+        # 补全清单=文件系统全量 manifest；对齐用 SHOW_ALL 全量 list（补全不做平台过滤，见规格非目标）
+        reg_list=$(UNIX_SCRIPT_SHOW_ALL=1 "$1/install.sh" list | tr " " "\n" | grep -v "^$" | sort)
         [ "$comp_list" = "$reg_list" ]' _ "$REPO_DIR"
     if command -v zsh >/dev/null 2>&1; then
         assert "补全: uxs.zsh 语法正确" zsh -n "$REPO_DIR/completions/uxs.zsh"

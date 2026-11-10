@@ -238,7 +238,7 @@ uninstall_pm() {
     warn "请重启终端或重新加载 Shell 配置以使更改生效"
 }
 
-# --- 状态检查（契约：emit_status 双轨，供 --status-json 复用）---
+# --- 状态检查（契约：emit_status 双轨，供 status --json 复用）---
 status_pm() {
     detect_os
     local installed=false state human
