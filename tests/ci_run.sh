@@ -589,15 +589,16 @@ phase_routing() {
         "grep -q 'export_profile()' \"$REPO_DIR/lib/profile.sh\" && grep -q 'apply_profile()' \"$REPO_DIR/lib/profile.sh\""
     assert "profile: bun .manifest 含 EXPORTABLE=registry" bash -c \
         "grep -q '^EXPORTABLE=registry' \"$REPO_DIR/dev-tools/bun/.manifest\""
-    assert "profile: install.sh 路由 export/apply" bash -c \
-        "grep -q 'export|export-profile)' \"$REPO_DIR/install.sh\" && grep -q 'apply|apply-profile)' \"$REPO_DIR/install.sh\""
+    # CLI v2：分发在 lib/cli_v2.sh（install.sh 只调 cli_v2_dispatch）
+    assert "profile: CLI v2 路由 export/apply" bash -c \
+        "grep -q 'cli_v2_dispatch' \"$REPO_DIR/install.sh\" && grep -q 'export) cli_v2_export' \"$REPO_DIR/lib/cli_v2.sh\" && grep -q 'apply) cli_v2_apply' \"$REPO_DIR/lib/cli_v2.sh\""
     # export → 产出合法 profile（含头部 + 用法提示）
     local prof_dir prof synth
     prof_dir="$(mktemp -d)"
     prof="$prof_dir/uxs_test_profile.txt"
     # shellcheck disable=SC2016 # $1/$2 故意交给内层 bash -c 求值
     assert "profile: export 产出文件" bash -c \
-        'UNIX_SCRIPT_NO_UPDATE_CHECK=1 "$1/install.sh" export "$2" >/dev/null 2>&1 && grep -q "# unix_script profile" "$2"' _ "$REPO_DIR" "$prof"
+        'UNIX_SCRIPT_NO_UPDATE_CHECK=1 "$1/install.sh" export --out "$2" >/dev/null 2>&1 && grep -q "# unix_script profile" "$2"' _ "$REPO_DIR" "$prof"
     # apply --dry-run 对导出的 profile 不报错（已装模块全跳过）
     # shellcheck disable=SC2016
     assert "profile: apply --dry-run 正常退出" bash -c \
@@ -649,7 +650,7 @@ phase_routing() {
         'out=$("$1/install.sh" doker 2>&1); rc=$?; [ "$rc" -eq 3 ] && printf "%s" "$out" | grep -q "docker"' _ "$REPO_DIR"
     # shellcheck disable=SC2016
     assert "容错: 无相近候选时不倾倒 usage" bash -c \
-        'out=$("$1/install.sh" zzzqqq 2>&1); rc=$?; [ "$rc" -eq 3 ] && printf "%s" "$out" | grep -q "list-categories" && ! printf "%s" "$out" | grep -q "^用法:"' _ "$REPO_DIR"
+        'out=$("$1/install.sh" zzzqqq 2>&1); rc=$?; [ "$rc" -eq 3 ] && printf "%s" "$out" | grep -q "list --grouped" && ! printf "%s" "$out" | grep -q "^用法:"' _ "$REPO_DIR"
     # shellcheck disable=SC2016
     assert "容错: usage 按分类分组（含描述）" bash -c \
         '"$1/install.sh" --help | grep -q "\[服务\]" && "$1/install.sh" --help | grep -q "容器引擎"' _ "$REPO_DIR"
@@ -730,7 +731,7 @@ phase_routing() {
         source "$1/completions/uxs.bash"
         _uxs_completions
         # 不用 diff：极简容器（arch/RHEL 系）可能无 diffutils；sort+字符串比较仅依赖 POSIX 基础工具
-        comp_list=$(printf "%s\n" "${COMPREPLY[@]}" | grep -vE "^(--.*|apply|cli|completions|doctor|export|help|info|install|list|remove|scaffold|search|status|update|version)$"
+        comp_list=$(printf "%s\n" "${COMPREPLY[@]}" | grep -vE "^(--.*|apply|cli|completions|doctor|export|help|info|install|list|remove|scaffold|search|status|update|version)$")
         # 补全清单=文件系统全量 manifest；对齐用 SHOW_ALL 全量 list（补全不做平台过滤，见规格非目标）
         reg_list=$(UNIX_SCRIPT_SHOW_ALL=1 "$1/install.sh" list | tr " " "\n" | grep -v "^$" | sort)
         [ "$comp_list" = "$reg_list" ]' _ "$REPO_DIR"

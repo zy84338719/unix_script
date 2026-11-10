@@ -48,8 +48,8 @@ cli_v2_migration_for() {
         --dry-run)         printf '%s' "uxs install <模块> --dry-run" ;;
         --no-deps)         printf '%s' "uxs install <模块> --no-deps" ;;
         search)            printf '%s' "uxs search" ;;
-        export)            printf '%s' "uxs export" ;;
-        export-profile)    printf '%s' "uxs export" ;;
+        export)            printf '%s' "uxs export [--out 文件]" ;;
+        export-profile)    printf '%s' "uxs export [--out 文件]" ;;
         apply)             printf '%s' "uxs apply" ;;
         apply-profile)     printf '%s' "uxs apply" ;;
         check-update)      printf '%s' "uxs update --check" ;;
@@ -283,7 +283,12 @@ cli_v2_export() {
                 shift 2
                 ;;
             -*) cli_v2_bad_option "$1" ;;
-            *) cli_v2_bad_option "$1" ;;
+            *)
+                # 旧写法是位置参数（export <文件>）；v2 只认 --out
+                error "export 不接受位置参数: $1" >&2
+                info "请改用: uxs export --out <文件>" >&2
+                exit "$SK_USAGE"
+                ;;
         esac
     done
     export_profile "$out"

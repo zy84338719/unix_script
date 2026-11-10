@@ -155,7 +155,7 @@ fi
 if [[ "$OS_TYPE" == "darwin" ]]; then HIDDEN_MOD=ufw; else HIDDEN_MOD=brew; fi
 
 PFILE=$(mktemp)
-run_install export "$PFILE" >/dev/null 2>&1; t_rc "export: rc=0" 0 $?
+run_install export --out "$PFILE" >/dev/null 2>&1; t_rc "export: rc=0" 0 $?
 t_true "export: 文件含头注" "grep -q '^# unix_script profile' \"\$PFILE\""
 t_true "export: 不导出不适用模块 ${HIDDEN_MOD}" "! grep -q \"^${HIDDEN_MOD}\" \"\$PFILE\""
 rm -f "$PFILE"

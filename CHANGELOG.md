@@ -10,6 +10,7 @@
 - `node_exporter` brew 路径读完版本后打印实际装上的版本，并在 brew 落后于官方最新 tag 时显式告警具体差距（`官方最新 vX / brew 当前提供 vY`）——Homebrew Core 同步上游有延迟，不报出来的话「已装到最新版」就是句空头承诺
 
 ### 变更
+- **CLI 一次性切换到 v2 分组子命令面（旧扁平写法全部删除，无兼容期）**：`--list`→`uxs list`、`--list-modules`→`uxs list --full`、`--list-categories`→`uxs list --grouped`、`--status`→`uxs status`、`--status-json`→`uxs status --json`、`--dry-run`/`--no-deps`→`uxs install <模块> --dry-run`/`--no-deps`、`check-update`→`uxs update --check`、`export`/`apply`→`uxs export [--out 文件]`/`uxs apply <profile>`、`cli`/`uninstall-cli`→`uxs cli install`/`uxs cli uninstall`、`completions`→`uxs completions [shell]`；`scaffold`/`doctor`/`update` 改为同名分组命令。**命中旧写法即报错退出 2（用法错）并给一行迁移指引 —— 不是兼容期，命令照样失败**。新增 `uxs info <模块>`（模块明细：标签/分类/依赖/子命令/适用平台）与 `uxs --list-all`（全量 TSV 清单，含平台不适用）；模块直通 `uxs <模块> [子命令]` 保留（78 个模块名与新命令无一冲突）
 - **框架层退出码统一到 shellkit 口径（行为变化）**：未知模块/模块不存在、平台不适用、缺命令 → `3`（前置不满足）；用法错（参数不对、未知子命令）→ `2`；网络失败 → `4`；校验失败 → `5`；一般错误仍为 `1`。状态类子命令（`--status` / `--status-json` / `status`）恒 `0` 的纪律不变。**输出文案逐字未变**，变的只是退出码分类——写脚本判断失败原因时，要从「一律 1」改成按码判断
 - `lib/` 的通用能力下沉到 shellkit：仓库内自带 `vendor/shellkit/` 副本（随仓分发，`tools/check_vendor.sh` 三层门禁防漂移），OS/发行版/桌面检测、包管理、服务管理、sha256 校验、下载、超时、i18n、状态契约、模块注册表与依赖拓扑、profile 原语统一走 shellkit 实现；unix_script 只保留 78 个模块的领域逻辑与交互呈现
 - 注册表字段不再用 `eval` 动态变量存储（改为 shellkit 的 registry 索引）：`_REG_<模块>_<字段>` 这类内部变量不再存在（`_reg_get` 保留为兼容入口）
