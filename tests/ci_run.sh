@@ -112,9 +112,11 @@ phase_static() {
     report_header "静态检查 (static) — bash -n + shellcheck"
 
     local scripts f rel
+    # vendor/ 是上游 shellkit 的副本：它由上游自己的门禁（make check）负责，
+    # 这里不重复 lint（两边的 shellcheck 选项集不同，重复 lint 只会刷假红）。
     scripts=$(find "$REPO_DIR" -type f -name "*.sh" \
               -not -path "*/.git/*" -not -path "*/node_modules/*" \
-              -not -path "*/.tools/*" | sort)
+              -not -path "*/.tools/*" -not -path "*/vendor/*" | sort)
 
     while IFS= read -r f; do
         rel="${f#"$REPO_DIR"/}"

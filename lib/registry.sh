@@ -38,115 +38,76 @@ CATEGORY_ORDER="服务 装机必备 开发环境 AI工具 系统工具"
 # 分类目录名列表（与 CATEGORY_ORDER 一一对应）
 _CATEGORY_DIRS="services essentials dev-tools ai-tools sys-tools"
 
-# --- 内部：设置/获取模块字段 ---
-# 模块名中的连字符替换为下划线（bash 变量名不允许连字符）
-_reg_varname() {
-    local mod="$1" key="$2"
-    local safe_mod="${mod//-/_}"
-    echo "_REG_${key}_${safe_mod}"
-}
 
-_reg_set() {
-    local mod="$1" key="$2" value="$3"
-    local varname
-    varname=$(_reg_varname "$mod" "$key")
-    # 威胁模型说明：此处用 eval 是为了在 bash 3.2（macOS 默认 bash，本项目明确支持）
-    # 下实现动态变量，规避关联数组（bash 4+）依赖。安全性由两点保证：
-    #   1) $varname 由本函数受控生成（_REG_<KEY>_<safe_mod>，仅字母数字下划线），不可注入；
-    #   2) $value 来自仓库内 .manifest 文件（非外部不可信输入），且经 printf '%q' 单引号转义，
-    #      任意特殊字符都被转义为字面量，无法逃逸出赋值上下文。
-    eval "${varname}=$(printf '%q' "$value")"
-}
 
-_reg_get() {
-    local mod="$1" key="$2"
-    local varname
-    varname=$(_reg_varname "$mod" "$key")
-    eval "echo \"\${${varname}:-}\""
-}
 
 # --- 内部：解析单个 manifest 文件 ---
 _parse_manifest() {
     local mod="$1" manifest="$2"
-    local key value
-
-    # 初始化默认值
-    _reg_set "$mod" LABEL ""
-    _reg_set "$mod" DESC ""
-    _reg_set "$mod" NEXT_STEPS ""
-    _reg_set "$mod" CATEGORY ""
-    _reg_set "$mod" ALIASES ""
-    _reg_set "$mod" DEFAULT_ACTION "install"
-    _reg_set "$mod" HAS_SUBMENU ""
-    _reg_set "$mod" ENTRY_SCRIPT "install.sh"
-    _reg_set "$mod" REQUIRES ""
-    _reg_set "$mod" EXPORTABLE ""
-    _reg_set "$mod" PLATFORMS ""
-
-    # 解析 key=value
-    while IFS='=' read -r key value; do
-        [[ -z "$key" || "$key" == \#* ]] && continue
-        key=$(echo "$key" | tr -d '[:space:]')
-        value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        case "$key" in
-            LABEL)            _reg_set "$mod" LABEL "$value" ;;
-            DESC)             _reg_set "$mod" DESC "$value" ;;
-            NEXT_STEPS)       _reg_set "$mod" NEXT_STEPS "$value" ;;   # 批次②：安装成功后的下一步提示（分号分隔）
-            CATEGORY)         _reg_set "$mod" CATEGORY "$value" ;;
-            ALIASES)          _reg_set "$mod" ALIASES "$value" ;;
-            DEFAULT_ACTION)   _reg_set "$mod" DEFAULT_ACTION "$value" ;;
-            HAS_SUBMENU)      _reg_set "$mod" HAS_SUBMENU "$value" ;;
-            ENTRY_SCRIPT)     _reg_set "$mod" ENTRY_SCRIPT "$value" ;;
-            REQUIRES)         _reg_set "$mod" REQUIRES "$value" ;;     # 阶段 E：依赖的模块（逗号分隔）
-            EXPORTABLE)       _reg_set "$mod" EXPORTABLE "$value" ;;   # 阶段 D：可导出配置键（逗号分隔）
-            PLATFORMS)        _reg_set "$mod" PLATFORMS "$value" ;;    # 平台可见性：适用 OS（逗号分隔）
-        esac
-    done < "$manifest"
-
+    # 登记进 shellkit 的索引：字段取值统一走 registry_get（不再自己存一份）
+    registry_add "$mod" "$manifest"
     # 必填字段校验
     local lbl cat
-    lbl=$(_reg_get "$mod" LABEL)
-    cat=$(_reg_get "$mod" CATEGORY)
+    lbl="$(registry_get "$mod" LABEL)"
+    cat="$(registry_get "$mod" CATEGORY)"
     if [[ -z "$lbl" || -z "$cat" ]]; then
         warn "manifest 缺少必填字段: $manifest" >&2
         return 1
     fi
-
     return 0
+}
+
+# _uxs_manifest_path <模块名> —— 该模块清单文件的绝对路径；找不到返回 1
+_uxs_manifest_path() {
+    local mod="$1" category_dir
+    for category_dir in $_CATEGORY_DIRS; do
+        [[ -f "$SCRIPT_DIR/$category_dir/$mod/.manifest" ]] || continue
+        printf '%s
+' "$SCRIPT_DIR/$category_dir/$mod/.manifest"
+        return 0
+    done
+    return 1
 }
 
 # --- 扫描所有分类子目录下的 .manifest 文件 ---
 registry_scan() {
+    local category_dir mod lbl cat manifest
+    local -a roots=()
     _REGISTRY_MODULES=""
-    local dir manifest mod category_dir
-
-    # 扫描分类子目录
+    # 清单分散在多个分类目录（<分类>/<模块>/.manifest 是两层）：
+    # shellkit 的 registry_scan_multi 一次扫多个根目录，索引是累加的，顺序跟着根目录走。
     for category_dir in $_CATEGORY_DIRS; do
         [[ -d "$SCRIPT_DIR/$category_dir" ]] || continue
-        for dir in "$SCRIPT_DIR/$category_dir"/*/; do
-            [[ -d "$dir" ]] || continue
-            mod=$(basename "$dir")
-            manifest="$dir/.manifest"
-            [[ -f "$manifest" ]] || continue
-
-            # 记录模块的物理相对路径
-            _reg_set "$mod" PHYSICAL_PATH "$category_dir/$mod"
-
-            if _parse_manifest "$mod" "$manifest"; then
-                _REGISTRY_MODULES="$_REGISTRY_MODULES $mod"
-            fi
-        done
+        roots[${#roots[@]}]="$SCRIPT_DIR/$category_dir"
     done
+    registry_scan_multi '.manifest' ${roots[@]+"${roots[@]}"}
 
+    # 只收必填字段齐全的模块（缺 LABEL / CATEGORY 的要告警并跳过）
+    for mod in $(registry_list); do
+        manifest="$(_uxs_manifest_path "$mod")"
+        lbl="$(registry_get "$mod" LABEL)"
+        cat="$(registry_get "$mod" CATEGORY)"
+        if [[ -z "$lbl" || -z "$cat" ]]; then
+            warn "manifest 缺少必填字段: $manifest" >&2
+            continue
+        fi
+        _REGISTRY_MODULES="$_REGISTRY_MODULES $mod"
+    done
     _REGISTRY_MODULES="${_REGISTRY_MODULES# }"
 }
 
+# _reg_get <模块名> <字段> —— 旧调用点的兼容入口
+# 字段取值已经下沉到 shellkit 的 registry_get（不再自己用 eval 存一份）。
+_reg_get() {
+    registry_get "$1" "$2"
+}
+
 # --- 查询 API ---
-registry_label()           { _reg_get "$1" LABEL; }
-registry_desc()            { _reg_get "$1" DESC; }
-registry_category()        { _reg_get "$1" CATEGORY; }
-registry_aliases()         { _reg_get "$1" ALIASES; }
-registry_next_steps()      { _reg_get "$1" NEXT_STEPS; }
+registry_label()           { registry_get "$1" LABEL; }
+registry_desc()            { registry_get "$1" DESC; }
+registry_category()        { registry_get "$1" CATEGORY; }
+registry_aliases()         { registry_get "$1" ALIASES; }
+registry_next_steps()      { registry_get "$1" NEXT_STEPS; }
 
 # registry_search <关键字...> — 全注册表搜索（批次③）。
 # 匹配域：模块名+别名+LABEL+DESC 拼接；大小写不敏感子串；多关键字 AND。
@@ -155,7 +116,7 @@ registry_search() {
     [[ $# -eq 0 ]] && return 0
     local mod hay kw ok
     for mod in $_REGISTRY_MODULES; do
-        hay="$mod|$(_reg_get "$mod" ALIASES)|$(_reg_get "$mod" LABEL)|$(_reg_get "$mod" DESC)"
+        hay="$mod|$(registry_aliases "$mod")|$(registry_label "$mod")|$(registry_desc "$mod")"
         hay=$(printf '%s' "$hay" | tr '[:upper:]' '[:lower:]')
         ok=1
         for kw in "$@"; do
@@ -166,28 +127,21 @@ registry_search() {
     done
     return 0
 }
-registry_default_action()  { local v; v=$(_reg_get "$1" DEFAULT_ACTION); echo "${v:-install}"; }
-registry_has_submenu()     { _reg_get "$1" HAS_SUBMENU; }
-registry_entry_script()    { local v; v=$(_reg_get "$1" ENTRY_SCRIPT); echo "${v:-install.sh}"; }
+registry_default_action()  { local v; v=$(registry_get "$1" DEFAULT_ACTION); echo "${v:-install}"; }
+registry_has_submenu()     { registry_get "$1" HAS_SUBMENU; }
+registry_entry_script()    { local v; v=$(registry_get "$1" ENTRY_SCRIPT); echo "${v:-install.sh}"; }
 # 阶段 E：模块声明的依赖（空格分隔，便于直接 for 遍历；manifest 中是逗号分隔）
-registry_requires()        { local v; v=$(_reg_get "$1" REQUIRES); echo "${v//,/ }"; }
+registry_requires()        { local v; v=$(registry_get "$1" REQUIRES); echo "${v//,/ }"; }
 # 阶段 D：模块可导出的配置键（空格分隔）
-registry_exportable()      { local v; v=$(_reg_get "$1" EXPORTABLE); echo "${v//,/ }"; }
+registry_exportable()      { local v; v=$(registry_get "$1" EXPORTABLE); echo "${v//,/ }"; }
 
 # 平台可见性：模块声明的适用 OS（空格分隔；空=全平台适用）
-registry_platforms()        { local v; v=$(_reg_get "$1" PLATFORMS); echo "${v//,/ }"; }
+registry_platforms()       { local v; v=$(registry_get "$1" PLATFORMS); echo "${v//,/ }"; }
 
 # uxs_module_supported <模块名> — 当前 OS 是否适用（rc 0=适用/未声明，1=不适用）。
 # OS_TYPE 未初始化时兜底 detect_os（单测等直接 source registry 的场景）。
 uxs_module_supported() {
-    local mod="$1" plats p
-    [[ -n "${OS_TYPE:-}" ]] || detect_os >/dev/null 2>&1 || true
-    plats=$(registry_platforms "$mod")
-    [[ -z "$plats" ]] && return 0
-    for p in $plats; do
-        [[ "$p" == "${OS_TYPE:-}" ]] && return 0
-    done
-    return 1
+    registry_visible "$1" PLATFORMS
 }
 
 # uxs_module_visible <模块名> — escape hatch：UNIX_SCRIPT_SHOW_ALL=1 恒可见
@@ -208,7 +162,14 @@ registry_visible_modules() {
 
 # 获取模块的物理相对路径（如 "services/docker"）
 registry_path() {
-    _reg_get "$1" PHYSICAL_PATH
+    local mod="$1" category_dir
+    for category_dir in $_CATEGORY_DIRS; do
+        [[ -f "$SCRIPT_DIR/$category_dir/$mod/.manifest" ]] || continue
+        printf '%s
+' "$category_dir/$mod"
+        return 0
+    done
+    return 1
 }
 
 # 所有已注册模块名（空格分隔）
@@ -218,7 +179,7 @@ registry_all_modules() { echo "$_REGISTRY_MODULES"; }
 registry_modules_in_category() {
     local want="$1" mod result=""
     for mod in $_REGISTRY_MODULES; do
-        if [[ "$(_reg_get "$mod" CATEGORY)" == "$want" ]]; then
+        if [[ "$(registry_category "$mod")" == "$want" ]]; then
             result="$result $mod"
         fi
     done
@@ -236,7 +197,7 @@ registry_resolve_alias() {
         fi
     done
     for mod in $_REGISTRY_MODULES; do
-        aliases=$(_reg_get "$mod" ALIASES)
+        aliases=$(registry_aliases "$mod")
         if [[ -n "$aliases" ]]; then
             IFS=',' read -ra _alias_arr <<< "$aliases"
             for alias in "${_alias_arr[@]}"; do
@@ -260,14 +221,14 @@ registry_categories() {
     local seen="" cat mod result=""
     for cat in $CATEGORY_ORDER; do
         for mod in $_REGISTRY_MODULES; do
-            if [[ "$(_reg_get "$mod" CATEGORY)" == "$cat" ]]; then
+            if [[ "$(registry_category "$mod")" == "$cat" ]]; then
                 result="$result $cat"
                 break
             fi
         done
     done
     for mod in $_REGISTRY_MODULES; do
-        cat=$(_reg_get "$mod" CATEGORY)
+        cat=$(registry_category "$mod")
         if [[ -n "$cat" ]] && ! echo "$result" | grep -qw "$cat"; then
             result="$result $cat"
         fi

@@ -54,7 +54,7 @@ platform_gate_or_die() {
     sup=$(registry_platforms "$resolved")
     error "模块 ${input} 不支持当前系统（${OS_TYPE:-未知}，仅支持：${sup:-无}）"
     info "查看适用模块: $0 --list-categories ｜ 强制显示全量: UNIX_SCRIPT_SHOW_ALL=1 $0 ${input}"
-    exit 1
+    exit "$SK_PRECOND"
 }
 
 # ---------------- 模块名 -> 安装动作（非交互用，注册表驱动） ----------------
@@ -77,7 +77,7 @@ dispatch_module() {
             fi
         fi
         info "查看全部模块: $0 --list-categories"
-        exit 1
+        exit "$SK_PRECOND"
     fi
 
     # 平台护栏：不适用模块在分发层拦截（模块内部检查保留为纵深防御）
@@ -119,7 +119,7 @@ ensure_module_deps() {
         # 依赖不适用当前系统时明确报错，而非装到一半失败
         if ! uxs_module_visible "$dep"; then
             error "模块 $mod 依赖 ${dep}，但 $dep 不支持当前系统（仅支持：$(registry_platforms "$dep")）"
-            exit 1
+            exit "$SK_PRECOND"
         fi
         dep_state=$(module_status_machine "$dep")
         if [[ "$dep_state" == "not_installed" ]]; then
@@ -265,7 +265,7 @@ main() {
         scaffold)
             if [[ $# -lt 2 ]]; then
                 error "用法: ./install.sh scaffold <module_name> [--category <分类>] [--label <标签>]"
-                exit 1
+                exit "$SK_USAGE"
             fi
             local mod_name="$2"; shift 2
             local mod_cat="" mod_label=""
@@ -283,7 +283,7 @@ main() {
             run_doctor
             exit $?
             ;;
-        -*) error "未知选项: $1"; show_usage; exit 1 ;;
+        -*) error "未知选项: $1"; show_usage; exit "$SK_USAGE" ;;
         *)  dispatch_module_or_passthrough "$@" ;;
     esac
 }

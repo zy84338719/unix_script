@@ -141,5 +141,9 @@ run_doctor() {
         warn "发现 $issues 个问题，请根据上述提示修复"
     fi
 
-    return "$issues"
+    # 退出码统一到 shellkit 口径：发现��题 = 前置条件不满足（SK_PRECOND=3）
+    if (( issues > 0 )); then
+        return "$SK_PRECOND"
+    fi
+    return 0
 }

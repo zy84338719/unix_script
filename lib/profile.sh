@@ -31,6 +31,9 @@ export_profile() {
     out_dir="$(dirname "$out")"
     [[ -d "$out_dir" ]] || mkdir -p "$out_dir"
 
+    # 文件创建与截断走 shellkit 的 profile_write（通用原语）
+    profile_write "$out" || { error "无法写入 profile：$out"; return 1; }
+
     {
         echo "# unix_script profile"
         echo "# 导出于: $(date '+%Y-%m-%d %H:%M:%S')"
@@ -88,7 +91,7 @@ export_profile() {
                 printf '%s   # %s\n' "$mod" "$label"
             fi
         done
-    } > "$out"
+    } >> "$out"
     success "已导出 profile：$out"
     info "在新机器复现：uxs apply \"$out\""
 }
@@ -108,17 +111,14 @@ apply_profile() {
     done
     if [[ ! -f "$file" ]]; then
         error "profile 文件不存在：$file"
-        return 1
+        return "$SK_USAGE"
     fi
 
     # 1. 解析 profile（平行数组存 模块名/配置，bash 3.2 兼容）
     local -a p_mods=() p_cfgs=()
-    local line mod cfg content
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        content="${line%%#*}"                 # 去注释
-        [[ -z "${content// /}" ]] && continue # 空行/纯注释跳过
-        mod=""; cfg=""
-        read -r mod cfg <<< "$content"        # 首字段=模块名，其余=配置
+    local mod cfg
+    # 行格式解析走 shellkit 的 profile_parse（去注释、去空行、首字段=模块名）
+    while IFS=$'	' read -r mod cfg; do
         [[ -z "$mod" ]] && continue
         if ! echo "$_REGISTRY_MODULES" | grep -qw "$mod"; then
             warn "profile 引用未知模块：${mod}（已跳过）"
@@ -126,7 +126,7 @@ apply_profile() {
         fi
         p_mods+=("$mod")
         p_cfgs+=("$cfg")
-    done < "$file"
+    done < <(profile_parse "$file")
 
     if [[ ${#p_mods[@]} -eq 0 ]]; then
         warn "profile 中没有可应用的模块：$file"
@@ -179,14 +179,15 @@ apply_profile() {
         # 注入 UXS_CONFIG_<KEY>=<val>（export 到当前 shell，run_in_dir 子 shell 会继承）
         local injected=()
         if [[ -n "$cfg" ]]; then
-            local kvpair k v
-            for kvpair in $cfg; do
-                [[ "$kvpair" != *=* ]] && continue
-                k="${kvpair%%=*}"; v="${kvpair#*=}"
+            local envline k v
+            while IFS= read -r envline; do
+                [[ -n "$envline" ]] || continue
+                k="${envline%%=*}"; v="${envline#*=}"
+                k="${k#UXS_CONFIG_}"
                 if $dry; then echo "  [dry-run] 配置 UXS_CONFIG_${k}=${v}"; fi
                 export "UXS_CONFIG_${k}=${v}"
                 injected+=("$k")
-            done
+            done <<< "$(profile_env "$mod"$'	'"$cfg" "UXS_CONFIG_")"
         fi
 
         if $dry; then
