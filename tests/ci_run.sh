@@ -731,7 +731,7 @@ phase_routing() {
         source "$1/completions/uxs.bash"
         _uxs_completions
         # 不用 diff：极简容器（arch/RHEL 系）可能无 diffutils；sort+字符串比较仅依赖 POSIX 基础工具
-        comp_list=$(printf "%s\n" "${COMPREPLY[@]}" | grep -vE "^(--.*|apply|cli|completions|doctor|export|help|info|install|list|remove|scaffold|search|status|update|version)$")
+        comp_list=$(printf "%s\n" "${COMPREPLY[@]}" | grep -vE "^(--.*|apply|cli|completions|doctor|export|help|info|install|list|remove|scaffold|search|status|update|version)$" | sort)
         # 补全清单=文件系统全量 manifest；对齐用 SHOW_ALL 全量 list（补全不做平台过滤，见规格非目标）
         reg_list=$(UNIX_SCRIPT_SHOW_ALL=1 "$1/install.sh" list | tr " " "\n" | grep -v "^$" | sort)
         [ "$comp_list" = "$reg_list" ]' _ "$REPO_DIR"
