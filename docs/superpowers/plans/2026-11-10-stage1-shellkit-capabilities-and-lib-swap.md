@@ -2327,7 +2327,10 @@ git commit -m "docs: 补齐 23 个模块的文档与 API 参考"
 
 ```bash
 cd /Users/zhangyi/unix_script
-/Users/zhangyi/shellkit/shellkit vendor .
+# SHELLKIT_REPO = 上游 shellkit 仓的根目录（开发期指向本地 clone；CI 里指向 checkout 出来的仓）。
+# 不要把某个人的绝对路径写死在脚本里 —— 用环境变量传进来。
+: "${SHELLKIT_REPO:?先 export SHELLKIT_REPO=/path/to/shellkit}"
+"$SHELLKIT_REPO/shellkit" vendor .
 ls vendor/shellkit
 ```
 期望：`vendor/shellkit/` 下有 `lib/`、`locale/`、`templates/`、`tests/`、`VERSION`、`shellkit`、`LICENSE`、`NOTICE`。
@@ -2341,57 +2344,168 @@ git check-ignore -v vendor/shellkit/VERSION || echo "not ignored (ok)"
 
 - [ ] **Step 3: 写一致性门禁 `tools/check_vendor.sh`**
 
+**先说清楚本任务最容易写错的地方：**
+
+`shellkit vendor <dir> --check` 的实现是拿**运行中的 CLI 所在目录**（`SELF_DIR`）当源去比对目标：
+
+```bash
+if bash "$VENDOR_DIR/shellkit" vendor "$ROOT" --check; then   # ← 恒绿
+```
+
+`SELF_DIR` 就是副本目录自己 ⇒ 它在拿**副本比副本** ⇒ 永远一致 ⇒ 门禁永远绿。
+要真比对，**必须用上游的 CLI** 去查副本。
+
+所以门禁分两层：
+
+- **L1 副本自洽（CI 里能跑，不需要上游）**：副本内容 vs 入库的 `vendor/shellkit.sha256` 清单。
+  抓「副本被手改」与「副本夹带清单外的文件」。
+- **L2 副本 == 上游（本机有上游时跑）**：用上游 CLI 跑 `vendor --check`。
+
+清单 `vendor/shellkit.sha256` 由 `tools/check_vendor.sh --update` 生成（只在本机生成，生成物随提交入库）。
+清单缺失 ⇒ 硬失败（exit 2），**不许在检查模式里自动生成**：自动生成等于「删了清单就等于重新认可当前内容」，
+那是假绿。（与 Task 0 的 `.approved` 登记同一思路。）
+
+实现：
+
 ```bash
 #!/usr/bin/env bash
 #
-# 门禁：vendor/shellkit/ 必须与上游 shellkit 仓一致。
+# 门禁：vendor/shellkit/ 这份副本必须与入库清单一致，且（有上游时）与上游一致。
 #
 # 为什么要这道门：vendor 出去的是**副本**，副本会被手改、被忘记同步。
 # 一旦 unix_script 里的 shellkit 与上游分叉，两边的行为差异就没有第二处真相源可查。
 #
-# 检查方式：用副本自带的 CLI 做一次 vendor --check（它比对内容是否逐字节一致）。
-# 上游不在本机时（CI 里）退化为「副本自身能自洽」：跑副本的 tests/run.sh。
-#
-# 退出码：0 一致；1 不一致；2 副本缺失
+# 退出码：0 一致；1 有漂移；2 副本/清单缺失或缺工具
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." &>/dev/null && pwd)"
 VENDOR_DIR="$ROOT/vendor/shellkit"
+MANIFEST="$ROOT/vendor/shellkit.sha256"
+UPDATE=0
+
+if [ "${1:-}" = "--update" ]; then
+  UPDATE=1
+fi
+
+# sha256：Linux 的 sha256sum 与 macOS 的 shasum 名字不一样，两个都认。
+if command -v sha256sum >/dev/null 2>&1; then
+  _sha256() { sha256sum "$1" | cut -d' ' -f1; }
+elif command -v shasum >/dev/null 2>&1; then
+  _sha256() { shasum -a 256 "$1" | cut -d' ' -f1; }
+else
+  printf 'check_vendor: 缺 sha256sum 与 shasum，无法校验\n' >&2
+  exit 2
+fi
 
 if [ ! -d "$VENDOR_DIR" ]; then
   printf 'check_vendor: 副本不存在：%s\n' "${VENDOR_DIR#"$ROOT/"}" >&2
   exit 2
 fi
 
-if [ -x "$VENDOR_DIR/shellkit" ]; then
-  if bash "$VENDOR_DIR/shellkit" vendor "$ROOT" --check; then
-    printf 'check_vendor: ok（副本与上游一致）\n'
-    exit 0
-  fi
-  printf 'check_vendor: 副本与上游不一致 —— 跑 shellkit vendor . 重新同步\n' >&2
-  exit 1
-fi
+# 副本里的文件清单（相对 vendor/shellkit/ 的路径），排除 macOS 的 .DS_Store
+_list_files() {
+  (cd "$VENDOR_DIR" && find . -type f ! -name '.DS_Store' | sed 's|^\\./||' | LC_ALL=C sort)
+}
 
-# 没有 CLI 时退化为自检
-if [ -r "$VENDOR_DIR/tests/run.sh" ]; then
-  bash "$VENDOR_DIR/tests/run.sh" || exit 1
-  printf 'check_vendor: ok（副本自检通过）\n'
+if [ "$UPDATE" = "1" ]; then
+  mkdir -p "$(dirname "$MANIFEST")"
+  : >"$MANIFEST"
+  while IFS= read -r __f; do
+    printf '%s  %s\n' "$(_sha256 "$VENDOR_DIR/$__f")" "$__f" >>"$MANIFEST"
+  done < <(_list_files)
+  printf 'check_vendor: 清单已更新：%s（%s 个文件）\n' "${MANIFEST#"$ROOT/"}" "$(wc -l <"$MANIFEST" | tr -d ' ')"
   exit 0
 fi
 
-printf 'check_vendor: 副本既没有 CLI 也没有 tests/run.sh，无法校验\n' >&2
-exit 2
+if [ ! -f "$MANIFEST" ]; then
+  printf 'check_vendor: 清单不存在：%s —— 跑 tools/check_vendor.sh --update 生成并提交\n' "${MANIFEST#"$ROOT/"}" >&2
+  exit 2
+fi
+
+__drift=0
+
+# --- L1a：清单里的文件，内容对不对 ---
+while read -r __sum __f; do
+  [ -n "${__sum:-}" ] || continue
+  if [ ! -f "$VENDOR_DIR/$__f" ]; then
+    printf 'check_vendor: 副本缺文件：%s\n' "$__f" >&2
+    __drift=1
+    continue
+  fi
+  if [ "$(_sha256 "$VENDOR_DIR/$__f")" != "$__sum" ]; then
+    printf 'check_vendor: 副本文件被改：%s\n' "$__f" >&2
+    __drift=1
+  fi
+done <"$MANIFEST"
+
+# --- L1b：副本里有没有清单外的文件（夹带） ---
+__tmp="$(mktemp -d)"
+trap 'rm -rf "$__tmp"' EXIT
+_list_files >"$__tmp/actual"
+cut -c 67- "$MANIFEST" | LC_ALL=C sort >"$__tmp/manifest"
+__extra="$(LC_ALL=C comm -23 "$__tmp/actual" "$__tmp/manifest")"
+if [ -n "$__extra" ]; then
+  printf 'check_vendor: 副本里有清单外的文件：\n' >&2
+  printf '%s\n' "$__extra" | sed 's/^/  /' >&2
+  __drift=1
+fi
+
+# --- L2：副本 == 上游（拿得到上游时才做） ---
+# ⚠️ 这里必须用「上游的 CLI」。用副本自己的 CLI 比副本自己是恒绿的。
+__upstream="${SHELLKIT_UPSTREAM:-}"
+if [ -z "$__upstream" ] && [ -x "$ROOT/../shellkit/shellkit" ]; then
+  __upstream="$ROOT/../shellkit"
+fi
+if [ -n "$__upstream" ] && [ -x "$__upstream/shellkit" ]; then
+  if ! bash "$__upstream/shellkit" vendor "$ROOT" --check; then
+    printf 'check_vendor: 副本与上游不一致 —— 用上游 CLI 重新 vendor 一份\n' >&2
+    __drift=1
+  fi
+fi
+
+# --- L3：副本自检（副本要能装、能跑） ---
+if [ ! -r "$VENDOR_DIR/tests/run.sh" ]; then
+  printf 'check_vendor: 副本缺 tests/run.sh，无法自检\n' >&2
+  exit 2
+fi
+if ! bash "$VENDOR_DIR/tests/run.sh"; then
+  printf 'check_vendor: 副本自检未通过\n' >&2
+  __drift=1
+fi
+
+if [ "$__drift" -ne 0 ]; then
+  exit 1
+fi
+printf 'check_vendor: ok（副本与清单一致）\n'
+exit 0
 ```
 
-- [ ] **Step 4: 验证门禁能抓漂移**
+- [ ] **Step 4: 验证门禁能抓漂移（三条路都要堵）**
 
 ```bash
 cd /Users/zhangyi/unix_script
+
+echo '=== 正常：exit 0 ==='
+bash tools/check_vendor.sh; echo "exit=$?"
+
+echo '=== 漂移 1：手改副本里的文件 → exit 1 且点名该文件 ==='
 cp vendor/shellkit/VERSION /tmp/vendor-version.bak
 printf '\n# drift\n' >>vendor/shellkit/VERSION
-bash tools/check_vendor.sh; echo "exit=$?"   # 期望 exit=1
+bash tools/check_vendor.sh; echo "exit=$?"
 cp /tmp/vendor-version.bak vendor/shellkit/VERSION
-bash tools/check_vendor.sh; echo "exit=$?"   # 期望 exit=0
+
+echo '=== 漂移 2：夹带清单外的文件 → exit 1 且点名 ==='
+printf 'x\n' >vendor/shellkit/STRAY.txt
+bash tools/check_vendor.sh; echo "exit=$?"
+rm -f vendor/shellkit/STRAY.txt
+
+echo '=== 漂移 3：删掉清单 → exit 2（不许自动重新生成） ==='
+mv vendor/shellkit.sha256 /tmp/vendor-manifest.bak
+bash tools/check_vendor.sh; echo "exit=$?"
+mv /tmp/vendor-manifest.bak vendor/shellkit.sha256
+
+echo '=== 复原：exit 0 ==='
+bash tools/check_vendor.sh; echo "exit=$?"
 ```
 
 - [ ] **Step 5: 提交**
