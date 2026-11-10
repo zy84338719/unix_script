@@ -15,7 +15,13 @@ UXS_TOOLS_BIN="$HOME/.tools/bin"
 
 # 检测当前用户的 shell 及对应 rc 文件，设置 UXS_SHELL_RC / UXS_USER_SHELL。
 detect_shell_rc() {
-    UXS_USER_SHELL="$(basename "${SHELL:-/bin/sh}")"
+    # UXS_COMPLETIONS_SHELL：CLI v2 的 `uxs completions <shell>` 显式指定目标 shell；
+    # 未指定时按当前登录 shell 判定（既有行为不变）。
+    if [[ -n "${UXS_COMPLETIONS_SHELL:-}" ]]; then
+        UXS_USER_SHELL="$UXS_COMPLETIONS_SHELL"
+    else
+        UXS_USER_SHELL="$(basename "${SHELL:-/bin/sh}")"
+    fi
     case "$UXS_USER_SHELL" in
         bash)
             if [[ "$OS_TYPE" == "darwin" ]]; then

@@ -29,6 +29,7 @@ source "$SCRIPT_DIR/lib/profile.sh"
 source "$SCRIPT_DIR/lib/submenus.sh"
 source "$SCRIPT_DIR/lib/uxs_cli.sh"
 source "$SCRIPT_DIR/lib/menu.sh"
+source "$SCRIPT_DIR/lib/cli_v2.sh"
 source "$SCRIPT_DIR/lib/menu_fzf.sh"
 source "$SCRIPT_DIR/lib/scaffold.sh"
 source "$SCRIPT_DIR/lib/doctor.sh"
@@ -42,19 +43,6 @@ should_auto_check_update() {
     [[ "${CI:-false}" == "true" ]] && return 1
     [[ -t 1 ]] || return 1
     return 0
-}
-
-# ---------------- 平台可见性护栏 ----------------
-# 模块不适用当前系统时拦截并给指引（UNIX_SCRIPT_SHOW_ALL=1 放行）。
-# 放行路径 return 0；拦截路径 error + exit $SK_PRECOND（3，平台不适用=前置不满足）。
-platform_gate_or_die() {
-    local resolved="$1" input="${2:-$1}"
-    uxs_module_visible "$resolved" && return 0
-    local sup
-    sup=$(registry_platforms "$resolved")
-    error "模块 ${input} 不支持当前系统（${OS_TYPE:-未知}，仅支持：${sup:-无}）"
-    info "查看适用模块: $0 --list-categories ｜ 强制显示全量: UNIX_SCRIPT_SHOW_ALL=1 $0 ${input}"
-    exit "$SK_PRECOND"
 }
 
 # ---------------- 模块名 -> 安装动作（非交互用，注册表驱动） ----------------
@@ -106,31 +94,6 @@ dispatch_module() {
     return "$rc"
 }
 
-# 安装模块的缺失依赖（阶段 E）。
-# resolve_deps 返回拓扑序（被依赖者在前），逐个检查状态，缺则先装。
-ensure_module_deps() {
-    local mod="$1"
-    [[ "${UNIX_SCRIPT_NO_DEPS:-0}" == "1" ]] && return 0
-    local deps
-    deps=$(resolve_deps "$mod")
-    [[ -z "$deps" ]] && return 0
-    local dep dep_path dep_entry dep_state
-    for dep in $deps; do
-        # 依赖不适用当前系统时明确报错，而非装到一半失败
-        if ! uxs_module_visible "$dep"; then
-            error "模块 $mod 依赖 ${dep}，但 $dep 不支持当前系统（仅支持：$(registry_platforms "$dep")）"
-            exit "$SK_PRECOND"
-        fi
-        dep_state=$(module_status_machine "$dep")
-        if [[ "$dep_state" == "not_installed" ]]; then
-            info "自动安装依赖模块：${dep}（被 $mod 需要）"
-            dep_path=$(registry_path "$dep")
-            dep_entry=$(registry_entry_script "$dep")
-            run_in_dir "$dep_path" "$dep_entry" install
-        fi
-    done
-}
-
 # ---------------- 模块透传（如 install.sh bun mirror） ----------------
 dispatch_module_or_passthrough() {
     if [[ $# -ge 2 ]]; then
@@ -180,112 +143,10 @@ main() {
         return
     fi
 
-    # 处理参数
-    case "$1" in
-        --dry-run)
-            export UNIX_SCRIPT_DRY_RUN=1
-            uxs_install_sudo_shim
-            info "启用 dry-run 模式（sudo/root 操作仅打印，不实际执行）"
-            shift
-            if [[ $# -eq 0 ]]; then
-                show_usage
-                exit 0
-            fi
-            # 继续处理剩余参数
-            dispatch_module_or_passthrough "$@"
-            exit $?
-            ;;
-        --no-deps)
-            # 阶段 E：跳过依赖自动安装
-            export UNIX_SCRIPT_NO_DEPS=1
-            info "跳过依赖自动安装（--no-deps）"
-            shift
-            if [[ $# -eq 0 ]]; then
-                show_usage
-                exit 0
-            fi
-            dispatch_module_or_passthrough "$@"
-            exit $?
-            ;;
-        -h|--help)    show_usage; exit 0 ;;
-        -v|--version) echo "unix_script $(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"; exit 0 ;;
-        -s|--status)  INTERACTIVE=false; show_installed_services; exit 0 ;;
-        --list)
-            # 动态列出所有有 manifest 的模块（按平台可见性过滤；SHOW_ALL=1 全量）
-            for mod in $(registry_visible_modules); do printf '%s ' "$mod"; done
-            echo
-            exit 0
-            ;;
-        --list-modules)    show_list_modules; exit 0 ;;
-        --list-categories) show_list_categories; exit 0 ;;
-        search)
-            shift
-            show_search_results "$@"
-            exit $?
-            ;;
-        --status-json)     show_status_json; exit 0 ;;
-        check-update)
-            info "检查远端最新版本..."
-            if check_for_update 2>/dev/null; then
-                warn "有新版本：当前 $(get_local_version) → 远端 ${REMOTE_LATEST:-?}"
-                info "运行 ./install.sh update 一键更新"
-            else
-                if [[ -n "${REMOTE_LATEST:-}" ]]; then
-                    success "已是最新版本：$(get_local_version)（远端 ${REMOTE_LATEST}）"
-                else
-                    warn "无法获取远端版本（网络问题或未发布 release），当前版本 $(get_local_version)"
-                fi
-            fi
-            exit 0
-            ;;
-        update)
-            do_self_update
-            exit $?
-            ;;
-        export|export-profile)
-            export_profile "${@:2}"
-            exit $?
-            ;;
-        apply|apply-profile)
-            apply_profile "${@:2}"
-            exit $?
-            ;;
-        cli|install-cli)
-            install_cli
-            exit $?
-            ;;
-        uninstall-cli|remove-cli)
-            uninstall_cli
-            exit $?
-            ;;
-        completions)
-            install_completions
-            exit $?
-            ;;
-        scaffold)
-            if [[ $# -lt 2 ]]; then
-                error "用法: ./install.sh scaffold <module_name> [--category <分类>] [--label <标签>]"
-                exit "$SK_USAGE"
-            fi
-            local mod_name="$2"; shift 2
-            local mod_cat="" mod_label=""
-            while [[ $# -gt 0 ]]; do
-                case "$1" in
-                    --category) mod_cat="$2"; shift 2 ;;
-                    --label)    mod_label="$2"; shift 2 ;;
-                    *) shift ;;
-                esac
-            done
-            scaffold_module "$mod_name" "$mod_cat" "$mod_label"
-            exit $?
-            ;;
-        doctor)
-            run_doctor
-            exit $?
-            ;;
-        -*) error "未知选项: $1"; show_usage; exit "$SK_USAGE" ;;
-        *)  dispatch_module_or_passthrough "$@" ;;
-    esac
+    # CLI v2：分组子命令面。
+    # 首参是保留词 → 命令（各有自己的 flag 集合）；非保留词 → 模块直通。
+    # 旧扁平写法已一次性删除（lib/cli_v2.sh 里命中即退出 2 并给迁移指引）。
+    cli_v2_dispatch "$@"
 }
 
 # --- 脚本入口 ---

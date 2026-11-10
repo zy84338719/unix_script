@@ -27,6 +27,32 @@ resolve_deps() {
     }
 }
 
+# ensure_module_deps <模块名> —— 安装模块的缺失依赖（阶段 E）。
+# resolve_deps 返回拓扑序（被依赖者在前），逐个检查状态，缺则先装。
+# UNIX_SCRIPT_NO_DEPS=1 跳过（等价 CLI v2 的 --no-deps）。
+ensure_module_deps() {
+    local mod="$1"
+    [[ "${UNIX_SCRIPT_NO_DEPS:-0}" == "1" ]] && return 0
+    local deps
+    deps=$(resolve_deps "$mod")
+    [[ -z "$deps" ]] && return 0
+    local dep dep_path dep_entry dep_state
+    for dep in $deps; do
+        # 依赖不适用当前系统时明确报错，而非装到一半失败
+        if ! uxs_module_visible "$dep"; then
+            error "模块 $mod 依赖 ${dep}，但 $dep 不支持当前系统（仅支持：$(registry_platforms "$dep")）"
+            exit "$SK_PRECOND"
+        fi
+        dep_state=$(module_status_machine "$dep")
+        if [[ "$dep_state" == "not_installed" ]]; then
+            info "自动安装依赖模块：${dep}（被 $mod 需要）"
+            dep_path=$(registry_path "$dep")
+            dep_entry=$(registry_entry_script "$dep")
+            run_in_dir "$dep_path" "$dep_entry" install
+        fi
+    done
+}
+
 # topo_sort_all -> 输出全部已注册模块的安全安装序（拓扑序、空格分隔）。
 topo_sort_all() {
     registry_topo REQUIRES || {

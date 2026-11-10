@@ -361,18 +361,20 @@ show_list_modules() {
     done
 }
 
-# --list-categories: 按分类列出所有模块
+# show_list_categories [分类名] —— 按分类列出所有模块
+# 可选参数：只列该分类（空 = 全部分类）。
+# CLI v2 的 `uxs list --grouped` 走这里。
 show_list_categories() {
+    local only="${1:-}"
     local cat mod label vis
     vis=$(registry_visible_modules)
     for cat in $CATEGORY_ORDER; do
+        [[ -n "$only" && "$cat" != "$only" ]] && continue
         local has_any=false
-        local items=""
         for mod in $vis; do
             [[ "$(_reg_get "$mod" CATEGORY)" == "$cat" ]] || continue
             has_any=true
-            label=$(_reg_get "$mod" LABEL)
-            items="$items $mod($label)"
+            break
         done
         $has_any || continue
         echo "[$cat]"
@@ -383,6 +385,37 @@ show_list_categories() {
         done
         echo
     done
+}
+
+# show_module_info <模块名> —— 模块明细（key:value，机器可读）
+# 未知模块返回 1（调用方负责转成退出码 3 与 did-you-mean 提示）。
+# CLI v2 的 `uxs info <模块>` 走这里。
+show_module_info() {
+    local mod="${1:-}"
+    local resolved
+    resolved=$(registry_resolve_alias "$mod" || true)
+    if [[ "$resolved" == "$mod" ]] && ! echo "$_REGISTRY_MODULES" | grep -qw "$mod"; then
+        return 1
+    fi
+    printf 'name:%s
+' "$resolved"
+    printf 'label:%s
+' "$(registry_label "$resolved")"
+    printf 'desc:%s
+' "$(registry_desc "$resolved")"
+    printf 'category:%s
+' "$(registry_category "$resolved")"
+    printf 'aliases:%s
+' "$(registry_aliases "$resolved")"
+    printf 'requires:%s
+' "$(registry_requires "$resolved")"
+    printf 'platforms:%s
+' "$(registry_platforms "$resolved")"
+    printf 'subcommands:%s
+' "$(module_subcommands "$resolved")"
+    printf 'entry:%s
+' "$(registry_entry_script "$resolved")"
+    return 0
 }
 
 # --status-json: key:value 格式输出各模块状态（无颜色、无 emoji）
@@ -567,27 +600,38 @@ show_next_steps() {
 
 show_usage() {
     cat <<EOF
-用法: $0 [选项] [模块名]
+用法: $0 <命令> [参数]
 
-选项:
-  -h, --help        显示本帮助
-  -v, --version     显示版本
-  -s, --status      查看所有模块的安装状态后退出（非交互）
-  --dry-run         预览模式：sudo/root 操作仅打印不执行（用户级操作仍会执行）
-  --list            列出可用模块名后退出
-  --list-modules    机器可读：模块名 + 支持子命令 + 描述（TSV，供 AI/脚本）
-  --list-categories 按分类列出所有模块
-                      （--list* 与 search 默认仅显示本机适用模块；UNIX_SCRIPT_SHOW_ALL=1 显示全量）
-  --status-json     机器可读：模块状态 key:value（无颜色，供 AI/脚本）
-  check-update      检查远端是否有新版本（不修改本地）
-  update            安全检查 + 确认后执行 git pull 更新本地仓库
-  scaffold <名称>   生成新模块脚手架（--category <分类> --label <标签>）
-  doctor            环境诊断：检查运行 unix_script 所需的前提条件
-  cli               安装全局命令 uxs 到 ~/.tools/bin（之后可在任意目录 uxs <子命令>）
-  uninstall-cli     卸载全局命令 uxs
-  completions       安装 Tab 自动补全到当前 shell 配置
+命令（分组）:
+  [模块]
+    install <模块>...        安装模块（可多个）
+    remove <模块>...         卸载模块
+    status [模块...]          查看状态（无参数=全部模块；--json 机器可读）
+    list                     列出可用模块名
+      --full                 机器可readable：模块名 + 子命令 + 描述（TSV）
+      --grouped              按分类分组展示
+      --category <分类>      只看某分类
+      --all                  含平台不适用的模块
+    search <关键字>...       按名称/别名/描述搜索模块
+    info <模块>              模块明细（标签/分类/依赖/子命令/适用平台）
 
-模块（按分类；别名与平台支持详见 --list-categories / README）:
+  [配置]
+    export [--out 文件]      导出 profile（可 git 的配置快照）
+    apply <profile>          应用 profile（--force 强制 / --dry-run 预览）
+    scaffold <模块>          生成新模块脚手架（--category <分类> --label <标签>）
+
+  [系统]
+    doctor                   环境诊断
+    update                   更新到最新版本（--check 只查不更）
+    completions [shell]      安装 Tab 补全（bash / zsh / fish，缺省=当前 shell）
+    cli [install|uninstall]  安装/卸载全局命令 uxs
+
+  [其他]
+    <模块> [子命令]          直接操作某模块（如: $0 docker / $0 bun mirror）
+    --help / --version       帮助 / 版本
+    --list-all               全量模块清单（TSV，含平台不适用）
+
+模块（按分类）:
 EOF
     local cat mod label desc mods
     for cat in $CATEGORY_ORDER; do
@@ -597,22 +641,24 @@ EOF
         for mod in $mods; do
             label=$(_reg_get "$mod" LABEL)
             desc=$(registry_desc "$mod")
-            printf '    %-22s %s\n' "$mod" "${desc:-$label}"
+            printf '    %-22s %s
+' "$mod" "${desc:-$label}"
         done
     done
     cat <<'EOF'
 
 示例:
-  ./install.sh                       # 进入交互式主菜单（fzf 模糊搜索/多选；无 fzf 自动用分类菜单）
-  ./install.sh --status              # 直接打印安装状态
-  ./install.sh docker                # 直接安装 docker
-  ./install.sh tailscale             # 直接安装 tailscale
-  ./install.sh check-update          # 检查是否有新版本
-  ./install.sh update                # 更新到最新版本（需确认）
-  ./install.sh scaffold my-tool      # 生成名为 my-tool 的新模块脚手架
-  ./install.sh doctor                # 环境诊断
-  ./install.sh --dry-run docker      # 预览安装 docker 的操作（不实际执行）
-  ./install.sh cli                   # 安装全局命令 uxs（之后可 uxs docker-image 等）
+  uxs                              进入交互式主菜单
+  uxs status                       打印全部模块的安装状态
+  uxs install docker               安装 docker
+  uxs remove docker                卸载 docker
+  uxs list --full                  机器可读的模块清单（TSV）
+  uxs search 容器                  搜索模块
+  uxs info docker                  查看 docker 的明细
+  uxs doctor                       环境诊断
+  uxs update --check               只检查是否有新版本
+  uxs install docker --dry-run     预览安装 docker
+  uxs cli install                  安装全局命令 uxs
 EOF
 }
 

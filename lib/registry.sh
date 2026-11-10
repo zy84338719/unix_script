@@ -150,6 +150,19 @@ uxs_module_visible() {
     uxs_module_supported "$1"
 }
 
+# platform_gate_or_die <解析后的模块名> [用户输入的模块名]
+# 模块不适用当前系统时拦截并给指引（UNIX_SCRIPT_SHOW_ALL=1 放行）。
+# 放行路径 return 0；拦截路径 error + exit $SK_PRECOND（3，平台不适用=前置不满足）。
+platform_gate_or_die() {
+    local resolved="$1" input="${2:-$1}"
+    uxs_module_visible "$resolved" && return 0
+    local sup
+    sup=$(registry_platforms "$resolved")
+    error "模块 ${input} 不支持当前系统（${OS_TYPE:-未知}，仅支持：${sup:-无}）"
+    info "查看适用模块: uxs list --grouped ｜ 强制显示全量: UNIX_SCRIPT_SHOW_ALL=1 uxs install ${input}"
+    exit "$SK_PRECOND"
+}
+
 # registry_visible_modules — 当前系统可见的模块名（单个空格分隔串，注册序）。
 # 仅呈现层使用；dispatch/别名/依赖解析继续用全量 ${_REGISTRY_MODULES}。
 registry_visible_modules() {
