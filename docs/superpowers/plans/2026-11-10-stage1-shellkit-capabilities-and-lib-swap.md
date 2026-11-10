@@ -2903,6 +2903,49 @@ cd /Users/zhangyi/unix_script
 ./install.sh --status-json >/dev/null; echo "期望 0，实际 $?"
 ```
 
+- [ ] **Step 5b: status 契约健壮性 —— 修掉「export 整体中止」这个既有缺陷**
+
+**实测到的现象**（与本次重构无关，base commit `e7d1ff4` 同样复现）：
+
+```
+$ ./install.sh export /tmp/p.txt > /tmp/p.out 2> /tmp/p.err; echo "exit=$?"
+exit=1
+$ cat /tmp/p.out /tmp/p.err      # 两边都是空的
+$ cat /tmp/p.txt                 # 只剩 5 行头注，一个模块行都没有
+```
+
+**根因是两处缺陷叠加**：
+
+1. `lib/status.sh` 的 `module_status_machine` 用管道
+   `bash script status | sed -n 's/^STATE=//p' | head -1`
+   —— 调用方（`install.sh`）开了 `set -o pipefail`，上游的退出码会被管道带出来；
+   而 `head -1` 命中即退还会给上游 SIGPIPE（AGENTS.md 明令禁止的写法）。
+   实测：`dev-mirror` 的 `status` 退出 1 ⇒ 该管道退出 1。
+2. `dev-mirror/install.sh` 的 `status` 分支**退出 1**，违反 AGENTS.md 写明的
+   「状态子命令始终退出 0（用于探测）」契约。
+3. `lib/profile.sh` 的 `export_profile` 里 `state=$(module_status_machine "$mod")`
+   在 `set -e` 下**整体中止** ⇒ export 只剩头注、无任何提示、退出 1。
+
+**本任务要做的（lib 层是本任务范围，模块脚本只改这一个已知违规的）**：
+
+- `module_status_machine` 改成**不依赖管道退出码**的写法：整条管道包在 `|| true` 兜底里，
+  或改用不提前关闭管道的写法（例如 `sed -n 's/^STATE=//p'` 后用参数展开取首行）。
+  契约：**函数自身恒返回 0**，模块 status 非 0 时仍返回状态值（取不到就返回 `not_installed`）。
+- `export_profile` 里对单模块查询失败**不得**中止整批（同样加兜底），
+  一个模块查不到只跳过该模块，其余照常导出。
+- `dev-tools/dev-mirror/install.sh` 的 `status` 分支改为**退出 0**
+  （这是契约违规的修复，单独成一个提交，提交信息写明「修复既有缺陷，与 Stage 1 重构无关」）。
+
+**验收（必须实测，命令与输出写进报告）**：
+
+```bash
+cd /Users/zhangyi/unix_script
+./install.sh export /tmp/uxs-export-fix.txt; echo "exit=$?"    # 期望 0
+grep -c . /tmp/uxs-export-fix.txt                                # 期望 > 5（有模块行）
+grep -q '^# unix_script profile' /tmp/uxs-export-fix.txt && echo "头注在"
+bash dev-tools/dev-mirror/install.sh status; echo "dev-mirror exit=$?"  # 期望 0
+```
+
 - [ ] **Step 6: 验证**
 
 ```bash
@@ -2919,6 +2962,14 @@ bash tests/ci_run.sh --phase routing; echo "exit=$?"
 cd /Users/zhangyi/unix_script
 git add lib/registry.sh lib/deps.sh lib/status.sh lib/profile.sh tools/check_status_shape.sh install.sh
 git commit -m "refactor(lib): 注册表/依赖/状态/profile 改调 shellkit；框架层退出码统一"
+```
+
+`dev-mirror` 的契约修复单独提交：
+
+```bash
+cd /Users/zhangyi/unix_script
+git add dev-tools/dev-mirror/install.sh
+git commit -m "fix(dev-mirror): status 退出码回到 0 —— 状态子命令恒 0 是既有契约"
 ```
 
 ---
