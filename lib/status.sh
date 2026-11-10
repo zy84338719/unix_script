@@ -30,15 +30,32 @@ module_status() {
 # module_status_machine <模块名> -> 输出 STATE 值（单一状态码）
 # 所有模块（含 shutdown_timer / process_manager_tool）均通过入口脚本的 status 子命令
 # 在 UXS_STATUS_MODE=machine 下输出 STATE=，故此处不再需要任何 per-module 特判。
+# 契约：本函数恒返回 0。模块 status 子命令非 0 退出时仍取其已输出的 STATE= 值，
+#       取不到则回落 not_installed —— 调用方（export/apply）在 set -e 下不会被单模块拖死。
 module_status_machine() {
     local mod="$1"
-    local entry_script mod_path script
+    local entry_script mod_path script raw state
     entry_script=$(registry_entry_script "$mod")
     mod_path=$(registry_path "$mod")
     script="$SCRIPT_DIR/$mod_path/$entry_script"
-    [[ -f "$script" ]] || { echo "not_installed"; return; }
-    UXS_STATUS_MODE=machine bash "$script" status 2>"$(uxs_stderr)" \
-        | sed -n 's/^STATE=//p' | head -1
+    [[ -f "$script" ]] || { echo "not_installed"; return 0; }
+    # 先把模块输出整体收进变量，再从变量里取 STATE= 行：整条链路不依赖任何管道的退出码
+    # （pipefail 会把上游非 0 带出来），也不用会提前关闭管道的消费者
+    # （head 命中即退会给上游 SIGPIPE，141 在 pipefail 下同样误判失败）。
+    # `|| rc=$?` 既兜住 set -e（不让单模块失败中止调用方），又保留模块的真实退出码。
+    local rc=0
+    raw=$(UXS_STATUS_MODE=machine bash "$script" status 2>"$(uxs_stderr)") || rc=$?
+    state=$(printf '%s\n' "$raw" | sed -n 's/^STATE=//p')
+    # sed 可能输出多行（异常模块），用参数展开取首行（不用 head：会提前关管道）
+    state=${state%%$'\n'*}
+    if [[ -n "$state" ]]; then
+        printf '%s\n' "$state"
+        return 0
+    fi
+    # 取不到状态值：模块 status 失败 -> not_installed；模块声称成功却没吐 STATE=
+    # -> 保持历史的空值语义（调用方据此判「未安装/未知」）。
+    [[ $rc -ne 0 ]] && echo "not_installed"
+    return 0
 }
 
 # module_status_raw <模块名> -> 输出完整机器模式原始输出（STATE=/VERSION=/EXTRA=）
@@ -162,7 +179,10 @@ status_cache_load() {
     file=$(_uxs_cache_file)
     [[ -f "$file" ]] || return 1
     local ts now
-    ts=$(sed -n 's/^#ts=//p' "$file" | head -1)
+    # 不用 `| head -1`：head 命中即退会提前关管道，上游 sed 被打成 SIGPIPE(141)，
+    # 调用方开 pipefail 时整条管道误判失败。sed 读完后用参数展开取首行。
+    ts=$(sed -n 's/^#ts=//p' "$file")
+    ts="${ts%%$'\n'*}"
     now=$(date +%s)
     [[ "$ts" =~ ^[0-9]+$ ]] || return 1
     if (( now - ts > ttl )); then return 1; fi
@@ -231,8 +251,12 @@ status_batch_query() {
     for mod in "$@"; do
         state=""; version=""
         if [[ -f "$tmpdir/$mod" ]]; then
-            state=$(sed -n 's/^STATE=//p' "$tmpdir/$mod" | head -1)
-            version=$(sed -n 's/^VERSION=//p' "$tmpdir/$mod" | head -1)
+            # 不用 `| head -1`：head 提前关管道会给上游 sed SIGPIPE(141)，
+            # pipefail 下误判失败。sed 读完后用参数展开取首行。
+            state=$(sed -n 's/^STATE=//p' "$tmpdir/$mod")
+            state="${state%%$'\n'*}"
+            version=$(sed -n 's/^VERSION=//p' "$tmpdir/$mod")
+            version="${version%%$'\n'*}"
         fi
         [[ -z "$state" ]] && state="unknown"
         _uxs_state_set "$mod" "$state"

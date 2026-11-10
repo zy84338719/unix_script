@@ -47,10 +47,12 @@ export_profile() {
         for mod in $order; do
             uxs_module_visible "$mod" || continue   # 只导出本机适用模块（不适用模块在本机无 profile 意义）
             local state
-            state=$(module_status_machine "$mod")
+            # 单模块查询失败不得中止整批导出：兜底成空值，
+            # 下面的 case 会落到 *) continue 只跳过该模块，其余照常导出。
+            state=$(module_status_machine "$mod") || state=""
             case "$state" in
                 installed|installed:running|installed:stopped|configured) ;;
-                *) continue ;;   # 未安装/未配置/不适用：不导出
+                *) continue ;;   # 未安装/未配置/不适用/查询失败：不导出
             esac
 
             # 分类分组注释（人类友好，apply 忽略 ##）
@@ -66,7 +68,8 @@ export_profile() {
             local allow filtered=""
             allow=$(registry_exportable "$mod")
             local raw kv k
-            raw=$(module_status_raw "$mod")
+            # 同上：单个模块的 raw 查询失败也只影响该模块，不中止整批导出。
+            raw=$(module_status_raw "$mod") || raw=""
             while IFS= read -r kv; do
                 case "$kv" in
                     EXTRA=*)
