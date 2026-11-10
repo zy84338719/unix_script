@@ -119,16 +119,29 @@ status_tailscale() {
     if [[ "$OS_TYPE" == "linux" ]]; then
         uxs_svc is-active tailscaled 2>/dev/null && running=true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        brew services list 2>/dev/null | grep -q "tailscale.*started" && running=true
+        # 不用 `| grep -q`：grep 命中即退会给上游 SIGPIPE(141)，pipefail 下整条管道非 0，
+        # 会把「已启动」误判成「未运行」。先把输出收进变量，再用读完整个输入的 grep 匹配。
+        local brew_svcs
+        brew_svcs=$(brew services list 2>/dev/null) || brew_svcs=""
+        printf '%s\n' "$brew_svcs" | grep "tailscale.*started" >/dev/null && running=true
     fi
     local ver
-    ver=$(tailscale version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)
+    # 不用 `| head -1`：head 命中即退会给上游 SIGPIPE(141)；grep 无匹配时退出 1。
+    # 两者在 pipefail 下都会让整条管道非 0，set -e 会让 status 子命令整体中止
+    # （违反「状态子命令恒 0」契约）。改用 sed 取首行（sed 读完整个输入才退出），
+    # 取不到版本号就回落成空值。
+    ver=$(tailscale version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | sed -n '1p') || ver=""
     if $running; then
         emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
     else
         emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC}"
     fi
-    [[ -n "$ver" ]] && emit_version "$ver"
+    # 收尾用 if 而不是 `[[ -n "$ver" ]] && ...`：后者在版本号为空时返回 1，
+    # 会让 status 子命令整体退出 1（同样是「status 恒 0」契约）。
+    if [[ -n "$ver" ]]; then
+        emit_version "$ver"
+    fi
+    return 0
 }
 
 # 用法

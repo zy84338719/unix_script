@@ -198,7 +198,11 @@ status_wireguard() {
         uxs_svc is-active "wg-quick@${interface}" 2>/dev/null && service_running=true
     elif [[ "$os_kernel" == "Darwin" ]]; then
         # status 查询不弹密码：sudo -n 未缓存凭据则静默失败
-        sudo -n launchctl list 2>/dev/null | grep -q "com.wireguard.${interface}" && service_running=true
+        # 不用 `| grep -q`：grep 命中即退会给上游 SIGPIPE(141)，pipefail 下整条管道非 0，
+        # 会把「已运行」误判成「未运行」。先把输出收进变量，再用读完整个输入的 grep 匹配。
+        local ld_list
+        ld_list=$(sudo -n launchctl list 2>/dev/null) || ld_list=""
+        printf '%s\n' "$ld_list" | grep "com.wireguard.${interface}" >/dev/null && service_running=true
     fi
     if $wg_installed; then
         if $service_running; then
@@ -208,11 +212,20 @@ status_wireguard() {
             emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC}"
         fi
         local wg_ver
-        wg_ver=$(wg --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)
-        [[ -n "$wg_ver" ]] && emit_version "$wg_ver"
+        # 不用 `| head -1`：head 命中即退会给上游 SIGPIPE(141)；grep 无匹配时退出 1。
+        # 两者在 pipefail 下都会让整条管道非 0，set -e 会让 status 子命令整体中止
+        # （违反「状态子命令恒 0」契约）。改用 sed 取首行（sed 读完整个输入才退出），
+        # 取不到版本号就回落成空值。
+        wg_ver=$(wg --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | sed -n '1p') || wg_ver=""
+        # 收尾用 if 而不是 `[[ -n "$wg_ver" ]] && ...`：后者在版本号为空时返回 1，
+        # 会让 status 子命令整体退出 1（同样是「status 恒 0」契约）。
+        if [[ -n "$wg_ver" ]]; then
+            emit_version "$wg_ver"
+        fi
     else
         emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
+    return 0
 }
 
 # --- 完整卸载（服务 + 配置） ---

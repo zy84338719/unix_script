@@ -19,7 +19,11 @@ run_doctor() {
     # Bash version
     info "检查 Bash 版本..."
     local bash_ver
-    bash_ver=$(bash --version | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
+    # 不用 `| head -1`：head 命中即退会给上游 SIGPIPE(141)；grep 无匹配时退出 1。
+    # 两者在 pipefail 下都会让整条管道非 0 —— doctor.sh 被带 set -euo pipefail 的
+    # install.sh source 进来，管道失败会让整个诊断中途夭折（看不到最后的汇总）。
+    # 改用 sed 取首行（sed 读完整个输入才退出），取不到版本号就回落成空串。
+    bash_ver=$(bash --version | sed -n '1p' | grep -oE '[0-9]+\.[0-9]+' | sed -n '1p') || bash_ver=""
     local bash_major="${bash_ver%%.*}"
     if (( bash_major >= 4 )); then
         success "Bash $bash_ver ✓"
