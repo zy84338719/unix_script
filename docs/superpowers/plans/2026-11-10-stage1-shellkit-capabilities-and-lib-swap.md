@@ -26,12 +26,20 @@
   `tools/check_pipe_safety.sh` 会查。
 - **文案一律 `_t 'english msgid'`**（msgid 英文），译文进 `locale/<lang>/LC_MESSAGES/<domain>.po`。
 - **新增 shellkit 模块必须三处齐改**：`lib/core/<name>.sh` + `lib/modules.txt` 一行（拓扑序 + 依赖声明）+ `tests/test_<name>.sh`。
-- **shellkit 门禁必须全绿**：`cd /Users/zhangyi/shellkit && make check`。
+- **任何新增/改动公开函数的任务，提交前必须跑 `make docs`** 并把重新生成的
+  `docs/REFERENCE.md`（以及被一并改动的 `AGENTS.md`、`skills/shellkit/SKILL.md`）**一起提交**。
+  `make check` 里的 `docs-check` 就是 `./shellkit docs --check`，它比对生成物与源码是否一致 ——
+  新增了公开函数却没重新生成 API 参考，这道门禁必然红。
+  （这条对 Task 1/2/3/9/10/11 成立；Task 4~8 是新增模块，比上面那条更严。）
+- **shellkit 门禁必须全绿**：`cd /Users/zhangyi/shellkit-stage1 && make check`。
   本机注意：`make test` 的 recipe 写的是 `@bash tests/run.sh`（走 PATH），本机 PATH 上的 bash 是 brew 的 5.3；
   要验 3.2 基线必须显式 `/bin/bash tests/run.sh`。
 - **unix_script 门禁必须全绿**：`cd /Users/zhangyi/unix_script && bash tests/ci_run.sh --phase static`。
 - **本计划的两个仓库路径**：
-  - shellkit：`/Users/zhangyi/shellkit`（独立 git 仓，当前分支 `main`）
+  - shellkit：`/Users/zhangyi/shellkit-stage1`（独立 git worktree，分支 `feat/stage1-capabilities`）
+    —— **不是** `/Users/zhangyi/shellkit`。那个目录是另一个活跃会话的共享工作树，
+    里面有别人未提交的改动；本计划在独立 worktree 里做，两个会话互不干扰。
+    收尾时再决定怎么合回 `main`（`lib/core/scaffold.sh` 与 `shellkit` CLI 两处可能要解冲突）。
   - unix_script：`/Users/zhangyi/unix_script`（独立 git 仓，本计划在分支 `refactor/shellkit-stage1` 上工作）
 - **不在本计划范围内**：CLI 重设计（Stage 2）、78 个模块脚本迁移与 msgid 化（Stage 3）、发版（Stage 4）。
 - **新增模块的任务必须同时更新文档产物与模块数**：shellkit 的 `make check` 里含
@@ -60,7 +68,7 @@
 
 ## 文件结构
 
-### shellkit 仓（`/Users/zhangyi/shellkit`）
+### shellkit 仓（`/Users/zhangyi/shellkit-stage1`）
 
 ```
 lib/core/
@@ -307,7 +315,7 @@ assert_eq "not translated" "$out" "i18n returns msgid when nothing matches"
 - [ ] **Step 2: 跑测试确认失败**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_i18n.sh; echo "exit=$?"
 ```
 期望：exit=1，报 `i18n falls back to the pure-bash table`。
@@ -490,7 +498,7 @@ function sq(s) {
 - [ ] **Step 5: 验证 `po_to_sh.awk` 的往返正确**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 mkdir -p /tmp/po2sh
 awk -f po/po_to_sh.awk locale/zh_CN/LC_MESSAGES/shellkit.po >/tmp/po2sh/shellkit.sh
 bash -n /tmp/po2sh/shellkit.sh          # 语法必须过
@@ -522,7 +530,7 @@ done
 - [ ] **Step 7: 跑测试与门禁**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_i18n.sh; echo "exit=$?"
 bash po/messages.sh
 make check
@@ -532,7 +540,7 @@ make check
 - [ ] **Step 8: 提交**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 git add lib/core/i18n.sh po/messages.sh po/po_to_sh.awk locale tests/test_i18n.sh
 git commit -m "feat(i18n): 多域查找 + 纯 bash 兜底表 —— 没有 gettext 也出译文"
 ```
@@ -590,7 +598,7 @@ fi
 - [ ] **Step 2: 跑测试确认失败**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_os.sh; echo "exit=$?"
 ```
 期望：exit=1（`os_distro_id: command not found`）。
@@ -713,7 +721,7 @@ os_is_desktop() {
 - [ ] **Step 4: 跑测试与门禁**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_os.sh; echo "exit=$?"
 make check
 ```
@@ -721,7 +729,7 @@ make check
 - [ ] **Step 5: 提交**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 git add lib/core/os.sh tests/test_os.sh
 git commit -m "feat(os): 发行版与桌面环境检测 —— 麒麟靠 ID_LIKE 判定，不进 ID 硬表"
 ```
@@ -777,7 +785,7 @@ fi
 - [ ] **Step 2: 跑测试确认失败**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_os.sh; echo "exit=$?"
 ```
 
@@ -933,7 +941,7 @@ os_pkg_installed() {
 - [ ] **Step 4: 跑测试与门禁**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_os.sh; echo "exit=$?"
 make check
 ```
@@ -941,7 +949,7 @@ make check
 - [ ] **Step 5: 提交**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 git add lib/core/os.sh tests/test_os.sh
 git commit -m "feat(os): 提权包管理与 sudo 就绪 —— 既有 os_pkg_* 语义不动"
 ```
@@ -998,7 +1006,7 @@ assert_exit_code 2 svc_start ""
 - [ ] **Step 2: 跑测试确认失败**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_svc.sh; echo "exit=$?"
 ```
 
@@ -1202,7 +1210,7 @@ svc          error i18n log os run
 - [ ] **Step 5: 跑测试与门禁**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_svc.sh; echo "exit=$?"
 make check
 ```
@@ -1211,7 +1219,7 @@ make check
 - [ ] **Step 6: 提交**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 git add lib/core/svc.sh lib/modules.txt tests/test_svc.sh
 git commit -m "feat(svc): systemd/launchd 服务动词 —— 写类动作支持 dry-run"
 ```
@@ -1256,7 +1264,7 @@ assert_false ver_gt 1.0.0 ""
 - [ ] **Step 2: 跑测试确认失败**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_ver.sh; echo "exit=$?"
 ```
 
@@ -1343,7 +1351,7 @@ ver_eq() {
 - [ ] **Step 4: 注册模块并跑门禁**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 # lib/modules.txt 加一行（依赖 i18n log）：
 # ver          i18n log
 /bin/bash tests/test_ver.sh; echo "exit=$?"
@@ -1353,7 +1361,7 @@ make check
 - [ ] **Step 5: 提交**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 git add lib/core/ver.sh lib/modules.txt tests/test_ver.sh
 git commit -m "feat(ver): 版本比较 —— 纯 bash，不依赖 GNU sort -V"
 ```
@@ -1413,7 +1421,7 @@ assert_false status_state_valid whatever
 - [ ] **Step 2: 跑测试确认失败**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_status.sh; echo "exit=$?"
 ```
 
@@ -1489,7 +1497,7 @@ status_extra() {
 - [ ] **Step 4: 注册模块并跑门禁**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 # lib/modules.txt 加一行：
 # status       i18n log
 /bin/bash tests/test_status.sh; echo "exit=$?"
@@ -1499,7 +1507,7 @@ make check
 - [ ] **Step 5: 提交**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 git add lib/core/status.sh lib/modules.txt tests/test_status.sh
 git commit -m "feat(status): 机器可读状态契约 —— STATE/VERSION/EXTRA 双轨输出"
 ```
@@ -1567,7 +1575,7 @@ assert_false registry_deps x DEPS
 - [ ] **Step 2: 跑测试确认失败**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_registry.sh; echo "exit=$?"
 ```
 
@@ -1721,7 +1729,7 @@ registry_topo() {
 - [ ] **Step 4: 注册模块并跑门禁**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 # lib/modules.txt 加一行：
 # registry     error i18n log os
 /bin/bash tests/test_registry.sh; echo "exit=$?"
@@ -1731,7 +1739,7 @@ make check
 - [ ] **Step 5: 提交**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 git add lib/core/registry.sh lib/modules.txt tests/test_registry.sh
 git commit -m "feat(registry): KV 清单注册表与依赖拓扑 —— 不认识任何领域字段名"
 ```
@@ -1785,7 +1793,7 @@ assert_eq "UXS_CONFIG_version=24.0" "$env_out" "profile_env builds env assignmen
 - [ ] **Step 2: 跑测试确认失败**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_profile.sh; echo "exit=$?"
 ```
 
@@ -1872,7 +1880,7 @@ profile_env() {
 - [ ] **Step 4: 注册模块并跑门禁**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 # lib/modules.txt 加一行：
 # profile      error fs i18n log
 /bin/bash tests/test_profile.sh; echo "exit=$?"
@@ -1882,7 +1890,7 @@ make check
 - [ ] **Step 5: 提交**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 git add lib/core/profile.sh lib/modules.txt tests/test_profile.sh
 git commit -m "feat(profile): profile 文件格式原语 —— 导哪些、怎么装留给调用方"
 ```
@@ -1919,7 +1927,7 @@ unstub curl
 - [ ] **Step 2: 跑测试确认失败**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_http.sh; echo "exit=$?"
 ```
 
@@ -1966,7 +1974,7 @@ http_github_release_asset() {
 - [ ] **Step 4: 跑测试与门禁**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_http.sh; echo "exit=$?"
 make check
 ```
@@ -1974,7 +1982,7 @@ make check
 - [ ] **Step 5: 提交**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 git add lib/core/http.sh tests/test_http.sh
 git commit -m "feat(http): GitHub release 查询 —— 不依赖 jq"
 ```
@@ -2017,7 +2025,7 @@ assert_contains "$out" "dry-run"
 - [ ] **Step 2: 跑测试确认失败**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_run.sh; echo "exit=$?"
 ```
 
@@ -2119,7 +2127,7 @@ run_install_sudo_shim() {
 - [ ] **Step 4: 跑测试与门禁**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_run.sh; echo "exit=$?"
 make check
 ```
@@ -2127,7 +2135,7 @@ make check
 - [ ] **Step 5: 提交**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 git add lib/core/run.sh tests/test_run.sh
 git commit -m "feat(run): 超时包装与 sudo 遮蔽 —— 遮蔽需显式调用，不改默认行为"
 ```
@@ -2156,7 +2164,7 @@ assert_exit_code 1 str_suggest zzzzz
 - [ ] **Step 2: 跑测试确认失败**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_str.sh; echo "exit=$?"
 ```
 
@@ -2225,7 +2233,7 @@ str_suggest() {
 - [ ] **Step 4: 跑测试与门禁**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/test_str.sh; echo "exit=$?"
 make check
 ```
@@ -2233,7 +2241,7 @@ make check
 - [ ] **Step 5: 提交**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 git add lib/core/str.sh tests/test_str.sh
 git commit -m "feat(str): str_suggest —— 纯 bash 编辑距离，bash 3.2 兼容"
 ```
@@ -2254,7 +2262,7 @@ git commit -m "feat(str): str_suggest —— 纯 bash 编辑距离，bash 3.2 �
 - [ ] **Step 1: 数一下模块数**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 grep -vE '^\s*(#|$)' lib/modules.txt | wc -l
 ```
 期望：23（18 + svc/ver/status/registry/profile）。
@@ -2264,7 +2272,7 @@ grep -vE '^\s*(#|$)' lib/modules.txt | wc -l
 模块数已由 Task 4/5/6/7/8 各自更新（见 Global Constraints）。这里只核对残留：
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 grep -rn '18 个模块\|18 modules\|19 个模块\|19 modules\|20 个模块\|20 modules\|21 个模块\|21 modules\|22 个模块\|22 modules' README.md docs site | cat
 ```
 期望：无输出。有输出说明某个模块任务漏改，按 Step 3 定位。
@@ -2272,7 +2280,7 @@ grep -rn '18 个模块\|18 modules\|19 个模块\|19 modules\|20 个模块\|20 m
 - [ ] **Step 3: 跑门禁**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 make module-count-check
 make check
 ```
@@ -2281,7 +2289,7 @@ make check
 - [ ] **Step 4: 重生成 API 参考**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 make docs
 make docs-check
 git status --short
@@ -2305,7 +2313,7 @@ git status --short
 - [ ] **Step 6: 提交**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 git add -A
 git commit -m "docs: 补齐 23 个模块的文档与 API 参考"
 ```
@@ -3109,7 +3117,7 @@ bash tools/check_vendor.sh; echo "vendor exit=$?"
 - [ ] **Step 2: bash 3.2 基线**
 
 ```bash
-cd /Users/zhangyi/shellkit
+cd /Users/zhangyi/shellkit-stage1
 /bin/bash tests/run.sh; echo "exit=$?"
 ```
 期望：exit=0（这是 macOS 自带 bash 3.2 的真实结果；`bash tests/run.sh` 走 PATH 上的 5.3）。
