@@ -233,7 +233,9 @@ config_go() {
     require_ecosystem go
     # go 1.13+ 支持 go env -w；检测版本
     local ver_major
-    ver_major=$(go version 2>/dev/null | grep -oE 'go[0-9]+\.[0-9]+' | head -1 | sed 's/go//;s/\..*//' || true)
+    # 不用 `| head -1`：head 命中即退会给上游 SIGPIPE，pipefail 下整条管道非 0。
+    # 用 sed 取首行（sed 读完整个输入才退出，不会打断上游）。
+    ver_major=$(go version 2>/dev/null | grep -oE 'go[0-9]+\.[0-9]+' | sed -n '1{s/go//;s/\..*//;p;}' || true)
     if [[ "${ver_major:-0}" -ge 1 ]] && go env -w GOPROXY="$url" 2>/dev/null; then
         success "go     → $url"
     else
@@ -328,12 +330,27 @@ uninstall_rust() {
     done
 }
 
+# 从 cargo 配置里读 [source.dev-mirror] 段的 registry URL；读不到输出空串。
+# 不用 `grep -A1 ... | head -1`：grep 无匹配时退出 1，pipefail 下整条管道非 0，
+# set -e 会让 status 子命令整体中止（违反「状态子命令恒 0」契约）；
+# head 命中即退还会给上游 SIGPIPE（141）。
+cargo_mirror_registry() {
+    local cfg="$1"
+    [[ -f "$cfg" ]] || return 0
+    awk '
+        /^\[source\.dev-mirror\]/ { inblk = 1; next }
+        /^\[/ { inblk = 0 }
+        inblk && /^[[:space:]]*registry[[:space:]]*=/ {
+            if (match($0, /"[^"]*"/)) { print substr($0, RSTART + 1, RLENGTH - 2); exit }
+        }
+    ' "$cfg" 2>/dev/null || true
+}
+
 status_rust() {
     if command_exists cargo; then
         local reg="未知"
         if [[ -f "$CARGO_CFG" ]]; then
-            reg=$(grep -A1 '\[source.dev-mirror\]' "$CARGO_CFG" 2>/dev/null \
-                  | grep 'registry' | sed -E 's/.*"(.*)".*/\1/' | head -1)
+            reg=$(cargo_mirror_registry "$CARGO_CFG")
         fi
         [[ -z "$reg" ]] && reg="官方 crates.io"
         printf "  %-8s %s\n" "cargo:" "$reg"
@@ -649,12 +666,10 @@ do_status() {
         rust_installed=true
         local _reg=""
         if [[ -f "$CARGO_CFG" ]]; then
-            _reg=$(grep -A1 '\[source.dev-mirror\]' "$CARGO_CFG" 2>/dev/null \
-                  | grep 'registry' | sed -E 's/.*"(.*)".*/\1/' | head -1)
+            _reg=$(cargo_mirror_registry "$CARGO_CFG")
         fi
         if [[ -z "$_reg" ]] && [[ -f "$CARGO_CFG_LEGACY" ]]; then
-            _reg=$(grep -A1 '\[source.dev-mirror\]' "$CARGO_CFG_LEGACY" 2>/dev/null \
-                  | grep 'registry' | sed -E 's/.*"(.*)".*/\1/' | head -1)
+            _reg=$(cargo_mirror_registry "$CARGO_CFG_LEGACY")
         fi
         if [[ -n "$_reg" ]]; then
             rust_val="$_reg"
@@ -767,7 +782,13 @@ main() {
             shift || true
             do_uninstall "${1:-}"
             ;;
-        status)    do_status ;;
+        status)
+            # 状态子命令恒退出 0（AGENTS.md 契约：用于探测，退出码只表示"能不能测"，
+            # 不表示"测出来是什么"）。do_status 放 || true 里，
+            # 顺带把函数体内的 errexit 一并挂起，内部任何一步失败都不应让探测失败。
+            do_status || true
+            exit 0
+            ;;
         help|--help|-h) usage ;;
         *) error "未知操作: $action"; usage; exit 1 ;;
     esac
