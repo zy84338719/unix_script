@@ -135,6 +135,9 @@ if [ "$mode" = approve ]; then
     printf '%s\t%s\n' "${f##*/}" "$h" >>"$tmp"
   done
   mv "$tmp" "$dir/.approved"
+  # mktemp 落地是 0600，mv 覆盖后产物权限会与仓库里其它文件不一致（git 只记可执行位，
+  # 提交内容不受影响，但本地 git status 的模式列会出现噪声）—— 归一为 0644。
+  chmod 644 "$dir/.approved"
   printf 'snapshot: 已更新登记：%s\n' "$dir/.approved" >&2
   exit 0
 fi

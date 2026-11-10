@@ -38,3 +38,6 @@ tests/*-report.md
 
 # Git worktrees
 .worktrees/
+
+# 快照门禁的采集清单（每次采集重写，不参与判定 —— 门禁读的是临时目录里那份）
+tests/snapshot/*/.collected
