@@ -89,13 +89,34 @@ _status_disk_dashboard() {
         mem_total=$(sysctl -n hw.memsize 2>/dev/null)
         if [[ -n "$mem_total" ]]; then
             local mem_total_gb=$((mem_total / 1024 / 1024 / 1024))
-            # 用 vm_stat 获取页面信息
+            # 用 vm_stat 获取页面信息。
+            # vm_stat 的输出整体收进变量再解析：
+            #   - 不用 `| head -1`：head 命中即退会提前关管道，上游 vm_stat 被打成
+            #     SIGPIPE(141)，pipefail 下整条管道非 0；
+            #   - 原来的 `|| echo 4096` 把「兜底常量」追加到已捕获的输出后面，
+            #     page_size 变成 "16384\n4096" 这种多行文本 ⇒ $(( ... * page_size ... ))
+            #     直接抛 "syntax error in expression" ⇒ set -e 让 status 子命令中止；
+            #     只有管道一条输出都没有时才拿到纯 "4096" ⇒ 页大小被静默写死成 Intel
+            #     时代的 4096（Apple Silicon 真值是 16384）⇒ 已用/可用内存算成 1/4。
+            # 现在页大小从 vm_stat 表头取真值，取不到再用 getconf PAGESIZE 兜底。
             local page_size free_pages active_pages inactive_pages speculative_pages wired_pages
-            page_size=$(vm_stat | head -1 | grep -oE '[0-9]+' || echo 4096)
-            free_pages=$(vm_stat | awk '/Pages free/ {gsub(/\./,"",$3); print $3}')
-            active_pages=$(vm_stat | awk '/Pages active/ {gsub(/\./,"",$3); print $3}')
-            inactive_pages=$(vm_stat | awk '/Pages inactive/ {gsub(/\./,"",$3); print $3}')
-            wired_pages=$(vm_stat | awk '/Pages wired/ {gsub(/\./,"",$4); print $4}')
+            local vm_out vm_pages
+            vm_out=$(vm_stat 2>/dev/null) || vm_out=""
+            page_size=$(printf '%s\n' "$vm_out" | grep -oE 'page size of [0-9]+' | grep -oE '[0-9]+' | sed -n '1p') || page_size=""
+            if ! [[ "$page_size" =~ ^[0-9]+$ ]]; then
+                page_size=$(getconf PAGESIZE 2>/dev/null) || page_size=""
+            fi
+            if ! [[ "$page_size" =~ ^[0-9]+$ ]]; then
+                page_size=4096
+            fi
+            # 页面数也从同一份快照里取（原来跑 5 次 vm_stat，计数来自不同时刻）
+            vm_pages=$(printf '%s\n' "$vm_out" | awk '
+                /Pages free:/     {gsub(/\./,"",$3); f=$3}
+                /Pages active:/   {gsub(/\./,"",$3); a=$3}
+                /Pages inactive:/ {gsub(/\./,"",$3); i=$3}
+                /Pages wired/     {gsub(/\./,"",$4); w=$4}
+                END {printf "%d %d %d %d\n", f+0, a+0, i+0, w+0}')
+            read -r free_pages active_pages inactive_pages wired_pages <<< "$vm_pages"
             local used_kb=$(( (active_pages + wired_pages) * page_size / 1024 ))
             local free_kb=$(( (free_pages + inactive_pages) * page_size / 1024 ))
             local used_gb=$((used_kb / 1024 / 1024))
