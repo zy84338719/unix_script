@@ -1,0 +1,806 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the shellkit package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: shellkit 0.11.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-10 19:59+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "invalid command name"
+msgstr ""
+
+msgid "duplicate command"
+msgstr ""
+
+msgid "Usage"
+msgstr ""
+
+msgid "Commands"
+msgstr ""
+
+msgid "Options"
+msgstr ""
+
+msgid "show this help"
+msgstr ""
+
+msgid "show version"
+msgstr ""
+
+msgid "enable debug output"
+msgstr ""
+
+msgid "disable colored output"
+msgstr ""
+
+msgid "non-interactive, use defaults"
+msgstr ""
+
+msgid "unsupported shell for completion"
+msgstr ""
+
+msgid "Did you mean"
+msgstr ""
+
+msgid "unknown option"
+msgstr ""
+
+msgid "no such command"
+msgstr ""
+
+msgid "command has no handler"
+msgstr ""
+
+msgid "invalid variable name"
+msgstr ""
+
+msgid "long option must start with --"
+msgstr ""
+
+msgid "short option must be a single dash and one letter"
+msgstr ""
+
+msgid "duplicate option"
+msgstr ""
+
+msgid "option does not take a value"
+msgstr ""
+
+msgid "option requires a value"
+msgstr ""
+
+msgid "configuration file path is required"
+msgstr ""
+
+msgid "invalid configuration format"
+msgstr ""
+
+msgid "skipping invalid configuration line"
+msgstr ""
+
+msgid "skipping invalid dotenv line"
+msgstr ""
+
+msgid "Required file not found"
+msgstr ""
+
+msgid "invalid configuration key"
+msgstr ""
+
+msgid "configuration value must be a single line"
+msgstr ""
+
+msgid "configuration file is not initialized"
+msgstr ""
+
+msgid "invalid exit code"
+msgstr ""
+
+msgid "Required command not found"
+msgstr ""
+
+msgid "This action must be run as root"
+msgstr ""
+
+msgid "Bash version is too old"
+msgstr ""
+
+msgid "invalid keep count"
+msgstr ""
+
+msgid "line must not be empty"
+msgstr ""
+
+msgid "line must not contain a newline"
+msgstr ""
+
+msgid "block markers must not be empty"
+msgstr ""
+
+msgid "block markers must differ"
+msgstr ""
+
+msgid "block markers must be single lines"
+msgstr ""
+
+msgid "fs_ensure_symlink requires TARGET and LINK"
+msgstr ""
+
+msgid "refusing to replace a non-symlink"
+msgstr ""
+
+msgid "refusing to use a symlinked temporary directory"
+msgstr ""
+
+msgid "URL is required"
+msgstr ""
+
+msgid "invalid HTTP method"
+msgstr ""
+
+msgid "missing value for option"
+msgstr ""
+
+msgid "cannot use both --data and --json"
+msgstr ""
+
+msgid "invalid timeout value"
+msgstr ""
+
+msgid "curl is required for HTTP requests"
+msgstr ""
+
+msgid "invalid URL"
+msgstr ""
+
+msgid "HTTP request failed"
+msgstr ""
+
+msgid "cannot write response body to file"
+msgstr ""
+
+msgid "jq or python3 is required to parse JSON"
+msgstr ""
+
+msgid "invalid JSON response"
+msgstr ""
+
+msgid "JSON path not found"
+msgstr ""
+
+msgid "invalid lock name"
+msgstr ""
+
+msgid "removing stale lock"
+msgstr ""
+
+msgid "another instance is running"
+msgstr ""
+
+msgid "lock is held by another process"
+msgstr ""
+
+msgid "no write permission"
+msgstr ""
+
+msgid "no checksum configured for"
+msgstr ""
+
+msgid "cannot compute checksum for"
+msgstr ""
+
+msgid "checksum mismatch for"
+msgstr ""
+
+msgid "curl or wget is required to download"
+msgstr ""
+
+msgid "using cached file"
+msgstr ""
+
+msgid "cached file is invalid, re-downloading"
+msgstr ""
+
+msgid "downloading"
+msgstr ""
+
+msgid "retrying via mirror"
+msgstr ""
+
+msgid "download failed"
+msgstr ""
+
+msgid "curl is required for HTTP probing"
+msgstr ""
+
+msgid "no supported package manager found"
+msgstr ""
+
+msgid "sudo is not available"
+msgstr ""
+
+msgid "This action needs sudo, please enter your password"
+msgstr ""
+
+msgid "Cannot obtain sudo permission"
+msgstr ""
+
+msgid "Unsupported package manager"
+msgstr ""
+
+msgid "Non-interactive mode requires a default value"
+msgstr ""
+
+msgid "Non-interactive, using default"
+msgstr ""
+
+msgid "Input timed out and no default is set"
+msgstr ""
+
+msgid "Input timed out, using default"
+msgstr ""
+
+msgid "Input closed unexpectedly"
+msgstr ""
+
+msgid "please answer y or n"
+msgstr ""
+
+msgid "default value is not one of the choices"
+msgstr ""
+
+msgid "default"
+msgstr ""
+
+msgid "invalid choice"
+msgstr ""
+
+msgid "circular dependency detected"
+msgstr ""
+
+msgid "usage: retry ATTEMPTS COMMAND..."
+msgstr ""
+
+msgid "invalid retry count"
+msgstr ""
+
+msgid "attempt failed, retrying"
+msgstr ""
+
+msgid "giving up after retries"
+msgstr ""
+
+msgid "run requires a command"
+msgstr ""
+
+msgid "command failed"
+msgstr ""
+
+msgid "usage: run_concurrent N [--timeout SEC] -- COMMAND..."
+msgstr ""
+
+msgid "invalid concurrency"
+msgstr ""
+
+msgid "invalid timeout"
+msgstr ""
+
+msgid "run_concurrent requires a command"
+msgstr ""
+
+msgid "cannot create a temporary directory"
+msgstr ""
+
+msgid "timeout command not found, running without a timeout"
+msgstr ""
+
+msgid "an instance produced no exit status"
+msgstr ""
+
+msgid "concurrent instances failed"
+msgstr ""
+
+msgid "usage: parallel_map N [--timeout SEC] -- COMMAND..."
+msgstr ""
+
+msgid "parallel_map requires a command"
+msgstr ""
+
+msgid "no items to process"
+msgstr ""
+
+msgid "some items failed"
+msgstr ""
+
+msgid "invalid template variable name"
+msgstr ""
+
+msgid "template config not found"
+msgstr ""
+
+msgid "skipped a malformed template variable"
+msgstr ""
+
+msgid "skipped an invalid template variable name"
+msgstr ""
+
+msgid "template is missing"
+msgstr ""
+
+msgid "no shellkit manifest in"
+msgstr ""
+
+msgid "unknown manifest key"
+msgstr ""
+
+msgid "hook is not executable, skipped"
+msgstr ""
+
+msgid "hook failed"
+msgstr ""
+
+msgid "reserved variable name"
+msgstr ""
+
+msgid "This action requires systemd"
+msgstr ""
+
+msgid "trap_push requires a command"
+msgstr ""
+
+msgid "cleanup step failed"
+msgstr ""
+
+msgid "value must not be empty"
+msgstr ""
+
+msgid "value must be a single line"
+msgstr ""
+
+msgid "port must be a number"
+msgstr ""
+
+msgid "port out of range"
+msgstr ""
+
+msgid "invalid IPv4 address"
+msgstr ""
+
+msgid "invalid version"
+msgstr ""
+
+msgid "path must be absolute"
+msgstr ""
+
+msgid "value not in allowed set"
+msgstr ""
+
+msgid "the library is only partially loaded"
+msgstr ""
+
+msgid "project generation"
+msgstr ""
+
+msgid "create a new project skeleton"
+msgstr ""
+
+msgid "update a generated project to the current template"
+msgstr ""
+
+msgid "environment"
+msgstr ""
+
+msgid "check the runtime environment"
+msgstr ""
+
+msgid "list templates and library modules"
+msgstr ""
+
+msgid "existing projects"
+msgstr ""
+
+msgid "sync the library into an existing project"
+msgstr ""
+
+msgid "documentation"
+msgstr ""
+
+msgid "regenerate the API reference"
+msgstr ""
+
+msgid "generate man pages"
+msgstr ""
+
+msgid "print a shell completion script"
+msgstr ""
+
+msgid "installation"
+msgstr ""
+
+msgid "install shellkit into PATH"
+msgstr ""
+
+msgid "remove an installed shellkit"
+msgstr ""
+
+msgid "update an installed shellkit"
+msgstr ""
+
+msgid "usage"
+msgstr ""
+
+msgid "path exists and is not a directory"
+msgstr ""
+
+msgid "target directory is not empty"
+msgstr ""
+
+msgid "vendored library"
+msgstr ""
+
+msgid "added command"
+msgstr ""
+
+msgid "generated file is missing"
+msgstr ""
+
+msgid "generated file is not executable"
+msgstr ""
+
+msgid "only one target directory is allowed"
+msgstr ""
+
+msgid "target directory is required"
+msgstr ""
+
+msgid "invalid project name"
+msgstr ""
+
+msgid "template directory does not exist"
+msgstr ""
+
+msgid "--set expects KEY=VALUE"
+msgstr ""
+
+msgid "value for"
+msgstr ""
+
+msgid "creating"
+msgstr ""
+
+msgid "failed to generate the project"
+msgstr ""
+
+msgid "the target directory was left in place for inspection"
+msgstr ""
+
+msgid "failed to write the project manifest"
+msgstr ""
+
+msgid "the generated project is incomplete"
+msgstr ""
+
+msgid "project created"
+msgstr ""
+
+msgid "next steps"
+msgstr ""
+
+msgid "target directory does not exist"
+msgstr ""
+
+msgid "it does not look like a shellkit-generated project"
+msgstr ""
+
+msgid "the manifest does not record a project name"
+msgstr ""
+
+msgid "upgrading"
+msgstr ""
+
+msgid "template version"
+msgstr ""
+
+msgid ""
+"the manifest predates the fingerprint baseline; files that cannot be "
+"verified are left alone"
+msgstr ""
+
+msgid "would add"
+msgstr ""
+
+msgid "added"
+msgstr ""
+
+msgid "modified locally, left alone"
+msgstr ""
+
+msgid "no recorded fingerprint, left alone"
+msgstr ""
+
+msgid "cannot be verified against the old template, left alone"
+msgstr ""
+
+msgid "would update"
+msgstr ""
+
+msgid "updated"
+msgstr ""
+
+msgid "already running from the vendored copy"
+msgstr ""
+
+msgid "failed to sync the vendored library"
+msgstr ""
+
+msgid "upgrade finished"
+msgstr ""
+
+msgid "library file is missing"
+msgstr ""
+
+msgid "module files are missing"
+msgstr ""
+
+msgid "module file is empty"
+msgstr ""
+
+msgid "module file has a syntax error"
+msgstr ""
+
+msgid "module files present"
+msgstr ""
+
+msgid "library integrity"
+msgstr ""
+
+msgid "the library could not be loaded"
+msgstr ""
+
+msgid "environment check"
+msgstr ""
+
+msgid "needs 3.2 or newer"
+msgstr ""
+
+msgid "sha256sum or shasum is required"
+msgstr ""
+
+msgid "curl or wget is needed for downloads"
+msgstr ""
+
+msgid "translations disabled, English only"
+msgstr ""
+
+msgid "xgettext and msgfmt are needed to update translations"
+msgstr ""
+
+msgid "not installed, lint will be skipped"
+msgstr ""
+
+msgid "not installed, format check will be skipped"
+msgstr ""
+
+msgid "vendor check"
+msgstr ""
+
+msgid "vendor copy has drifted"
+msgstr ""
+
+msgid "the vendored library path is not a directory"
+msgstr ""
+
+msgid "vendor copy matches the bundled library"
+msgstr ""
+
+msgid "no vendored library found"
+msgstr ""
+
+msgid "library integrity check failed"
+msgstr ""
+
+msgid "required tooling is missing"
+msgstr ""
+
+msgid "optional tooling is missing; core features still work"
+msgstr ""
+
+msgid "all checks passed"
+msgstr ""
+
+msgid "library modules"
+msgstr ""
+
+msgid "templates"
+msgstr ""
+
+msgid "commands"
+msgstr ""
+
+msgid "capabilities"
+msgstr ""
+
+msgid "public functions"
+msgstr ""
+
+msgid "missing directory for --out"
+msgstr ""
+
+msgid "unexpected argument"
+msgstr ""
+
+msgid "the man module is not loaded"
+msgstr ""
+
+msgid "output directory does not exist"
+msgstr ""
+
+msgid "failed to write man pages"
+msgstr ""
+
+msgid "wrote man pages"
+msgstr ""
+
+msgid "vendored library is out of date"
+msgstr ""
+
+msgid "run without --check to update"
+msgstr ""
+
+msgid "vendored library is up to date"
+msgstr ""
+
+msgid "refusing to overwrite a directory that is not a shellkit vendor"
+msgstr ""
+
+msgid "syncing"
+msgstr ""
+
+msgid "load it from your scripts"
+msgstr ""
+
+msgid "failed to check doc comments"
+msgstr ""
+
+msgid "public function has no doc comment"
+msgstr ""
+
+msgid "this copy has no documentation sources"
+msgstr ""
+
+msgid "run it from a shellkit source tree"
+msgstr ""
+
+msgid "failed to render"
+msgstr ""
+
+msgid "document is missing"
+msgstr ""
+
+msgid "document is out of date"
+msgstr ""
+
+msgid "run to regenerate"
+msgstr ""
+
+msgid "documentation is up to date"
+msgstr ""
+
+msgid "wrote"
+msgstr ""
+
+msgid "try a writable prefix"
+msgstr ""
+
+msgid "installing"
+msgstr ""
+
+msgid "failed to write the install manifest"
+msgstr ""
+
+msgid "failed to create symlink"
+msgstr ""
+
+msgid "installed"
+msgstr ""
+
+msgid "no install manifest under"
+msgstr ""
+
+msgid "nothing was removed, delete that directory by hand if you are sure"
+msgstr ""
+
+msgid "removing"
+msgstr ""
+
+msgid "skipped a path outside the install directory"
+msgstr ""
+
+msgid "failed to remove"
+msgstr ""
+
+msgid "leftover files were kept"
+msgstr ""
+
+msgid "left the symlink alone, it points elsewhere"
+msgstr ""
+
+msgid "left the file alone, it is not a symlink"
+msgstr ""
+
+msgid "removed"
+msgstr ""
+
+msgid "files"
+msgstr ""
+
+msgid "no such file"
+msgstr ""
+
+msgid "checking for a newer version"
+msgstr ""
+
+msgid "cannot read the latest version from the release API"
+msgstr ""
+
+msgid "already up to date"
+msgstr ""
+
+msgid "current version"
+msgstr ""
+
+msgid "not installed"
+msgstr ""
+
+msgid "latest version"
+msgstr ""
+
+msgid "no checksum for this release"
+msgstr ""
+
+msgid "no checksum provided, skipping verification"
+msgstr ""
+
+msgid "cannot extract archive"
+msgstr ""
+
+msgid "not a shellkit release"
+msgstr ""
+
+msgid "cannot read the version of"
+msgstr ""
+
+msgid "shellkit is not installed under"
+msgstr ""
+
+msgid "run install-self first, or point --prefix at the right place"
+msgstr ""
+
+msgid "updating"
+msgstr ""
+
+msgid "update failed"
+msgstr ""
+
+msgid "running"
+msgstr ""
+
+msgid "target"
+msgstr ""
+
+msgid "force flag is set"
+msgstr ""
+
+msgid "finished"
+msgstr ""
