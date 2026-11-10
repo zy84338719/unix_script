@@ -571,11 +571,20 @@ do_status() {
             emit_extra "path=unconfigured"
         fi
         local mk_ver
-        mk_ver=$("$install_dir/bin/minikube" version --short 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)
-        [[ -n "$mk_ver" ]] && emit_version "$mk_ver"
+        # 不用 `| head -1`：head 命中即退会给上游 SIGPIPE(141)；grep 无匹配时退出 1。
+        # 两者在 pipefail 下都会让整条管道非 0，set -e 会让 status 子命令整体中止
+        # （违反「状态子命令恒 0」契约）。改用 sed 取首行（sed 读完整个输入才退出），
+        # 取不到版本号就回落成空值。
+        mk_ver=$("$install_dir/bin/minikube" version --short 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | sed -n '1p') || mk_ver=""
+        # 收尾用 if 而不是 `[[ -n "$mk_ver" ]] && ...`：后者在版本号为空时返回 1，
+        # 会让 status 子命令整体退出 1（同样是「status 恒 0」契约）。
+        if [[ -n "$mk_ver" ]]; then
+            emit_version "$mk_ver"
+        fi
     else
         emit_status "not_installed" "${RED}❌ 未安装${NC}"
     fi
+    return 0
 }
 
 # 卸载（委托给安装时生成的卸载脚本）

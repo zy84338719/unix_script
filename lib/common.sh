@@ -600,7 +600,11 @@ service_is_active() {
     if [[ "$OS_TYPE" == "linux" ]]; then
         systemctl is-active --quiet "$sd_name" 2>/dev/null
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        sudo -n launchctl list 2>/dev/null | grep -q "$ld_label"
+        # 不用 `| grep -q`：grep 命中即退会给上游 SIGPIPE(141)，pipefail 下整条管道非 0，
+        # 会把「已运行」误判成「未运行」。先把输出收进变量，再用读完整个输入的 grep 匹配。
+        local ld_list
+        ld_list=$(sudo -n launchctl list 2>/dev/null) || ld_list=""
+        printf '%s\n' "$ld_list" | grep "$ld_label" >/dev/null
     else
         return 1
     fi

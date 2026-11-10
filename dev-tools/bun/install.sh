@@ -115,7 +115,11 @@ status_bun() {
     if [[ -f "$BUNFIG" ]] && grep -q "registry" "$BUNFIG" 2>/dev/null; then
         # 从 "registry = \"url\"" 提取 url（用 Parameter Expansion 避免 sed 跨平台问题）
         local reg_line
-        reg_line=$(grep -E "^registry" "$BUNFIG" | head -1)
+        # 不用 `| head -1`：head 命中即退会给上游 SIGPIPE(141)；grep 无匹配时退出 1。
+        # 两者在 pipefail 下都会让整条管道非 0，set -e 会让 status 子命令整体中止
+        # （违反「状态子命令恒 0」契约）。改用 sed 取首行（sed 读完整个输入才退出），
+        # 取不到就回落成空串。
+        reg_line=$(grep -E "^registry" "$BUNFIG" | sed -n '1p') || reg_line=""
         cur_reg=${reg_line#*=}
         cur_reg=${cur_reg//\"/}
         cur_reg=${cur_reg// /}
