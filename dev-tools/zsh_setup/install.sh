@@ -84,7 +84,11 @@ show_status() {
     local zsh_version=""
     if command_exists zsh; then
         zsh_installed_bool=true
-        zsh_version=$(zsh --version | head -1)
+        # 不用 `| head -1`：head 命中即退会提前关管道，上游 zsh 被打成 SIGPIPE(141)；
+        # `zsh --version` 失败时 pipefail 会把非 0 带出，set -e 让 status 子命令中止
+        # （违反「状态子命令恒 0」契约）。改用 sed 取首行（读完整个输入才退出），
+        # 取不到就回落成空串。
+        zsh_version=$(zsh --version | sed -n '1p') || zsh_version=""
     fi
 
     local theme="none"
