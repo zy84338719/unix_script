@@ -1,0 +1,224 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the unix_script package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: unix_script 1.21.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-11 03:12+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Unknown version"
+msgstr ""
+
+msgid "Detected installed Docker"
+msgstr ""
+
+msgid "Continue and try to update?"
+msgstr ""
+
+msgid "Cancelled"
+msgstr ""
+
+msgid ""
+"Install from a domestic mirror (linuxmirrors.cn, includes registry "
+"acceleration, recommended for China network)?"
+msgstr ""
+
+msgid "Installing Docker via domestic mirror script (linuxmirrors.cn)..."
+msgstr ""
+
+msgid "Domestic mirror script failed, try the official installer instead"
+msgstr ""
+
+msgid "Installing Docker via pacman..."
+msgstr ""
+
+msgid "Install failed"
+msgstr ""
+
+msgid "Installing Docker via apk..."
+msgstr ""
+
+msgid "Installing Docker via zypper..."
+msgstr ""
+
+msgid "Installing Docker Engine via official script (get.docker.com)..."
+msgstr ""
+
+msgid "Official installer failed, check the network or install manually:"
+msgstr ""
+
+msgid "Enabling and starting docker service..."
+msgstr ""
+
+msgid "Current user is already in the docker group"
+msgstr ""
+
+msgid "Add user"
+msgstr ""
+
+msgid "to the docker group (passwordless docker, requires re-login)?"
+msgstr ""
+
+msgid ""
+"Log out and back in (or run newgrp docker) for the change to take effect."
+msgstr ""
+
+msgid ""
+"docker compose subcommand not detected. Recent Docker includes the compose "
+"plugin."
+msgstr ""
+
+msgid "For standalone docker-compose, see:"
+msgstr ""
+
+msgid "Docker installed: "
+msgstr ""
+
+msgid "Docker Desktop is recommended on macOS."
+msgstr ""
+
+msgid "Install Docker Desktop via Homebrew (--cask)?"
+msgstr ""
+
+msgid "Installation complete. Please launch Docker Desktop to finish setup."
+msgstr ""
+
+msgid "Please download and install manually:"
+msgstr ""
+
+msgid "Rocket Starting Docker installation"
+msgstr ""
+
+msgid "Party popper Docker installation flow complete"
+msgstr ""
+
+msgid "Verify:"
+msgstr ""
+
+msgid "Test run (first pull is slow)"
+msgstr ""
+
+msgid ""
+"Docker Desktop may not have been installed via brew, please uninstall "
+"manually."
+msgstr ""
+
+msgid "Please uninstall Docker Desktop manually."
+msgstr ""
+
+msgid "Uninstalling will stop the docker service and remove the package."
+msgstr ""
+
+msgid ""
+"Image/container/volume data is kept in /var/lib/docker, please clean it up "
+"manually."
+msgstr ""
+
+msgid "Confirm uninstall of Docker Engine?"
+msgstr ""
+
+msgid ""
+"Also delete all images/containers/volumes (/var/lib/docker, /var/lib/"
+"containerd)? This is irreversible!"
+msgstr ""
+
+msgid "Data directory deleted."
+msgstr ""
+
+msgid "Docker uninstalled."
+msgstr ""
+
+msgid "Not installed"
+msgstr ""
+
+msgid "Installed and running"
+msgstr ""
+
+msgid "Installed but service not running"
+msgstr ""
+
+msgid ""
+"Installed, but the Docker daemon is not running (please start Docker Desktop)"
+msgstr ""
+
+msgid "Registry mirror configuration (linuxmirrors) is Linux-only. Current: "
+msgstr ""
+
+msgid ""
+"Docker not detected. The registry mirror configuration will only take effect "
+"after Docker is installed and started."
+msgstr ""
+
+msgid "Still continue?"
+msgstr ""
+
+msgid ""
+"Calling linuxmirrors script to configure registry mirror only (--only-"
+"registry)..."
+msgstr ""
+
+msgid ""
+"(The script will back up daemon.json and write a domestic mirror address)"
+msgstr ""
+
+msgid ""
+"Registry mirror configuration failed, check the network or configure "
+"manually:"
+msgstr ""
+
+msgid "Registry mirror configuration complete."
+msgstr ""
+
+msgid "If Docker is already running, restart it to apply:"
+msgstr ""
+
+msgid "Domestic mirror installation (linuxmirrors) is Linux-only. Current: "
+msgstr ""
+
+msgid ""
+"Calling linuxmirrors script to install/replace Docker mirror (includes "
+"registry acceleration)..."
+msgstr ""
+
+msgid "Domestic mirror script failed, check the network"
+msgstr ""
+
+msgid "Docker mirror installation/replacement complete."
+msgstr ""
+
+msgid "Common commands:"
+msgstr ""
+
+msgid "View registry mirror"
+msgstr ""
+
+msgid "Install or update Docker (optional domestic mirror)"
+msgstr ""
+
+msgid ""
+"Install/replace Docker via domestic mirror (linuxmirrors.cn), includes "
+"registry acceleration"
+msgstr ""
+
+msgid "Configure registry mirror only (no reinstall, Linux only)"
+msgstr ""
+
+msgid "Uninstall Docker"
+msgstr ""
+
+msgid "View installation and running status"
+msgstr ""
+
+msgid "Unknown action: "
+msgstr ""

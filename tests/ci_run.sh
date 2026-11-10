@@ -116,7 +116,7 @@ phase_static() {
     # 这里不重复 lint（两边的 shellcheck 选项集不同，重复 lint 只会刷假红）。
     scripts=$(find "$REPO_DIR" -type f -name "*.sh" \
               -not -path "*/.git/*" -not -path "*/node_modules/*" \
-              -not -path "*/.tools/*" -not -path "*/vendor/*" | sort)
+              -not -path "*/.tools/*" -not -path "*/vendor/*" -not -path "*/messages/*" | sort)
 
     while IFS= read -r f; do
         rel="${f#"$REPO_DIR"/}"

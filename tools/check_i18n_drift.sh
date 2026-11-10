@@ -26,6 +26,10 @@ for dir in "${DIRS[@]}"; do
     case "$script" in
       *.manifest|*.md) continue ;;
     esac
+    # locale/*/messages/*.sh 是纯 bash 兜底表（po/messages.sh 的生成物），不进 _t
+    case "$script" in
+      */messages/*.sh) continue ;;
+    esac
     # 匹配硬编码中文（不在 _t '...' 里，不在注释 # 行里）
     # 先把 _t '...' 的内容抠掉，再查剩下的中文
     stripped="$(sed -E "s/_t '[^']*'//g; s/_t \"[^\]*\"//g" "$script")"

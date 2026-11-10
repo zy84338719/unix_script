@@ -1,5 +1,190 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-11 03:12+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+msgid "Unknown version"
+msgstr "未知版本"
+
+msgid "Detected installed Docker"
+msgstr "检测到已安装 Docker"
+
+msgid "Continue and try to update?"
+msgstr "是否继续并尝试更新？"
+
+msgid "Cancelled"
+msgstr "已取消"
+
+msgid "Install from a domestic mirror (linuxmirrors.cn, includes registry acceleration, recommended for China network)?"
+msgstr ""
+
+msgid "Installing Docker via domestic mirror script (linuxmirrors.cn)..."
+msgstr "使用国内镜像源一键脚本（linuxmirrors.cn）安装/换源 Docker..."
+
+msgid "Domestic mirror script failed, try the official installer instead"
+msgstr "国内镜像源安装脚本执行失败，可改用官方源重试"
+
+msgid "Installing Docker via pacman..."
+msgstr "通过 pacman 安装 Docker..."
+
+msgid "Install failed"
+msgstr "安装失败"
+
+msgid "Installing Docker via apk..."
+msgstr "通过 apk 安装 Docker..."
+
+msgid "Installing Docker via zypper..."
+msgstr "通过 zypper 安装 Docker..."
+
+msgid "Installing Docker Engine via official script (get.docker.com)..."
+msgstr "使用官方一键脚本安装 Docker Engine（get.docker.com）..."
+
+msgid "Official installer failed, check the network or install manually:"
+msgstr "官方安装脚本执行失败，请检查网络或参考以下链接手动安装:"
+
+msgid "Enabling and starting docker service..."
+msgstr "启用并启动 docker 服务..."
+
+msgid "Current user is already in the docker group"
+msgstr "当前用户已在 docker 组中"
+
+msgid "Add user"
+msgstr "是否将用户"
+
+msgid "to the docker group (passwordless docker, requires re-login)?"
+msgstr "加入 docker 组（免 sudo 使用 docker，需重新登录生效）？"
+
+msgid "Log out and back in (or run newgrp docker) for the change to take effect."
+msgstr ""
+
+msgid "docker compose subcommand not detected. Recent Docker includes the compose plugin."
+msgstr ""
+
+msgid "For standalone docker-compose, see:"
+msgstr "如需独立 docker-compose，请参考:"
+
+msgid "Docker installed: "
+msgstr "Docker 已安装："
+
+msgid "Docker Desktop is recommended on macOS."
+msgstr "macOS 上推荐使用 Docker Desktop。"
+
+msgid "Install Docker Desktop via Homebrew (--cask)?"
+msgstr "是否通过 Homebrew 安装 Docker Desktop（--cask）？"
+
+msgid "Installation complete. Please launch Docker Desktop to finish setup."
+msgstr "安装完成，请启动 Docker Desktop 应用以完成初始化。"
+
+msgid "Please download and install manually:"
+msgstr "请手动下载安装:"
+
+msgid "Rocket Starting Docker installation"
+msgstr "🚀 开始安装 Docker"
+
+msgid "Party popper Docker installation flow complete"
+msgstr "🎉 Docker 安装流程结束"
+
+msgid "Verify:"
+msgstr "验证："
+
+msgid "Test run (first pull is slow)"
+msgstr "测试运行（首次拉取镜像较慢）"
+
+msgid "Docker Desktop may not have been installed via brew, please uninstall manually."
+msgstr ""
+
+msgid "Please uninstall Docker Desktop manually."
+msgstr "请手动卸载 Docker Desktop。"
+
+msgid "Uninstalling will stop the docker service and remove the package."
+msgstr "卸载将停止 docker 服务并移除软件包。"
+
+msgid "Image/container/volume data is kept in /var/lib/docker, please clean it up manually."
+msgstr ""
+
+msgid "Confirm uninstall of Docker Engine?"
+msgstr "确认卸载 Docker Engine？"
+
+msgid "Also delete all images/containers/volumes (/var/lib/docker, /var/lib/containerd)? This is irreversible!"
+msgstr ""
+
+msgid "Data directory deleted."
+msgstr "数据目录已删除。"
+
+msgid "Docker uninstalled."
+msgstr "Docker 已卸载。"
+
+msgid "Not installed"
+msgstr "未安装"
+
+msgid "Installed and running"
+msgstr "已安装并运行"
+
+msgid "Installed but service not running"
+msgstr "已安装但服务未运行"
+
+msgid "Installed, but the Docker daemon is not running (please start Docker Desktop)"
+msgstr ""
+
+msgid "Registry mirror configuration (linuxmirrors) is Linux-only. Current: "
+msgstr "镜像加速器换源（linuxmirrors）仅支持 Linux。当前："
+
+msgid "Docker not detected. The registry mirror configuration will only take effect after Docker is installed and started."
+msgstr ""
+
+msgid "Still continue?"
+msgstr "仍然继续？"
+
+msgid "Calling linuxmirrors script to configure registry mirror only (--only-registry)..."
+msgstr ""
+
+msgid "(The script will back up daemon.json and write a domestic mirror address)"
+msgstr ""
+
+msgid "Registry mirror configuration failed, check the network or configure manually:"
+msgstr ""
+
+msgid "Registry mirror configuration complete."
+msgstr "镜像加速器换源完成。"
+
+msgid "If Docker is already running, restart it to apply:"
+msgstr "如已运行 Docker，可重启使配置生效:"
+
+msgid "Domestic mirror installation (linuxmirrors) is Linux-only. Current: "
+msgstr "国内镜像源安装（linuxmirrors）仅支持 Linux。当前："
+
+msgid "Calling linuxmirrors script to install/replace Docker mirror (includes registry acceleration)..."
+msgstr ""
+
+msgid "Domestic mirror script failed, check the network"
+msgstr "国内镜像源安装脚本执行失败，请检查网络"
+
+msgid "Docker mirror installation/replacement complete."
+msgstr "Docker 镜像源安装/换源完成。"
+
+msgid "Common commands:"
+msgstr "常用命令:"
+
+msgid "View registry mirror"
+msgstr "查看镜像加速器"
+
+msgid "Install or update Docker (optional domestic mirror)"
+msgstr "安装或更新 Docker（可选国内镜像源）"
+
+msgid "Install/replace Docker via domestic mirror (linuxmirrors.cn), includes registry acceleration"
+msgstr ""
+
+msgid "Configure registry mirror only (no reinstall, Linux only)"
+msgstr "仅更换 Docker 镜像加速器（不重装 Docker，仅 Linux）"
+
+msgid "Uninstall Docker"
+msgstr "卸载 Docker"
+
+msgid "View installation and running status"
+msgstr "查看安装与运行状态"
+
+msgid "Unknown action: "
+msgstr "未知操作: "

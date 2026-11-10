@@ -29,25 +29,25 @@ install_linux() {
     require_sudo
     if command_exists docker; then
         local cur
-        cur=$(docker --version 2>/dev/null || echo "未知版本")
-        warn "检测到已安装 Docker（${cur}）"
-        if ! yes_no "是否继续并尝试更新？"; then
-            info "已取消"
+        cur=$(docker --version 2>/dev/null || printf '%s' "$(_t 'Unknown version')")
+        warn "$(_t 'Detected installed Docker')（${cur}）"
+        if ! yes_no "$(_t 'Continue and try to update?')"; then
+            info "$(_t 'Cancelled')"
             return 0
         fi
     fi
 
     # 选择安装源：官方 或 国内镜像源（linuxmirrors.cn，含镜像加速）
     local use_mirror=false
-    if yes_no "是否使用国内镜像源安装（linuxmirrors.cn，含镜像加速，国内网络推荐）？"; then
+    if yes_no "$(_t 'Install from a domestic mirror (linuxmirrors.cn, includes registry acceleration, recommended for China network)?')"; then
         use_mirror=true
     fi
 
     if $use_mirror; then
-        info "使用国内镜像源一键脚本（linuxmirrors.cn）安装/换源 Docker..."
+        info "$(_t 'Installing Docker via domestic mirror script (linuxmirrors.cn)...')"
         # 官方脚本自带交互；通过 bash <(curl ...) 形式调用
         if ! bash <(curl -sSL "$MIRROR_INSTALLER"); then
-            error "国内镜像源安装脚本执行失败，可改用官方源重试"
+            error "$(_t 'Domestic mirror script failed, try the official installer instead')"
             exit 1
         fi
     else
@@ -55,68 +55,68 @@ install_linux() {
         # Arch/Alpine/openSUSE：get.docker.com 不支持，改用系统包管理器
         case "$PKG_MANAGER" in
             pacman)
-                info "通过 pacman 安装 Docker..."
-                pkg_install docker docker-compose || { error "安装失败"; exit 1; }
+                info "$(_t 'Installing Docker via pacman...')"
+                pkg_install docker docker-compose || { error "$(_t 'Install failed')"; exit 1; }
                 ;;
             apk)
-                info "通过 apk 安装 Docker..."
-                pkg_install docker docker-cli-compose || { error "安装失败"; exit 1; }
+                info "$(_t 'Installing Docker via apk...')"
+                pkg_install docker docker-cli-compose || { error "$(_t 'Install failed')"; exit 1; }
                 # Alpine 需开启 community 仓库（默认已开）
                 ;;
             zypper)
-                info "通过 zypper 安装 Docker..."
-                pkg_install docker docker-compose || { error "安装失败"; exit 1; }
+                info "$(_t 'Installing Docker via zypper...')"
+                pkg_install docker docker-compose || { error "$(_t 'Install failed')"; exit 1; }
                 ;;
             *)
-                info "使用官方一键脚本安装 Docker Engine（get.docker.com）..."
+                info "$(_t 'Installing Docker Engine via official script (get.docker.com)...')"
                 if ! curl -fsSL "$DOCKER_INSTALLER" | sudo sh; then
-                    error "官方安装脚本执行失败，请检查网络或参考 https://docs.docker.com/engine/install/ 手动安装"
+                    error "$(_t 'Official installer failed, check the network or install manually:') https://docs.docker.com/engine/install/"
                     exit 1
                 fi
                 ;;
         esac
     fi
 
-    info "启用并启动 docker 服务..."
+    info "$(_t 'Enabling and starting docker service...')"
     uxs_svc enable-now docker
 
     # 将当前用户加入 docker 组，使其免 sudo 使用 docker
     if id -nG "$USER" 2>/dev/null | grep -qw docker; then
-        info "当前用户已在 docker 组中"
+        info "$(_t 'Current user is already in the docker group')"
     else
-        if yes_no "是否将当前用户 '$USER' 加入 docker 组（免 sudo 使用 docker，需重新登录生效）？"; then
+        if yes_no "$(_t 'Add user')' $USER' $(_t 'to the docker group (passwordless docker, requires re-login)?')"; then
             sudo usermod -aG docker "$USER"
-            warn "请注销并重新登录（或执行 newgrp docker）后生效。"
+            warn "$(_t 'Log out and back in (or run newgrp docker) for the change to take effect.')"
         fi
     fi
 
     # 可选：安装 docker-compose 插件（官方脚本在较新版本已自带 compose 插件）
     if ! command_exists docker-compose && ! docker compose version >/dev/null 2>&1; then
-        warn "未检测到 docker compose 子命令。新版 Docker 已内置 compose 插件；"
-        warn "如需独立 docker-compose，请参考 https://docs.docker.com/compose/install/"
+        warn "$(_t 'docker compose subcommand not detected. Recent Docker includes the compose plugin.')"
+        warn "$(_t 'For standalone docker-compose, see:') https://docs.docker.com/compose/install/"
     fi
 }
 
 # macOS 引导
 install_macos() {
     if command_exists docker; then
-        success "Docker 已安装：$(docker --version)"
+        success "$(_t 'Docker installed: ')$(docker --version)"
         return 0
     fi
-    info "macOS 上推荐使用 Docker Desktop。"
+    info "$(_t 'Docker Desktop is recommended on macOS.')"
     if command_exists brew; then
-        if yes_no "是否通过 Homebrew 安装 Docker Desktop（--cask）？"; then
+        if yes_no "$(_t 'Install Docker Desktop via Homebrew (--cask)?')"; then
             brew install --cask docker
-            success "安装完成，请启动 Docker Desktop 应用以完成初始化。"
+            success "$(_t 'Installation complete. Please launch Docker Desktop to finish setup.')"
             return 0
         fi
     fi
-    warn "请手动下载安装：https://www.docker.com/products/docker-desktop/"
+    warn "$(_t 'Please download and install manually:') https://www.docker.com/products/docker-desktop/"
 }
 
 install_docker() {
     preflight
-    info "🚀 开始安装 Docker"
+    info "$(_t 'Rocket Starting Docker installation')"
     if [[ "$OS_TYPE" == "linux" ]]; then
         install_linux
     else
@@ -124,12 +124,12 @@ install_docker() {
     fi
 
     echo
-    success "🎉 Docker 安装流程结束"
-    info "验证："
+    success "$(_t 'Party popper Docker installation flow complete')"
+    info "$(_t 'Verify:')"
     echo "  docker --version"
     if [[ "$OS_TYPE" == "linux" ]]; then
         echo "  sudo systemctl status docker"
-        echo "  sudo docker run hello-world     # 测试运行（首次拉取镜像较慢）"
+        echo "  sudo docker run hello-world     # $(_t 'Test run (first pull is slow)')"
     fi
 }
 
@@ -137,18 +137,18 @@ uninstall_docker() {
     preflight
     if [[ "$OS_TYPE" == "darwin" ]]; then
         if command_exists brew; then
-            brew uninstall --cask docker || warn "Docker Desktop 可能未通过 brew 安装，请手动卸载。"
+            brew uninstall --cask docker || warn "$(_t 'Docker Desktop may not have been installed via brew, please uninstall manually.')"
         else
-            warn "请手动卸载 Docker Desktop。"
+            warn "$(_t 'Please uninstall Docker Desktop manually.')"
         fi
         return 0
     fi
 
     require_sudo
-    warn "卸载将停止 docker 服务并移除软件包。"
-    warn "镜像/容器/卷数据保留在 /var/lib/docker，需另行手动清理。"
-    if ! yes_no "确认卸载 Docker Engine？"; then
-        info "已取消"
+    warn "$(_t 'Uninstalling will stop the docker service and remove the package.')"
+    warn "$(_t 'Image/container/volume data is kept in /var/lib/docker, please clean it up manually.')"
+    if ! yes_no "$(_t 'Confirm uninstall of Docker Engine?')"; then
+        info "$(_t 'Cancelled')"
         return 0
     fi
 
@@ -167,33 +167,33 @@ uninstall_docker() {
             ;;
     esac
 
-    if yes_no "是否同时删除所有镜像/容器/卷（/var/lib/docker, /var/lib/containerd）？此操作不可逆！"; then
+    if yes_no "$(_t 'Also delete all images/containers/volumes (/var/lib/docker, /var/lib/containerd)? This is irreversible!')"; then
         sudo rm -rf /var/lib/docker /var/lib/containerd
-        success "数据目录已删除。"
+        success "$(_t 'Data directory deleted.')"
     fi
-    success "Docker 已卸载。"
+    success "$(_t 'Docker uninstalled.')"
 }
 
 status_docker() {
     if ! command_exists docker; then
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
         return
     fi
     local ver
     ver=$(docker --version 2>/dev/null || echo "")
     if [[ "$OS_TYPE" == "linux" ]]; then
         if uxs_svc is-active docker 2>/dev/null; then
-            emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} ($ver)"
+            emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} ($ver)"
         else
-            emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC} ($ver)"
+            emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but service not running')${NC} ($ver)"
         fi
     else
         # docker info 在守护进程挂起/socket 无响应时实测可阻塞 90s+（黑洞地址实测 93.3s），
         # 套 5s 超时护栏：超时(rc=124)按未运行降级，避免拖垮 status --json 并行批查
         if uxs_with_timeout 5 docker info >/dev/null 2>&1; then
-            emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} ($ver)"
+            emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} ($ver)"
         else
-            emit_status "installed:stopped" "${YELLOW}⚠️  已安装，但 Docker 守护进程未运行（请启动 Docker Desktop）${NC}"
+            emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed, but the Docker daemon is not running (please start Docker Desktop)')${NC}"
         fi
     fi
     emit_version "$ver"
@@ -204,24 +204,24 @@ configure_registry() {
     detect_os
     check_commands curl
     if [[ "$OS_TYPE" != "linux" ]]; then
-        error "镜像加速器换源（linuxmirrors）仅支持 Linux。当前：$OS_TYPE"
+        error "$(_t 'Registry mirror configuration (linuxmirrors) is Linux-only. Current: ')$OS_TYPE"
         exit 1
     fi
     if ! command_exists docker; then
-        warn "未检测到 Docker。镜像加速器配置写入 /etc/docker/daemon.json 后需安装并启动 Docker 才会生效。"
-        if ! yes_no "仍然继续？"; then
-            info "已取消"
+        warn "$(_t 'Docker not detected. The registry mirror configuration will only take effect after Docker is installed and started.')"
+        if ! yes_no "$(_t 'Still continue?')"; then
+            info "$(_t 'Cancelled')"
             return 0
         fi
     fi
-    info "调用 linuxmirrors 官方脚本仅更换镜像加速器（--only-registry）..."
-    info "（脚本会备份现有 daemon.json 并写入国内加速地址）"
+    info "$(_t 'Calling linuxmirrors script to configure registry mirror only (--only-registry)...')"
+    info "$(_t '(The script will back up daemon.json and write a domestic mirror address)')"
     if ! bash <(curl -sSL "$MIRROR_INSTALLER") --only-registry; then
-        error "镜像加速器换源失败，请检查网络或参考 https://linuxmirrors.cn/other/ 手动配置"
+        error "$(_t 'Registry mirror configuration failed, check the network or configure manually:') https://linuxmirrors.cn/other/"
         exit 1
     fi
-    success "镜像加速器换源完成。"
-    info "如已运行 Docker，可重启使配置生效："
+    success "$(_t 'Registry mirror configuration complete.')"
+    info "$(_t 'If Docker is already running, restart it to apply:')"
     echo "  sudo systemctl restart docker"
 }
 
@@ -230,31 +230,31 @@ install_via_mirror() {
     detect_os
     check_commands curl
     if [[ "$OS_TYPE" != "linux" ]]; then
-        error "国内镜像源安装（linuxmirrors）仅支持 Linux。当前：$OS_TYPE"
+        error "$(_t 'Domestic mirror installation (linuxmirrors) is Linux-only. Current: ')$OS_TYPE"
         exit 1
     fi
     require_sudo
-    info "调用 linuxmirrors 官方脚本安装/换源 Docker（含国内镜像加速）..."
+    info "$(_t 'Calling linuxmirrors script to install/replace Docker mirror (includes registry acceleration)...')"
     if ! bash <(curl -sSL "$MIRROR_INSTALLER"); then
-        error "国内镜像源安装脚本执行失败，请检查网络"
+        error "$(_t 'Domestic mirror script failed, check the network')"
         exit 1
     fi
-    success "Docker 镜像源安装/换源完成。"
-    info "常用命令："
+    success "$(_t 'Docker mirror installation/replacement complete.')"
+    info "$(_t 'Common commands:')"
     echo "  sudo systemctl status docker"
     echo "  sudo docker run hello-world"
-    echo "  sudo docker info | grep -A5 'Registry Mirrors'   # 查看镜像加速器"
+    echo "  sudo docker info | grep -A5 'Registry Mirrors'   # $(_t 'View registry mirror')"
 }
 
 usage() {
     cat <<EOF
-用法: $0 {install|mirror|registry|uninstall|status|help}
+用法: \$0 {install|mirror|registry|uninstall|status|help}
 
-  install     安装或更新 Docker（可选国内镜像源）
-  mirror      使用国内镜像源（linuxmirrors.cn）安装/换源 Docker，含镜像加速
-  registry    仅更换 Docker 镜像加速器（不重装 Docker，仅 Linux）
-  uninstall   卸载 Docker
-  status      查看安装与运行状态
+  install     $(_t 'Install or update Docker (optional domestic mirror)')
+  mirror      $(_t 'Install/replace Docker via domestic mirror (linuxmirrors.cn), includes registry acceleration')
+  registry    $(_t 'Configure registry mirror only (no reinstall, Linux only)')
+  uninstall   $(_t 'Uninstall Docker')
+  status      $(_t 'View installation and running status')
 EOF
 }
 
@@ -268,7 +268,7 @@ main() {
         uninstall)  uninstall_docker ;;
         status)     status_docker ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_t 'Unknown action: ')$action"; usage; exit 1 ;;
     esac
 }
 
