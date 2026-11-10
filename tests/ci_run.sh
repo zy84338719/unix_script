@@ -542,14 +542,22 @@ phase_routing() {
          di=$(echo "$order" | tr " " "\n" | grep -n "^docker$" | cut -d: -f1)
          mi=$(echo "$order" | tr " " "\n" | grep -n "^minikube$" | cut -d: -f1)
          [ -n "$di" ] && [ -n "$mi" ] && [ "$di" -lt "$mi" ]' _ "$REPO_DIR"
-    # 循环检测：注入 docker→minikube（minikube 已→docker）形成环，resolve_deps 内部 exit 1，
+    # 循环检测：造一份真实的清单环（alpha→beta→alpha），resolve_deps 检出环后 exit 1，
     # 用子 shell 捕获：检测到环 → 本断言通过（exit 0）
+    # 注：注册表字段已下沉到 shellkit 的 registry 索引（不再有 _REG_REQUIRES_* 动态变量），
+    #     所以这里用真实 .manifest 造环，而不是往已删除的旧存储里注入变量。
     # shellcheck disable=SC2016 # 同上
     assert "依赖图: 循环依赖检测（遇环退出非0）" bash -c \
         'cd "$1" && SCRIPT_DIR=. && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/deps.sh >/dev/null 2>&1
-         detect_os >/dev/null 2>&1; registry_scan
-         eval "_REG_REQUIRES_docker=minikube"
-         if ( resolve_deps minikube ) >/dev/null 2>&1; then exit 1; else exit 0; fi' _ "$REPO_DIR"
+         detect_os >/dev/null 2>&1 || true
+         cyc=$(mktemp -d "${TMPDIR:-/tmp}/uxs-cycle.XXXXXX") || exit 1
+         mkdir -p "$cyc/dev-tools/alpha" "$cyc/dev-tools/beta"
+         printf "LABEL=Alpha\nCATEGORY=开发环境\nREQUIRES=beta\n" > "$cyc/dev-tools/alpha/.manifest"
+         printf "LABEL=Beta\nCATEGORY=开发环境\nREQUIRES=alpha\n" > "$cyc/dev-tools/beta/.manifest"
+         SCRIPT_DIR="$cyc"; registry_scan
+         rc=0; ( resolve_deps alpha ) >/dev/null 2>&1 || rc=1
+         rm -rf "$cyc"
+         [ "$rc" -eq 1 ]' _ "$REPO_DIR"
     # --list-modules 对 minikube 输出 requires:docker
     assert "依赖图: --list-modules 含 minikube requires:docker" bash -c \
         "\"$REPO_DIR/install.sh\" --list-modules | grep '^minikube' | grep -q 'requires:docker'"
@@ -619,11 +627,12 @@ phase_routing() {
 
     # 14. did-you-mean：未知模块给出建议且不再倾倒 usage
     # shellcheck disable=SC2016
-    assert "容错: doker → 建议 docker (exit 1)" bash -c \
-        'out=$("$1/install.sh" doker 2>&1); rc=$?; [ "$rc" -eq 1 ] && printf "%s" "$out" | grep -q "docker"' _ "$REPO_DIR"
+    # 退出码口径（Stage 1 框架层统一）：未知模块 = 模块不存在 = 前置不满足 → 3
+    assert "容错: doker → 建议 docker (exit 3)" bash -c \
+        'out=$("$1/install.sh" doker 2>&1); rc=$?; [ "$rc" -eq 3 ] && printf "%s" "$out" | grep -q "docker"' _ "$REPO_DIR"
     # shellcheck disable=SC2016
     assert "容错: 无相近候选时不倾倒 usage" bash -c \
-        'out=$("$1/install.sh" zzzqqq 2>&1); rc=$?; [ "$rc" -eq 1 ] && printf "%s" "$out" | grep -q "list-categories" && ! printf "%s" "$out" | grep -q "^用法:"' _ "$REPO_DIR"
+        'out=$("$1/install.sh" zzzqqq 2>&1); rc=$?; [ "$rc" -eq 3 ] && printf "%s" "$out" | grep -q "list-categories" && ! printf "%s" "$out" | grep -q "^用法:"' _ "$REPO_DIR"
     # shellcheck disable=SC2016
     assert "容错: usage 按分类分组（含描述）" bash -c \
         '"$1/install.sh" --help | grep -q "\[服务\]" && "$1/install.sh" --help | grep -q "容器引擎"' _ "$REPO_DIR"

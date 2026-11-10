@@ -46,7 +46,7 @@ should_auto_check_update() {
 
 # ---------------- 平台可见性护栏 ----------------
 # 模块不适用当前系统时拦截并给指引（UNIX_SCRIPT_SHOW_ALL=1 放行）。
-# 放行路径 return 0；拦截路径 error + exit 1。
+# 放行路径 return 0；拦截路径 error + exit $SK_PRECOND（3，平台不适用=前置不满足）。
 platform_gate_or_die() {
     local resolved="$1" input="${2:-$1}"
     uxs_module_visible "$resolved" && return 0
