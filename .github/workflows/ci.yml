@@ -66,28 +66,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 行为快照门禁必须排在路由测试 **之前**：
+      # GitHub 步骤默认 if: success()，而 routing 阶段以 FAIL_COUNT 收尾，
+      # 任一断言失败就会把这一步整个跳过 —— 门禁永远不跑，等于没有门禁。
+      # 放在 checkout 之后第一位，它每次都会执行。
+      #
+      # 缺基线（退出码 2）是硬失败：本平台没有基线就是没有基线，
+      # 请本地跑 bash tools/snapshot.sh 生成后提交，不要靠自动生成绕过。
+      - name: 行为快照比对
+        shell: bash
+        run: bash tools/check_snapshot.sh
+
+      # if: always()：快照门禁失败时路由测试仍要跑，否则 routing-report.md 不存在，
+      # 「上传报告」会以 if-no-files-found: error 二次报错，掩盖真正的失败原因。
+      # 门禁本身仍是硬失败（上面那一步没有 if: always()，它失败即 job 红）。
       - name: 运行路由测试并生成报告
+        if: always()
         shell: bash
         run: |
           chmod +x tests/ci_run.sh
           ./tests/ci_run.sh --phase routing --out routing-report.md
-
-      - name: 行为快照比对
-        shell: bash
-        run: |
-          # 行为快照门禁：模块清单输出必须与入库基线逐字一致。
-          # 基线按 <os>-<arch> 分目录存放（模块清单受平台可见性过滤影响，
-          # 跨平台共用一份基线必然误报）。
-          # 本平台无基线时先生成一份并作为产物上传 —— 不阻断本次运行，
-          # 但下一轮该平台就有基线可比对了。
-          rc=0
-          bash tools/check_snapshot.sh || rc=$?
-          if [ "$rc" -eq 2 ]; then
-            echo "::warning::本平台无快照基线，已生成一份供后续比对（见 snapshot-baseline 产物）"
-            bash tools/snapshot.sh
-            exit 0
-          fi
-          exit "$rc"
 
       - name: 上传报告
         if: always()
@@ -96,14 +94,6 @@ jobs:
           name: routing-report-${{ matrix.os }}
           path: routing-report.md
           if-no-files-found: error
-
-      - name: 上传快照基线（供本平台缺基线时补录）
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: snapshot-baseline-${{ matrix.os }}
-          path: tests/snapshot/
-          if-no-files-found: warn
 
   # ============================================================
   # Job 2b: 容器静态检查 —— 多 Linux 发行版（补充 VM 矩阵未覆盖的 shellcheck 版本）
