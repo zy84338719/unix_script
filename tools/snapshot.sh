@@ -3,8 +3,13 @@
 # 采集 unix_script 的确定性输出，作为重构前后的行为基线。
 #
 # 只采「同一台机器上多次运行结果一致」的输出：模块清单类。
-# --status-json / 各模块 status 依赖本机安装状态，跨机器必然不同，
+# status --json / 各模块 status 依赖本机安装状态，跨机器必然不同，
 # 那两项改成结构判据（见 tools/check_status_shape.sh），不做逐字基线。
+#
+# 采集的三个视图（CLI v2）：
+#   list         uxs list           模块名（空格分隔）
+#   list-full    uxs list --full    TSV：模块名 / 子命令 / 描述
+#   list-grouped uxs list --grouped 按分类分组
 #
 # 基线按 **OS 家族** 分目录存放（tests/snapshot/<os-family>/）：
 #   · 模块清单受 PLATFORMS 可见性过滤影响（linux-only 的模块在 macOS 上不出现，反之亦然），
@@ -157,7 +162,7 @@ mkdir -p "$OUT_DIR"
 
 cd "$ROOT" || exit 1
 : >"$OUT_DIR/.collected"
-for __spec in "list:--list" "list-modules:--list-modules" "list-categories:--list-categories"; do
+for __spec in "list:list" "list-full:list --full" "list-grouped:list --grouped"; do
   __name="${__spec%%:*}"
   __args="${__spec#*:}"
   # shellcheck disable=SC2086
