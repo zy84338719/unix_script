@@ -24,6 +24,26 @@ if [[ -n "${_UNIX_SCRIPT_COMMON_LOADED:-}" ]]; then
 fi
 _UNIX_SCRIPT_COMMON_LOADED=1
 
+# ---------------- shellkit：唯一的基础库入口 ----------------
+# 用自定位而不是 $SCRIPT_DIR：模块脚本 source 本文件时 $SCRIPT_DIR 是模块目录。
+_UXS_COMMON_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+_UXS_ROOT="$(cd "$_UXS_COMMON_DIR/.." &>/dev/null && pwd)"
+# 标记**不导出**：shellkit 的 bootstrap 会 export SK_VERSION，用它当「已加载」的
+# 判据会让子进程（模块脚本、install.sh 的子进程）以为库已就位而跳过 bootstrap，
+# 于是能力函数全缺（os_name: command not found）。
+if [ -z "${_UXS_SHELLKIT_LOADED:-}" ]; then
+    source "$_UXS_ROOT/vendor/shellkit/lib/bootstrap.sh"
+    _UXS_SHELLKIT_LOADED=1
+fi
+
+# 能力函数转发到 shellkit（Stage 1 过渡层，Stage 3 后删除）
+source "$_UXS_COMMON_DIR/uxs_compat.sh"
+
+# i18n 域配置：unix_script 自己的文案走 unix_script 域
+source "$_UXS_COMMON_DIR/uxs_i18n.sh"
+uxs_i18n_init "$_UXS_ROOT"
+
+
 # ---------------- 颜色定义 ----------------
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -69,259 +89,16 @@ error()   { echo -e "${RED}[ERROR]${NC} ${1:-}"; }
 header()  { echo -e "${CYAN}${1:-}${NC}"; }
 menu()    { echo -e "${PURPLE}${1:-}${NC}"; }
 
-# ---------------- 平台 / 架构检测 ----------------
-# 设置全局变量：OS_TYPE (linux|darwin)、ARCH_TYPE (x86_64|ARM64|ARMv7|<原值>)、OS_KERNEL
-detect_os() {
-    OS_KERNEL="$(uname -s)"
-    case "$OS_KERNEL" in
-        Linux)  OS_TYPE="linux"  ;;
-        Darwin) OS_TYPE="darwin" ;;
-        *)
-            error "不支持的操作系统：$OS_KERNEL"
-            exit 1
-            ;;
-    esac
-}
 
-detect_arch() {
-    local arch
-    arch="$(uname -m)"
-    case "$arch" in
-        x86_64)         ARCH_TYPE="x86_64" ;;
-        aarch64|arm64)  ARCH_TYPE="ARM64"  ;;
-        armv7l)         ARCH_TYPE="ARMv7"  ;;
-        *)              ARCH_TYPE="$arch"  ;;
-    esac
-    # 归一化小写形式（ARCH_TYPE 历史值为 x86_64/ARM64/ARMv7 大小写不一，下游匹配易踩坑）。
-    # 新代码建议用 ARCH_TYPE_LOWER（统一小写：x86_64/arm64/armv7）；ARCH_TYPE 保留以兼容现有模块。
-    ARCH_TYPE_LOWER="$(echo "$ARCH_TYPE" | tr '[:upper:]' '[:lower:]')"
-}
 
-# ---------------- 发行版识别 ----------------
-# 读取 os-release 风格文件的字段值：_osr_field <文件> <KEY>（值可带或不带引号）。
-# 文件为空/不可读时静默返回空；管道接 || true，防止 set -euo pipefail 环境下
-# （如 install.sh）因 sed 对缺失文件报错而中止整个脚本。
-_osr_field() {
-    [[ -n "${1:-}" && -r "$1" ]] || return 0
-    sed -n "s/^$2=[\"\']\{0,1\}\([^\"\']*\)[\"\']\{0,1\}\$/\1/p" "$1" 2>/dev/null | head -1 || true
-}
 
-# 发行版识别：读取 /etc/os-release，设置全局变量：
-#   DISTRO_ID          小写发行版 ID（ubuntu / debian / centos / kylin / uos / openeuler …）
-#   DISTRO_VERSION_ID  版本号（22.04 / 10 / 20 / 24.03 …）
-#   DISTRO_NAME        人类可读名称（PRETTY_NAME，缺省回退 NAME）
-#   DISTRO_FAMILY      包系族：debian | rhel | suse | arch | alpine | unknown
-# 两种模式：
-#   - 主机模式（不传参）：族判定以「实际可用的包管理器」为准、ID/ID_LIKE 词表兜底。
-#     本库 pkg_install/pkg_remove 均按包管理器分发，实测最不易误判，且能正确区分
-#     麒麟/统信的双形态（服务器版=RPM 系、桌面版=Deb 系）。
-#   - 文件模式（显式传 os-release 路径，测试/预检用）：跳过包管理器实测，
-#     纯按该文件的 ID_LIKE → ID 词表分类，跨平台结果一致。
-# 恒返回 0；识别失败时 DISTRO_ID 为空、DISTRO_FAMILY=unknown，由调用方决定如何提示。
-detect_distro() {
-    local rel_file="${1:-}"
-    local host_mode=0
-    if [[ -z "$rel_file" ]]; then
-        host_mode=1
-        for rel_file in /etc/os-release /usr/lib/os-release; do
-            [[ -r "$rel_file" ]] && break
-            rel_file=""
-        done
-    fi
 
-    DISTRO_ID=""
-    DISTRO_VERSION_ID=""
-    DISTRO_NAME=""
-    DISTRO_FAMILY="unknown"
 
-    if [[ -n "$rel_file" && -r "$rel_file" ]]; then
-        DISTRO_ID="$(_osr_field "$rel_file" ID | tr '[:upper:]' '[:lower:]')"
-        DISTRO_VERSION_ID="$(_osr_field "$rel_file" VERSION_ID)"
-        DISTRO_NAME="$(_osr_field "$rel_file" PRETTY_NAME)"
-        [[ -z "$DISTRO_NAME" ]] && DISTRO_NAME="$(_osr_field "$rel_file" NAME)"
-    fi
 
-    # 族判定 ①：主机模式先按包管理器实测
-    if [[ "$host_mode" == 1 ]]; then
-        if command -v apt-get >/dev/null 2>&1; then
-            DISTRO_FAMILY="debian"
-        elif command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1; then
-            DISTRO_FAMILY="rhel"
-        elif command -v zypper >/dev/null 2>&1; then
-            DISTRO_FAMILY="suse"
-        elif command -v pacman >/dev/null 2>&1; then
-            DISTRO_FAMILY="arch"
-        elif command -v apk >/dev/null 2>&1; then
-            DISTRO_FAMILY="alpine"
-        fi
-    fi
 
-    # 族判定 ②：ID_LIKE 词表（文件模式 / 实测无已知包管理器时的依据）
-    if [[ "$DISTRO_FAMILY" == "unknown" ]]; then
-        local id_like
-        id_like="$(_osr_field "$rel_file" ID_LIKE | tr '[:upper:]' '[:lower:]')"
-        case "$id_like" in
-            *debian*|*ubuntu*|*mint*)                         DISTRO_FAMILY="debian" ;;
-            *rhel*|*fedora*|*centos*|*euler*|*anolis*|*amzn*) DISTRO_FAMILY="rhel" ;;
-            *suse*)                                           DISTRO_FAMILY="suse" ;;
-            *arch*|*manjaro*)                                 DISTRO_FAMILY="arch" ;;
-            *alpine*)                                         DISTRO_FAMILY="alpine" ;;
-        esac
-    fi
-    # 族判定 ③：ID 词表兜底。注意：kylin 有意不入表——其服务器版基于 RHEL/CentOS、
-    # 桌面版基于 Ubuntu，硬编码任何一个族都会误判一半场景，交由 ①实测/②ID_LIKE 决定。
-    if [[ "$DISTRO_FAMILY" == "unknown" ]]; then
-        case "$DISTRO_ID" in
-            debian|ubuntu|deepin|openkylin|uos|linuxmint|kali) DISTRO_FAMILY="debian" ;;
-            centos|rhel|rocky|almalinux|fedora|amzn|ol|openeuler|anolis) DISTRO_FAMILY="rhel" ;;
-            opensuse*|sles)                          DISTRO_FAMILY="suse" ;;
-            arch|manjaro)                            DISTRO_FAMILY="arch" ;;
-            alpine)                                  DISTRO_FAMILY="alpine" ;;
-        esac
-    fi
-    return 0
-}
 
-# 读 os-release 风格文件的字段值：uxs_os_release <KEY> [file]
-# file 缺省依次尝试 /etc/os-release、/usr/lib/os-release；均不可读返回空。
-# 供模块替代手写 `$(. /etc/os-release && echo "$ID")`；恒返回 0。
-uxs_os_release() {
-    local key="$1" rel_file="${2:-}"
-    if [[ -z "$rel_file" ]]; then
-        for rel_file in /etc/os-release /usr/lib/os-release; do
-            [[ -r "$rel_file" ]] && break
-            rel_file=""
-        done
-    fi
-    _osr_field "$rel_file" "$key"
-}
 
-# ---------------- 桌面环境检测 ----------------
-# 设置全局变量：
-#   DESKTOP_ENV  ukui|dde|gnome|kde|xfce|mate|cinnamon|lxqt|budgie|none
-#   IS_DESKTOP   1=检测到桌面环境（麒麟桌面 UKUI / 统信·深度 DDE 等），0=无
-# 识别线索：① 会话环境变量（XDG_CURRENT_DESKTOP / XDG_SESSION_DESKTOP / DESKTOP_SESSION）；
-# ② 桌面会话进程/启动器是否安装（SSH/容器里也能探到已装未启动的桌面）。
-# 用于让服务类模块在桌面系统上做差异化处理（如桌面系统常无 systemd 服务、
-# 代理/网络管理方式不同），并供 doctor / CI 验证展示。
-detect_desktop() {
-    DESKTOP_ENV="none"
-    IS_DESKTOP=0
-    local clues="" v vlow de_bin
-    # 兼容 macOS bash 3.2：不用 ${v,,}（bash4+），统一用 tr 转小写
-    for v in "${XDG_CURRENT_DESKTOP:-}" "${XDG_SESSION_DESKTOP:-}" "${DESKTOP_SESSION:-}"; do
-        [[ -n "$v" ]] || continue
-        vlow="$(printf '%s' "$v" | tr '[:upper:]' '[:lower:]')"
-        clues="$clues $vlow"
-    done
-    for de_bin in ukui-session kwin_x11 startdde dde-desktop gnome-session gnome-shell \
-                  plasmashell startplasma-x11 xfce4-session mate-session cinnamon-session lxsession; do
-        command -v "$de_bin" >/dev/null 2>&1 && clues="$clues $de_bin"
-    done
-    case "$clues" in
-        *ukui*)      DESKTOP_ENV="ukui" ;;   # 麒麟桌面版
-        *dde*|*deepin*) DESKTOP_ENV="dde" ;; # 统信 UOS / 深度 deepin 桌面（startdde 含 dde 已覆盖）
-        *plasma*|*kde*)  DESKTOP_ENV="kde" ;;
-        *gnome*)     DESKTOP_ENV="gnome" ;;
-        *xfce*)      DESKTOP_ENV="xfce" ;;
-        *mate*)      DESKTOP_ENV="mate" ;;
-        *cinnamon*)  DESKTOP_ENV="cinnamon" ;;
-        *lxqt*|*lxsession*) DESKTOP_ENV="lxqt" ;;
-        *budgie*)    DESKTOP_ENV="budgie" ;;
-    esac
-    [[ "$DESKTOP_ENV" != "none" ]] && IS_DESKTOP=1
-    return 0
-}
 
-# ---------------- 包管理器检测 ----------------
-# 设置全局变量 PKG_MANAGER (apt-get|yum|dnf|brew)；不支持则返回非零。
-detect_pkg_manager() {
-    if command -v apt-get >/dev/null 2>&1; then
-        PKG_MANAGER="apt-get"
-    elif command -v dnf >/dev/null 2>&1; then
-        PKG_MANAGER="dnf"
-    elif command -v yum >/dev/null 2>&1; then
-        PKG_MANAGER="yum"
-    elif command -v zypper >/dev/null 2>&1; then
-        PKG_MANAGER="zypper"          # openSUSE
-    elif command -v pacman >/dev/null 2>&1; then
-        PKG_MANAGER="pacman"          # Arch / Manjaro
-    elif command -v apk >/dev/null 2>&1; then
-        PKG_MANAGER="apk"             # Alpine
-    elif command -v brew >/dev/null 2>&1; then
-        PKG_MANAGER="brew"
-    else
-        return 1
-    fi
-}
-
-# 统一包安装：pkg_install <包名...>
-# 自动选择当前发行版的包管理器；已经是 root 则直接执行，否则用 sudo。
-# 返回包管理器的退出码。各发行版标志差异在此封装。
-pkg_install() {
-    detect_pkg_manager || { error "无法识别包管理器"; return 1; }
-    local sudo_prefix=""
-    [[ $EUID -ne 0 ]] && sudo_prefix="sudo"
-    case "$PKG_MANAGER" in
-        # DEBIAN_FRONTEND=noninteractive：容器/极简镜像里 tzdata 等包会弹 debconf
-        # 交互（时区询问），无 TTY 时可能挂死（CI 与脚本场景必须避免）
-        apt-get) $sudo_prefix env DEBIAN_FRONTEND=noninteractive apt-get install -y "$@" ;;
-        dnf)     $sudo_prefix dnf install -y "$@" ;;
-        yum)     $sudo_prefix yum install -y "$@" ;;
-        zypper)  $sudo_prefix zypper --non-interactive install "$@" ;;
-        pacman)  $sudo_prefix pacman -S --noconfirm --needed "$@" ;;
-        apk)     $sudo_prefix apk add --no-cache "$@" ;;
-        brew)    brew install "$@" ;;
-        *)       error "不支持的包管理器: $PKG_MANAGER"; return 1 ;;
-    esac
-}
-
-# 统一包更新元数据（安装前刷新索引）：pkg_update
-pkg_update() {
-    detect_pkg_manager || return 1
-    local sudo_prefix=""
-    [[ $EUID -ne 0 ]] && sudo_prefix="sudo"
-    case "$PKG_MANAGER" in
-        apt-get) $sudo_prefix apt-get update -y ;;
-        dnf)     $sudo_prefix dnf makecache ;;
-        yum)     $sudo_prefix yum makecache ;;
-        zypper)  $sudo_prefix zypper --non-interactive refresh ;;
-        pacman)  $sudo_prefix pacman -Sy ;;
-        apk)     $sudo_prefix apk update ;;
-        brew)    brew update ;;
-    esac
-}
-
-# 统一包卸载：pkg_remove <包名...>
-pkg_remove() {
-    detect_pkg_manager || return 1
-    local sudo_prefix=""
-    [[ $EUID -ne 0 ]] && sudo_prefix="sudo"
-    case "$PKG_MANAGER" in
-        # DEBIAN_FRONTEND=noninteractive：理由同 pkg_install（避免 debconf 交互挂死）
-        apt-get) $sudo_prefix env DEBIAN_FRONTEND=noninteractive apt-get remove --purge -y "$@" ;;
-        dnf)     $sudo_prefix dnf remove -y "$@" ;;
-        yum)     $sudo_prefix yum remove -y "$@" ;;
-        zypper)  $sudo_prefix zypper --non-interactive remove "$@" ;;
-        pacman)  $sudo_prefix pacman -Rns --noconfirm "$@" ;;
-        apk)     $sudo_prefix apk del "$@" ;;
-        brew)    brew uninstall "$@" ;;
-    esac
-}
-
-# 查询某包是否已安装：pkg_installed <包名>
-pkg_installed() {
-    detect_pkg_manager || return 1
-    local pkg="$1"
-    case "$PKG_MANAGER" in
-        apt-get) dpkg -s "$pkg" >/dev/null 2>&1 ;;
-        dnf|yum) rpm -q "$pkg" >/dev/null 2>&1 ;;
-        zypper)  rpm -q "$pkg" >/dev/null 2>&1 ;;
-        pacman)  pacman -Qi "$pkg" >/dev/null 2>&1 ;;
-        apk)     apk info -e "$pkg" >/dev/null 2>&1 ;;
-        brew)    brew list "$pkg" >/dev/null 2>&1 ;;
-    esac
-}
 
 # 确保 EPEL 仓库可用（仅 RHEL 系：dnf/yum；其他发行版为空操作）。
 # fail2ban/cockpit 等包在 CentOS/RHEL 上位于 EPEL。
@@ -340,27 +117,7 @@ ensure_epel() {
     esac
 }
 
-# ---------------- 通用辅助 ----------------
-# 判断某命令是否存在
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
-}
 
-# 检查一组命令是否存在，缺一即报错退出
-check_commands() {
-    local missing=()
-    local cmd
-    for cmd in "$@"; do
-        if ! command_exists "$cmd"; then
-            missing+=("$cmd")
-        fi
-    done
-    if ((${#missing[@]} > 0)); then
-        error "缺少必要命令：${missing[*]}"
-        error "请先安装后再运行本脚本。"
-        exit 1
-    fi
-}
 
 # 确保有足够的权限执行特权操作。
 # - 已是 root：直接放行（适用于 CI 容器、直接 root 登录的服务器）
@@ -400,67 +157,8 @@ get_local_ip() {
     echo "$ip_addr"
 }
 
-# 从 GitHub API 取最新 release 的 tag（不含前缀 v）
-# 若设置了 GH_TOKEN 或 GITHUB_TOKEN 环境变量，则带认证头（提升速率限制到 5000/h）。
-# 优先用 jq 解析 JSON（健壮，能区分空字段与解析失败）；无 jq 时回退 grep+sed
-# （逐字节兼容旧实现，保留 v 前缀剥离）。失败（网络/限流/解析）静默返回空串。
-github_latest_tag() {
-    local repo="$1"
-    local tag
-    local auth=()
-    local token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
-    if [[ -n "$token" ]]; then
-        auth=(-H "Authorization: Bearer $token")
-    fi
-    local api_url="https://api.github.com/repos/${repo}/releases/latest"
-    if command -v jq >/dev/null 2>&1; then
-        tag=$(curl -fsSL "${UXS_CURL_TIMEOUT_ARGS[@]}" ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
-              | jq -r '.tag_name // empty' 2>"$(uxs_stderr)" || true)
-        tag="${tag#v}"; tag="${tag#V}"
-    else
-        tag=$(curl -fsSL "${UXS_CURL_TIMEOUT_ARGS[@]}" ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
-              | grep '"tag_name"' | head -1 | sed -E 's/.*"v?([^"]+)".*/\1/' || true)
-    fi
-    echo "$tag"
-}
 
-# 从 GitHub 最新 release 取匹配的资产下载 URL（取第一个匹配项）。
-# github_release_asset_url <repo> <url-pattern>
-#   <url-pattern>：作用于 browser_download_url 的正则（jq 分支用 test()，回退分支用 grep -E）。
-# 优先 jq；无 jq 回退 grep+sed（替代脆弱的 cut -d'"' -f4 字段下标）。失败返回空串。
-github_release_asset_url() {
-    local repo="$1" pattern="$2"
-    local auth=()
-    local token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
-    [[ -n "$token" ]] && auth=(-H "Authorization: Bearer $token")
-    local api_url="https://api.github.com/repos/${repo}/releases/latest"
-    if command -v jq >/dev/null 2>&1; then
-        curl -fsSL "${UXS_CURL_TIMEOUT_ARGS[@]}" ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
-            | jq -r --arg p "$pattern" \
-                '.assets[].browser_download_url | select(test($p))' 2>"$(uxs_stderr)" \
-            | head -1 || true
-    else
-        curl -fsSL "${UXS_CURL_TIMEOUT_ARGS[@]}" ${auth[@]+"${auth[@]}"} "$api_url" 2>"$(uxs_stderr)" \
-            | grep '"browser_download_url"' | grep -E "$pattern" | head -1 \
-            | sed -E 's/.*"([^"]+)".*/\1/' || true
-    fi
-}
 
-# 校验文件 SHA256。verify_sha256 <file> <expected-sha256>
-# 跨平台：macOS/BSD 用 shasum -a 256，Linux 用 sha256sum。匹配返回 0，不匹配 1，无工具 2。
-verify_sha256() {
-    local file="$1" expected="$2"
-    [[ -f "$file" ]] || return 1
-    local actual
-    if command -v shasum >/dev/null 2>&1; then
-        actual=$(shasum -a 256 "$file" | awk '{print $1}')
-    elif command -v sha256sum >/dev/null 2>&1; then
-        actual=$(sha256sum "$file" | awk '{print $1}')
-    else
-        return 2
-    fi
-    [[ "$actual" == "$expected" ]]
-}
 
 # ---------------- 版本更新检查 ----------------
 # 本仓库在 GitHub 的标识（owner/repo），用于查询远端最新 release。
@@ -478,28 +176,6 @@ get_local_version() {
     echo "$ver"
 }
 
-# 语义化版本比较：当且仅当 a > b 返回 0，否则返回 1。
-# 自动去除前导 'v'；对空值或非法版本串保守返回 1（不误报有更新）。
-# 实现：用 sort -V 对 "a\nb" 排序，若最小者 == b 且 a != b，则 a > b。
-# 兼容 macOS BSD sort（支持 -V）。
-version_gt() {
-    local a="$1"
-    local b="$2"
-    # 去前导 v/V
-    a="${a#v}"; a="${a#V}"
-    b="${b#v}"; b="${b#V}"
-    # 空值或含明显非版本字符（仅允许数字与点）则保守判否
-    [[ -z "$a" || -z "$b" ]] && return 1
-    [[ "$a" =~ ^[0-9][0-9.]*$ ]] || return 1
-    [[ "$b" =~ ^[0-9][0-9.]*$ ]] || return 1
-    [[ "$a" == "$b" ]] && return 1
-    # 不用 `... | head -n1`：在 pipefail 下 head 提前关管道会触发上游 SIGPIPE。
-    # 排序结果固定 2 行，用参数展开取首行即可。
-    local sorted lowest
-    sorted=$(printf '%s\n%s\n' "$a" "$b" | sort -V)
-    lowest=${sorted%%$'\n'*}
-    [[ "$lowest" == "$b" ]]
-}
 
 # 比对本地与远端版本，设置全局：
 #   REMOTE_LATEST      远端最新 tag（去前导 v）；取不到则为空
@@ -758,73 +434,7 @@ if [[ "$UNIX_SCRIPT_DRY_RUN" == "1" ]]; then
     uxs_install_sudo_shim
 fi
 
-# ---------------- 超时护栏 ----------------
-# uxs_with_timeout <秒> <命令...> — 带超时执行命令（macOS/Linux 通用，无 GNU timeout 依赖）。
-# 契约：超时 rc=124（与 GNU timeout 对齐）；子命令被信号终止 rc=128+信号；其余透传退出码。
-# perl 缺失（极简容器）时不套超时直接执行，行为退化为无护栏。
-# 实现：perl fork + alarm + kill。不能 exec——exec 后 alarm 虽存活但无法返回 124。
-uxs_with_timeout() {
-    # 参数护栏（须在取 $1 前判 $#，否则 set -u 直接炸）：缺命令参数/非法秒数 → rc=2
-    if [[ $# -lt 2 ]] || ! [[ "$1" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
-        echo "[ERROR] uxs_with_timeout 用法: uxs_with_timeout <秒> <命令...>" >&2
-        return 2
-    fi
-    local secs="$1"
-    shift
-    # secs=0 → 不设超时直通（对齐 GNU timeout）
-    if [[ "$secs" == "0" ]]; then
-        "$@"
-        return
-    fi
-    if ! command_exists perl; then
-        "$@"
-        return
-    fi
-    perl -e '
-        my $secs = shift @ARGV;
-        my @cmd  = @ARGV;
-        my $pid = fork();
-        if (!defined $pid) { exit 125; }
-        if ($pid == 0) { exec(@cmd) or exit 127; }
-        $SIG{ALRM} = sub {
-            kill "TERM", $pid;
-            sleep 1;
-            kill "KILL", $pid;
-            exit 124;
-        };
-        alarm $secs;
-        waitpid $pid, 0;
-        alarm 0;
-        my $st = $?;
-        if ($st & 127) { exit(128 + ($st & 127)); }
-        exit($st >> 8);
-    ' "$secs" "$@"
-}
 
-# uxs_func_with_timeout <秒> <函数名> [参数...] — 带超时执行**当前 shell 内的函数**。
-# uxs_with_timeout 基于 perl exec 只能拉二进制，包不住函数；这里用
-# background + watchdog（sleep+kill）实现，bash 3.2 兼容。
-# 契约：超时返回空输出、rc=143（128+SIGTERM）；否则透传函数输出与退出码。
-# 注意：超时时 rc≠0，set -e 调用方须自行 `|| true` 兜底。
-uxs_func_with_timeout() {
-    local secs="$1" fn="$2"
-    shift 2
-    local outfile rc
-    outfile=$(mktemp "${TMPDIR:-/tmp}/uxs-func.XXXXXX") || return 125
-    "$fn" "$@" > "$outfile" 2>/dev/null &
-    local pid=$!
-    # watchdog 必须全重定向：否则它与 sleep 子进程持有命令替换
-    # raw=$(...) 的管道写端，函数结束后外层仍要等 sleep 睡满才返回
-    ( sleep "$secs"; kill "$pid" 2>/dev/null ) >/dev/null 2>&1 </dev/null &
-    local wd=$!
-    wait "$pid" 2>/dev/null
-    rc=$?
-    kill "$wd" 2>/dev/null
-    wait "$wd" 2>/dev/null
-    cat "$outfile"
-    rm -f "$outfile"
-    return "$rc"
-}
 
 # ---------------- 交互工具 ----------------
 # yes_no <prompt>  -> 输入 y/Y 返回 0，否则 1
@@ -844,38 +454,4 @@ yes_no() {
 # 规范状态码有限集：not_installed / installed:running / installed:stopped /
 #                   installed / configured / not_configured / n/a
 
-# emit_status <state> <human_msg>
-# 人类模式：echo -e "$human_msg"（含颜色/emoji）
-# 机器模式：printf 'STATE=%s\n' "$state"
-emit_status() {
-    local state="$1" human_msg="$2"
-    if [[ "${UXS_STATUS_MODE:-human}" == "machine" ]]; then
-        printf 'STATE=%s\n' "$state"
-    else
-        echo -e "$human_msg"
-    fi
-}
 
-# emit_version <version>
-# 仅机器模式输出 VERSION= 行（人类模式版本已在状态消息里，不重复）
-# 始终返回 0：模块 status 子命令必须退出 0，不能因 human 模式无输出而返回非零。
-emit_version() {
-    if [[ "${UXS_STATUS_MODE:-human}" == "machine" ]]; then
-        printf 'VERSION=%s\n' "$1"
-    fi
-}
-
-# emit_extra <key=value>
-# 仅机器模式输出 EXTRA= 行（人类模式的额外信息由模块自己 echo，并用 human 守卫包裹）
-# 始终返回 0（同 emit_version）。
-emit_extra() {
-    if [[ "${UXS_STATUS_MODE:-human}" == "machine" ]]; then
-        printf 'EXTRA=%s\n' "$1"
-    fi
-}
-
-# uxs_is_machine_mode — 供模块判断是否需用 human 守卫包裹纯人类辅助输出
-# 返回：机器模式 0，人类模式 1（这是一个判断函数，返回值即其语义）。
-uxs_is_machine_mode() {
-    [[ "${UXS_STATUS_MODE:-human}" == "machine" ]]
-}
