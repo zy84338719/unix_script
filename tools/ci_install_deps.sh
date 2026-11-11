@@ -65,7 +65,11 @@ apt_setup_mirrors() {
   #    apt 会对解析失败的源反复重试（Ign → Ign → …），整个 update 拖到超时，
   #    备用源明明有货也轮不到它（2026-11-11 实录：aliyun 的 InRelease 明明
   #    拉下来了，update 还是超时）。
-  for _f in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+  # ★ 文件清单要全：GitHub 的 ubuntu runner 除了 deb822 的 ubuntu.sources，
+  #   还有个 /etc/apt/apt-mirrors.txt（mirrorlist 形式的源文件，内容同样指向
+  #   azure.archive.ubuntu.com）—— 漏掉它，runner 上的 apt 就还在跟
+  #   解析不了的 azure 耗时间（2026-11-11 实录：容器全绿、runner 仍红）。
+  for _f in /etc/apt/sources.list /etc/apt/apt-mirrors.txt /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
     [ -f "$_f" ] || continue
     sed -i \
       -e 's|http://azure.archive.ubuntu.com/ubuntu/|http://mirrors.aliyun.com/ubuntu/|g' \
