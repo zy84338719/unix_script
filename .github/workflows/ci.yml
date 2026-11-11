@@ -37,8 +37,11 @@ jobs:
           # macOS 的 gettext 是 keg-only（不进 PATH），装它也没用，那道门禁在 macOS 上
           # 按设计跳过（Linux 侧才有真实覆盖）。
           if [ "${{ runner.os }}" = "Linux" ]; then
-            sudo apt-get update
-            sudo apt-get install -y shellcheck gettext
+            # 走 tools/ci_install_deps.sh：带重试 + apt 备用镜像。
+            # runner 的 apt 偶发 DNS 解析不了 azure.archive.ubuntu.com ⇒
+            # 索引不全 ⇒ install 报「Unable to fetch some archives」，
+            # 整批 job 变红却与代码无关（2026-11-11 实录）。
+            sudo bash tools/ci_install_deps.sh apt shellcheck gettext
           else
             brew install shellcheck
           fi
@@ -135,17 +138,8 @@ jobs:
           #   git     —— 保真门禁要 git show 读「迁移前」的基线提交
           #   gettext —— xgettext/msgfmt，抽取完整性门禁拿它核对 pot 与译文
           # 少装任何一个，那道门禁就不是「通过」而是「没跑」—— 容器里必须全装。
-          if command -v dnf >/dev/null 2>&1; then
-            dnf install -y -q epel-release
-            dnf install -y -q shellcheck bash python3 git gettext
-          elif command -v yum >/dev/null 2>&1; then
-            yum install -y -q epel-release
-            yum install -y -q shellcheck bash python3 git gettext
-          elif command -v apt-get >/dev/null 2>&1; then
-            export DEBIAN_FRONTEND=noninteractive
-            apt-get update -q
-            apt-get install -y -q shellcheck bash python3 git gettext
-          fi
+          # 带重试 + apt 备用镜像（容器里的 apt 同样会 DNS 抖动）
+          sh tools/ci_install_deps.sh auto shellcheck bash python3 git gettext
 
       - name: 运行静态检查并生成报告
         shell: bash
@@ -245,24 +239,16 @@ jobs:
         shell: sh
         run: |
           # 各包管理器族安装 bash/sudo/curl（which 在 debian 系由 debianutils 内置）
-          if command -v apt-get >/dev/null 2>&1; then
-            # noninteractive：tzdata 等包在无 TTY 容器里会弹 debconf 交互挂死
-            export DEBIAN_FRONTEND=noninteractive
-            apt-get update
-            apt-get install -y bash sudo curl
-          elif command -v dnf >/dev/null 2>&1; then
-            dnf install -y --allowerasing bash sudo curl which
-          elif command -v yum >/dev/null 2>&1; then
-            yum install -y bash sudo curl which
-          elif command -v zypper >/dev/null 2>&1; then
-            zypper --non-interactive refresh
+          # 带重试 + apt 备用镜像：容器里的 apt 同样会 DNS 抖动
+          #（2026-11-11 实录：ubuntu-24.04/26.04 两个容器 job 全挂在这一步）
+          if command -v zypper >/dev/null 2>&1; then
             # findutils：最小化容器镜像缺 find（disk-usage top 文件榜依赖）
-            zypper --non-interactive install bash sudo curl which gawk findutils
-          elif command -v pacman >/dev/null 2>&1; then
-            pacman -Sy --noconfirm --needed bash sudo curl which
+            sh tools/ci_install_deps.sh zypper bash sudo curl which gawk findutils
           elif command -v apk >/dev/null 2>&1; then
             # findutils：GNU find 取代 busybox find（busybox 的 -size 不认 M/G 后缀）
-            apk add --no-cache bash sudo curl which findutils
+            sh tools/ci_install_deps.sh apk bash sudo curl which findutils
+          else
+            sh tools/ci_install_deps.sh auto bash sudo curl which
           fi
 
       - name: 验证包管理器识别与脚本可解析
@@ -346,14 +332,8 @@ jobs:
           if grep -q "release 7" /etc/centos-release 2>/dev/null; then
             sed -i 's|^mirrorlist|#mirrorlist|g; s|^#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*.repo
           fi
-          if command -v apt-get >/dev/null 2>&1; then
-            export DEBIAN_FRONTEND=noninteractive
-            apt-get update && apt-get install -y bash git curl sudo which
-          elif command -v dnf >/dev/null 2>&1; then
-            dnf install -y bash git curl sudo which
-          elif command -v yum >/dev/null 2>&1; then
-            yum install -y bash git curl sudo which
-          fi
+          # 带重试 + apt 备用镜像（容器里的 apt 同样会 DNS 抖动）
+          sh tools/ci_install_deps.sh auto bash git curl sudo which
 
       - name: Checkout（容器内原生 git fetch，规避 actions/checkout 的 node20/glibc 要求）
         shell: bash
@@ -425,6 +405,13 @@ jobs:
             modules: pm
     steps:
       - uses: actions/checkout@v4
+
+      - name: 预置 apt 备用镜像
+        # 实装测试里模块自己会跑 apt-get install（如 fail2ban）⇒ 归档站
+        # DNS 抖动时整条测试挂掉。先把备用源备好，模块那条命令就能顶上。
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
+        run: sudo bash tools/ci_install_deps.sh --setup-mirrors
 
       - name: 运行实装测试
         shell: bash
