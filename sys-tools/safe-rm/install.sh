@@ -139,8 +139,8 @@ status_safe_rm() {
             guard="($(_t 'rm protection enabled)')"
             enabled="yes"
         fi
-        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} $guard"
-        emit_extra "enabled=$enabled"
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} $guard"
+        uxs_emit_extra "enabled=$enabled"
         # 回收站大小（仅人类模式）
         if ! uxs_is_machine_mode; then
             local trash_root="${XDG_DATA_HOME:-$HOME/.local/share}/Trash"
@@ -151,7 +151,7 @@ status_safe_rm() {
             fi
         fi
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

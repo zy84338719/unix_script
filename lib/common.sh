@@ -36,8 +36,11 @@ if [ -z "${_UXS_SHELLKIT_LOADED:-}" ]; then
     _UXS_SHELLKIT_LOADED=1
 fi
 
-# 能力函数转发到 shellkit（Stage 1 过渡层，Stage 3 后删除）
-source "$_UXS_COMMON_DIR/uxs_compat.sh"
+# unix_script 自己的约定层（能力一律来自 shellkit，这里只做口径映射）：
+#   uxs_platform.sh —— 平台/架构/包管理检测落成全局变量；缺命令/认不出包管理器的文案与退出码
+#   uxs_status.sh   —— 把 unix_script 的 UXS_STATUS_MODE 映射到 shellkit 的 SHELLKIT_STATUS_MODE
+source "$_UXS_COMMON_DIR/uxs_platform.sh"
+source "$_UXS_COMMON_DIR/uxs_status.sh"
 
 # i18n 域配置：unix_script 自己的文案走 unix_script 域
 source "$_UXS_COMMON_DIR/uxs_i18n.sh"
@@ -186,10 +189,10 @@ check_for_update() {
     UPDATE_AVAILABLE=false
     local local_ver remote_ver
     local_ver=$(get_local_version)
-    # 复用既有 github_latest_tag（已处理 GH_TOKEN/GITHUB_TOKEN 认证与失败返回空）
-    remote_ver=$(github_latest_tag "$UPDATE_REPO")
+    # 复用既有 http_github_latest_tag（已处理 GH_TOKEN/GITHUB_TOKEN 认证与失败返回空）
+    remote_ver=$(http_github_latest_tag "$UPDATE_REPO")
     REMOTE_LATEST="$remote_ver"
-    if [[ -n "$remote_ver" ]] && version_gt "$remote_ver" "$local_ver"; then
+    if [[ -n "$remote_ver" ]] && ver_gt "$remote_ver" "$local_ver"; then
         UPDATE_AVAILABLE=true
         return 0
     fi

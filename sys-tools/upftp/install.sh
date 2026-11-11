@@ -37,7 +37,7 @@ install_upftp() {
     preflight
     info "$(_t '📂 Installing upftp (a lightweight FTP file sharing tool)')"
 
-    if command_exists upftp; then
+    if os_has_cmd upftp; then
         local cur
         cur=$(upftp --version 2>/dev/null || printf '%s\n' "$(_t 'Installed')")
         warn "$(_tf 'upftp detected (%s)' "${cur}")"
@@ -47,13 +47,13 @@ install_upftp() {
     fi
 
     # macOS 优先 brew
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         info "$(_t 'Installing via Homebrew...')"
         brew install upftp 2>/dev/null || brew install zy84338719/upftp/upftp 2>/dev/null
     else
         # 从 GitHub Releases 下载二进制
         local version suffix url tmpdir
-        version=$(github_latest_tag "$REPO")
+        version=$(http_github_latest_tag "$REPO")
         if [[ -z "$version" ]]; then
             error "$(_t 'Cannot fetch the latest upftp version (check the network or set GH_TOKEN)')"
             exit 1
@@ -99,7 +99,7 @@ install_upftp() {
         success "upftp $version $(_t 'Installation complete')"
     fi
 
-    if command_exists upftp; then
+    if os_has_cmd upftp; then
         _show_usage_hint
     else
         warn "upftp $(_t 'It may have been installed outside the PATH, please check')"
@@ -120,7 +120,7 @@ _show_usage_hint() {
 
 uninstall_upftp() {
     preflight
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         brew uninstall upftp 2>/dev/null
     fi
     require_sudo
@@ -131,15 +131,15 @@ uninstall_upftp() {
 status_upftp() {
     detect_os
     local installed=false ver=""
-    if command_exists upftp; then
+    if os_has_cmd upftp; then
         installed=true
         ver=$(upftp --version 2>/dev/null || echo "")
     fi
     if $installed; then
-        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
-        emit_version "$ver"
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
+        uxs_emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

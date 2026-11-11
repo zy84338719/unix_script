@@ -28,7 +28,7 @@ preflight() {
         error "$(_t '1Panel is Linux-only. Current: ')${OS_TYPE}"
         exit 1
     fi
-    if ! command_exists systemctl; then
+    if ! os_has_cmd systemctl; then
         error "$(_t 'systemctl (systemd) is required.')"
         exit 1
     fi
@@ -36,9 +36,9 @@ preflight() {
 
 fetch_to() {
     local url="$1" out="$2"
-    if command_exists curl; then
+    if os_has_cmd curl; then
         curl -fsSL "$url" -o "$out"
-    elif command_exists wget; then
+    elif os_has_cmd wget; then
         wget -qO "$out" "$url"
     else
         error "$(_t 'Either curl or wget is required, please install one first.')"
@@ -47,7 +47,7 @@ fetch_to() {
 }
 
 is_installed() {
-    command_exists 1pctl 2>/dev/null
+    os_has_cmd 1pctl 2>/dev/null
 }
 
 install_1panel() {
@@ -118,20 +118,20 @@ uninstall_1panel() {
 status_1panel() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"; return
+        uxs_emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"; return
     fi
     if ! is_installed; then
-        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
+        uxs_emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
     fi
     local ver
     ver=$(1pctl version 2>/dev/null | head -n1 || true)
     if [[ -n "${ver}" ]]; then
-        emit_version "${ver}"
+        uxs_emit_version "${ver}"
     fi
     if uxs_svc is-active 1panel 2>/dev/null; then
-        emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
+        uxs_emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed (service not running)')${NC}"
+        uxs_emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed (service not running)')${NC}"
     fi
 }
 

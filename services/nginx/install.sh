@@ -17,7 +17,7 @@ source "$SCRIPT_DIR/../../lib/common.sh"
 
 # 配置路径（macOS brew 与 Linux 不同）
 nginx_conf_dir() {
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         echo "$(brew --prefix)/etc/nginx"
     else
         echo "/etc/nginx"
@@ -36,7 +36,7 @@ do_install() {
     preflight
     require_sudo
 
-    if command_exists nginx; then
+    if os_has_cmd nginx; then
         local cur
         cur=$(nginx -v 2>&1 || printf '%s\n' "$(_t 'Unknown version')")
         warn "$(_tf 'Nginx detected (%s)' "${cur}")"
@@ -53,7 +53,7 @@ do_install() {
         exit 1
     fi
 
-    if ! command_exists nginx; then
+    if ! os_has_cmd nginx; then
         error "$(_t 'Installation failed: the nginx command was not found')"
         exit 1
     fi
@@ -70,7 +70,7 @@ do_install() {
             echo "  sudo journalctl -u nginx -f"
         fi
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        if command_exists brew; then
+        if os_has_cmd brew; then
             info "$(_t 'Starting Nginx through brew services...')"
             sudo brew services start nginx 2>/dev/null || brew services start nginx
             success "Nginx $(_t 'Started through brew services')"
@@ -127,7 +127,7 @@ do_uninstall() {
     if [[ "$OS_TYPE" == "linux" ]]; then
         uxs_svc disable-now nginx 2>/dev/null || true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        if command_exists brew; then
+        if os_has_cmd brew; then
             sudo brew services stop nginx 2>/dev/null || brew services stop nginx 2>/dev/null || true
         fi
         service_stop "nginx" "$NGINX_PLIST" 2>/dev/null || true
@@ -161,8 +161,8 @@ do_uninstall() {
 
 do_status() {
     detect_os
-    if ! command_exists nginx; then
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+    if ! os_has_cmd nginx; then
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
         return
     fi
 
@@ -181,11 +181,11 @@ do_status() {
     fi
 
     if $active; then
-        emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC} ($ver)"
+        uxs_emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC} ($ver)"
     else
-        emit_status "installed:stopped" "${YELLOW}$(_t '⚠️ Installed but the service is not running')${NC} ($ver)"
+        uxs_emit_status "installed:stopped" "${YELLOW}$(_t '⚠️ Installed but the service is not running')${NC} ($ver)"
     fi
-    emit_version "$ver"
+    uxs_emit_version "$ver"
 }
 
 usage() {

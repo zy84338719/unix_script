@@ -25,7 +25,7 @@ install_opencode() {
     preflight
     info "$(_t '🤖 Installing OpenCode (the terminal AI coding assistant)')"
 
-    if command_exists opencode; then
+    if os_has_cmd opencode; then
         local cur
         cur=$(opencode --version 2>/dev/null || printf '%s\n' "$(_t 'Installed')")
         warn "$(_tf 'OpenCode detected (%s)' "${cur}")"
@@ -34,7 +34,7 @@ install_opencode() {
         fi
     fi
 
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         info "$(_t 'Installing opencode via Homebrew...')"
         brew install opencode
     else
@@ -45,7 +45,7 @@ install_opencode() {
         fi
     fi
 
-    if ! command_exists opencode; then
+    if ! os_has_cmd opencode; then
         # 官方脚本可能装到 ~/.local/bin，可能不在当前 PATH
         if [[ -x "$HOME/.local/bin/opencode" ]]; then
             warn "opencode $(_t 'It has been installed to ~/.local/bin/opencode, but it is not in the current PATH')"
@@ -67,7 +67,7 @@ install_opencode() {
 
 uninstall_opencode() {
     preflight
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         brew uninstall opencode 2>/dev/null && success "$(_t 'opencode has been uninstalled via brew')" && return 0
     fi
     # 官方脚本安装的通常在 ~/.local/bin
@@ -88,13 +88,13 @@ uninstall_opencode() {
 
 status_opencode() {
     detect_os
-    if command_exists opencode || [[ -x "$HOME/.local/bin/opencode" ]]; then
+    if os_has_cmd opencode || [[ -x "$HOME/.local/bin/opencode" ]]; then
         local ver
         ver=$(opencode --version 2>/dev/null || "$HOME/.local/bin/opencode" --version 2>/dev/null || echo "")
-        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
-        emit_version "$ver"
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
+        uxs_emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

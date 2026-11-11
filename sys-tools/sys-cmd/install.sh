@@ -61,9 +61,9 @@ cmd_port() {
         sudo lsof -i ":$port" -P -n 2>/dev/null || lsof -i ":$port" -P -n 2>/dev/null || warn "$(_tf 'No process is using port %s, or sudo is required' "$port")"
     else
         # 先试 ss（现代），再试 netstat（老系统）
-        if command_exists ss; then
+        if os_has_cmd ss; then
             ss -tlnp "sport = :$port" 2>/dev/null || ss -tlnp | grep ":$port"
-        elif command_exists netstat; then
+        elif os_has_cmd netstat; then
             netstat -tlnp 2>/dev/null | grep ":$port"
         else
             warn "$(_t 'No ss/netstat command found')"
@@ -78,9 +78,9 @@ cmd_ports() {
     if [[ "$OS_TYPE" == "darwin" ]]; then
         lsof -iTCP -sTCP:LISTEN -P -n 2>/dev/null | head -30 || true
     else
-        if command_exists ss; then
+        if os_has_cmd ss; then
             ss -tlnp 2>/dev/null | head -30 || true
-        elif command_exists netstat; then
+        elif os_has_cmd netstat; then
             netstat -tlnp 2>/dev/null | head -30 || true
         else
             warn "$(_t 'No ss/netstat command found')"
@@ -123,13 +123,13 @@ cmd_net() {
         printf '%s\n' "$(_t 'Active connections TOP10:')"
         netstat -an 2>/dev/null | grep ESTABLISHED | head -10 || true
     else
-        if command_exists ss; then
+        if os_has_cmd ss; then
             printf '%s\n' "TCP $(_t 'Connection state statistics:')"
             ss -s 2>/dev/null
             echo
             echo "ESTABLISHED TOP10:"
             ss -tunap state established 2>/dev/null | head -11 || true
-        elif command_exists netstat; then
+        elif os_has_cmd netstat; then
             printf '%s\n' "TCP $(_t 'Connection state statistics:')"
             netstat -ant 2>/dev/null | awk '{print $6}' | sort | uniq -c | sort -rn
             echo
@@ -205,8 +205,8 @@ cmd_all() {
 
 status_sys_cmd() {
     detect_os
-    emit_status "installed" "${GREEN}$(_t '✅ Available')${NC}$(_t '(pure command wrapper, nothing to install)')"
-    emit_extra "type=builtin"
+    uxs_emit_status "installed" "${GREEN}$(_t '✅ Available')${NC}$(_t '(pure command wrapper, nothing to install)')"
+    uxs_emit_extra "type=builtin"
 }
 
 # ---- 交互式菜单 ----

@@ -82,7 +82,7 @@ show_status() {
     # ---- 先计算事实（不输出），供两种格式复用 ----
     local zsh_installed_bool=false
     local zsh_version=""
-    if command_exists zsh; then
+    if os_has_cmd zsh; then
         zsh_installed_bool=true
         # 不用 `| head -1`：head 命中即退会提前关管道，上游 zsh 被打成 SIGPIPE(141)；
         # `zsh --version` 失败时 pipefail 会把非 0 带出，set -e 让 status 子命令中止
@@ -143,13 +143,13 @@ EOF
         state="not_installed"
     fi
 
-    # 机器模式：先 emit STATE=，再 emit_extra，抑制人类详情块
+    # 机器模式：先 emit STATE=，再 uxs_emit_extra，抑制人类详情块
     if uxs_is_machine_mode; then
-        emit_status "$state" ""
-        emit_version "$VERSION"
-        emit_extra "framework=${fw}"
-        emit_extra "theme=${theme:-none}"
-        emit_extra "backups=${backup_count}"
+        uxs_emit_status "$state" ""
+        uxs_emit_version "$VERSION"
+        uxs_emit_extra "framework=${fw}"
+        uxs_emit_extra "theme=${theme:-none}"
+        uxs_emit_extra "backups=${backup_count}"
         return 0
     fi
 
@@ -158,7 +158,7 @@ EOF
     echo ""
 
     # Zsh 状态
-    if command_exists zsh; then
+    if os_has_cmd zsh; then
         success "$(_t 'Zsh: installed') ($(zsh --version | head -1))"
     else
         warn "$(_t 'Zsh: not installed')"
@@ -225,7 +225,7 @@ install_zsh_setup_default() {
     local framework="${UXS_CONFIG_FRAMEWORK:-oh-my-zsh}"
     local theme="${UXS_CONFIG_THEME:-}"
 
-    if ! command_exists zsh; then
+    if ! os_has_cmd zsh; then
         info "$(_t 'Installing zsh...')"
         if ! pkg_install zsh; then
             error "$(_t 'Failed to install zsh (install zsh manually and retry)')"

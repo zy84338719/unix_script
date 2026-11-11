@@ -24,8 +24,8 @@ CRON_LOG="/var/log/disk-usage-monitor.log"
 status_disk() {
     detect_os
     # disk-usage 是纯命令封装的仪表盘，无安装态。固定 installed + dashboard=yes。
-    emit_status "installed" "${GREEN}$(_t '✅ Disk dashboard available')${NC}$(_t '(pure command wrapper)')"
-    emit_extra "dashboard=yes"
+    uxs_emit_status "installed" "${GREEN}$(_t '✅ Disk dashboard available')${NC}$(_t '(pure command wrapper)')"
+    uxs_emit_extra "dashboard=yes"
 
     # 仪表盘多行表格仅在人类模式输出（机器模式只发 STATE=/EXTRA=）
     if ! uxs_is_machine_mode; then
@@ -129,7 +129,7 @@ _status_disk_dashboard() {
     else
         # free 属 procps/procps-ng，极简容器（CI routing 阶段，essential-pkgs 未装前）可能缺失；
         # 缺失时降级提示而非中止（status 命令不应因一个可选工具缺失而硬失败）。
-        if command_exists free; then
+        if os_has_cmd free; then
             free -h | awk -v h_total="$(_t 'Total')" -v h_used="$(_t 'Used')" -v h_avail="$(_t 'Available')" \
                 -v h_shared="$(_t 'Shared')" -v h_cache="$(_t 'Cache')" 'NR==1 {printf "  %-10s %10s %10s %10s %10s %10s\n", "", h_total, h_used, h_avail, h_shared, h_cache}
                             NR==2 {printf "  %-10s %10s %10s %10s %10s %10s\n", $1, $2, $3, $4, $5, $6}'
@@ -594,7 +594,7 @@ clean_disk() {
     # -- 清理日志 --
     if [[ -n "${CLEAN_LOGS:-}" ]]; then
         header "$(_t '── Clean up system logs ──')"
-        if [[ "$OS_TYPE" == "linux" ]] && command_exists journalctl; then
+        if [[ "$OS_TYPE" == "linux" ]] && os_has_cmd journalctl; then
             local journal_size
             journal_size=$(journalctl --disk-usage 2>/dev/null | grep -oE '[0-9.]+[MG]' || printf '%s\n' "$(_t 'Unknown')")
             info "$(_tf 'Current journal log size: %s' "$journal_size")"
@@ -706,9 +706,9 @@ clean_disk() {
         esac
 
         # 清理 pip 缓存
-        if command_exists pip3 || command_exists pip; then
+        if os_has_cmd pip3 || os_has_cmd pip; then
             local pip_cmd="pip3"
-            command_exists pip3 || pip_cmd="pip"
+            os_has_cmd pip3 || pip_cmd="pip"
             local pip_cache_dir
             pip_cache_dir=$($pip_cmd cache dir 2>/dev/null || echo "")
             if [[ -n "$pip_cache_dir" && -d "$pip_cache_dir" ]]; then
@@ -727,7 +727,7 @@ clean_disk() {
         fi
 
         # 清理 npm 缓存
-        if command_exists npm; then
+        if os_has_cmd npm; then
             local npm_cache_dir
             npm_cache_dir=$(npm config get cache 2>/dev/null || echo "")
             if [[ -n "$npm_cache_dir" && -d "$npm_cache_dir" ]]; then
@@ -746,7 +746,7 @@ clean_disk() {
         fi
 
         # 清理 bun 缓存
-        if command_exists bun; then
+        if os_has_cmd bun; then
             local bun_cache_dir="${HOME}/.bun/install/cache"
             if [[ -d "$bun_cache_dir" ]]; then
                 local bun_size
@@ -768,7 +768,7 @@ clean_disk() {
     # -- 清理 Docker --
     if [[ -n "${CLEAN_DOCKER:-}" ]]; then
         header "$(_t '── Clean up Docker ──')"
-        if ! command_exists docker; then
+        if ! os_has_cmd docker; then
             warn "Docker $(_t 'not installed, skipping')"
         else
             if ! docker info >/dev/null 2>&1; then

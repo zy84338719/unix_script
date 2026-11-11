@@ -133,11 +133,11 @@ label_eco() {
 ecosystem_available() {
     case "$1" in
         npm)
-            command_exists npm || command_exists yarn || command_exists pnpm
+            os_has_cmd npm || os_has_cmd yarn || os_has_cmd pnpm
             ;;
-        go)    command_exists go ;;
-        rust)  command_exists cargo ;;
-        python) command_exists pip3 || command_exists pip ;;
+        go)    os_has_cmd go ;;
+        rust)  os_has_cmd cargo ;;
+        python) os_has_cmd pip3 || os_has_cmd pip ;;
         # 未知生态一律视为不可用
         *)     return 1 ;;
     esac
@@ -167,11 +167,11 @@ require_ecosystem() {
 
 # nrm/cnpm 冲突提示（仅 npm 生态）
 check_npm_conflict() {
-    if command_exists nrm; then
+    if os_has_cmd nrm; then
         warn "$(_t 'nrm (NPM registry manager) detected, it may override the registry written by this module.')"
         warn "$(_t 'Recommendation: either use only nrm, or uninstall nrm and then use this module.')"
     fi
-    if command_exists cnpm; then
+    if os_has_cmd cnpm; then
         info "$(_t 'cnpm detected (ships with the Taobao mirror), usually no need to switch the npm mirror.')"
     fi
 }
@@ -181,11 +181,11 @@ check_npm_conflict() {
 # ============================================================
 config_npm() {
     local url="$1"
-    command_exists npm && {
+    os_has_cmd npm && {
         npm config set registry "$url" --location=user
         success "npm    → $url"
     }
-    if command_exists yarn; then
+    if os_has_cmd yarn; then
         local major
         major=$(yarn --version 2>/dev/null | cut -d. -f1 || echo "1")
         if [[ "$major" -ge 2 ]]; then
@@ -196,19 +196,19 @@ config_npm() {
             success "yarn v1  → $url"
         fi
     fi
-    command_exists pnpm && {
+    os_has_cmd pnpm && {
         pnpm config set registry "$url" >/dev/null 2>&1 || true
         success "pnpm   → $url"
     }
 }
 
 status_npm() {
-    if command_exists npm; then
+    if os_has_cmd npm; then
         printf "  %-8s %s\n" "npm:" "$(npm config get registry 2>/dev/null || _t 'Unknown')"
     else
         printf "  %-8s %s\n" "npm:" "$(_t 'Not installed')"
     fi
-    if command_exists yarn; then
+    if os_has_cmd yarn; then
         local yver reg
         yver=$(yarn --version 2>/dev/null | cut -d. -f1 || echo "1")
         if [[ "$yver" -ge 2 ]]; then
@@ -220,7 +220,7 @@ status_npm() {
     else
         printf "  %-8s %s\n" "yarn:" "$(_t 'Not installed')"
     fi
-    if command_exists pnpm; then
+    if os_has_cmd pnpm; then
         printf "  %-8s %s\n" "pnpm:" "$(pnpm config get registry 2>/dev/null || _t 'Unknown')"
     else
         printf "  %-8s %s\n" "pnpm:" "$(_t 'Not installed')"
@@ -258,7 +258,7 @@ config_go() {
 }
 
 status_go() {
-    if command_exists go; then
+    if os_has_cmd go; then
         printf "  %-8s %s\n" "GOPROXY:" "$(go env GOPROXY 2>/dev/null || _t 'Unknown')"
     else
         printf "  %-8s %s\n" "go:" "$(_t 'Not installed')"
@@ -352,7 +352,7 @@ cargo_mirror_registry() {
 }
 
 status_rust() {
-    if command_exists cargo; then
+    if os_has_cmd cargo; then
         local reg
         reg="$(_t 'Unknown')"
         if [[ -f "$CARGO_CFG" ]]; then
@@ -372,7 +372,7 @@ config_python() {
     local url="$1"
     require_ecosystem python
     local pip_cmd="pip3"
-    command_exists pip3 || pip_cmd="pip"
+    os_has_cmd pip3 || pip_cmd="pip"
     if "$pip_cmd" config set global.index-url "$url" >/dev/null 2>&1; then
         success "pip    → $url"
     else
@@ -395,8 +395,8 @@ config_python() {
 
 status_python() {
     local pip_cmd=""
-    command_exists pip3 && pip_cmd="pip3"
-    [[ -z "$pip_cmd" ]] && command_exists pip && pip_cmd="pip"
+    os_has_cmd pip3 && pip_cmd="pip3"
+    [[ -z "$pip_cmd" ]] && os_has_cmd pip && pip_cmd="pip"
     if [[ -n "$pip_cmd" ]]; then
         local reg
         reg=$("$pip_cmd" config get global.index-url 2>/dev/null || _t 'Official PyPI')
@@ -653,7 +653,7 @@ do_status() {
     # ---- 先计算各生态的镜像状态（不输出），用于聚合并 emit STATE= 首行 ----
     # 每个生态：installed=true/false；mirrored=true/false；value=当前源（用于 EXTRA）
     local npm_installed=false npm_mirrored=false npm_val=""
-    if command_exists npm; then
+    if os_has_cmd npm; then
         npm_installed=true
         npm_val=$(npm config get registry 2>/dev/null || _t 'Unknown')
         # 官方源判定：含 registry.npmjs.org 视为未换源
@@ -661,7 +661,7 @@ do_status() {
     fi
 
     local go_installed=false go_mirrored=false go_val=""
-    if command_exists go; then
+    if os_has_cmd go; then
         go_installed=true
         go_val=$(go env GOPROXY 2>/dev/null || _t 'Unknown')
         # 官方源判定：含 proxy.golang.org 视为未换源
@@ -670,7 +670,7 @@ do_status() {
 
     local rust_installed=false rust_mirrored=false rust_val
     rust_val="$(_t 'Official crates.io')"
-    if command_exists cargo; then
+    if os_has_cmd cargo; then
         rust_installed=true
         local _reg=""
         if [[ -f "$CARGO_CFG" ]]; then
@@ -688,8 +688,8 @@ do_status() {
     local py_installed=false py_mirrored=false py_val
     py_val="$(_t 'Official PyPI')"
     local pip_cmd=""
-    command_exists pip3 && pip_cmd="pip3"
-    [[ -z "$pip_cmd" ]] && command_exists pip && pip_cmd="pip"
+    os_has_cmd pip3 && pip_cmd="pip3"
+    [[ -z "$pip_cmd" ]] && os_has_cmd pip && pip_cmd="pip"
     if [[ -n "$pip_cmd" ]]; then
         py_installed=true
         py_val=$("$pip_cmd" config get global.index-url 2>/dev/null || _t 'Official PyPI')
@@ -721,20 +721,20 @@ do_status() {
         agg_state="not_configured"
         agg_msg="${RED}$(_tf 'No language has switched mirrors (0/%s)' "${installed_count}")${NC}"
     fi
-    emit_status "$agg_state" "$agg_msg"
+    uxs_emit_status "$agg_state" "$agg_msg"
 
     # ---- 每语言 EXTRA（key=value）----
     if $npm_installed; then
-        emit_extra "npm=$npm_val"
+        uxs_emit_extra "npm=$npm_val"
     fi
     if $go_installed; then
-        emit_extra "go=$go_val"
+        uxs_emit_extra "go=$go_val"
     fi
     if $rust_installed; then
-        emit_extra "rust=$rust_val"
+        uxs_emit_extra "rust=$rust_val"
     fi
     if $py_installed; then
-        emit_extra "python=$py_val"
+        uxs_emit_extra "python=$py_val"
     fi
 
     # ---- 人类模式：逐语言详情表（调用既有 status_* 函数）----

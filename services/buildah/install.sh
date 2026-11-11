@@ -21,7 +21,7 @@ preflight() {
 
 do_install() {
     preflight
-    if command_exists buildah; then
+    if os_has_cmd buildah; then
         local cur
         cur=$(buildah --version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' || true)
         yes_no "$(_tf 'buildah %s is already installed, reinstall?' "${cur:-}")" || { info "$(_t 'Cancelled')"; exit 0; }
@@ -35,7 +35,7 @@ do_install() {
 
 do_uninstall() {
     preflight
-    if ! command_exists buildah; then
+    if ! os_has_cmd buildah; then
         warn "$(_t 'buildah not installed')"
         exit 0
     fi
@@ -54,14 +54,14 @@ do_uninstall() {
 do_status() {
     # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
     detect_os
-    if ! command_exists buildah; then
-        emit_status "not_installed" "❌ $(_t 'buildah not installed')"
+    if ! os_has_cmd buildah; then
+        uxs_emit_status "not_installed" "❌ $(_t 'buildah not installed')"
         return 0
     fi
     local ver
     ver=$(buildah --version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' || true)
-    emit_status "installed" "✅ $(_t 'buildah installed') ${ver:-$(_t '(unknown version)')}"
-    emit_version "${ver#v}"
+    uxs_emit_status "installed" "✅ $(_t 'buildah installed') ${ver:-$(_t '(unknown version)')}"
+    uxs_emit_version "${ver#v}"
 }
 
 do_help() {

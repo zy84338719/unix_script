@@ -49,18 +49,18 @@ preflight() {
 tool_installed() {
     local tool="$1"
     case "$tool" in
-        golangci-lint)  command_exists golangci-lint ;;
-        gosec)          command_exists gosec ;;
-        clippy)         command_exists rustc && rustup component list 2>/dev/null | grep -q "clippy.*installed" ;;
-        cargo-audit)    command_exists cargo-audit ;;
-        spotbugs)       command_exists spotbugs ;;
-        pmd)            command_exists pmd ;;
-        checkstyle)     command_exists checkstyle ;;
-        ruff)           command_exists ruff ;;
-        mypy)           command_exists mypy ;;
-        bandit)         command_exists bandit ;;
-        semgrep)        command_exists semgrep ;;
-        *)              command_exists "$tool" ;;
+        golangci-lint)  os_has_cmd golangci-lint ;;
+        gosec)          os_has_cmd gosec ;;
+        clippy)         os_has_cmd rustc && rustup component list 2>/dev/null | grep -q "clippy.*installed" ;;
+        cargo-audit)    os_has_cmd cargo-audit ;;
+        spotbugs)       os_has_cmd spotbugs ;;
+        pmd)            os_has_cmd pmd ;;
+        checkstyle)     os_has_cmd checkstyle ;;
+        ruff)           os_has_cmd ruff ;;
+        mypy)           os_has_cmd mypy ;;
+        bandit)         os_has_cmd bandit ;;
+        semgrep)        os_has_cmd semgrep ;;
+        *)              os_has_cmd "$tool" ;;
     esac
 }
 
@@ -81,7 +81,7 @@ count_installed() {
 install_go_tools() {
     info "$(_t 'Install Go analysis tools (golangci-lint + gosec)')"
 
-    if ! command_exists go; then
+    if ! os_has_cmd go; then
         warn "  $(_t 'go command not detected, skipping Go tool installation')"
         return 0
     fi
@@ -90,7 +90,7 @@ install_go_tools() {
     if tool_installed golangci-lint; then
         info "  $(_t 'golangci-lint already installed, skipping')"
     else
-        if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+        if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
             brew install golangci-lint
         else
             info "  $(_t 'Installing golangci-lint via the official script...')"
@@ -106,7 +106,7 @@ install_go_tools() {
     if tool_installed gosec; then
         info "  $(_t 'gosec already installed, skipping')"
     else
-        if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+        if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
             brew install gosec
         else
             info "  $(_t 'Installing gosec via go install...')"
@@ -124,7 +124,7 @@ install_go_tools() {
 install_rust_tools() {
     info "$(_t 'Install Rust analysis tools (clippy + cargo-audit)')"
 
-    if ! command_exists cargo; then
+    if ! os_has_cmd cargo; then
         warn "  $(_t 'cargo command not detected, skipping Rust tool installation')"
         return 0
     fi
@@ -145,7 +145,7 @@ install_rust_tools() {
     if tool_installed cargo-audit; then
         info "  $(_t 'cargo-audit already installed, skipping')"
     else
-        if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+        if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
             brew install cargo-audit
         else
             info "  $(_t 'Installing cargo-audit via cargo install...')"
@@ -163,12 +163,12 @@ install_rust_tools() {
 install_java_tools() {
     info "$(_t 'Install Java analysis tools (spotbugs + pmd + checkstyle)')"
 
-    if ! command_exists java; then
+    if ! os_has_cmd java; then
         warn "  $(_t 'java command not detected, skipping Java tool installation')"
         return 0
     fi
 
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         info "  $(_t 'Installing via Homebrew...')"
         for tool in spotbugs pmd checkstyle; do
             if tool_installed "$tool"; then
@@ -209,15 +209,15 @@ install_java_tools() {
 install_python_tools() {
     info "$(_t 'Install Python analysis tools (ruff + mypy + bandit)')"
 
-    if ! command_exists python3; then
+    if ! os_has_cmd python3; then
         warn "  $(_t 'python3 command not detected, skipping Python tool installation')"
         return 0
     fi
 
     local pip_cmd="pip3"
-    command_exists pip3 || pip_cmd="pip"
+    os_has_cmd pip3 || pip_cmd="pip"
 
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         info "  $(_t 'Installing via Homebrew...')"
         for tool in ruff mypy bandit; do
             if tool_installed "$tool"; then
@@ -262,11 +262,11 @@ install_semgrep() {
         return 0
     fi
 
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         brew install semgrep
     else
         local pip_cmd="pip3"
-        command_exists pip3 || pip_cmd="pip"
+        os_has_cmd pip3 || pip_cmd="pip"
         if "$pip_cmd" install --user semgrep 2>/dev/null; then
             success "  ✅ semgrep"
         else
@@ -314,7 +314,7 @@ uninstall_code_lint() {
     echo "    cargo-audit:   cargo uninstall cargo-audit"
     echo
     echo "  Java $(_t 'Tools:')"
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         echo "    brew uninstall spotbugs pmd checkstyle"
     else
         echo "    sudo <pkgmgr> remove spotbugs pmd checkstyle"
@@ -324,7 +324,7 @@ uninstall_code_lint() {
     echo "    pip3 uninstall ruff mypy bandit"
     echo
     echo "  $(_t 'Cross-language:')"
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         echo "    brew uninstall semgrep"
     else
         echo "    pip3 uninstall semgrep"
@@ -362,13 +362,13 @@ status_code_lint() {
         state="not_installed"
         human_msg="  ${RED}$(_t 'No tools installed')${NC}"
     fi
-    emit_status "$state" "$human_msg"
-    emit_extra "installed=$installed/$total"
+    uxs_emit_status "$state" "$human_msg"
+    uxs_emit_extra "installed=$installed/$total"
     if [[ ${#missing[@]} -gt 0 ]]; then
         local missing_csv
         # shellcheck disable=SC2086
         missing_csv=$(IFS=,; echo "${missing[*]}")
-        emit_extra "missing=$missing_csv"
+        uxs_emit_extra "missing=$missing_csv"
     fi
 
     # 第二阶段：人类模式详情（逐工具 ✅/❌ 清单）

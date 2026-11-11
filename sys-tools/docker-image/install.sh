@@ -27,7 +27,7 @@ DEFAULT_OUT_DIR="."
 # ---------------- 前置检查 ----------------
 preflight() {
     detect_os
-    if ! command_exists docker; then
+    if ! os_has_cmd docker; then
         error "$(_t 'The docker command was not found. Install Docker first: ./install.sh docker')"
         exit 1
     fi
@@ -306,11 +306,11 @@ do_save() {
 do_status() {
     detect_os
     local state human_msg ver=""
-    if command_exists docker; then
+    if os_has_cmd docker; then
         ver=$(docker --version 2>/dev/null || echo "")
         # docker info 在守护进程挂起时实测可阻塞 90s+（黑洞地址实测 93.3s），
         # 套 5s 超时护栏（同 services/docker）：超时按未运行降级
-        if uxs_with_timeout 5 docker info >/dev/null 2>&1; then
+        if run_timeout 5 docker info >/dev/null 2>&1; then
             state="installed:running"
             human_msg="${GREEN}[SUCCESS]${NC} Docker $(_t 'Installed and currently running')"
         else
@@ -325,10 +325,10 @@ do_status() {
         # 保留原始首行空行
         echo
     fi
-    emit_status "$state" "$human_msg"
-    [[ -n "$ver" ]] && emit_version "$ver"
+    uxs_emit_status "$state" "$human_msg"
+    [[ -n "$ver" ]] && uxs_emit_version "$ver"
     if ! uxs_is_machine_mode; then
-        # 人类模式：运行态额外打印 docker --version（success 消息已由 emit_status 输出）
+        # 人类模式：运行态额外打印 docker --version（success 消息已由 uxs_emit_status 输出）
         if [[ "$state" == "installed:running" ]] && [[ -n "$ver" ]]; then
             echo "$ver"
         fi

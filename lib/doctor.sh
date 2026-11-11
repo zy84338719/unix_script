@@ -36,7 +36,7 @@ run_doctor() {
     info "检查必要工具..."
     local cmd
     for cmd in curl tar git sudo; do
-        if command_exists "$cmd"; then
+        if os_has_cmd "$cmd"; then
             success "$cmd ✓"
         else
             error "$cmd ✗（缺失）"
@@ -47,7 +47,7 @@ run_doctor() {
     # Optional tools
     info "检查可选工具..."
     for cmd in shellcheck jq; do
-        if command_exists "$cmd"; then
+        if os_has_cmd "$cmd"; then
             success "$cmd ✓"
         else
             warn "$cmd 未安装（可选）"

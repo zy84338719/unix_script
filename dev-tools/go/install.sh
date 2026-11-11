@@ -23,10 +23,10 @@ preflight() {
 }
 
 # 获取最新稳定版本号（如 1.23.4）
-# 复用 common.sh 的 github_latest_tag；golang/go 的 tag 格式 go1.23.4，剥前缀 go。
+# 复用 common.sh 的 http_github_latest_tag；golang/go 的 tag 格式 go1.23.4，剥前缀 go。
 latest_go_version() {
     local tag
-    tag=$(github_latest_tag "golang/go")
+    tag=$(http_github_latest_tag "golang/go")
     echo "${tag#go}"
 }
 
@@ -47,7 +47,7 @@ install_go() {
     info "$(_t '🐹 Installing Go (Golang)')"
 
     # macOS 优先 brew（无需 sudo，自动管理）
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         info "$(_t 'Installing Go via Homebrew...')"
         brew install go
         success "Go $(_t 'Installation complete (the version is managed by brew)')"
@@ -142,13 +142,13 @@ uninstall_go() {
 
 status_go() {
     detect_os
-    if [[ -x "$GO_BIN" ]] || command_exists go; then
+    if [[ -x "$GO_BIN" ]] || os_has_cmd go; then
         local ver
         ver=$("$GO_BIN" version 2>/dev/null | awk '{print $3}' || go version 2>/dev/null | awk '{print $3}' || echo "")
-        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
-        emit_version "$ver"
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
+        uxs_emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

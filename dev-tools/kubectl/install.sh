@@ -38,7 +38,7 @@ kubectl_client_version() {
 
 do_install() {
     preflight
-    if command_exists kubectl; then
+    if os_has_cmd kubectl; then
         local cur
         cur=$(kubectl_client_version)
         yes_no "$(_tf 'kubectl %s detected, overwrite it with the latest stable version?' "${cur:-}")" || { info "$(_t 'Cancelled')"; exit 0; }
@@ -93,14 +93,14 @@ do_uninstall() {
 }
 
 do_status() {
-    if ! command_exists kubectl; then
-        emit_status "not_installed" "$(_t '❌ kubectl is not installed')"
+    if ! os_has_cmd kubectl; then
+        uxs_emit_status "not_installed" "$(_t '❌ kubectl is not installed')"
         return 0
     fi
     local ver
     ver=$(kubectl_client_version)
-    emit_status "installed" "$(_t '✅ kubectl is installed') ${ver:-$(_t '(unknown version)')}"
-    emit_version "${ver#v}"
+    uxs_emit_status "installed" "$(_t '✅ kubectl is installed') ${ver:-$(_t '(unknown version)')}"
+    uxs_emit_version "${ver#v}"
 }
 
 do_help() {

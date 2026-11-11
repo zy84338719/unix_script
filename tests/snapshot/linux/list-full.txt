@@ -59,19 +59,19 @@ zsh_setup	config install list status uninstall 	Zsh + Oh My Zsh + 插件配置
 ollama	install pull status uninstall help	本地大模型运行时
 opencode	install uninstall status help	终端 AI 编程助手
 pi	install uninstall status help	Pi AI 编程代理框架
-clash	config example install restart start status stop tun-off tun-on uninstall 	代理核心 + TUN 透明代理（mihomo）
+clash	install config example tun-on tun-off start stop restart status uninstall help	代理核心 + TUN 透明代理（mihomo）
 deskflow	install uninstall status help	键鼠共享（Flatpak / Homebrew）
 disk-usage	status top monitor clean help	磁盘空间管理
 disk	list wizard partition format mount umount fstab smart scan wipe install uninstall status help	磁盘分区/格式化/挂载/健康一站式管理（仅 Linux，严格防误删）
 docker-image	save status help	镜像导出为 .tar.gz（离线分发）
 k7s	install uninstall status help	Kubernetes 桌面监控
-multi-net	clear list route-port route-user setup status uninstall 	多网卡策略路由
+multi-net	setup route-user route-port list clear status help	多网卡策略路由
 nat	install status uninstall 	NAT 端口转发
 ops-kit	inspect log svc audit install uninstall status help	巡检报告/日志运维/systemd 服务/安全基线一站式（仅 Linux）
 process_manager_tool	install uninstall status help	智能搜索和管理系统进程
 restic	install uninstall status help	增量加密备份工具
 safe-rm	install on off status uninstall help	安全删除替代 rm，防误删
 shutdown_timer	install status uninstall 	定时 / 倒计时关机管理
-sys-cmd	all status uninstall 	系统诊断命令集（cpu/mem/port/disk/net）
+sys-cmd	cpu mem port ports disk du net top logs all menu status help	系统诊断命令集（cpu/mem/port/disk/net）
 ufw	install uninstall status help	UFW 防火墙管理
 upftp	install uninstall status help	轻量级 FTP 文件分享工具

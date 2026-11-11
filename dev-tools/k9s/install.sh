@@ -34,7 +34,7 @@ arch_for_k9s() {
 
 do_install() {
     preflight
-    if command_exists k9s; then
+    if os_has_cmd k9s; then
         yes_no "$(_t 'k9s detected, overwrite it with the latest version?')" || { info "$(_t 'Cancelled')"; exit 0; }
     fi
 
@@ -44,12 +44,12 @@ do_install() {
     else
         info "$(_t 'Fetching the latest k9s version (GitHub API)...')"
         local ver
-        ver=$(github_latest_tag "$REPO")
+        ver=$(http_github_latest_tag "$REPO")
         [[ -n "$ver" ]] || { error "$(_t 'Cannot fetch the version number (GitHub is unreachable or rate limited), you can set GH_TOKEN and retry')"; exit 1; }
         local arch
         arch=$(arch_for_k9s)
         local url
-        url=$(github_release_asset_url "$REPO" "k9s_Linux_${arch}.tar.gz")
+        url=$(http_github_release_asset "$REPO" "k9s_Linux_${arch}.tar.gz")
         [[ -n "$url" ]] || { error "$(_tf 'asset k9s_Linux_%s.tar.gz not found' "${arch}")"; exit 1; }
         info "$(_tf 'Downloading %s ...' "$url")"
         local tmpdir
@@ -81,14 +81,14 @@ do_uninstall() {
 }
 
 do_status() {
-    if ! command_exists k9s; then
-        emit_status "not_installed" "$(_t '❌ k9s is not installed')"
+    if ! os_has_cmd k9s; then
+        uxs_emit_status "not_installed" "$(_t '❌ k9s is not installed')"
         return 0
     fi
     local ver
     ver=$(k9s version 2>/dev/null | grep -m1 -oE 'v[0-9]+(\.[0-9]+)+' || true)
-    emit_status "installed" "$(_t '✅ k9s is installed') ${ver:-$(_t '(unknown version)')}"
-    emit_version "${ver#v}"
+    uxs_emit_status "installed" "$(_t '✅ k9s is installed') ${ver:-$(_t '(unknown version)')}"
+    uxs_emit_version "${ver#v}"
 }
 
 do_help() {

@@ -275,7 +275,7 @@ cancel_daily_shutdown_linux() {
 }
 
 # 机器可读状态（供 status --json / module_status_machine 复用）。
-# 契约：UXS_STATUS_MODE=machine 时输出 STATE=，否则输出人类可读中文（emit_status 双轨）。
+# 契约：UXS_STATUS_MODE=machine 时输出 STATE=，否则输出人类可读中文（uxs_emit_status 双轨）。
 status_shutdown_timer() {
     detect_os
     local is_configured=false state human
@@ -294,7 +294,7 @@ status_shutdown_timer() {
         state="not_configured"
         human="${RED}$(_t '❌ Not configured')${NC}"
     fi
-    emit_status "$state" "$human"
+    uxs_emit_status "$state" "$human"
 }
 
 

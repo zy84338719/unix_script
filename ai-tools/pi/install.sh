@@ -25,7 +25,7 @@ install_pi() {
     preflight
     info "$(_t '🤖 Installing Pi (the AI coding agent framework, pi.dev)')"
 
-    if command_exists pi; then
+    if os_has_cmd pi; then
         local cur
         cur=$(pi --version 2>/dev/null || printf '%s\n' "$(_t 'Installed')")
         warn "$(_tf 'Pi detected (%s)' "${cur}")"
@@ -41,7 +41,7 @@ install_pi() {
     fi
 
     # Pi 可能装到 ~/.pi 或 npm 全局，检测一下
-    if ! command_exists pi; then
+    if ! os_has_cmd pi; then
         # 尝试常见路径
         local found=""
         for p in "$HOME/.pi/bin/pi" "$HOME/.local/bin/pi" "/usr/local/bin/pi"; do
@@ -69,7 +69,7 @@ uninstall_pi() {
     preflight
     local removed=false
     # 尝试 pi 自带卸载
-    if command_exists pi; then
+    if os_has_cmd pi; then
         pi uninstall >/dev/null 2>&1 && removed=true
     fi
     # 清理常见路径
@@ -92,13 +92,13 @@ uninstall_pi() {
 
 status_pi() {
     detect_os
-    if command_exists pi || [[ -x "$HOME/.pi/bin/pi" ]]; then
+    if os_has_cmd pi || [[ -x "$HOME/.pi/bin/pi" ]]; then
         local ver
         ver=$(pi --version 2>/dev/null || "$HOME/.pi/bin/pi" --version 2>/dev/null || echo "")
-        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
-        emit_version "$ver"
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
+        uxs_emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

@@ -527,8 +527,8 @@ _smart_report_one() {
     verdict=${vout%%|*}
     reasons=${vout#*|}
     if uxs_is_machine_mode; then
-        emit_status "$verdict" "${dev} $(_smart_verdict_cn "$verdict")"
-        emit_extra "dev=${dev##*/} model=${model} reasons=${reasons}"
+        uxs_emit_status "$verdict" "${dev} $(_smart_verdict_cn "$verdict")"
+        uxs_emit_extra "dev=${dev##*/} model=${model} reasons=${reasons}"
     else
         model=$(lsblk -dno MODEL "$dev" 2>/dev/null | head -1 || true)
         size=$(lsblk -dno SIZE "$dev" 2>/dev/null | head -1 || true)
@@ -536,7 +536,7 @@ _smart_report_one() {
         if [[ -n "$reasons" ]]; then
             rdetail="$(_tf 'SMART reason detail: (%s)' "$reasons")"
         fi
-        emit_status "$verdict" "$(_smart_verdict_emoji "$verdict") ${dev##*/}  ${model:-?}  ${size:-?}  $(_smart_verdict_cn "$verdict")$rdetail"
+        uxs_emit_status "$verdict" "$(_smart_verdict_emoji "$verdict") ${dev##*/}  ${model:-?}  ${size:-?}  $(_smart_verdict_cn "$verdict")$rdetail"
     fi
 }
 
@@ -550,8 +550,8 @@ _smart_report_detail() {
     verdict=${vout%%|*}
     reasons=${vout#*|}
     if uxs_is_machine_mode; then
-        emit_status "$verdict" "${dev}"
-        emit_extra "dev=${dev##*/} reasons=${reasons}"
+        uxs_emit_status "$verdict" "${dev}"
+        uxs_emit_extra "dev=${dev##*/} reasons=${reasons}"
         return 0
     fi
     header "$(_tf '═══ SMART health check: %s ═══' "${dev}")"
@@ -732,7 +732,7 @@ cmd_uninstall() {
 cmd_status() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "disk $(_tf 'Linux-only (current: %s)' "${OS_TYPE}")"
+        uxs_emit_status "n/a" "disk $(_tf 'Linux-only (current: %s)' "${OS_TYPE}")"
         return 0
     fi
     local miss_tools="" t opt_missing="" disks=0
@@ -741,19 +741,19 @@ cmd_status() {
     done
     command -v mkfs.ext4 >/dev/null 2>&1 || miss_tools="$miss_tools mkfs.ext4"
     if [[ -n "$miss_tools" ]]; then
-        emit_status "not_installed" "$(_tf '⚠️  Disk toolbox dependencies missing: %s (run disk install)' "${miss_tools}")"
-        emit_extra "missing=${miss_tools// /,}"
+        uxs_emit_status "not_installed" "$(_tf '⚠️  Disk toolbox dependencies missing: %s (run disk install)' "${miss_tools}")"
+        uxs_emit_extra "missing=${miss_tools// /,}"
         return 0
     fi
     for t in smartctl mkfs.xfs mkfs.vfat mkfs.exfat mkfs.ntfs; do
         command -v "$t" >/dev/null 2>&1 || opt_missing="$opt_missing$t,"
     done
     disks=$(lsblk -drno TYPE 2>/dev/null | grep -c '^disk$' || true)
-    emit_status "installed" "$(_tf '✅ Disk toolbox is ready (%s whole disks)' "${disks}")"
-    # 不 emit_version：工具箱无版本概念；输出 VERSION=n/a 会污染 status --json（拼成 disk:installed:n/a）
-    emit_extra "disks=$disks"
+    uxs_emit_status "installed" "$(_tf '✅ Disk toolbox is ready (%s whole disks)' "${disks}")"
+    # 不 uxs_emit_version：工具箱无版本概念；输出 VERSION=n/a 会污染 status --json（拼成 disk:installed:n/a）
+    uxs_emit_extra "disks=$disks"
     if [[ -n "$opt_missing" ]]; then
-        emit_extra "optional_missing=${opt_missing%,}"
+        uxs_emit_extra "optional_missing=${opt_missing%,}"
         if [[ "${UXS_STATUS_MODE:-human}" == "human" ]]; then
             warn "$(_tf 'Optional tools not installed: %s (auto-installed on first use)' "${opt_missing%,}")"
         fi

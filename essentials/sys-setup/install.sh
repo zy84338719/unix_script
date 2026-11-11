@@ -71,8 +71,8 @@ do_mirror() {
 
     info "$(_t '🌐 Switching the package sources to domestic mirrors')"
     local os_ver os_codename detect_line
-    os_ver=$(uxs_os_release VERSION_ID)
-    os_codename=$(uxs_os_release VERSION_CODENAME)
+    os_ver=$(os_release_field VERSION_ID)
+    os_codename=$(os_release_field VERSION_CODENAME)
     detect_line="${DISTRO_NAME:-${DISTRO_ID:-$(_t 'Unknown')}} ${os_ver}"
     [[ -n "$os_codename" ]] && detect_line+=" (${os_codename})"
     detect_line+=" · $(uname -m) · ${PKG_MANAGER:-?}"
@@ -192,14 +192,14 @@ set_ntp_servers() {
         fi
     elif uxs_svc is-active chrony 2>/dev/null || \
          uxs_svc is-active chronyd 2>/dev/null || \
-         command_exists chronyc; then
+         os_has_cmd chronyc; then
         if _configure_chrony "$servers"; then
             success "$(_tf 'chrony is configured: %s' "$servers")"
         else
             error "$(_t 'Configuring chrony failed')"; return 1
         fi
     elif uxs_svc is-active ntpd 2>/dev/null || \
-         command_exists ntpd; then
+         os_has_cmd ntpd; then
         if _configure_ntpd "$servers"; then
             success "$(_tf 'ntpd is configured: %s' "$servers")"
         else
@@ -230,7 +230,7 @@ set_ntp_servers() {
 # 查看当前 NTP 状态
 show_ntp_status() {
     printf '%s\n' "$(_t 'Current NTP status:')"
-    if command_exists timedatectl; then
+    if os_has_cmd timedatectl; then
         timedatectl status 2>/dev/null | grep -E 'Local time|Time zone|NTP|synchronized' | sed 's/^/  /'
     fi
     # 显示实际使用的 NTP 服务器
@@ -242,10 +242,10 @@ show_ntp_status() {
         else
             echo "  $(_t 'Config: (default)')"
         fi
-    elif command_exists chronyc 2>/dev/null; then
+    elif os_has_cmd chronyc 2>/dev/null; then
         echo "  $(_t 'Backend: chrony')"
         chronyc sources 2>/dev/null | head -8 | sed 's/^/  /'
-    elif command_exists ntpq 2>/dev/null; then
+    elif os_has_cmd ntpq 2>/dev/null; then
         echo "  $(_t 'Backend: ntpd')"
         ntpq -p 2>/dev/null | head -8 | sed 's/^/  /'
     else
@@ -328,7 +328,7 @@ do_timezone() {
     local tz="${1:-Asia/Shanghai}"
     info "$(_tf '🕐 Setting the timezone to %s and enabling time synchronization' "$tz")"
 
-    if command_exists timedatectl; then
+    if os_has_cmd timedatectl; then
         sudo timedatectl set-timezone "$tz"
         success "$(_tf 'The timezone has been set to %s' "$tz")"
         # 优先启用 systemd-timesyncd
@@ -419,7 +419,7 @@ PubkeyAuthentication yes
 EOF
     success "$(_tf 'The SSH hardening configuration has been written (%s)' "${dropin}")"
 
-    if command_exists systemctl; then
+    if os_has_cmd systemctl; then
         uxs_svc reload sshd 2>/dev/null || uxs_svc reload ssh 2>/dev/null || true
         success "$(_t 'sshd has been reloaded (the configuration applies to new connections)')"
     fi
@@ -461,10 +461,10 @@ do_all() {
 status_sys_setup() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux only)')${NC}"; return
+        uxs_emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux only)')${NC}"; return
     fi
 
-    # ---- 先计算各子项的事实，用于聚合并聚态与 emit_extra ----
+    # ---- 先计算各子项的事实，用于聚合并聚态与 uxs_emit_extra ----
     # 镜像源（现代 Ubuntu/Debian 的发行版源在 sources.list.d/*.sources，需一并检测）
     local mirror_ok=false mirror_val; mirror_val="$(_t 'Default source')"
     if grep -qs "tuna.tsinghua\|mirrors.aliyun\|mirrors.ustc" /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources 2>/dev/null; then
@@ -485,10 +485,10 @@ status_sys_setup() {
             ntp_servers=$(grep '^NTP=' "$ntp_conf" | sed 's/^NTP=//')
         fi
         ntp_val="$ntp_servers (timesyncd)"
-    elif command_exists chronyc 2>/dev/null; then
+    elif os_has_cmd chronyc 2>/dev/null; then
         ntp_backend="chrony"
         ntp_val="$(_t '(chrony, view with chronyc sources)')"
-    elif command_exists ntpq 2>/dev/null; then
+    elif os_has_cmd ntpq 2>/dev/null; then
         ntp_backend="ntpd"
         ntp_val="$(_t '(ntpd, view with ntpq -p)')"
     fi
@@ -501,21 +501,21 @@ status_sys_setup() {
 
     # ---- 聚合主状态：镜像源/fd/ssh 全部 ✅ → configured，否则 not_configured ----
     if $mirror_ok && $fd_ok && $ssh_ok; then
-        emit_status "configured" "${GREEN}$(_t '✅ The system configuration is complete')${NC}"
+        uxs_emit_status "configured" "${GREEN}$(_t '✅ The system configuration is complete')${NC}"
     else
-        emit_status "not_configured" "${YELLOW}$(_t '⚠️  The system configuration is not complete')${NC}"
+        uxs_emit_status "not_configured" "${YELLOW}$(_t '⚠️  The system configuration is not complete')${NC}"
     fi
 
     # ---- 机器模式 EXTRA 行（每个子项一条）----
-    emit_extra "mirror=$mirror_val"
-    emit_extra "timezone=$tz_val"
-    emit_extra "ntp_sync=$ntp_sync"
+    uxs_emit_extra "mirror=$mirror_val"
+    uxs_emit_extra "timezone=$tz_val"
+    uxs_emit_extra "ntp_sync=$ntp_sync"
     if [[ -n "$ntp_backend" ]]; then
-        emit_extra "ntp_backend=$ntp_backend"
-        emit_extra "ntp_servers=$ntp_servers"
+        uxs_emit_extra "ntp_backend=$ntp_backend"
+        uxs_emit_extra "ntp_servers=$ntp_servers"
     fi
-    emit_extra "ulimit=$($fd_ok && echo optimized || echo default)"
-    emit_extra "ssh=$($ssh_ok && echo hardened || echo default)"
+    uxs_emit_extra "ulimit=$($fd_ok && echo optimized || echo default)"
+    uxs_emit_extra "ssh=$($ssh_ok && echo hardened || echo default)"
 
     # ---- 人类模式：保留原始多行配置概览 ----
     if ! uxs_is_machine_mode; then

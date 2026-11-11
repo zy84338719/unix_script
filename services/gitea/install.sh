@@ -31,7 +31,7 @@ GITEA_SSH_PORT="2222"
 # --- 获取最新版本 ---
 get_latest_version() {
     local ver
-    ver=$(github_latest_tag "go-gitea/gitea")
+    ver=$(http_github_latest_tag "go-gitea/gitea")
     if [[ -z "$ver" ]]; then
         error "$(_t 'Cannot fetch the latest version info, check the network connection')"
         return 1
@@ -64,7 +64,7 @@ detect_arch_suffix() {
 
 # --- 检查已有安装 ---
 handle_existing_installation() {
-    if ! command_exists gitea && [[ ! -f "$GITEA_BIN" ]]; then
+    if ! os_has_cmd gitea && [[ ! -f "$GITEA_BIN" ]]; then
         return 0
     fi
     local current_version
@@ -206,7 +206,7 @@ install_gitea() {
     echo "=========================================="
 
     # macOS 优先 brew
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         info "$(_t 'Installing Gitea via Homebrew...')"
         brew install gitea
         brew services start gitea 2>/dev/null || true
@@ -356,7 +356,7 @@ uninstall_gitea() {
             sudo userdel "$GITEA_USER" 2>/dev/null || true
         fi
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        if command_exists brew; then
+        if os_has_cmd brew; then
             brew services stop gitea 2>/dev/null || true
             brew uninstall gitea 2>/dev/null || true
         else
@@ -380,9 +380,9 @@ uninstall_gitea() {
 status_gitea() {
     detect_os
     local is_installed=false is_running=false version=""
-    if command_exists gitea || [[ -f "$GITEA_BIN" ]]; then
+    if os_has_cmd gitea || [[ -f "$GITEA_BIN" ]]; then
         is_installed=true
-        if command_exists gitea; then
+        if os_has_cmd gitea; then
             version=$(gitea --version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Unknown version')")
         fi
     fi
@@ -391,13 +391,13 @@ status_gitea() {
     fi
     if $is_installed; then
         if $is_running; then
-            emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC} ($version)"
+            uxs_emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC} ($version)"
         else
-            emit_status "installed:stopped" "${YELLOW}$(_t '⚠️ Installed but the service is not running')${NC} ($version)"
+            uxs_emit_status "installed:stopped" "${YELLOW}$(_t '⚠️ Installed but the service is not running')${NC} ($version)"
         fi
-        emit_version "$version"
+        uxs_emit_version "$version"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

@@ -48,11 +48,11 @@ pkg_name_for() {
 }
 
 # tealdeer 官方预编译二进制回退（musl 静态链接，glibc/musl 通用）。
-# 信任模型：GitHub 官方 release（HTTPS），github_latest_tag 解析版本以增强可审计性；
+# 信任模型：GitHub 官方 release（HTTPS），http_github_latest_tag 解析版本以增强可审计性；
 # 资产名以 release 页实际清单为准：tealdeer-linux-<arch>-musl.tar.gz
 install_tealdeer_from_release() {
     local ver arch url tmp
-    ver=$(github_latest_tag "tealdeer-rs/tealdeer" 2>/dev/null) || return 1
+    ver=$(http_github_latest_tag "tealdeer-rs/tealdeer" 2>/dev/null) || return 1
     arch=$(uname -m)
     case "$arch" in
         x86_64)        arch="x86_64" ;;
@@ -80,7 +80,7 @@ install_modern_cli() {
     info "$(_t '⚡ Install the modern CLI toolset (bat/eza/rg/fd/fzf/zoxide/starship/tldr/direnv)')"
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        if ! command_exists brew; then
+        if ! os_has_cmd brew; then
             error "macOS $(_t 'Homebrew is required')"
             exit 1
         fi
@@ -97,22 +97,22 @@ install_modern_cli() {
                 success "  ✅ $pkg"
             else
                 # eza/starship 较新，可能需额外方式
-                if [[ "$tool" == "starship" ]] && ! command_exists starship; then
+                if [[ "$tool" == "starship" ]] && ! os_has_cmd starship; then
                     # 信任模型：starship.rs/install.sh 是官方安装器（HTTPS 传输），
                     # 它从 GitHub release 拉取二进制。此处解析并展示目标版本以增强可审计性；
-                    # 若需端到端校验，可用 common.sh 的 github_release_asset_url + verify_sha256
+                    # 若需端到端校验，可用 common.sh 的 http_github_release_asset + net_verify
                     # 直接下载带 .sha256 的 release 资产并校验（资产命名随版本变化，需按需适配）。
                     local starship_ver
-                    starship_ver=$(github_latest_tag "starship/starship" 2>/dev/null || echo "latest")
+                    starship_ver=$(http_github_latest_tag "starship/starship" 2>/dev/null || echo "latest")
                     info "  starship $(_tf 'Installing via the official script (target version: %s)...' "${starship_ver}")"
                     if curl -fsSL https://starship.rs/install.sh | bash -s -- -y >/dev/null 2>&1; then
                         success "  $(_tf '✅ starship (script, %s)' "${starship_ver}")"
                     else
                         warn "  $(_t '⚠️ starship installation failed')"
                     fi
-                elif [[ "$tool" == "eza" ]] && ! command_exists eza; then
+                elif [[ "$tool" == "eza" ]] && ! os_has_cmd eza; then
                     warn "  $(_tf '⚠️ %s is not available in the repository (install it manually from https://github.com/eza-community/eza)' "$pkg")"
-                elif [[ "$tool" == "tealdeer" ]] && ! command_exists tldr; then
+                elif [[ "$tool" == "tealdeer" ]] && ! os_has_cmd tldr; then
                     if install_tealdeer_from_release; then
                         success "  $(_t '✅ tealdeer (official binary)')"
                     else
@@ -123,7 +123,7 @@ install_modern_cli() {
             fi
         done
         # Debian 的 fd-find 命令是 fdfind，建别名
-        if command_exists fdfind && ! command_exists fd; then
+        if os_has_cmd fdfind && ! os_has_cmd fd; then
             local sudo_prefix=""
             [[ $EUID -ne 0 ]] && sudo_prefix="sudo"
             $sudo_prefix ln -sf "$(command -v fdfind)" /usr/local/bin/fd 2>/dev/null || true
@@ -134,7 +134,7 @@ install_modern_cli() {
     configure_shell_integration
 
     # tealdeer 缓存（首次使用前必须更新）
-    if command_exists tldr; then
+    if os_has_cmd tldr; then
         if tldr --update >/dev/null 2>&1; then
             info "tealdeer $(_t 'Cache updated')"
         else
@@ -210,7 +210,7 @@ configure_shell_integration() {
     done
 
     # starship 默认配置（若不存在）
-    if command_exists starship && [[ ! -f "$HOME/.config/starship.toml" ]]; then
+    if os_has_cmd starship && [[ ! -f "$HOME/.config/starship.toml" ]]; then
         mkdir -p "$HOME/.config"
         cat > "$HOME/.config/starship.toml" <<'STARSHIPEOF'
 # unix_script starship 默认配置
@@ -250,22 +250,22 @@ status_modern_cli() {
     local found=0 total=${#TOOLS[@]}
     local missing=() t
     for t in bat eza rg fd fzf zoxide starship tldr direnv; do
-        if command_exists "$t"; then
+        if os_has_cmd "$t"; then
             found=$((found + 1))
         else
             missing+=("$t")
         fi
     done
     if [[ $found -ge $total ]]; then
-        emit_status "installed" "${GREEN}$(_tf '✅ All installed (%s/%s)' "$found" "${total}")${NC}"
+        uxs_emit_status "installed" "${GREEN}$(_tf '✅ All installed (%s/%s)' "$found" "${total}")${NC}"
     elif [[ $found -gt 0 ]]; then
-        emit_status "installed" "${YELLOW}$(_tf '⚠️ Partially installed (%s/%s)' "$found" "${total}")${NC}"
-        emit_extra "installed=$found/$total"
+        uxs_emit_status "installed" "${YELLOW}$(_tf '⚠️ Partially installed (%s/%s)' "$found" "${total}")${NC}"
+        uxs_emit_extra "installed=$found/$total"
         local missing_csv
         missing_csv=$(IFS=,; echo "${missing[*]}")
-        emit_extra "missing=$missing_csv"
+        uxs_emit_extra "missing=$missing_csv"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

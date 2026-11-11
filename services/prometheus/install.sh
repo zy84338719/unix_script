@@ -19,7 +19,7 @@ PROM_PORT=9090
 # --- 获取最新版本 ---
 get_latest_version() {
     local ver
-    ver=$(github_latest_tag "prometheus/prometheus")
+    ver=$(http_github_latest_tag "prometheus/prometheus")
     if [[ -z "$ver" ]]; then
         error "$(_t 'Cannot fetch the latest version info, check the network connection')"
         return 1
@@ -417,13 +417,13 @@ status_prometheus() {
     fi
     if $is_installed; then
         if $is_running; then
-            emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC} (v$version)"
+            uxs_emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC} (v$version)"
         else
-            emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but not running')${NC} (v$version)"
+            uxs_emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but not running')${NC} (v$version)"
         fi
-        emit_version "$version"
+        uxs_emit_version "$version"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

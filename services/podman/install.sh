@@ -54,7 +54,7 @@ has_machine() {
 
 do_install() {
     preflight
-    if command_exists podman; then
+    if os_has_cmd podman; then
         local cur
         cur=$(podman --version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' || true)
         yes_no "$(_tf 'podman %s detected, reinstall?' "${cur:-}")" || { info "$(_t 'Cancelled')"; exit 0; }
@@ -121,7 +121,7 @@ do_unmirror() {
 
 do_uninstall() {
     preflight
-    if ! command_exists podman; then
+    if ! os_has_cmd podman; then
         warn "podman $(_t 'Not installed')"
         exit 0
     fi
@@ -154,8 +154,8 @@ do_uninstall() {
 do_status() {
     # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
     detect_os
-    if ! command_exists podman; then
-        emit_status "not_installed" "$(_t '❌ podman not installed')"
+    if ! os_has_cmd podman; then
+        uxs_emit_status "not_installed" "$(_t '❌ podman not installed')"
         return 0
     fi
     local ver
@@ -167,15 +167,15 @@ do_status() {
                 | grep -oE 'Running|Stopped|Saved' | head -1 || true)
             [[ -z "$mstate" ]] && mstate="present"
         fi
-        emit_status "installed" "$(_t '✅ podman installed') ${ver:-$(_t '(unknown version)')}$(_tf '(machine: %s)' "${mstate}")"
-        emit_version "$ver"
-        emit_extra "machine=$mstate"
+        uxs_emit_status "installed" "$(_t '✅ podman installed') ${ver:-$(_t '(unknown version)')}$(_tf '(machine: %s)' "${mstate}")"
+        uxs_emit_version "$ver"
+        uxs_emit_extra "machine=$mstate"
     else
         local mode="root"
         [[ $EUID -ne 0 ]] && mode="rootless"
-        emit_status "installed" "$(_t '✅ podman installed') ${ver:-$(_t '(unknown version)')}$(_tf '(%s)' "${mode}")"
-        emit_version "$ver"
-        emit_extra "mode=$mode"
+        uxs_emit_status "installed" "$(_t '✅ podman installed') ${ver:-$(_t '(unknown version)')}$(_tf '(%s)' "${mode}")"
+        uxs_emit_version "$ver"
+        uxs_emit_extra "mode=$mode"
     fi
 }
 

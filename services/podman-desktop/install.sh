@@ -33,7 +33,7 @@ do_install() {
         success "$(_t 'Podman Desktop installed to /Applications')"
         info "$(_t 'Container runtime setup: podman machine — ./install.sh podman')"
     else
-        if ! command_exists flatpak; then
+        if ! os_has_cmd flatpak; then
             error "$(_t 'On Linux, Podman Desktop is distributed via Flatpak; please install flatpak (apt/dnf install flatpak) and add the flathub remote first')"
             exit 1
         fi
@@ -56,7 +56,7 @@ do_uninstall() {
             warn "$(_t 'podman-desktop not detected via brew')"
         fi
     else
-        if command_exists flatpak && flatpak list --app 2>/dev/null | grep -q "$FLATPAK_ID"; then
+        if os_has_cmd flatpak && flatpak list --app 2>/dev/null | grep -q "$FLATPAK_ID"; then
             flatpak uninstall -y "$FLATPAK_ID" && success "$(_t 'Podman Desktop uninstalled')"
         else
             warn "$(_t 'Podman Desktop (Flatpak) not detected')"
@@ -69,15 +69,15 @@ do_status() {
     detect_os
     if [[ "$OS_TYPE" == "darwin" ]]; then
         if [[ -d "/Applications/Podman Desktop.app" ]]; then
-            emit_status "installed" "✅ $(_t 'Podman Desktop installed (/Applications)')"
+            uxs_emit_status "installed" "✅ $(_t 'Podman Desktop installed (/Applications)')"
         else
-            emit_status "not_installed" "❌ $(_t 'Podman Desktop not installed')"
+            uxs_emit_status "not_installed" "❌ $(_t 'Podman Desktop not installed')"
         fi
     else
-        if command_exists flatpak && flatpak list --app 2>/dev/null | grep -q "$FLATPAK_ID"; then
-            emit_status "installed" "✅ $(_t 'Podman Desktop installed (Flatpak)')"
+        if os_has_cmd flatpak && flatpak list --app 2>/dev/null | grep -q "$FLATPAK_ID"; then
+            uxs_emit_status "installed" "✅ $(_t 'Podman Desktop installed (Flatpak)')"
         else
-            emit_status "not_installed" "❌ $(_t 'Podman Desktop not installed')"
+            uxs_emit_status "not_installed" "❌ $(_t 'Podman Desktop not installed')"
         fi
     fi
 }

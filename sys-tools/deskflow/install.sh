@@ -79,7 +79,7 @@ install_deskflow_linux() {
 # ---------------- macOS 安装（Homebrew cask）----------------
 install_deskflow_macos() {
     # 确保 brew 可用（brew 不需要 sudo）
-    if ! command_exists brew; then
+    if ! os_has_cmd brew; then
         error "$(_t 'Homebrew not detected. Please install it first: ./install.sh brew  or see https://brew.sh')"
         exit 1
     fi
@@ -130,21 +130,21 @@ status_deskflow() {
     detect_os
     if [[ "$OS_TYPE" == "linux" ]]; then
         if command -v flatpak >/dev/null 2>&1 && flatpak list 2>/dev/null | grep -q org.deskflow.deskflow; then
-            emit_status "installed" "${GREEN}$(_t '✅ Installed (Flatpak)')${NC}"
+            uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed (Flatpak)')${NC}"
         else
-            emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+            uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
         fi
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         # 主检测：/Applications/Deskflow.app（最可靠）；辅助：brew list
         if [[ -d "/Applications/Deskflow.app" ]]; then
-            emit_status "installed" "${GREEN}$(_t '✅ Installed (Homebrew)')${NC}"
-        elif command_exists brew && brew list --cask deskflow >/dev/null 2>&1; then
-            emit_status "installed" "${GREEN}$(_t '✅ Installed (Homebrew)')${NC}"
+            uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed (Homebrew)')${NC}"
+        elif os_has_cmd brew && brew list --cask deskflow >/dev/null 2>&1; then
+            uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed (Homebrew)')${NC}"
         else
-            emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+            uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
         fi
     else
-        emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux / macOS only)')${NC}"
+        uxs_emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux / macOS only)')${NC}"
     fi
 }
 
@@ -156,7 +156,7 @@ uninstall_deskflow_linux() {
 }
 
 uninstall_deskflow_macos() {
-    if ! command_exists brew; then
+    if ! os_has_cmd brew; then
         error "$(_t 'Homebrew not detected, cannot uninstall. Please remove /Applications/Deskflow.app manually')"
         exit 1
     fi

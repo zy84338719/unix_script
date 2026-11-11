@@ -55,7 +55,7 @@ install_redis() {
     preflight
     info "$(_tf 'Installing Redis (in-memory database, default port %s)' "$REDIS_PORT")"
 
-    if command_exists redis-cli; then
+    if os_has_cmd redis-cli; then
         local cur
         cur=$(redis-cli --version 2>/dev/null || printf '%s\n' "$(_t 'installed')")
         warn "$(_tf 'Detected Redis installed (%s)' "$cur")"
@@ -85,7 +85,7 @@ install_redis() {
     fi
 
     # 验证安装
-    if ! command_exists redis-cli; then
+    if ! os_has_cmd redis-cli; then
         error "$(_t 'redis-cli still not found after the install; check PATH')"
         exit 1
     fi
@@ -117,7 +117,7 @@ install_redis() {
 
 uninstall_redis() {
     preflight
-    if ! command_exists redis-cli && ! pkg_installed "$(redis_pkg_name)" 2>/dev/null; then
+    if ! os_has_cmd redis-cli && ! pkg_installed "$(redis_pkg_name)" 2>/dev/null; then
         warn "$(_t 'Redis not installed')"; return 0
     fi
 
@@ -143,8 +143,8 @@ uninstall_redis() {
 }
 
 status_redis() {
-    if ! command_exists redis-cli; then
-        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
+    if ! os_has_cmd redis-cli; then
+        uxs_emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
     fi
 
     local ver
@@ -160,12 +160,12 @@ status_redis() {
     fi
 
     if $running; then
-        emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} $(_tf '(%s, port %s)' "$ver" "$REDIS_PORT")"
-        emit_extra "port=$REDIS_PORT"
+        uxs_emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} $(_tf '(%s, port %s)' "$ver" "$REDIS_PORT")"
+        uxs_emit_extra "port=$REDIS_PORT"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but service not running')${NC} ($ver)"
+        uxs_emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but service not running')${NC} ($ver)"
     fi
-    emit_version "$ver"
+    uxs_emit_version "$ver"
 }
 
 usage() {

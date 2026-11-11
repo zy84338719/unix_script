@@ -22,7 +22,7 @@ preflight() {
         error "$(_tf 'Cockpit is Linux-only (requires systemd). Current: %s' "$OS_TYPE")"
         exit 1
     fi
-    if ! command_exists systemctl; then
+    if ! os_has_cmd systemctl; then
         error "$(_t 'systemctl (systemd) is required.')"
         exit 1
     fi
@@ -34,7 +34,7 @@ install_cockpit() {
     detect_pkg_manager
     info "$(_t 'Starting Cockpit installation (package manager: ')${PKG_MANAGER}$(_t ')')"
 
-    if command_exists cockpit-bridge 2>/dev/null || rpm -q cockpit >/dev/null 2>&1 || dpkg -s cockpit >/dev/null 2>&1; then
+    if os_has_cmd cockpit-bridge 2>/dev/null || rpm -q cockpit >/dev/null 2>&1 || dpkg -s cockpit >/dev/null 2>&1; then
         warn "$(_t 'Detected Cockpit installed')"
         if ! yes_no "$(_t 'Continue and reinstall/update?')"; then
             info "$(_t 'Cancelled')"; return 0
@@ -47,7 +47,7 @@ install_cockpit() {
         exit 1
     fi
 
-    if ! command_exists cockpit-bridge 2>/dev/null; then
+    if ! os_has_cmd cockpit-bridge 2>/dev/null; then
         error "$(_t 'Install failed: cockpit-bridge not found')"
         exit 1
     fi
@@ -56,12 +56,12 @@ install_cockpit() {
     uxs_svc enable-now cockpit.socket 2>/dev/null || uxs_svc enable-now cockpit 2>/dev/null || true
 
     # 放行防火墙（若存在）
-    if command_exists firewall-cmd; then
+    if os_has_cmd firewall-cmd; then
         sudo firewall-cmd --add-service=cockpit --permanent 2>/dev/null || true
         sudo firewall-cmd --reload 2>/dev/null || true
         success "$(_t 'Firewall cockpit service allowed')"
     fi
-    if command_exists ufw; then
+    if os_has_cmd ufw; then
         sudo ufw allow "$COCKPIT_PORT"/tcp 2>/dev/null || true
         success "$(_tf 'Allowed ufw %s/tcp' "$COCKPIT_PORT")"
     fi
@@ -95,7 +95,7 @@ uninstall_cockpit() {
     uxs_svc disable-now cockpit.socket 2>/dev/null || true
     uxs_svc disable-now cockpit 2>/dev/null || true
     pkg_remove cockpit 2>/dev/null || warn "$(_t 'Failed to remove cockpit package, uninstall it manually')"
-    if command_exists firewall-cmd; then
+    if os_has_cmd firewall-cmd; then
         sudo firewall-cmd --remove-service=cockpit --permanent 2>/dev/null || true
         sudo firewall-cmd --reload 2>/dev/null || true
     fi
@@ -105,15 +105,15 @@ uninstall_cockpit() {
 status_cockpit() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"; return
+        uxs_emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"; return
     fi
-    if ! command_exists cockpit-bridge 2>/dev/null && ! rpm -q cockpit >/dev/null 2>&1 && ! dpkg -s cockpit >/dev/null 2>&1; then
-        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
+    if ! os_has_cmd cockpit-bridge 2>/dev/null && ! rpm -q cockpit >/dev/null 2>&1 && ! dpkg -s cockpit >/dev/null 2>&1; then
+        uxs_emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
     fi
     if uxs_svc is-active cockpit.socket 2>/dev/null || uxs_svc is-active cockpit 2>/dev/null; then
-        emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
+        uxs_emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed (socket mode, activates on access)')${NC}"
+        uxs_emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed (socket mode, activates on access)')${NC}"
     fi
 }
 

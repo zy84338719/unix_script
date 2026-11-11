@@ -4,8 +4,14 @@
 
 ## [Unreleased]
 
+### 新增
+- **文案全量国际化（gettext）**：78 个模块的文案全部改走 `_t` —— msgid 一律英文，译文取迁移前的中文原文（**输出一字未改**）。新增 `tools/check_i18n_extract.sh` 门禁：判据一「源码里每条 msgid 都进了 pot」、判据二「pot 里每条都有非空 zh_CN 译文」—— 专堵 gettext 整条漏抽（静默回落英文、没有任何报错）那类无声缺陷。CI static 阶段接入 5 道 i18n 门禁：漂移（无硬编码中文）/ 串味（译文没串到别的模块）/ 保真（译文与迁移前原文逐字对得上）/ 抽取完整性 / 占位符个数一致
+
 ### 修复
 - `node_exporter` macOS 重跑不升级（实机复现：10.10.10.99 停留在 v1.9.1，重跑 install 报「安装完成」但版本纹丝不动）：`brew install` 对已安装的 formula 是 no-op（提示 already installed 后 exit 0），`brew services start` 对已运行的服务同理（提示 already started 后 exit 0），两者都不报错，脚本照常报成功。改为已装走 `brew upgrade`（失败回退 `reinstall`），并按服务真实状态 restart/start
+- `nvm` 卸载时用中文「nvm 配置」做 `sed` 匹配标记 ⇒ 中文 locale 的用户卸载后 rc 残留永远删不掉。改为只匹配语言无关标识（`NVM_DIR`/`nvm.sh`/`bash_completion`）
+- 9 处 `echo "$(_t …)"` 触发 shellcheck SC2005（CI 会红）⇒ 全改 `printf '%s\n'`；另有 4 处跨模块 msgid 撞车（同 msgid 对应不同中文，必有一错）⇒ msgid 改得更具体
+- macOS 上 CI routing 有一道断言恒红：正则是 ERE，源码里的字面 `||`（短路符）在 ERE 里是「空分支」—— BSD grep（macOS）直接报 `empty (sub)expression` 退出 2，GNU grep（Linux）却收下 ⇒ 同一份断言在两个平台判据能力不同。改成字符类写法（`[(]…[])` / `[|][|]`），两边行为一致
 - `node_exporter` 停止旧服务可能漏掉 brew 装的那份：它在 `/opt/homebrew/bin`，非交互 shell 或别的账号下不在 PATH，原来的 `if ! command -v node_exporter; then return 0` 早返回会直接跳过停服，brew 服务的 9100 与新装进程冲突。改为独立探测 brew 服务状态；且改为**先问「是否继续」再停**，取消安装不会先把服务停了
 - `node_exporter` brew 路径读完版本后打印实际装上的版本，并在 brew 落后于官方最新 tag 时显式告警具体差距（`官方最新 vX / brew 当前提供 vY`）——Homebrew Core 同步上游有延迟，不报出来的话「已装到最新版」就是句空头承诺
 
@@ -14,6 +20,9 @@
 - **框架层退出码统一到 shellkit 口径（行为变化）**：未知模块/模块不存在、平台不适用、缺命令 → `3`（前置不满足）；用法错（参数不对、未知子命令）→ `2`；网络失败 → `4`；校验失败 → `5`；一般错误仍为 `1`。状态类子命令（`--status` / `--status-json` / `status`）恒 `0` 的纪律不变。**输出文案逐字未变**，变的只是退出码分类——写脚本判断失败原因时，要从「一律 1」改成按码判断
 - `lib/` 的通用能力下沉到 shellkit：仓库内自带 `vendor/shellkit/` 副本（随仓分发，`tools/check_vendor.sh` 三层门禁防漂移），OS/发行版/桌面检测、包管理、服务管理、sha256 校验、下载、超时、i18n、状态契约、模块注册表与依赖拓扑、profile 原语统一走 shellkit 实现；unix_script 只保留 78 个模块的领域逻辑与交互呈现
 - 注册表字段不再用 `eval` 动态变量存储（改为 shellkit 的 registry 索引）：`_REG_<模块>_<字段>` 这类内部变量不再存在（`_reg_get` 保留为兼容入口）
+- **删掉 `lib/uxs_compat.sh` 转发门面**：Stage 1 为「模块还没迁完」留的过渡层（旧函数名转发给 shellkit）随 78 个模块迁完一并删除。模块里 12 处纯转发的调用点直接改用 shellkit 的 API：`command_exists`→`os_has_cmd`、`emit_status`/`emit_version`/`emit_extra`→`uxs_emit_status`/`uxs_emit_version`/`uxs_emit_extra`、`github_latest_tag`→`http_github_latest_tag`、`github_release_asset_url`→`http_github_release_asset`、`uxs_os_release`→`os_release_field`、`verify_sha256`→`net_verify`、`version_gt`→`ver_gt`、`uxs_with_timeout`/`uxs_func_with_timeout`→`run_timeout`/`run_func_timeout`。**输出与退出码逐字未变**（转发本来就是逐字等价的）
+- lib 层只剩两个文件、且都不实现能力：`lib/uxs_platform.sh`（shellkit 的平台/架构/包管理能力 → unix_script 的全局变量口径，以及 unix_script 自己的文案与退出码）、`lib/uxs_status.sh`（状态输出转发到 shellkit 的 `status_*`，只做旋钮名映射 `UXS_STATUS_MODE`→`SHELLKIT_STATUS_MODE`）
+- `uxs list --full` 的子命令列改准了：`sys-cmd`/`clash`/`multi-net` 现在报的是模块**真实**支持的子命令（此前报的是启发式兜底列表，例如 `sys-cmd` 的 `all status uninstall`）。起因是 i18n 迁移把几处中文「用法: …」错误文案译成了英文，`module_subcommands` 的锚点匹配（取第一行含 `用法:` 的行）因此命中了真正的用法行而不是错误提示行。行为基线已按新输出重采并更新登记（Linux 基线另用 `debian:12` 容器重采核对，逐字节一致）
 
 ## [1.21.0] - 2026-09-20
 

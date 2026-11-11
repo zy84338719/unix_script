@@ -20,7 +20,7 @@ header "🔍 $(_tf 'Go code analysis: %s' "$TARGET")"
 echo
 
 # golangci-lint
-if command_exists golangci-lint; then
+if os_has_cmd golangci-lint; then
     info "$(_t 'Running golangci-lint...')"
     if golangci-lint run "$TARGET/..." 2>&1; then
         success "  $(_t 'golangci-lint: passed')"
@@ -35,7 +35,7 @@ fi
 echo
 
 # gosec
-if command_exists gosec; then
+if os_has_cmd gosec; then
     info "$(_t 'Running gosec (security scan)...')"
     if gosec "$TARGET/..." 2>&1; then
         success "  $(_t 'gosec: passed')"

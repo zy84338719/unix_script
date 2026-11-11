@@ -21,7 +21,7 @@ RESTIC_BIN="/usr/local/bin/restic"
 
 # --- 检查已有安装 ---
 handle_existing_installation() {
-    if ! command_exists restic; then
+    if ! os_has_cmd restic; then
         return 0
     fi
     local current_version
@@ -40,7 +40,7 @@ install_from_github() {
 
     info "$(_t 'Fetching the latest version info...')"
     local latest
-    latest=$(github_latest_tag "restic/restic")
+    latest=$(http_github_latest_tag "restic/restic")
     if [[ -z "$latest" ]]; then
         error "$(_t 'Cannot fetch the latest version info, check the network connection')"
         exit 1
@@ -100,7 +100,7 @@ install_restic() {
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
         # macOS 优先 brew
-        if command_exists brew; then
+        if os_has_cmd brew; then
             info "$(_t 'Installing Restic via Homebrew...')"
             brew install restic
         else
@@ -139,7 +139,7 @@ install_restic() {
         esac
     fi
 
-    if ! command_exists restic; then
+    if ! os_has_cmd restic; then
         error "$(_t 'The restic command was not found after the install, check PATH')"
         exit 1
     fi
@@ -181,7 +181,7 @@ uninstall_restic() {
         return 0
     fi
 
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         brew uninstall restic 2>/dev/null || true
     elif [[ -f "$RESTIC_BIN" ]]; then
         require_sudo
@@ -198,15 +198,15 @@ uninstall_restic() {
 status_restic() {
     detect_os
     local installed=false version=""
-    if command_exists restic; then
+    if os_has_cmd restic; then
         installed=true
         version=$(restic version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Unknown version')")
     fi
     if $installed; then
-        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ($version)"
-        emit_version "$version"
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ($version)"
+        uxs_emit_version "$version"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

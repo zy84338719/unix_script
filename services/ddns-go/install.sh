@@ -50,8 +50,8 @@ install_ddns_go() {
     echo "=========================================="
 
     info "$(_t 'Fetching latest version info...')"
-    # 复用 common.sh 的 github_latest_tag（jq 优先 + grep 回退 + GH_TOKEN 认证）
-    latest_tag=$(github_latest_tag "jeessy2/ddns-go")
+    # 复用 common.sh 的 http_github_latest_tag（jq 优先 + grep 回退 + GH_TOKEN 认证）
+    latest_tag=$(http_github_latest_tag "jeessy2/ddns-go")
     if [[ -z "$latest_tag" ]]; then
         error "$(_t 'Unable to fetch latest version info, check network connection or API rate limit')"
         exit 1
@@ -78,9 +78,9 @@ install_ddns_go() {
         ;;
     esac
 
-    # 复用 common.sh 的 github_release_asset_url（jq 优先，回退 grep+sed，
+    # 复用 common.sh 的 http_github_release_asset（jq 优先，回退 grep+sed，
     # 替代脆弱的 cut -d'"' -f4 字段下标）
-    download_url=$(github_release_asset_url "jeessy2/ddns-go" "$arch_suffix.tar.gz")
+    download_url=$(http_github_release_asset "jeessy2/ddns-go" "$arch_suffix.tar.gz")
     if [[ -z "$download_url" ]]; then
         error "$(_tf 'No download link found for %s' "$arch_suffix")"; exit 1
     fi
@@ -219,13 +219,13 @@ status_ddns_go() {
     fi
     if $is_installed; then
         if $is_running; then
-            emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} ($version)"
+            uxs_emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} ($version)"
         else
-            emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but not running')${NC} ($version)"
+            uxs_emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but not running')${NC} ($version)"
         fi
-        emit_version "$version"
+        uxs_emit_version "$version"
     else
-        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
     fi
 }
 

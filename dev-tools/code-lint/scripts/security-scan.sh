@@ -17,7 +17,7 @@ TARGET="${1:-.}"
 header "🔍 $(_tf 'Cross-language security scan (semgrep): %s' "$TARGET")"
 echo
 
-if ! command_exists semgrep; then
+if ! os_has_cmd semgrep; then
     error "$(_t 'semgrep is not installed')"
     info "$(_t 'Install: ./install.sh install-semgrep')"
     exit 1

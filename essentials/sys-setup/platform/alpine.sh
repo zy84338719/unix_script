@@ -4,7 +4,7 @@
 
 plat_mirror_preview() {
     local ver
-    ver=$(uxs_os_release VERSION_ID)
+    ver=$(os_release_field VERSION_ID)
     echo "  1. $(_t 'Back up /etc/apk/repositories')"
     echo "  2. $(_tf 'Rewrite to Tsinghua TUNA (v%s main + community)' "$ver")"
     echo "  3. sudo apk update"
@@ -12,7 +12,7 @@ plat_mirror_preview() {
 
 plat_mirror_apply() {
     local ver ts
-    ver=$(uxs_os_release VERSION_ID)
+    ver=$(os_release_field VERSION_ID)
     [[ -z "$ver" ]] && ver="latest-stable"
     ts=$(date +%s)
     sudo cp -a /etc/apk/repositories "/etc/apk/repositories.bak.$ts" 2>/dev/null || true

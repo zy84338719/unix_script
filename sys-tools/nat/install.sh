@@ -47,7 +47,7 @@ preflight() {
 
 # 确保 iptables 可用
 ensure_iptables() {
-    if ! command_exists iptables; then
+    if ! os_has_cmd iptables; then
         error "$(_t 'The iptables command was not found, please install it first:')"
         echo "  apt-get install -y iptables    # Debian/Ubuntu"
         echo "  dnf install -y iptables         # CentOS/RHEL"
@@ -423,7 +423,7 @@ do_uninstall() {
 do_status() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}$(_t 'Not applicable (Linux only)')${NC}"
+        uxs_emit_status "n/a" "${YELLOW}$(_t 'Not applicable (Linux only)')${NC}"
         return
     fi
 
@@ -452,14 +452,14 @@ do_status() {
 
     # ---- 聚合主状态：转发规则数>0 → configured；否则 not_configured ----
     if [[ ${rule_count:-0} -gt 0 ]]; then
-        emit_status "configured" "${GREEN}$(_t '✅ NAT configured')${NC}$(_tf '(%s forwarding rules)' "$rule_count")"
+        uxs_emit_status "configured" "${GREEN}$(_t '✅ NAT configured')${NC}$(_tf '(%s forwarding rules)' "$rule_count")"
     else
-        emit_status "not_configured" "${YELLOW}$(_t '⚠️  NAT not configured')${NC}$(_t '(no forwarding rules)')"
+        uxs_emit_status "not_configured" "${YELLOW}$(_t '⚠️  NAT not configured')${NC}$(_t '(no forwarding rules)')"
     fi
-    emit_extra "ip_forward=$fwd"
-    emit_extra "rules=$rule_count"
-    emit_extra "gateways=$gw_count"
-    emit_extra "service=$svc_state"
+    uxs_emit_extra "ip_forward=$fwd"
+    uxs_emit_extra "rules=$rule_count"
+    uxs_emit_extra "gateways=$gw_count"
+    uxs_emit_extra "service=$svc_state"
 
     # ---- 人类模式：保留原始多行概览 + 详细规则表 ----
     if ! uxs_is_machine_mode; then

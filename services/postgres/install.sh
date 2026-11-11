@@ -67,7 +67,7 @@ install_postgres() {
     preflight
     info "$(_tf 'Install PostgreSQL (relational database, default port %s)' "${PG_PORT}")"
 
-    if command_exists psql; then
+    if os_has_cmd psql; then
         local cur
         cur=$(psql --version 2>/dev/null || printf '%s\n' "$(_t 'Installed')")
         warn "$(_tf 'PostgreSQL detected (%s)' "${cur}")"
@@ -111,7 +111,7 @@ install_postgres() {
     fi
 
     # 验证安装
-    if ! command_exists psql; then
+    if ! os_has_cmd psql; then
         error "$(_t 'psql is still not found after the install, check PATH')"
         exit 1
     fi
@@ -148,7 +148,7 @@ install_postgres() {
 
 uninstall_postgres() {
     preflight
-    if ! command_exists psql && ! pkg_installed "$(pg_pkg_names | awk '{print $1}')" 2>/dev/null; then
+    if ! os_has_cmd psql && ! pkg_installed "$(pg_pkg_names | awk '{print $1}')" 2>/dev/null; then
         warn "PostgreSQL $(_t 'Not installed')"; return 0
     fi
 
@@ -186,8 +186,8 @@ uninstall_postgres() {
 }
 
 status_postgres() {
-    if ! command_exists psql; then
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"; return
+    if ! os_has_cmd psql; then
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"; return
     fi
 
     local ver
@@ -199,12 +199,12 @@ status_postgres() {
     fi
 
     if $running; then
-        emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC} ($ver, $(_tf 'port %s)' "$PG_PORT")"
-        emit_extra "port=$PG_PORT"
+        uxs_emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC} ($ver, $(_tf 'port %s)' "$PG_PORT")"
+        uxs_emit_extra "port=$PG_PORT"
     else
-        emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but the service is not running')${NC} ($ver)"
+        uxs_emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but the service is not running')${NC} ($ver)"
     fi
-    emit_version "$ver"
+    uxs_emit_version "$ver"
 }
 
 usage() {

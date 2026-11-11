@@ -21,7 +21,7 @@ WEB_PORT=3001
 
 preflight() {
     detect_os
-    if ! command_exists docker; then
+    if ! os_has_cmd docker; then
         error "$(_t 'Docker not detected. Install Docker first (you can use the docker module of this project).')"
         exit 1
     fi
@@ -94,16 +94,16 @@ uninstall_uptime_kuma() {
 
 status_uptime_kuma() {
     detect_os
-    if ! command_exists docker; then
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed (Docker required)')${NC}"; return
+    if ! os_has_cmd docker; then
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed (Docker required)')${NC}"; return
     fi
     # docker CLI 走 socket 无需 sudo；status 查询绝不弹密码
     if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
-        emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC}"
+        uxs_emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC}"
     elif docker ps -a --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
-        emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  The container was created but is not running')${NC}"
+        uxs_emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  The container was created but is not running')${NC}"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

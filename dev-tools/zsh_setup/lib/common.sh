@@ -38,7 +38,7 @@ detect_framework() {
         echo "prezto"
     elif [ -d "$HOME/.local/share/zinit" ] || [ -d "$HOME/.zinit" ]; then
         echo "zinit"
-    elif command_exists sheldon; then
+    elif os_has_cmd sheldon; then
         echo "sheldon"
     else
         echo "none"

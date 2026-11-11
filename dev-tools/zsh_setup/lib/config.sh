@@ -190,7 +190,7 @@ config_import() {
     info "$(_t 'Importing the config...')"
 
     # 验证 JSON 格式
-    if ! command_exists jq; then
+    if ! os_has_cmd jq; then
         warn "$(_t 'jq is not installed, skipping JSON validation')"
     else
         if ! jq . "$import_file" > /dev/null 2>&1; then

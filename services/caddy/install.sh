@@ -75,7 +75,7 @@ install_caddy() {
     info "$(_t 'Caddy Web server install script')"
     echo "=========================================="
 
-    if command_exists caddy; then
+    if os_has_cmd caddy; then
         local cur
         cur=$(caddy version 2>/dev/null | head -1 || printf '%s' "$(_t 'Unknown version')")
         warn "$(_t 'Detected Caddy installed (')${cur}$(_t ')')"
@@ -86,7 +86,7 @@ install_caddy() {
     fi
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        if ! command_exists brew; then
+        if ! os_has_cmd brew; then
             error "$(_t 'Homebrew is required on macOS:') https://brew.sh/"
             exit 1
         fi
@@ -109,7 +109,7 @@ install_caddy() {
         uxs_svc enable-now caddy 2>/dev/null || true
     fi
 
-    if ! command_exists caddy; then
+    if ! os_has_cmd caddy; then
         error "$(_t 'caddy command not found after install, check PATH')"
         exit 1
     fi
@@ -188,8 +188,8 @@ uninstall_caddy() {
 # --- 状态检查 ---
 status_caddy() {
     detect_os
-    if ! command_exists caddy; then
-        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
+    if ! os_has_cmd caddy; then
+        uxs_emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
         return
     fi
     local version
@@ -199,11 +199,11 @@ status_caddy() {
         running=true
     fi
     if $running; then
-        emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} ($version)"
+        uxs_emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} ($version)"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but service not running')${NC} ($version)"
+        uxs_emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but service not running')${NC} ($version)"
     fi
-    emit_version "$version"
+    uxs_emit_version "$version"
 }
 
 # --- 用法 ---

@@ -26,7 +26,7 @@ install_ollama() {
     preflight
     info "$(_t '🧠 Installing Ollama (the local large model runtime)')"
 
-    if command_exists ollama; then
+    if os_has_cmd ollama; then
         local cur
         cur=$(ollama --version 2>/dev/null || printf '%s\n' "$(_t 'Installed')")
         warn "$(_tf 'Ollama detected (%s)' "${cur}")"
@@ -36,7 +36,7 @@ install_ollama() {
     fi
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        if command_exists brew; then
+        if os_has_cmd brew; then
             info "$(_t 'Installing ollama via Homebrew...')"
             brew install ollama
         else
@@ -53,7 +53,7 @@ install_ollama() {
         fi
     fi
 
-    if ! command_exists ollama; then
+    if ! os_has_cmd ollama; then
         error "$(_t 'ollama was not found after the installation, reopen the terminal or check PATH')"
         exit 1
     fi
@@ -81,8 +81,8 @@ do_pull() {
 
 do_status() {
     detect_os
-    if ! command_exists ollama; then
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"; return
+    if ! os_has_cmd ollama; then
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"; return
     fi
     local running=false
     if [[ "$OS_TYPE" == "linux" ]]; then
@@ -97,14 +97,14 @@ do_status() {
     # 取不到版本号就回落成空值。
     ver=$(ollama --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | sed -n '1p') || ver=""
     if $running; then
-        emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC}"
+        uxs_emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but the service is not running')${NC}"
+        uxs_emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but the service is not running')${NC}"
     fi
     # 收尾用 if 而不是 `[[ -n "$ver" ]] && ...`：后者在版本号为空时返回 1，
     # 会让 status 子命令整体退出 1（同样是「status 恒 0」契约）。
     if [[ -n "$ver" ]]; then
-        emit_version "$ver"
+        uxs_emit_version "$ver"
     fi
     return 0
 }
@@ -112,7 +112,7 @@ do_status() {
 uninstall_ollama() {
     preflight
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        command_exists brew && brew uninstall ollama 2>/dev/null
+        os_has_cmd brew && brew uninstall ollama 2>/dev/null
         success "$(_t 'ollama has been uninstalled (macOS)')"
         return 0
     fi

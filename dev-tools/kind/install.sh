@@ -34,7 +34,7 @@ arch_for_kind() {
 
 do_install() {
     preflight
-    if command_exists kind; then
+    if os_has_cmd kind; then
         yes_no "$(_t 'kind detected, overwrite it with the latest version?')" || { info "$(_t 'Cancelled')"; exit 0; }
     fi
 
@@ -44,12 +44,12 @@ do_install() {
     else
         info "$(_t 'Fetching the latest kind version (GitHub API)...')"
         local ver
-        ver=$(github_latest_tag "$REPO")
+        ver=$(http_github_latest_tag "$REPO")
         [[ -n "$ver" ]] || { error "$(_t 'Cannot fetch the version number (GitHub is unreachable or rate limited), you can set GH_TOKEN and retry')"; exit 1; }
         local arch
         arch=$(arch_for_kind)
         local url
-        url=$(github_release_asset_url "$REPO" "kind-linux-${arch}\$")
+        url=$(http_github_release_asset "$REPO" "kind-linux-${arch}\$")
         [[ -n "$url" ]] || { error "$(_tf 'asset kind-linux-%s not found' "${arch}")"; exit 1; }
         info "$(_tf 'Downloading %s ...' "$url")"
         local tmp
@@ -59,14 +59,14 @@ do_install() {
         sudo install -m 0755 "$tmp" "$BIN"
         success "kind v$ver $(_tf 'Installed to %s' "$BIN")"
     fi
-    if ! command_exists docker; then
+    if ! os_has_cmd docker; then
         warn "$(_t 'docker was not detected — kind needs it to create a cluster: ./install.sh docker')"
     fi
     info "$(_t 'Try it: kind create cluster --name demo')"
 }
 
 do_uninstall() {
-    if command_exists kind; then
+    if os_has_cmd kind; then
         info "$(_t 'Note: uninstalling kind does not affect the clusters already created, delete them with: kind delete clusters --all')"
     fi
     if [[ "$OS_TYPE" == "darwin" ]]; then
@@ -87,14 +87,14 @@ do_uninstall() {
 do_status() {
     # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
     detect_os
-    if ! command_exists kind; then
-        emit_status "not_installed" "$(_t '❌ kind is not installed')"
+    if ! os_has_cmd kind; then
+        uxs_emit_status "not_installed" "$(_t '❌ kind is not installed')"
         return 0
     fi
     local ver
     ver=$(kind version 2>/dev/null | grep -m1 -oE 'v[0-9]+(\.[0-9]+)+' || true)
-    emit_status "installed" "$(_t '✅ kind is installed') ${ver:-$(_t '(unknown version)')}"
-    emit_version "${ver#v}"
+    uxs_emit_status "installed" "$(_t '✅ kind is installed') ${ver:-$(_t '(unknown version)')}"
+    uxs_emit_version "${ver#v}"
 }
 
 do_help() {

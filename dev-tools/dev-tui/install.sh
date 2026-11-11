@@ -38,7 +38,7 @@ arch_go_suffix() {
 install_one() {
     local repo="$1" tool="$2"
     local arch version url tmpdir suffix capos
-    version=$(github_latest_tag "$repo")
+    version=$(http_github_latest_tag "$repo")
     if [[ -z "$version" ]]; then
         error "$(_tf 'Cannot get the latest version of %s (check the network or set GH_TOKEN)' "$tool")"
         return 1
@@ -87,7 +87,7 @@ install_dev_tui() {
     info "$(_t '🚀 Starting the installation of the terminal TUI tools (lazydocker + lazygit)')"
 
     # macOS 优先 brew
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         info "$(_t 'Installing via Homebrew...')"
         brew install lazydocker lazygit
         success "lazydocker + lazygit $(_t 'Installation complete (managed by brew)')"
@@ -136,12 +136,12 @@ status_dev_tui() {
         fi
     done
     if [[ $installed -eq ${#TOOLS[@]} ]]; then
-        emit_status "installed" "${GREEN}$(_t '✅ lazydocker + lazygit are installed')${NC}"
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ lazydocker + lazygit are installed')${NC}"
     elif [[ $installed -gt 0 ]]; then
-        emit_status "installed" "${YELLOW}$(_tf '⚠️  partially installed (%s/%s)' "$installed" "${#TOOLS[@]}")${NC}"
-        emit_extra "installed=$installed/${#TOOLS[@]}"
+        uxs_emit_status "installed" "${YELLOW}$(_tf '⚠️  partially installed (%s/%s)' "$installed" "${#TOOLS[@]}")${NC}"
+        uxs_emit_extra "installed=$installed/${#TOOLS[@]}"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

@@ -27,7 +27,7 @@ preflight() {
 
 setup_apt_repo() {
     local codename
-    codename=$(uxs_os_release VERSION_CODENAME)
+    codename=$(os_release_field VERSION_CODENAME)
     case "$codename" in
         # TUNA mongodb apt 仓库支持的 Ubuntu/Debian 代号
         jammy|noble|bookworm|trixie) ;;
@@ -43,7 +43,7 @@ setup_apt_repo() {
 
 setup_yum_repo() {
     local elver
-    elver=$(uxs_os_release VERSION_ID | cut -d. -f1)
+    elver=$(os_release_field VERSION_ID | cut -d. -f1)
     cat <<EOF | sudo tee /etc/yum.repos.d/mongodb-org-${MONGO_SERIES}.repo >/dev/null
 [mongodb-org-${MONGO_SERIES}]
 name=MongoDB Repository
@@ -57,7 +57,7 @@ EOF
 
 do_install() {
     preflight
-    if command_exists mongod; then
+    if os_has_cmd mongod; then
         local cur
         cur=$(mongod --version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' || true)
         yes_no "$(_tf 'MongoDB %s detected, reinstall?' "${cur:-}")" || { info "$(_t 'Cancelled')"; exit 0; }
@@ -80,7 +80,7 @@ do_install() {
 
 do_uninstall() {
     preflight
-    if ! command_exists mongod; then
+    if ! os_has_cmd mongod; then
         warn "MongoDB $(_t 'Not installed')"
         exit 0
     fi
@@ -101,18 +101,18 @@ do_uninstall() {
 do_status() {
     # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
     detect_os
-    if ! command_exists mongod; then
-        emit_status "not_installed" "$(_t '❌ MongoDB not installed')"
+    if ! os_has_cmd mongod; then
+        uxs_emit_status "not_installed" "$(_t '❌ MongoDB not installed')"
         return 0
     fi
     local ver
     ver=$(mongod --version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' | head -1 || true)
     if uxs_svc is-active mongod 2>/dev/null; then
-        emit_status "installed:running" "$(_t '✅ MongoDB installed and the service is running') ${ver:-$(_t '(unknown version)')}"
+        uxs_emit_status "installed:running" "$(_t '✅ MongoDB installed and the service is running') ${ver:-$(_t '(unknown version)')}"
     else
-        emit_status "installed:stopped" "$(_t '⚠️ MongoDB installed but the service is not running') ${ver:-$(_t '(unknown version)')}"
+        uxs_emit_status "installed:stopped" "$(_t '⚠️ MongoDB installed but the service is not running') ${ver:-$(_t '(unknown version)')}"
     fi
-    emit_version "${ver#v}"
+    uxs_emit_version "${ver#v}"
 }
 
 do_help() {

@@ -60,7 +60,7 @@ install_clash() {
     info "$(_t '🚀 Installing mihomo (clash.meta)')"
 
     local version suffix url tmpdir
-    version=$(github_latest_tag "$REPO")
+    version=$(http_github_latest_tag "$REPO")
     if [[ -z "$version" ]]; then
         error "$(_t 'Cannot fetch the latest mihomo version (check the network or set GH_TOKEN)')"
         exit 1
@@ -234,15 +234,15 @@ do_restart() { preflight; require_sudo; uxs_svc restart "$SERVICE_NAME"; success
 status_clash() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux only)')${NC}"; return
+        uxs_emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux only)')${NC}"; return
     fi
     if [[ ! -x "$BIN" ]]; then
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"; return
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"; return
     fi
     if uxs_svc is-active "$SERVICE_NAME" 2>/dev/null; then
-        emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC}"
+        uxs_emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but not running')${NC}"
+        uxs_emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but not running')${NC}"
     fi
 }
 

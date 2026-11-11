@@ -54,5 +54,5 @@ process_manager_tool	install uninstall status help	智能搜索和管理系统�
 restic	install uninstall status help	增量加密备份工具
 safe-rm	install on off status uninstall help	安全删除替代 rm，防误删
 shutdown_timer	install status uninstall 	定时 / 倒计时关机管理
-sys-cmd	all status uninstall 	系统诊断命令集（cpu/mem/port/disk/net）
+sys-cmd	cpu mem port ports disk du net top logs all menu status help	系统诊断命令集（cpu/mem/port/disk/net）
 upftp	install uninstall status help	轻量级 FTP 文件分享工具

@@ -237,7 +237,7 @@ status_batch_query() {
     for mod in "$@"; do
         (
             local raw=""
-            raw=$(uxs_func_with_timeout "$timeout" module_status_raw "$mod") || raw=""
+            raw=$(run_func_timeout "$timeout" module_status_raw "$mod") || raw=""
             printf '%s' "$raw" > "$tmpdir/$mod"
         ) &
         running=$((running + 1))

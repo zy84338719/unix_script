@@ -63,7 +63,7 @@ install_pkgs() {
 
     # macOS：用 brew（brew 本身不需 sudo）
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        if ! command_exists brew; then
+        if ! os_has_cmd brew; then
             error "macOS $(_t 'Homebrew is required. Install it first: https://brew.sh/')"
             exit 1
         fi
@@ -81,7 +81,7 @@ install_pkgs() {
     # 逐个安装（容错：个别包缺失不中断）
     info "$(_tf 'Installing the essential tools (package manager: %s)...' "${PKG_MANAGER}")"
     for t in "${ESSENTIAL_TOOLS[@]}" "${LINUX_EXTRA[@]}"; do
-        if ! command_exists "$t" 2>/dev/null; then
+        if ! os_has_cmd "$t" 2>/dev/null; then
             pkg=$(pkg_name_for "$t")
             if ! pkg_install "$pkg" >/dev/null 2>&1; then
                 missing_pkgs+=("$pkg")
@@ -127,16 +127,16 @@ status_pkgs() {
     detect_os
     local missing=() t
     for t in "${ESSENTIAL_TOOLS[@]}"; do
-        command_exists "$t" 2>/dev/null || missing+=("$t")
+        os_has_cmd "$t" 2>/dev/null || missing+=("$t")
     done
     if [[ ${#missing[@]} -eq 0 ]]; then
-        emit_status "installed" "${GREEN}$(_t '✅ All the essential tools are installed')${NC}"
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ All the essential tools are installed')${NC}"
     else
-        emit_status "not_installed" "${YELLOW}$(_tf '⚠️  Missing: %s' "${missing[*]}")${NC}"
+        uxs_emit_status "not_installed" "${YELLOW}$(_tf '⚠️  Missing: %s' "${missing[*]}")${NC}"
         # 缺少的工具列表：逗号分隔，机器模式 EXTRA 行
         local missing_csv
         missing_csv=$(IFS=,; echo "${missing[*]}")
-        emit_extra "missing=$missing_csv"
+        uxs_emit_extra "missing=$missing_csv"
     fi
 }
 

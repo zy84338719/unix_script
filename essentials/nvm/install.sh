@@ -23,10 +23,10 @@ preflight() {
 }
 
 # 获取 nvm 最新版本 tag（含 v）
-# 复用 common.sh 的 github_latest_tag（jq 优先 + grep 回退 + 认证）；补回 nvm 的 v 前缀。
+# 复用 common.sh 的 http_github_latest_tag（jq 优先 + grep 回退 + 认证）；补回 nvm 的 v 前缀。
 nvm_latest() {
     local tag
-    tag=$(github_latest_tag "$NVM_REPO")
+    tag=$(http_github_latest_tag "$NVM_REPO")
     [[ -n "$tag" ]] && tag="v$tag"
     echo "$tag"
 }
@@ -127,10 +127,10 @@ status_nvm() {
         # 不污染当前 shell，子 shell 加载后取版本
         local ver
         ver=$(bash -c "source '$NVM_DIR/nvm.sh' && nvm --version" 2>/dev/null || printf '%s\n' "$(_t 'Unknown')")
-        emit_status "installed" "${GREEN}$(_tf '✅ nvm v%s is installed' "${ver}")${NC}"
-        emit_version "$ver"
+        uxs_emit_status "installed" "${GREEN}$(_tf '✅ nvm v%s is installed' "${ver}")${NC}"
+        uxs_emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

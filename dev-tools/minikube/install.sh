@@ -153,8 +153,8 @@ get_latest_versions() {
         KUBECTL_VERSION="v1.28.0"
     fi
     
-    # 获取 minikube 最新版本（复用 common.sh 的 github_latest_tag：jq 优先 + grep 回退 + 认证）
-    MINIKUBE_VERSION="v$(github_latest_tag "kubernetes/minikube")"
+    # 获取 minikube 最新版本（复用 common.sh 的 http_github_latest_tag：jq 优先 + grep 回退 + 认证）
+    MINIKUBE_VERSION="v$(http_github_latest_tag "kubernetes/minikube")"
 
     if [[ -z "$MINIKUBE_VERSION" || "$MINIKUBE_VERSION" == "v" ]]; then
         warn "$(_t 'Cannot get the latest minikube version, using the default v1.32.0')"
@@ -573,10 +573,10 @@ do_status() {
     local install_dir="$HOME/.tools/minikube"
     if [[ -x "$install_dir/bin/minikube" ]] && [[ -x "$install_dir/bin/kubectl" ]]; then
         if echo "$PATH" | grep -q "$install_dir/bin"; then
-            emit_status "installed" "${GREEN}✅ $(_t 'Installed and configured')${NC}"
+            uxs_emit_status "installed" "${GREEN}✅ $(_t 'Installed and configured')${NC}"
         else
-            emit_status "installed" "${YELLOW}⚠️  $(_t 'Installed but PATH is not configured')${NC}"
-            emit_extra "path=unconfigured"
+            uxs_emit_status "installed" "${YELLOW}⚠️  $(_t 'Installed but PATH is not configured')${NC}"
+            uxs_emit_extra "path=unconfigured"
         fi
         local mk_ver
         # 不用 `| head -1`：head 命中即退会给上游 SIGPIPE(141)；grep 无匹配时退出 1。
@@ -587,10 +587,10 @@ do_status() {
         # 收尾用 if 而不是 `[[ -n "$mk_ver" ]] && ...`：后者在版本号为空时返回 1，
         # 会让 status 子命令整体退出 1（同样是「status 恒 0」契约）。
         if [[ -n "$mk_ver" ]]; then
-            emit_version "$mk_ver"
+            uxs_emit_version "$mk_ver"
         fi
     else
-        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
     fi
     return 0
 }

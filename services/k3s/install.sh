@@ -22,7 +22,7 @@ preflight() {
 
 do_install() {
     preflight
-    if command_exists k3s; then
+    if os_has_cmd k3s; then
         local cur
         cur=$(k3s --version 2>/dev/null | head -1 | grep -m1 -oE 'v[0-9]+(\.[0-9]+)+' || true)
         yes_no "$(_tf 'Detected k3s %s installed, reinstall?' "${cur:-}")" || { info "$(_t 'Cancelled')"; exit 0; }
@@ -43,7 +43,7 @@ do_install() {
 
 do_uninstall() {
     preflight
-    if ! command_exists k3s; then
+    if ! os_has_cmd k3s; then
         warn "$(_t 'k3s not installed')"
         exit 0
     fi
@@ -59,18 +59,18 @@ do_uninstall() {
 do_status() {
     # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
     detect_os
-    if ! command_exists k3s; then
-        emit_status "not_installed" "❌ $(_t 'k3s not installed')"
+    if ! os_has_cmd k3s; then
+        uxs_emit_status "not_installed" "❌ $(_t 'k3s not installed')"
         return 0
     fi
     local ver
     ver=$(k3s --version 2>/dev/null | head -1 | grep -m1 -oE 'v[0-9]+(\.[0-9]+)+' || true)
     if uxs_svc is-active k3s 2>/dev/null; then
-        emit_status "installed:running" "✅ $(_t 'k3s installed and service running') ${ver:-$(_t '(unknown version)')}"
+        uxs_emit_status "installed:running" "✅ $(_t 'k3s installed and service running') ${ver:-$(_t '(unknown version)')}"
     else
-        emit_status "installed:stopped" "⚠️ $(_t 'k3s installed but service not running') ${ver:-$(_t '(unknown version)')}"
+        uxs_emit_status "installed:stopped" "⚠️ $(_t 'k3s installed but service not running') ${ver:-$(_t '(unknown version)')}"
     fi
-    emit_version "${ver#v}"
+    uxs_emit_version "${ver#v}"
 }
 
 do_help() {

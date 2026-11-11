@@ -53,14 +53,14 @@ plat_mirror_preview() {
     local codename primary
     case "$DISTRO_ID" in
         ubuntu|linuxmint|debian)
-            codename=$(uxs_os_release VERSION_CODENAME)
+            codename=$(os_release_field VERSION_CODENAME)
             primary=$(_deb_primary_target)
             echo "  1. $(_tf 'Back up and rewrite %s to Tsinghua TUNA (%s/%s)' "${primary}" "${DISTRO_ID}" "${codename:-?}")"
             echo "  2. $(_t 'Disable the other distro archive apt sources (rename to *.bak.<ts>)')"
             echo "  3. sudo apt-get update"
             ;;
         deepin|uos)
-            codename=$(uxs_os_release VERSION_CODENAME)
+            codename=$(os_release_field VERSION_CODENAME)
             echo "  1. $(_tf 'Rewrite sources.list to Tsinghua TUNA (%s/%s, main community)' "${DISTRO_ID}" "${codename:-?}")"
             echo "  2. $(_t 'Disable the remaining distribution archive apt sources')"
             echo "  3. sudo apt-get update"
@@ -73,7 +73,7 @@ plat_mirror_preview() {
 
 plat_mirror_apply() {
     local codename ts primary
-    codename=$(uxs_os_release VERSION_CODENAME)
+    codename=$(os_release_field VERSION_CODENAME)
     ts=$(date +%s)
     case "$DISTRO_ID" in
         ubuntu|linuxmint|debian)

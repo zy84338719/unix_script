@@ -511,3 +511,22 @@ pot 与源码 msgid 一致、po 无缺失 msgid、`messages.sh` 与 po 一致、
 - CLI v2 的完整命令矩阵与帮助文本
 - Stage 3 的模块分批顺序与每批的验收清单
 - 快照基线的具体采集范围与「有意变更」登记流程
+
+---
+
+## 13. 落地说明（Stage 3 收尾时与本设计的偏离）
+
+§5 的能力归属裁决表描述的是**设计意图**。实际落地时有四处按「输出与退出码逐字不变」优先做了调整 ——
+表里「删除全局变量」「直接换」这些说法没有全部照做，理由如下（2026-11-11，Stage 3 收尾）：
+
+| 设计里的说法 | 实际落地 | 为什么 |
+|---|---|---|
+| `detect_os/detect_arch` →「删除全局 `OS_TYPE/ARCH_TYPE`，改函数调用」 | 保留全局变量；检测逻辑下沉到 shellkit（`os_name`/`os_arch`），把结果落成全局的那一步留在 unix_script 的 `lib/uxs_platform.sh` | 200+ 处调用点直接读 `$OS_TYPE`/`$ARCH_TYPE`；改成函数调用要连带改所有读点，远超本轮范围。且架构名的历史口径（`ARM64`/`ARMv7`）本来就是 unix_script 自己的约定，通用库不该知道 |
+| `check_commands` → shellkit 的 `require_cmd` | 保留 unix_script 自己的 `check_commands`（缺命令时报同样的中文并 `exit 1`） | 那是**呈现层**：文案与退出码是 unix_script 的口径，shellkit 不该知道 |
+| `emit_status/emit_version/emit_extra` → 直接用 shellkit 的 `status_*` | 改用 unix_script 侧的 `uxs_emit_status`/`uxs_emit_version`/`uxs_emit_extra`，内部转发到 `status_*` | unix_script 的旋钮叫 `UXS_STATUS_MODE`、shellkit 的叫 `SHELLKIT_STATUS_MODE`；通用库不该知道调用方的旋钮名，映射必须在**每次输出前**做（进程内改旋钮要立刻生效），只在加载时 export 一次不够 |
+| `detect_pkg_manager` → `os_pkg_manager` | 用 `os_pkg_manager_full`（含 pacman/brew） | unix_script 原本就认 pacman/brew；shellkit 的 `os_pkg_manager` 是另一套口径（不含这两个），换过去会少认两个包管理器 |
+
+**被删掉的过渡层**：`lib/uxs_compat.sh`（Stage 1 为「模块还没迁完」留的转发门面）随 78 个模块迁完一并删除。
+unix_script 的 lib 层现在只剩两个文件、且都不实现能力：`lib/uxs_platform.sh`（平台/架构/包管理能力 →
+unix_script 的全局变量口径，以及 unix_script 自己的文案与退出码）、`lib/uxs_status.sh`（状态输出转发到
+shellkit 的 `status_*`，只做旋钮名映射）。

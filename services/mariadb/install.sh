@@ -21,12 +21,12 @@ preflight() {
 
 do_install() {
     preflight
-    if command_exists mariadb; then
+    if os_has_cmd mariadb; then
         local cur
         cur=$(mariadb --version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' || true)
         yes_no "$(_tf 'MariaDB %s detected, reinstall?' "${cur:-}")" || { info "$(_t 'Cancelled')"; exit 0; }
     fi
-    if command_exists mysql && ! command_exists mariadb; then
+    if os_has_cmd mysql && ! os_has_cmd mariadb; then
         warn "$(_t 'MySQL detected: MariaDB listens on the same port 3306, running both on one machine conflicts')"
         yes_no "$(_t 'Continue installing MariaDB anyway?')" || { info "$(_t 'Cancelled')"; exit 0; }
     fi
@@ -48,7 +48,7 @@ do_install() {
 
 do_uninstall() {
     preflight
-    if ! command_exists mariadb; then
+    if ! os_has_cmd mariadb; then
         warn "MariaDB $(_t 'Not installed')"
         exit 0
     fi
@@ -74,22 +74,22 @@ do_uninstall() {
 do_status() {
     # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
     detect_os
-    if ! command_exists mariadb; then
-        emit_status "not_installed" "$(_t '❌ MariaDB not installed')"
+    if ! os_has_cmd mariadb; then
+        uxs_emit_status "not_installed" "$(_t '❌ MariaDB not installed')"
         return 0
     fi
     local ver
     ver=$(mariadb --version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' || true)
     if [[ "$OS_TYPE" == "linux" ]]; then
         if uxs_svc is-active mariadb 2>/dev/null || uxs_svc is-active mysql 2>/dev/null; then
-            emit_status "installed:running" "$(_t '✅ MariaDB installed and the service is running') ${ver:-$(_t '(unknown version)')}"
+            uxs_emit_status "installed:running" "$(_t '✅ MariaDB installed and the service is running') ${ver:-$(_t '(unknown version)')}"
         else
-            emit_status "installed:stopped" "$(_t '⚠️ MariaDB installed but the service is not running') ${ver:-$(_t '(unknown version)')}"
+            uxs_emit_status "installed:stopped" "$(_t '⚠️ MariaDB installed but the service is not running') ${ver:-$(_t '(unknown version)')}"
         fi
     else
-        emit_status "installed" "$(_t '✅ MariaDB installed') ${ver:-$(_t '(unknown version)')}"
+        uxs_emit_status "installed" "$(_t '✅ MariaDB installed') ${ver:-$(_t '(unknown version)')}"
     fi
-    emit_version "${ver#v}"
+    uxs_emit_version "${ver#v}"
 }
 
 do_help() {

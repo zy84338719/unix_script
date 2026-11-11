@@ -34,7 +34,7 @@ arch_generic() {
 # Linux 上经 GitHub release 安装 nerdctl（多数发行版仓库无此包）；失败不阻断
 install_nerdctl_linux() {
     local ver
-    ver=$(github_latest_tag "$NERDCTL_REPO")
+    ver=$(http_github_latest_tag "$NERDCTL_REPO")
     if [[ -z "$ver" ]]; then
         warn "$(_t 'Unable to get nerdctl version (GitHub unreachable or rate-limited), skipping nerdctl')"
         return 0
@@ -42,7 +42,7 @@ install_nerdctl_linux() {
     local arch
     arch=$(arch_generic)
     local url
-    url=$(github_release_asset_url "$NERDCTL_REPO" "nerdctl-${ver}-linux-${arch}.tar.gz")
+    url=$(http_github_release_asset "$NERDCTL_REPO" "nerdctl-${ver}-linux-${arch}.tar.gz")
     if [[ -z "$url" ]]; then
         warn "$(_tf 'Asset nerdctl-%s-linux-%s.tar.gz not found, skipping nerdctl' "$ver" "$arch")"
         return 0
@@ -62,7 +62,7 @@ install_nerdctl_linux() {
 
 do_install() {
     preflight
-    if command_exists ctr || command_exists containerd; then
+    if os_has_cmd ctr || os_has_cmd containerd; then
         yes_no "$(_t 'Detected containerd/ctr, reinstall?')" || { info "$(_t 'Cancelled')"; exit 0; }
     fi
 
@@ -87,7 +87,7 @@ do_install() {
 
 do_uninstall() {
     preflight
-    if ! command_exists ctr && ! command_exists containerd; then
+    if ! os_has_cmd ctr && ! os_has_cmd containerd; then
         warn "$(_t 'containerd not installed')"
         exit 0
     fi
@@ -116,27 +116,27 @@ do_uninstall() {
 do_status() {
     # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
     detect_os
-    if ! command_exists ctr && ! command_exists containerd; then
-        emit_status "not_installed" "❌ $(_t 'containerd not installed')"
+    if ! os_has_cmd ctr && ! os_has_cmd containerd; then
+        uxs_emit_status "not_installed" "❌ $(_t 'containerd not installed')"
         return 0
     fi
     local ver
     ver=$(containerd --version 2>/dev/null | grep -m1 -oE 'v[0-9]+(\.[0-9]+)+' || true)
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        emit_status "installed" "✅ $(_t 'containerd installed') ${ver:-$(_t '(unknown version)')} $(_t '(macOS CLI only, cannot run local containers)')"
-        emit_version "${ver#v}"
-        emit_extra "mode=cli-only"
+        uxs_emit_status "installed" "✅ $(_t 'containerd installed') ${ver:-$(_t '(unknown version)')} $(_t '(macOS CLI only, cannot run local containers)')"
+        uxs_emit_version "${ver#v}"
+        uxs_emit_extra "mode=cli-only"
     else
         if uxs_svc is-active containerd 2>/dev/null; then
-            emit_status "installed:running" "✅ $(_t 'containerd installed and service running') ${ver:-$(_t '(unknown version)')}"
+            uxs_emit_status "installed:running" "✅ $(_t 'containerd installed and service running') ${ver:-$(_t '(unknown version)')}"
         else
-            emit_status "installed:stopped" "⚠️ $(_t 'containerd installed but service not running') ${ver:-$(_t '(unknown version)')}"
+            uxs_emit_status "installed:stopped" "⚠️ $(_t 'containerd installed but service not running') ${ver:-$(_t '(unknown version)')}"
         fi
-        emit_version "${ver#v}"
-        if command_exists nerdctl; then
-            emit_extra "nerdctl=yes"
+        uxs_emit_version "${ver#v}"
+        if os_has_cmd nerdctl; then
+            uxs_emit_extra "nerdctl=yes"
         else
-            emit_extra "nerdctl=no"
+            uxs_emit_extra "nerdctl=no"
         fi
     fi
 }

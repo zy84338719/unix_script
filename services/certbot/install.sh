@@ -24,7 +24,7 @@ do_install() {
     require_sudo
     detect_pkg_manager
 
-    if command_exists certbot; then
+    if os_has_cmd certbot; then
         local cur
         cur=$(certbot --version 2>&1 || printf '%s' "$(_t 'Unknown version')")
         warn "$(_t 'Detected Certbot installed (')${cur}$(_t ')')"
@@ -40,14 +40,14 @@ do_install() {
         exit 1
     fi
 
-    if ! command_exists certbot; then
+    if ! os_has_cmd certbot; then
         error "$(_t 'Install failed: certbot command not found')"
         exit 1
     fi
 
     # apt 系统建议安装 nginx 插件
     if [[ "$PKG_MANAGER" == "apt-get" ]]; then
-        if command_exists nginx && ! dpkg -s python3-certbot-nginx >/dev/null 2>&1; then
+        if os_has_cmd nginx && ! dpkg -s python3-certbot-nginx >/dev/null 2>&1; then
             info "$(_t 'Nginx detected, installing the certbot nginx plugin for automatic SSL is recommended.')"
             if yes_no "$(_t 'Install python3-certbot-nginx?')"; then
                 pkg_install python3-certbot-nginx || warn "$(_t 'python3-certbot-nginx install failed, install it manually')"
@@ -167,8 +167,8 @@ do_uninstall() {
 
 do_status() {
     detect_os
-    if ! command_exists certbot; then
-        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
+    if ! os_has_cmd certbot; then
+        uxs_emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
         return
     fi
 
@@ -198,10 +198,10 @@ do_status() {
         fi
     fi
 
-    emit_status "installed" "${GREEN}✅ $(_t 'Installed')${NC} ($ver)"
-    emit_version "$ver"
+    uxs_emit_status "installed" "${GREEN}✅ $(_t 'Installed')${NC} ($ver)"
+    uxs_emit_version "$ver"
     if [[ -n "$renewal_status" ]]; then
-        emit_extra "autorenew=$autorenew"
+        uxs_emit_extra "autorenew=$autorenew"
         if ! uxs_is_machine_mode; then
             echo "  $(_t 'Auto-renewal: ')$renewal_status"
         fi
@@ -212,7 +212,7 @@ do_status() {
         local cert_count
         cert_count=$(find /etc/letsencrypt/live -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
         if [[ "$cert_count" -gt 0 ]]; then
-            emit_extra "certs=$cert_count"
+            uxs_emit_extra "certs=$cert_count"
             if ! uxs_is_machine_mode; then
                 echo "  $(_tf 'Certificates issued: %s' "${cert_count}")"
             fi

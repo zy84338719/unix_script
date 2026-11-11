@@ -28,7 +28,7 @@ preflight() {
         error "$(_t 'BT Panel is Linux-only. Current: ')${OS_TYPE}"
         exit 1
     fi
-    if ! command_exists systemctl; then
+    if ! os_has_cmd systemctl; then
         error "$(_t 'systemctl (systemd) is required.')"
         exit 1
     fi
@@ -36,9 +36,9 @@ preflight() {
 
 fetch_to() {
     local url="$1" out="$2"
-    if command_exists curl; then
+    if os_has_cmd curl; then
         curl -fsSL "$url" -o "$out"
-    elif command_exists wget; then
+    elif os_has_cmd wget; then
         wget -qO "$out" "$url"
     else
         error "$(_t 'Either curl or wget is required, please install one first.')"
@@ -47,7 +47,7 @@ fetch_to() {
 }
 
 is_installed() {
-    [[ -f /etc/init.d/bt ]] || command_exists bt 2>/dev/null
+    [[ -f /etc/init.d/bt ]] || os_has_cmd bt 2>/dev/null
 }
 
 # 宝塔官方建议纯净系统：命中常见 Web/DB 环境则提示并要求确认
@@ -170,16 +170,16 @@ uninstall_btpanel() {
 status_btpanel() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"; return
+        uxs_emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"; return
     fi
     if ! is_installed; then
-        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
+        uxs_emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
     fi
     # 面板主进程 BT-Panel；无特权即可探测，init 脚本作兜底（需 sudo -n 免密）
     if pgrep -f "BT-Panel" >/dev/null 2>&1 || sudo -n /etc/init.d/bt status >/dev/null 2>&1; then
-        emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
+        uxs_emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed (service not running)')${NC}"
+        uxs_emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed (service not running)')${NC}"
     fi
 }
 

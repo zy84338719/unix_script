@@ -26,7 +26,7 @@ preflight() {
         error "$(_tf 'Fail2ban is Linux-only (depends on iptables/systemd). Current system: %s' "$OS_TYPE")"
         exit 1
     fi
-    if ! command_exists systemctl; then
+    if ! os_has_cmd systemctl; then
         error "$(_t 'systemctl (systemd) is required. The current system may not support it.')"
         exit 1
     fi
@@ -60,7 +60,7 @@ install_fail2ban() {
     detect_pkg_manager
     info "🚀 $(_tf 'Starting the Fail2ban installation (package manager: %s)' "$PKG_MANAGER")"
 
-    if command_exists fail2ban-client; then
+    if os_has_cmd fail2ban-client; then
         local cur
         cur=$(fail2ban-client --version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Unknown version')")
         warn "$(_tf 'Detected Fail2ban installed (%s)' "$cur")"
@@ -77,7 +77,7 @@ install_fail2ban() {
         exit 1
     fi
 
-    if ! command_exists fail2ban-client; then
+    if ! os_has_cmd fail2ban-client; then
         error "$(_t 'Install failed: fail2ban-client not found')"
         exit 1
     fi
@@ -141,17 +141,17 @@ uninstall_fail2ban() {
 status_fail2ban() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"
+        uxs_emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"
         return
     fi
-    if ! command_exists fail2ban-client; then
-        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
+    if ! os_has_cmd fail2ban-client; then
+        uxs_emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
         return
     fi
     if uxs_svc is-active fail2ban 2>/dev/null; then
-        emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
+        uxs_emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but service not running')${NC}"
+        uxs_emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but service not running')${NC}"
     fi
 }
 

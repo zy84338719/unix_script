@@ -110,16 +110,16 @@ uninstall_swap() {
 status_swap() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux only)')${NC}"; return
+        uxs_emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux only)')${NC}"; return
     fi
     if swapon --show 2>/dev/null | grep -q .; then
-        emit_status "configured" "${GREEN}$(_t '✅ The swap is enabled')${NC}"
+        uxs_emit_status "configured" "${GREEN}$(_t '✅ The swap is enabled')${NC}"
         # swapon --show 输出多行表格：机器模式不输出（仅 STATE），人类模式照常打印
         if ! uxs_is_machine_mode; then
             swapon --show
         fi
     else
-        emit_status "not_configured" "${RED}$(_t '❌ The swap is not enabled')${NC}"
+        uxs_emit_status "not_configured" "${RED}$(_t '❌ The swap is not enabled')${NC}"
     fi
 }
 

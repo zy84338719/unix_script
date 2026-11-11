@@ -21,7 +21,7 @@ preflight() {
     detect_os
     detect_arch
     check_commands curl tar
-    if ! command_exists docker; then
+    if ! os_has_cmd docker; then
         error "Harbor $(_t 'The docker runtime is required, run this first: ./install.sh docker')"
         exit 1
     fi
@@ -43,7 +43,7 @@ do_install() {
     fi
     info "$(_t 'Fetching the latest Harbor version (GitHub API)...')"
     local ver
-    ver=$(github_latest_tag "$REPO")
+    ver=$(http_github_latest_tag "$REPO")
     [[ -n "$ver" ]] || { error "$(_t 'Cannot fetch the version (GitHub is unreachable or rate limited), set GH_TOKEN and retry')"; exit 1; }
     local url="https://github.com/${REPO}/releases/download/v${ver}/harbor-offline-installer-v${ver}.tgz"
     warn "Harbor $(_t 'The offline installer is about 600MB+, the download time depends on the network')"
@@ -104,13 +104,13 @@ do_status() {
     # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
     detect_os
     if [[ ! -d "$HARBOR_DIR" ]]; then
-        emit_status "not_installed" "$(_t '❌ Harbor not installed')"
+        uxs_emit_status "not_installed" "$(_t '❌ Harbor not installed')"
         return 0
     fi
     if sudo docker ps --format '{{.Image}}' 2>/dev/null | grep -q "^goharbor/harbor-core"; then
-        emit_status "installed:running" "$(_t '✅ Harbor containers are running')"
+        uxs_emit_status "installed:running" "$(_t '✅ Harbor containers are running')"
     else
-        emit_status "installed:stopped" "$(_t '⚠️ Harbor installed but the containers are not running')"
+        uxs_emit_status "installed:stopped" "$(_t '⚠️ Harbor installed but the containers are not running')"
     fi
 }
 

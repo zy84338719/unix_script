@@ -112,7 +112,7 @@ install_brew() {
     preflight
     info "$(_t '🍺 Installing the Homebrew package manager')"
 
-    if command_exists brew; then
+    if os_has_cmd brew; then
         local cur
         cur=$(brew --version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Homebrew is already installed')")
         warn "$(_tf 'Homebrew is already installed (%s)' "${cur}")"
@@ -132,7 +132,7 @@ install_brew() {
     prefix="$(_brew_prefix)"
     eval "$("$prefix/bin/brew" shellenv)"
 
-    if ! command_exists brew; then
+    if ! os_has_cmd brew; then
         error "$(_t 'brew is still not found, reopen the terminal or run:')"
         echo "  eval \"\$($(_brew_prefix)/bin/brew shellenv)\""
         exit 1
@@ -152,7 +152,7 @@ install_brew() {
 
 uninstall_brew() {
     detect_os
-    if ! command_exists brew; then
+    if ! os_has_cmd brew; then
         warn "$(_t 'Homebrew was not detected, it may already be uninstalled')"
         return 0
     fi
@@ -185,7 +185,7 @@ uninstall_brew() {
 
 mirror_brew() {
     detect_os
-    if ! command_exists brew; then
+    if ! os_has_cmd brew; then
         error "$(_tf 'Homebrew is not installed, please run first: %s install' "$0")"
         exit 1
     fi
@@ -263,11 +263,11 @@ unmirror_brew() {
 status_brew() {
     detect_os
     if [[ "$OS_TYPE" != "darwin" ]]; then
-        emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (macOS only)')${NC}"
+        uxs_emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (macOS only)')${NC}"
         return 0
     fi
-    if ! command_exists brew; then
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+    if ! os_has_cmd brew; then
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
         return 0
     fi
 
@@ -276,7 +276,7 @@ status_brew() {
     # 显示前缀
     prefix=$(brew --prefix 2>/dev/null || echo "")
 
-    # 检测当前源（官方 or 镜像）—— 计算在 emit_status 之前，但 STATE= 必须是首行
+    # 检测当前源（官方 or 镜像）—— 计算在 uxs_emit_status 之前，但 STATE= 必须是首行
     if [[ -n "${HOMEBREW_BOTTLE_DOMAIN:-}" ]]; then
         if [[ "$HOMEBREW_BOTTLE_DOMAIN" == *"tsinghua"* ]]; then
             cur_src="$(_t '(Tsinghua mirror)')"
@@ -291,15 +291,15 @@ status_brew() {
         cur_src="$(_t '(mirror configured, not loaded in the current shell)')"
     fi
 
-    emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
-    emit_version "$ver"
+    uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
+    uxs_emit_version "$ver"
     if [[ -n "$prefix" ]]; then
-        emit_extra "prefix=$prefix"
+        uxs_emit_extra "prefix=$prefix"
         if ! uxs_is_machine_mode; then
             echo "   prefix: $prefix"
         fi
     fi
-    emit_extra "source=$cur_src"
+    uxs_emit_extra "source=$cur_src"
     if ! uxs_is_machine_mode; then
         echo "   source: $cur_src"
     fi

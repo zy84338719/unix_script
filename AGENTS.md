@@ -308,13 +308,17 @@ VERSION=<版本>           # 可选
 EXTRA=<key=value>        # 可选，附加信息
 ```
 
-模块作者使用 `lib/common.sh` 的 `emit_status`/`emit_version`/`emit_extra` helper 输出，人类模式默认向后兼容：
+模块作者使用 `lib/uxs_status.sh` 的 `uxs_emit_status`/`uxs_emit_version`/`uxs_emit_extra` helper 输出，人类模式默认向后兼容：
+
+> 这三个 helper 转发到 shellkit 的 `status_emit`/`status_version`/`status_extra`；unix_script 只在
+> 这一层做一件自己的事：把旋钮名 `UXS_STATUS_MODE` 映射成 shellkit 的 `SHELLKIT_STATUS_MODE`。
+> 映射必须在**每次输出前**做 —— 进程内改 `UXS_STATUS_MODE` 也要立刻生效（只在加载时 export 一次不够）。
 
 | Helper | 签名 | 说明 |
 |--------|------|------|
-| `emit_status` | `emit_status <state> <human_msg>` | 机器模式输出 `STATE=<state>`；人类模式 `echo -e "<human_msg>"`（含颜色/emoji） |
-| `emit_version` | `emit_version <version>` | 仅机器模式输出 `VERSION=<version>`（人类模式版本已在状态消息里，不重复），始终返回 0 |
-| `emit_extra` | `emit_extra <key=value>` | 仅机器模式输出 `EXTRA=<key=value>`（人类模式额外信息由模块自行 echo），始终返回 0 |
+| `uxs_emit_status` | `uxs_emit_status <state> <human_msg>` | 机器模式输出 `STATE=<state>`；人类模式 `echo -e "<human_msg>"`（含颜色/emoji） |
+| `uxs_emit_version` | `uxs_emit_version <version>` | 仅机器模式输出 `VERSION=<version>`（人类模式版本已在状态消息里，不重复），始终返回 0 |
+| `uxs_emit_extra` | `uxs_emit_extra <key=value>` | 仅机器模式输出 `EXTRA=<key=value>`（人类模式额外信息由模块自行 echo），始终返回 0 |
 | `uxs_is_machine_mode` | `uxs_is_machine_mode` | 判断函数：机器模式返回 0，人类模式返回 1，用于包裹纯人类辅助输出 |
 
 详见 `docs/superpowers/specs/2026-08-07-status-contract-deps-profile-design.md`。
@@ -325,12 +329,24 @@ EXTRA=<key=value>        # 可选，附加信息
 
 | Helper | 说明 |
 |--------|------|
-| `uxs_os_release <KEY> [file]` | 读 os-release 字段值（ID/VERSION_ID/VERSION_CODENAME…），替代手写 `. /etc/os-release` |
+| `os_release_field <KEY> [file]` | 读 os-release 字段值（ID/VERSION_ID/VERSION_CODENAME…），替代手写 `. /etc/os-release`（shellkit 能力函数，直接用） |
 | `uxs_svc <action> <unit>...` | systemd 服务动作（start/stop/restart/reload/enable/disable/enable-now/disable-now/daemon-reload + 只读 is-active/is-enabled/list-unit-files），原生兼容 `--dry-run`；双平台（macOS launchd）场景仍用 `service_start` 等 |
 | `install_systemd_unit <unit-name>`（stdin） | 从 stdin 读 unit 内容写入 `/etc/systemd/system/` 并自动 daemon-reload（替代手写 `sudo tee` + reload；heredoc 引号语义由调用方决定；dry-run 兼容） |
 | `pkg_install` / `pkg_remove` / `pkg_installed` | 跨包管理器安装/卸载/查询（存量，直接用） |
 
 归属原则：跨模块复用的「动词」进 lib；单模块专用的平台差异放模块内 `platform/` 文件（样板见 `essentials/sys-setup`）。
+
+**lib 层只有两个文件，且都不实现能力**：
+
+| 文件 | 装什么 |
+|------|--------|
+| `lib/uxs_platform.sh` | shellkit 的平台/架构/包管理能力 → unix_script 的全局变量口径（`detect_os`/`detect_arch`/`detect_distro`/`detect_desktop`/`detect_pkg_manager`），以及 unix_script 自己的文案与退出码（`pkg_install`/`pkg_remove`/`pkg_update`/`pkg_installed`/`check_commands`） |
+| `lib/uxs_status.sh` | 状态输出：转发到 shellkit 的 `status_*`，只做旋钮名映射（`uxs_emit_status`/`uxs_emit_version`/`uxs_emit_extra`/`uxs_is_machine_mode`） |
+
+能力一律来自 shellkit（`vendor/shellkit/`），模块里直接调这些名字，不要再包一层：
+`os_has_cmd`（命令存在性）、`os_release_field`（os-release 字段）、`http_github_latest_tag`/
+`http_github_release_asset`（GitHub release）、`net_verify`（sha256 校验）、`ver_gt`（版本比较）、
+`run_timeout`/`run_func_timeout`（超时）、`os_pkg_install_root` 等（提权包管理）。
 
 ### 发行版与桌面环境检测
 

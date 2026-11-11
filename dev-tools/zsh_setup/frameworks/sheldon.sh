@@ -11,7 +11,7 @@ SHELDON_CONFIG="${HOME}/.config/sheldon/plugins.toml"
 
 # 安装 sheldon
 install_sheldon() {
-    if command_exists sheldon; then
+    if os_has_cmd sheldon; then
         warn "$(_t 'sheldon is already installed')"
         return 0
     fi
@@ -21,7 +21,7 @@ install_sheldon() {
     # 故二进制完整性已自校验；仅需信任传输层（HTTPS）。
     curl --proto '=https' -fLsS https://rossmacarthur.github.io/install/crate.sh | bash -s -- --repo rossmacarthur/sheldon
 
-    if ! command_exists sheldon; then
+    if ! os_has_cmd sheldon; then
         error "$(_t 'Failed to install sheldon')"
         return 1
     fi
@@ -47,7 +47,7 @@ EOF
 
 # 卸载 sheldon
 uninstall_sheldon() {
-    if ! command_exists sheldon; then
+    if ! os_has_cmd sheldon; then
         warn "$(_t 'sheldon is not installed')"
         return 0
     fi
@@ -71,7 +71,7 @@ uninstall_sheldon() {
 
 # sheldon 状态
 status_sheldon() {
-    if ! command_exists sheldon; then
+    if ! os_has_cmd sheldon; then
         printf '%s\n' "$(_t 'sheldon: not installed')"
         return 0
     fi

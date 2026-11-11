@@ -231,7 +231,7 @@ phase_routing() {
     # UNIX_SCRIPT_NO_UPDATE_CHECK=1 关闭自动检查，且 --help 不受影响
     assert "关闭自动检查开关后 --help 正常" bash -c "UNIX_SCRIPT_NO_UPDATE_CHECK=1 \"$REPO_DIR/install.sh\" --help >/dev/null"
     # common.sh 新函数存在
-    assert "common.sh 含更新检查函数" bash -c "source \"$REPO_DIR/lib/common.sh\" && type get_local_version >/dev/null && type version_gt >/dev/null && type check_for_update >/dev/null && type do_self_update >/dev/null"
+    assert "common.sh 含更新检查函数" bash -c "source \"$REPO_DIR/lib/common.sh\" && type get_local_version >/dev/null && type ver_gt >/dev/null && type check_for_update >/dev/null && type do_self_update >/dev/null"
     # cli 子命令：lib/uxs_cli.sh 含 install_cli / uninstall_cli 函数（不实际安装，避免污染 CI 环境）
     assert "lib/uxs_cli.sh 含 cli 安装/卸载函数" bash -c "grep -q 'install_cli()' \"$REPO_DIR/lib/uxs_cli.sh\" && grep -q 'uninstall_cli()' \"$REPO_DIR/lib/uxs_cli.sh\""
 
@@ -406,7 +406,11 @@ phase_routing() {
     assert "disk: wipe 放宽判定结构（签名占用放行 / 挂载·激活硬阻断）" bash -c '
         grep -q "allow_sig_only" "$1/sys-tools/disk/install.sh" || { echo "缺放宽参数"; exit 1; }
         # Stage 3 后源码里是英文 msgid（中文在 po 的 msgstr 里），所以这里 grep 英文原文
-        grep -qE "erase signatures \(wipefs\).*1 || return" "$1/sys-tools/disk/install.sh" || { echo "wipe 未启用放宽"; exit 1; }
+        # 正则里的 || 是源码里字面的短路符，必须当**普通字符**匹配：
+        # ERE 里直接写 || 是「空分支」—— BSD grep（macOS）报 empty (sub)expression 直接退出 2，
+        # GNU grep（Linux）却收下 ⇒ 同一份断言在两个平台判据能力不同。
+        # 用字符类 [(]…[]) / [|][|] 才是两边行为一致的写法。
+        grep -qE "erase signatures [(]wipefs[)].*1 [|][|] return" "$1/sys-tools/disk/install.sh" || { echo "wipe 未启用放宽"; exit 1; }
         grep -qF "(MOUNT\\||HOLD\\|)" "$1/sys-tools/disk/install.sh" || { echo "缺硬阻断判定"; exit 1; }
         grep -q "_disk_in_use_reasons" "$1/sys-tools/disk/install.sh" || { echo "缺原因诊断"; exit 1; }' _ "$REPO_DIR"
 
@@ -538,7 +542,7 @@ phase_routing() {
     # 4b. status 契约：machine 模式下每个模块首行必须是合法 STATE=
     check_status_contract
 
-    # 4c. 易用性快修包批次①：uxs_with_timeout 等单测
+    # 4c. 易用性快修包批次①：run_timeout 等单测
     assert "usability: 批次① 单测全过" bash "$REPO_DIR/tests/unit_usability.sh"
     assert "terminal-enhance: 终端增强单测全过" bash "$REPO_DIR/tests/unit_terminal_enhance.sh"
 

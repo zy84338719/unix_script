@@ -52,7 +52,7 @@ EOF
         success "YUM/DNF $(_t 'The repository was added')"
     fi
 
-    if command_exists dnf; then
+    if os_has_cmd dnf; then
         sudo dnf makecache
     else
         sudo yum makecache
@@ -72,7 +72,7 @@ install_grafana_linux() {
         dnf|yum)
             setup_yum_repo
             info "$(_t 'Installing Grafana...')"
-            if command_exists dnf; then
+            if os_has_cmd dnf; then
                 sudo dnf install -y grafana
             else
                 sudo yum install -y grafana
@@ -96,7 +96,7 @@ install_grafana_linux() {
 
 # --- 安装 Grafana（macOS brew） ---
 install_grafana_macos() {
-    if ! command_exists brew; then
+    if ! os_has_cmd brew; then
         error "macOS $(_t 'Homebrew is required on macOS, install it first')"
         return 1
     fi
@@ -179,7 +179,7 @@ install_grafana() {
     echo "=========================================="
 
     # 检查是否已安装
-    if command_exists grafana-server || command_exists grafana; then
+    if os_has_cmd grafana-server || os_has_cmd grafana; then
         warn "$(_t 'Grafana detected')"
         if ! yes_no "$(_t 'Continue and overwrite the installation?')"; then
             info "$(_t 'The installation was cancelled')"
@@ -224,7 +224,7 @@ uninstall_grafana() {
         uxs_svc stop grafana-server &>/dev/null || true
         uxs_svc disable grafana-server &>/dev/null || true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        if command_exists brew; then
+        if os_has_cmd brew; then
             brew services stop grafana 2>/dev/null || true
         fi
     fi
@@ -236,7 +236,7 @@ uninstall_grafana() {
         sudo rm -f /etc/apt/keyrings/grafana.gpg
         sudo rm -f /etc/yum.repos.d/grafana.repo
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        if command_exists brew; then
+        if os_has_cmd brew; then
             brew uninstall grafana 2>/dev/null || true
         fi
         sudo rm -f "$GRAFANA_PLIST"
@@ -263,7 +263,7 @@ status_grafana() {
     elif command -v grafana &>/dev/null; then
         is_installed=true
         version=$(grafana --version 2>&1 | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || printf '%s\n' "$(_t 'Unknown version')")
-    elif [[ "$OS_TYPE" == "darwin" ]] && command_exists brew && brew list grafana &>/dev/null; then
+    elif [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew && brew list grafana &>/dev/null; then
         is_installed=true
         version=$(brew info grafana 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || printf '%s\n' "$(_t 'Unknown version')")
     fi
@@ -272,13 +272,13 @@ status_grafana() {
     fi
     if $is_installed; then
         if $is_running; then
-            emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC} (v$version)"
+            uxs_emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC} (v$version)"
         else
-            emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but not running')${NC} (v$version)"
+            uxs_emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but not running')${NC} (v$version)"
         fi
-        emit_version "$version"
+        uxs_emit_version "$version"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

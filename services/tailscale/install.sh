@@ -26,7 +26,7 @@ preflight() {
     case "$OS_TYPE" in
         linux)  check_commands curl ;;
         darwin)
-            if ! command_exists brew; then
+            if ! os_has_cmd brew; then
                 error "macOS $(_t 'requires Homebrew to be installed first: https://brew.sh/')"
                 exit 1
             fi
@@ -39,7 +39,7 @@ install_tailscale() {
     preflight
     info "$(_t '🚀 Starting the Tailscale installation')"
 
-    if command_exists tailscale; then
+    if os_has_cmd tailscale; then
         local cur
         cur=$(tailscale version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Unknown version')")
         warn "$(_tf 'Tailscale detected (%s)' "${cur}")"
@@ -64,7 +64,7 @@ install_tailscale() {
         brew services start tailscale || true
     fi
 
-    if ! command_exists tailscale; then
+    if ! os_has_cmd tailscale; then
         error "$(_t 'The tailscale command is still not found after the install, check PATH or open a new terminal')"
         exit 1
     fi
@@ -111,8 +111,8 @@ uninstall_tailscale() {
 
 # 状态检查（供主菜单“查看状态”调用，输出一行结论）
 status_tailscale() {
-    if ! command_exists tailscale; then
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+    if ! os_has_cmd tailscale; then
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
         return
     fi
     local running=false
@@ -132,14 +132,14 @@ status_tailscale() {
     # 取不到版本号就回落成空值。
     ver=$(tailscale version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | sed -n '1p') || ver=""
     if $running; then
-        emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC}"
+        uxs_emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "${YELLOW}$(_t '⚠️ Installed but the service is not running')${NC}"
+        uxs_emit_status "installed:stopped" "${YELLOW}$(_t '⚠️ Installed but the service is not running')${NC}"
     fi
     # 收尾用 if 而不是 `[[ -n "$ver" ]] && ...`：后者在版本号为空时返回 1，
     # 会让 status 子命令整体退出 1（同样是「status 恒 0」契约）。
     if [[ -n "$ver" ]]; then
-        emit_version "$ver"
+        uxs_emit_version "$ver"
     fi
     return 0
 }

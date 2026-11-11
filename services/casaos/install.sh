@@ -27,14 +27,14 @@ preflight() {
         error "$(_t 'CasaOS is Linux-only. Current: ')${OS_TYPE}"
         exit 1
     fi
-    if ! command_exists systemctl; then
+    if ! os_has_cmd systemctl; then
         error "$(_t 'systemctl (systemd) is required.')"
         exit 1
     fi
 }
 
 is_installed() {
-    command_exists casaos 2>/dev/null || [[ -d /var/lib/casaos ]]
+    os_has_cmd casaos 2>/dev/null || [[ -d /var/lib/casaos ]]
 }
 
 # bash 内建 /dev/tcp 探测端口占用，无外部依赖（子 shell 内开 fd，退出即关）
@@ -45,9 +45,9 @@ port_in_use() {
 
 fetch_to() {
     local url="$1" out="$2"
-    if command_exists curl; then
+    if os_has_cmd curl; then
         curl -fsSL "$url" -o "$out"
-    elif command_exists wget; then
+    elif os_has_cmd wget; then
         wget -qO "$out" "$url"
     else
         error "$(_t 'Either curl or wget is required, please install one first.')"
@@ -118,16 +118,16 @@ uninstall_casaos() {
 status_casaos() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"; return
+        uxs_emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"; return
     fi
     if ! is_installed; then
-        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
+        uxs_emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
     fi
     if uxs_svc is-active casaos 2>/dev/null; then
-        emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
-        emit_extra "port=${CASAOS_PORT}"
+        uxs_emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
+        uxs_emit_extra "port=${CASAOS_PORT}"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed (service not running)')${NC}"
+        uxs_emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed (service not running)')${NC}"
     fi
 }
 

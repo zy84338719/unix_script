@@ -38,7 +38,7 @@ preflight() {
     fi
     require_sudo
     for cmd in ip iptables; do
-        command_exists "$cmd" || { error "$(_tf 'The %s command is required, install iproute2 and iptables first' "$cmd")"; exit 1; }
+        os_has_cmd "$cmd" || { error "$(_tf 'The %s command is required, install iproute2 and iptables first' "$cmd")"; exit 1; }
     done
 }
 
@@ -217,18 +217,18 @@ do_clear() {
 status_multinet() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux only)')${NC}"; return 0
+        uxs_emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux only)')${NC}"; return 0
     fi
     local rules=0 marks=0
     rules=$(ip rule show 2>/dev/null | grep -c "fwmark" || true)
     marks=$(iptables -t mangle -L OUTPUT 2>/dev/null | grep -c "$RULE_COMMENT" || true)
     if [[ ${rules:-0} -gt 0 ]] || [[ ${marks:-0} -gt 0 ]]; then
-        emit_status "configured" "${GREEN}$(_t '✅ Configured')${NC}$(_tf '(%s routing rules, %s mark rules)' "$rules" "$marks")"
+        uxs_emit_status "configured" "${GREEN}$(_t '✅ Configured')${NC}$(_tf '(%s routing rules, %s mark rules)' "$rules" "$marks")"
     else
-        emit_status "not_configured" "${RED}$(_t '❌ Not configured')${NC}"
+        uxs_emit_status "not_configured" "${RED}$(_t '❌ Not configured')${NC}"
     fi
-    emit_extra "rules=$rules"
-    emit_extra "marks=$marks"
+    uxs_emit_extra "rules=$rules"
+    uxs_emit_extra "marks=$marks"
 }
 
 usage() {

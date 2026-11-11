@@ -9,7 +9,7 @@ set -euo pipefail
 # the main menu script.
 #
 
-# 引入公共函数库（颜色 / 打印 / command_exists / detect_pkg_manager 等）
+# 引入公共函数库（颜色 / 打印 / os_has_cmd / detect_pkg_manager 等）
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
 source "$SCRIPT_DIR/../../lib/common.sh"
@@ -26,11 +26,11 @@ check_privileges() {
 detect_os() {
     OS="$(uname -s)"
     if [[ "$OS" == "Linux" ]]; then
-        if command_exists apt-get; then
+        if os_has_cmd apt-get; then
             PKG_MANAGER="apt-get"
-        elif command_exists yum; then
+        elif os_has_cmd yum; then
             PKG_MANAGER="yum"
-        elif command_exists dnf; then
+        elif os_has_cmd dnf; then
             PKG_MANAGER="dnf"
         else
             error "Unsupported Linux distribution. Please install WireGuard tools manually."
@@ -50,7 +50,7 @@ install_tools() {
     check_privileges
     detect_os
 
-    if command_exists wg; then
+    if os_has_cmd wg; then
         info "WireGuard tools are already installed."
         return 0
     fi
@@ -60,7 +60,7 @@ install_tools() {
         ensure_epel
         pkg_install wireguard-tools || { error "$(_tf 'wireguard-tools install failed (%s)' "$PKG_MANAGER")"; exit 1; }
     elif [[ "$OS" == "Darwin" ]]; then
-        if ! command_exists brew; then
+        if ! os_has_cmd brew; then
             error "Homebrew is not installed. Please install it first: https://brew.sh/"
             exit 1
         fi
@@ -68,7 +68,7 @@ install_tools() {
         brew install wireguard-tools
     fi
 
-    if ! command_exists wg; then
+    if ! os_has_cmd wg; then
         error "WireGuard installation failed. Please install it manually."
         exit 1
     fi
@@ -193,7 +193,7 @@ status_wireguard() {
     # 故不调用本模块严格的 detect_os()（它对 apk/pacman/zypper 会 exit 1 → Alpine/Arch/openSUSE 中止），
     # 直接取内核名判断 Linux/Darwin 分支即可。
     local os_kernel; os_kernel="$(uname -s)"
-    command_exists wg && wg_installed=true
+    os_has_cmd wg && wg_installed=true
     if [[ "$os_kernel" == "Linux" ]]; then
         uxs_svc is-active "wg-quick@${interface}" 2>/dev/null && service_running=true
     elif [[ "$os_kernel" == "Darwin" ]]; then
@@ -206,10 +206,10 @@ status_wireguard() {
     fi
     if $wg_installed; then
         if $service_running; then
-            emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} ($(_t 'interface'): ${interface})"
-            emit_extra "interface=${interface}"
+            uxs_emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} ($(_t 'interface'): ${interface})"
+            uxs_emit_extra "interface=${interface}"
         else
-            emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but service not running')${NC}"
+            uxs_emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but service not running')${NC}"
         fi
         local wg_ver
         # 不用 `| head -1`：head 命中即退会给上游 SIGPIPE(141)；grep 无匹配时退出 1。
@@ -220,10 +220,10 @@ status_wireguard() {
         # 收尾用 if 而不是 `[[ -n "$wg_ver" ]] && ...`：后者在版本号为空时返回 1，
         # 会让 status 子命令整体退出 1（同样是「status 恒 0」契约）。
         if [[ -n "$wg_ver" ]]; then
-            emit_version "$wg_ver"
+            uxs_emit_version "$wg_ver"
         fi
     else
-        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
     fi
     return 0
 }

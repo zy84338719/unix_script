@@ -52,17 +52,17 @@ EOF
 
 do_install() {
     preflight
-    if command_exists frpc || command_exists frps; then
+    if os_has_cmd frpc || os_has_cmd frps; then
         yes_no "$(_t 'frp detected, overwrite it with the latest version?')" || { info "$(_t 'Cancelled')"; exit 0; }
     fi
     info "$(_t 'Fetching the latest frp version (GitHub API)...')"
     local ver
-    ver=$(github_latest_tag "$REPO")
+    ver=$(http_github_latest_tag "$REPO")
     [[ -n "$ver" ]] || { error "$(_t 'Cannot fetch the version (GitHub is unreachable or rate limited), set GH_TOKEN and retry')"; exit 1; }
     local arch
     arch=$(arch_for_frp)
     local url
-    url=$(github_release_asset_url "$REPO" "frp_${ver}_${OS_TYPE}_${arch}\.tar\.gz")
+    url=$(http_github_release_asset "$REPO" "frp_${ver}_${OS_TYPE}_${arch}\.tar\.gz")
     [[ -n "$url" ]] || { error "$(_tf 'Asset frp_%s_%s_%s.tar.gz not found' "${ver}" "${OS_TYPE}" "${arch}")"; exit 1; }
     info "$(_tf 'Downloading %s ...' "$url")"
     local tmpdir
@@ -94,7 +94,7 @@ do_install() {
 
 do_uninstall() {
     preflight
-    if ! command_exists frpc && ! command_exists frps; then
+    if ! os_has_cmd frpc && ! os_has_cmd frps; then
         warn "frp $(_t 'Not installed')"
         exit 0
     fi
@@ -120,27 +120,27 @@ do_uninstall() {
 do_status() {
     # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
     detect_os
-    if ! command_exists frpc && ! command_exists frps; then
-        emit_status "not_installed" "$(_t '❌ frp not installed')"
+    if ! os_has_cmd frpc && ! os_has_cmd frps; then
+        uxs_emit_status "not_installed" "$(_t '❌ frp not installed')"
         return 0
     fi
     local ver
     ver=$(frps --version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' || true)
     if [[ "$OS_TYPE" == "linux" ]]; then
         if uxs_svc is-active frps 2>/dev/null; then
-            emit_status "installed:running" "$(_t '✅ frp installed and the frps service is running') ${ver:-$(_t '(unknown version)')}"
+            uxs_emit_status "installed:running" "$(_t '✅ frp installed and the frps service is running') ${ver:-$(_t '(unknown version)')}"
         else
-            emit_status "installed:stopped" "$(_t '⚠️ frp installed but the frps service is not running') ${ver:-$(_t '(unknown version)')}"
+            uxs_emit_status "installed:stopped" "$(_t '⚠️ frp installed but the frps service is not running') ${ver:-$(_t '(unknown version)')}"
         fi
         if uxs_svc is-active frpc 2>/dev/null; then
-            emit_extra "frpc_active=yes"
+            uxs_emit_extra "frpc_active=yes"
         else
-            emit_extra "frpc_active=no"
+            uxs_emit_extra "frpc_active=no"
         fi
     else
-        emit_status "installed" "$(_t '✅ frp installed') ${ver:-$(_t '(unknown version)')}$(_t '(run it manually on macOS)')"
+        uxs_emit_status "installed" "$(_t '✅ frp installed') ${ver:-$(_t '(unknown version)')}$(_t '(run it manually on macOS)')"
     fi
-    emit_version "${ver#v}"
+    uxs_emit_version "${ver#v}"
 }
 
 do_help() {

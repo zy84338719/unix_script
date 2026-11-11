@@ -22,11 +22,11 @@ preflight() {
 # -------- Neovim --------
 install_neovim() {
     info "$(_t '📝 Installing Neovim...')"
-    if command_exists nvim; then
+    if os_has_cmd nvim; then
         local nv_ver; nv_ver=$(nvim --version | head -1)
         success "$(_tf 'Neovim is installed (%s)' "$nv_ver")"
     else
-        if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+        if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
             brew install neovim
         else
             pkg_install neovim 2>/dev/null || {
@@ -36,16 +36,16 @@ install_neovim() {
                 sudo mv /tmp/nvim.appimage /usr/local/bin/nvim
             }
         fi
-        if command_exists nvim; then
+        if os_has_cmd nvim; then
             success "Neovim $(_t 'Installation complete')"
         else
             warn "Neovim $(_t 'The installation may have failed')"
         fi
     fi
     # LazyVim 模板（Neovim 的现代配置发行版）
-    if command_exists nvim && [[ ! -d "$HOME/.config/nvim" ]]; then
+    if os_has_cmd nvim && [[ ! -d "$HOME/.config/nvim" ]]; then
         info "$(_t 'Installing the LazyVim configuration template...')"
-        if command_exists git; then
+        if os_has_cmd git; then
             git clone https://github.com/LazyVim/starter "$HOME/.config/nvim" 2>/dev/null || true
             rm -rf "$HOME/.config/nvim/.git" 2>/dev/null || true
             success "LazyVim $(_t 'The template is installed to ~/.config/nvim (nvim installs the plugins on the first start)')"
@@ -56,7 +56,7 @@ install_neovim() {
 # -------- git 增强 --------
 install_git_enhance() {
     info "$(_t '🔧 Configuring git enhancements...')"
-    if ! command_exists git; then
+    if ! os_has_cmd git; then
         warn "git $(_t 'Not installed, skipping the git enhancements')"
         return 0
     fi
@@ -77,15 +77,15 @@ install_git_enhance() {
     success "git $(_t 'The global configuration is enhanced (aliases/colors/editor)')"
 
     # delta：diff 高亮工具
-    if ! command_exists delta; then
+    if ! os_has_cmd delta; then
         info "$(_t 'Installing delta (diff highlighting)...')"
-        if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+        if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
             brew install git-delta
         else
             pkg_install git-delta 2>/dev/null || warn "delta $(_t 'The automatic installation failed, you can install it manually from https://github.com/dandavison/delta')"
         fi
     fi
-    if command_exists delta; then
+    if os_has_cmd delta; then
         git config --global core.pager delta
         git config --global interactive.diffFilter 'delta --color-only'
         git config --global delta.navigate true
@@ -98,17 +98,17 @@ install_git_enhance() {
 # -------- tmux 配置 --------
 install_tmux_config() {
     info "$(_t '🖥️  Configuring tmux...')"
-    if ! command_exists tmux; then
+    if ! os_has_cmd tmux; then
         info "$(_t 'Installing tmux...')"
         pkg_install tmux 2>/dev/null || brew install tmux 2>/dev/null || warn "tmux $(_t 'Installation failed')"
     fi
-    if ! command_exists tmux; then
+    if ! os_has_cmd tmux; then
         warn "tmux $(_t 'Not installed, skipping the configuration')"
         return 0
     fi
     # tpm：tmux 插件管理器
     local tpm_dir="$HOME/.tmux/plugins/tpm"
-    if [[ ! -d "$tpm_dir" ]] && command_exists git; then
+    if [[ ! -d "$tpm_dir" ]] && os_has_cmd git; then
         info "$(_t 'Installing tpm (the tmux plugin manager)...')"
         git clone https://github.com/tmux-plugins/tpm "$tpm_dir" 2>/dev/null || true
     fi
@@ -197,19 +197,19 @@ uninstall_dev_enhance() {
 status_dev_enhance() {
     detect_os
     local nvim_ok=false git_ok=false tmux_ok=false
-    command_exists nvim && nvim_ok=true
-    command_exists git && git config --global alias.lg >/dev/null 2>&1 && git_ok=true
-    command_exists tmux && [[ -f "$HOME/.tmux.conf" ]] && tmux_ok=true
+    os_has_cmd nvim && nvim_ok=true
+    os_has_cmd git && git config --global alias.lg >/dev/null 2>&1 && git_ok=true
+    os_has_cmd tmux && [[ -f "$HOME/.tmux.conf" ]] && tmux_ok=true
     local parts=""
     $nvim_ok && parts="${parts}nvim "
     $git_ok && parts="${parts}git-enhanced "
     $tmux_ok && parts="${parts}tmux-configured"
     parts="${parts:-$(_t 'none')}"
     if [[ "$parts" != "$(_t 'None')" ]]; then
-        emit_status "configured" "${GREEN}$(_t '✅ Configured')${NC} ($parts)"
-        emit_extra "configured_parts=$parts"
+        uxs_emit_status "configured" "${GREEN}$(_t '✅ Configured')${NC} ($parts)"
+        uxs_emit_extra "configured_parts=$parts"
     else
-        emit_status "not_configured" "${RED}$(_t '❌ Not configured')${NC}"
+        uxs_emit_status "not_configured" "${RED}$(_t '❌ Not configured')${NC}"
     fi
 }
 

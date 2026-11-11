@@ -242,7 +242,7 @@ uninstall_pm() {
     warn "$(_t 'Please restart the terminal or reload the shell configuration for the changes to take effect')"
 }
 
-# --- 状态检查（契约：emit_status 双轨，供 status --json 复用）---
+# --- 状态检查（契约：uxs_emit_status 双轨，供 status --json 复用）---
 status_pm() {
     detect_os
     local installed=false state human
@@ -256,13 +256,13 @@ status_pm() {
             human="${GREEN}$(_t '✅ Installed and configured')${NC}"
         else
             human="${YELLOW}$(_t '⚠️  Installed but PATH is not configured')${NC}"
-            emit_extra "path=not_configured"
+            uxs_emit_extra "path=not_configured"
         fi
     else
         state="not_installed"
         human="${RED}$(_t '❌ Not installed')${NC}"
     fi
-    emit_status "$state" "$human"
+    uxs_emit_status "$state" "$human"
 }
 
 usage() {

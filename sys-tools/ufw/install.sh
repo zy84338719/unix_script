@@ -35,7 +35,7 @@ install_ufw() {
     detect_pkg_manager
     info "$(_tf 'Starting the UFW firewall installation (package manager: %s)' "${PKG_MANAGER}")"
 
-    if command_exists ufw; then
+    if os_has_cmd ufw; then
         local cur
         cur=$(ufw version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Unknown version')")
         warn "$(_tf 'UFW detected (%s)' "${cur}")"
@@ -51,7 +51,7 @@ install_ufw() {
         exit 1
     fi
 
-    if ! command_exists ufw; then
+    if ! os_has_cmd ufw; then
         error "$(_t 'Installation failed: the ufw command was not found')"
         exit 1
     fi
@@ -117,44 +117,44 @@ uninstall_ufw() {
 status_ufw() {
     detect_os
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        emit_status "n/a" "${YELLOW}$(_t 'Not applicable (macOS ships with an application firewall)')${NC}"
+        uxs_emit_status "n/a" "${YELLOW}$(_t 'Not applicable (macOS ships with an application firewall)')${NC}"
         if ! uxs_is_machine_mode; then
             printf '%s\n' "$(_t 'Configuration path: System Settings > Network > Firewall')"
         fi
         return
     fi
-    if ! command_exists ufw; then
-        emit_status "not_installed" "${RED}$(_t 'Not installed')${NC}"
+    if ! os_has_cmd ufw; then
+        uxs_emit_status "not_installed" "${RED}$(_t 'Not installed')${NC}"
         return
     fi
     # 三级降级：sudo -n ufw status → systemctl is-active ufw → 兜底 installed。
-    # 防 set -e/pipefail 中止：所有命令替换带 || true，任何路径必须落到一个 emit_status。
+    # 防 set -e/pipefail 中止：所有命令替换带 || true，任何路径必须落到一个 uxs_emit_status。
     local ufw_status sysd
     ufw_status=""
     if ufw_status=$(sudo -n ufw status 2>/dev/null | head -1 || true) && [[ -n "$ufw_status" ]]; then
         # 精确匹配 active（排除 inactive 子串误匹配——"Status: inactive" 含 "active"）
         if [[ "$ufw_status" == *"active"* && "$ufw_status" != *"inactive"* ]]; then
-            emit_status "configured" "${GREEN}$(_t 'Installed and enabled')${NC}"
+            uxs_emit_status "configured" "${GREEN}$(_t 'Installed and enabled')${NC}"
             if ! uxs_is_machine_mode; then
                 echo
                 sudo -n ufw status verbose 2>/dev/null || sudo ufw status verbose
             fi
         else
-            emit_status "not_configured" "${YELLOW}$(_t 'Installed but not enabled')${NC}"
+            uxs_emit_status "not_configured" "${YELLOW}$(_t 'Installed but not enabled')${NC}"
         fi
         return
     fi
     # sudo 不可用（无凭据/无 TTY）：降级 systemd 单元状态
-    if command_exists systemctl && sysd=$(systemctl is-active ufw 2>/dev/null || true); then
+    if os_has_cmd systemctl && sysd=$(systemctl is-active ufw 2>/dev/null || true); then
         if [[ "$sysd" == "active" ]]; then
-            emit_status "installed:running" "${GREEN}$(_t 'Installed and the service is running (degraded detection)')${NC}"
+            uxs_emit_status "installed:running" "${GREEN}$(_t 'Installed and the service is running (degraded detection)')${NC}"
         else
-            emit_status "installed" "${YELLOW}$(_t 'Installed (sudo unavailable, degraded detection)')${NC}"
+            uxs_emit_status "installed" "${YELLOW}$(_t 'Installed (sudo unavailable, degraded detection)')${NC}"
         fi
         return
     fi
     # systemctl 也没有：命令存在即视为已装
-    emit_status "installed" "${YELLOW}$(_t 'Installed (the detailed status cannot be read)')${NC}"
+    uxs_emit_status "installed" "${YELLOW}$(_t 'Installed (the detailed status cannot be read)')${NC}"
 }
 
 usage() {

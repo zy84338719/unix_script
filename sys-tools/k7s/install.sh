@@ -24,7 +24,7 @@ preflight() {
 
 # --- 获取最新版本 ---
 get_latest_version() {
-    github_latest_tag "$REPO"
+    http_github_latest_tag "$REPO"
 }
 
 # --- macOS 安装（.dmg） ---
@@ -89,9 +89,9 @@ install_linux() {
     # 识别包格式
     local pkg_ext=""
     local install_cmd=""
-    if command_exists dpkg; then
+    if os_has_cmd dpkg; then
         pkg_ext="deb"
-    elif command_exists rpm; then
+    elif os_has_cmd rpm; then
         pkg_ext="rpm"
     else
         pkg_ext="AppImage"
@@ -172,7 +172,7 @@ install_k7s() {
     success "$(_tf 'Latest version: v%s' "$version")"
 
     # 检查是否已安装
-    if command_exists k7s; then
+    if os_has_cmd k7s; then
         local current
         current=$(k7s --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || printf '%s\n' "$(_t 'Unknown')")
         warn "$(_tf 'k7s detected (%s)' "${current}")"
@@ -217,9 +217,9 @@ uninstall_k7s() {
         fi
     elif [[ "$OS_TYPE" == "linux" ]]; then
         # 尝试包管理器卸载
-        if command_exists dpkg && dpkg -l | grep -q k7s; then
+        if os_has_cmd dpkg && dpkg -l | grep -q k7s; then
             sudo dpkg -r k7s 2>/dev/null && removed=true
-        elif command_exists rpm && rpm -q k7s >/dev/null 2>&1; then
+        elif os_has_cmd rpm && rpm -q k7s >/dev/null 2>&1; then
             sudo rpm -e k7s 2>/dev/null && removed=true
         fi
         # AppImage
@@ -247,39 +247,39 @@ status_k7s() {
         found=true
         source="/Applications/k7s.app"
         ver=$(defaults read "/Applications/k7s.app/Contents/Info" CFBundleShortVersionString 2>/dev/null || printf '%s\n' "$(_t 'Unknown')")
-        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} (v$ver, /Applications/k7s.app)"
-        emit_extra "source=$source"
-        emit_version "$ver"
-    elif command_exists k7s; then
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} (v$ver, /Applications/k7s.app)"
+        uxs_emit_extra "source=$source"
+        uxs_emit_version "$ver"
+    elif os_has_cmd k7s; then
         found=true
         source=$(command -v k7s)
         ver=$(k7s --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || printf '%s\n' "$(_t 'Unknown')")
-        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} (v$ver)"
-        emit_extra "source=$source"
-        emit_version "$ver"
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} (v$ver)"
+        uxs_emit_extra "source=$source"
+        uxs_emit_version "$ver"
     elif [[ -f "$HOME/.local/bin/k7s" ]]; then
         found=true
         source="$HOME/.local/bin/k7s"
-        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} (~/.local/bin/k7s)"
-        emit_extra "source=$source"
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} (~/.local/bin/k7s)"
+        uxs_emit_extra "source=$source"
     fi
 
     if ! $found; then
         # 检查 deb/rpm
-        if command_exists dpkg && dpkg -l 2>/dev/null | grep -q k7s; then
+        if os_has_cmd dpkg && dpkg -l 2>/dev/null | grep -q k7s; then
             found=true
             source="deb"
-            emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} (deb $(_t 'package)')"
-            emit_extra "source=$source"
-        elif command_exists rpm && rpm -q k7s >/dev/null 2>&1; then
+            uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} (deb $(_t 'package)')"
+            uxs_emit_extra "source=$source"
+        elif os_has_cmd rpm && rpm -q k7s >/dev/null 2>&1; then
             found=true
             source="rpm"
-            emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} (rpm $(_t 'package)')"
-            emit_extra "source=$source"
+            uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} (rpm $(_t 'package)')"
+            uxs_emit_extra "source=$source"
         fi
     fi
 
-    $found || emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+    $found || uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
 }
 
 usage() {

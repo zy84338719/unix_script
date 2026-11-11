@@ -26,7 +26,7 @@ svc_name() {
 
 do_install() {
     preflight
-    if command_exists mysql; then
+    if os_has_cmd mysql; then
         local cur
         cur=$(mysql --version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' || true)
         yes_no "$(_tf 'MySQL %s detected, reinstall?' "${cur:-}")" || { info "$(_t 'Cancelled')"; exit 0; }
@@ -59,7 +59,7 @@ do_install() {
 
 do_uninstall() {
     preflight
-    if ! command_exists mysql; then
+    if ! os_has_cmd mysql; then
         warn "MySQL $(_t 'Not installed')"
         exit 0
     fi
@@ -88,8 +88,8 @@ do_uninstall() {
 do_status() {
     # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
     detect_os
-    if ! command_exists mysql; then
-        emit_status "not_installed" "$(_t '❌ MySQL not installed')"
+    if ! os_has_cmd mysql; then
+        uxs_emit_status "not_installed" "$(_t '❌ MySQL not installed')"
         return 0
     fi
     local ver
@@ -98,14 +98,14 @@ do_status() {
         local svc
         svc=$(svc_name)
         if uxs_svc is-active "$svc" 2>/dev/null; then
-            emit_status "installed:running" "$(_t '✅ MySQL installed and the service is running') ${ver:-$(_t '(unknown version)')}"
+            uxs_emit_status "installed:running" "$(_t '✅ MySQL installed and the service is running') ${ver:-$(_t '(unknown version)')}"
         else
-            emit_status "installed:stopped" "$(_t '⚠️ MySQL installed but the service is not running') ${ver:-$(_t '(unknown version)')}"
+            uxs_emit_status "installed:stopped" "$(_t '⚠️ MySQL installed but the service is not running') ${ver:-$(_t '(unknown version)')}"
         fi
     else
-        emit_status "installed" "$(_t '✅ MySQL installed') ${ver:-$(_t '(unknown version)')}"
+        uxs_emit_status "installed" "$(_t '✅ MySQL installed') ${ver:-$(_t '(unknown version)')}"
     fi
-    emit_version "${ver#v}"
+    uxs_emit_version "${ver#v}"
 }
 
 do_help() {

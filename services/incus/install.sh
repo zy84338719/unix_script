@@ -29,7 +29,7 @@ setup_zabbly_repo() {
 
 do_install() {
     preflight
-    if command_exists incus; then
+    if os_has_cmd incus; then
         local cur
         cur=$(incus --version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' || true)
         yes_no "$(_tf 'Incus %s detected, reinstall?' "${cur:-}")" || { info "$(_t 'Cancelled')"; exit 0; }
@@ -56,7 +56,7 @@ do_install() {
 
 do_uninstall() {
     preflight
-    if ! command_exists incus; then
+    if ! os_has_cmd incus; then
         warn "Incus $(_t 'Not installed')"
         exit 0
     fi
@@ -77,18 +77,18 @@ do_uninstall() {
 do_status() {
     # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
     detect_os
-    if ! command_exists incus; then
-        emit_status "not_installed" "$(_t '❌ Incus not installed')"
+    if ! os_has_cmd incus; then
+        uxs_emit_status "not_installed" "$(_t '❌ Incus not installed')"
         return 0
     fi
     local ver
     ver=$(incus --version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' || true)
     if uxs_svc is-active incus 2>/dev/null; then
-        emit_status "installed:running" "$(_t '✅ Incus installed and the service is running') ${ver:-$(_t '(unknown version)')}"
+        uxs_emit_status "installed:running" "$(_t '✅ Incus installed and the service is running') ${ver:-$(_t '(unknown version)')}"
     else
-        emit_status "installed:stopped" "$(_t '⚠️ Incus installed but the service is not running') ${ver:-$(_t '(unknown version)')}"
+        uxs_emit_status "installed:stopped" "$(_t '⚠️ Incus installed but the service is not running') ${ver:-$(_t '(unknown version)')}"
     fi
-    emit_version "${ver#v}"
+    uxs_emit_version "${ver#v}"
 }
 
 do_help() {

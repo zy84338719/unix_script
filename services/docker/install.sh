@@ -27,7 +27,7 @@ preflight() {
 # Linux 安装
 install_linux() {
     require_sudo
-    if command_exists docker; then
+    if os_has_cmd docker; then
         local cur
         cur=$(docker --version 2>/dev/null || printf '%s' "$(_t 'Unknown version')")
         warn "$(_t 'Detected installed Docker')（${cur}）"
@@ -91,7 +91,7 @@ install_linux() {
     fi
 
     # 可选：安装 docker-compose 插件（官方脚本在较新版本已自带 compose 插件）
-    if ! command_exists docker-compose && ! docker compose version >/dev/null 2>&1; then
+    if ! os_has_cmd docker-compose && ! docker compose version >/dev/null 2>&1; then
         warn "$(_t 'docker compose subcommand not detected. Recent Docker includes the compose plugin.')"
         warn "$(_t 'For standalone docker-compose, see:') https://docs.docker.com/compose/install/"
     fi
@@ -99,12 +99,12 @@ install_linux() {
 
 # macOS 引导
 install_macos() {
-    if command_exists docker; then
+    if os_has_cmd docker; then
         success "$(_t 'Docker installed: ')$(docker --version)"
         return 0
     fi
     info "$(_t 'Docker Desktop is recommended on macOS.')"
-    if command_exists brew; then
+    if os_has_cmd brew; then
         if yes_no "$(_t 'Install Docker Desktop via Homebrew (--cask)?')"; then
             brew install --cask docker
             success "$(_t 'Installation complete. Please launch Docker Desktop to finish setup.')"
@@ -136,7 +136,7 @@ install_docker() {
 uninstall_docker() {
     preflight
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        if command_exists brew; then
+        if os_has_cmd brew; then
             brew uninstall --cask docker || warn "$(_t 'Docker Desktop may not have been installed via brew, please uninstall manually.')"
         else
             warn "$(_t 'Please uninstall Docker Desktop manually.')"
@@ -175,28 +175,28 @@ uninstall_docker() {
 }
 
 status_docker() {
-    if ! command_exists docker; then
-        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
+    if ! os_has_cmd docker; then
+        uxs_emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
         return
     fi
     local ver
     ver=$(docker --version 2>/dev/null || echo "")
     if [[ "$OS_TYPE" == "linux" ]]; then
         if uxs_svc is-active docker 2>/dev/null; then
-            emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} ($ver)"
+            uxs_emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} ($ver)"
         else
-            emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but service not running')${NC} ($ver)"
+            uxs_emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but service not running')${NC} ($ver)"
         fi
     else
         # docker info 在守护进程挂起/socket 无响应时实测可阻塞 90s+（黑洞地址实测 93.3s），
         # 套 5s 超时护栏：超时(rc=124)按未运行降级，避免拖垮 status --json 并行批查
-        if uxs_with_timeout 5 docker info >/dev/null 2>&1; then
-            emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} ($ver)"
+        if run_timeout 5 docker info >/dev/null 2>&1; then
+            uxs_emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} ($ver)"
         else
-            emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed, but the Docker daemon is not running (please start Docker Desktop)')${NC}"
+            uxs_emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed, but the Docker daemon is not running (please start Docker Desktop)')${NC}"
         fi
     fi
-    emit_version "$ver"
+    uxs_emit_version "$ver"
 }
 
 # 仅更换镜像加速器（不重装 Docker）：调用 linuxmirrors 官方脚本 --only-registry
@@ -207,7 +207,7 @@ configure_registry() {
         error "$(_t 'Registry mirror configuration (linuxmirrors) is Linux-only. Current: ')$OS_TYPE"
         exit 1
     fi
-    if ! command_exists docker; then
+    if ! os_has_cmd docker; then
         warn "$(_t 'Docker not detected. The registry mirror configuration will only take effect after Docker is installed and started.')"
         if ! yes_no "$(_t 'Still continue?')"; then
             info "$(_t 'Cancelled')"

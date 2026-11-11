@@ -28,7 +28,7 @@ preflight() {
         error "$(_tf 'Webmin is Linux-only. Current: %s' "$OS_TYPE")"
         exit 1
     fi
-    if ! command_exists systemctl; then
+    if ! os_has_cmd systemctl; then
         error "$(_t 'systemctl (systemd) is required.')"
         exit 1
     fi
@@ -36,9 +36,9 @@ preflight() {
 
 fetch_to() {
     local url="$1" out="$2"
-    if command_exists curl; then
+    if os_has_cmd curl; then
         curl -fsSL "$url" -o "$out"
-    elif command_exists wget; then
+    elif os_has_cmd wget; then
         wget -qO "$out" "$url"
     else
         error "$(_t 'Either curl or wget is required; please install one of them first.')"
@@ -51,7 +51,7 @@ is_installed() {
 }
 
 setup_repo_deb() {
-    if ! command_exists gpg; then
+    if ! os_has_cmd gpg; then
         info "$(_t 'Installing gnupg (needed to import the repository signing key)...')"
         pkg_install gnupg
     fi
@@ -91,12 +91,12 @@ setup_repo_rhel() {
 }
 
 allow_firewall() {
-    if command_exists firewall-cmd; then
+    if os_has_cmd firewall-cmd; then
         sudo firewall-cmd --add-port="${WEBMIN_PORT}/tcp" --permanent 2>/dev/null || true
         sudo firewall-cmd --reload 2>/dev/null || true
         success "$(_tf 'Allowed firewalld %s/tcp' "$WEBMIN_PORT")"
     fi
-    if command_exists ufw; then
+    if os_has_cmd ufw; then
         sudo ufw allow "${WEBMIN_PORT}"/tcp 2>/dev/null || true
         success "$(_tf 'Allowed ufw %s/tcp' "$WEBMIN_PORT")"
     fi
@@ -161,24 +161,24 @@ uninstall_webmin() {
 status_webmin() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"; return
+        uxs_emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"; return
     fi
     if ! is_installed; then
-        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
+        uxs_emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
     fi
     local ver port
     ver=$(cat /etc/webmin/version 2>/dev/null || true)
     if [[ -n "${ver}" ]]; then
-        emit_version "${ver}"
+        uxs_emit_version "${ver}"
     fi
     if uxs_svc is-active webmin 2>/dev/null; then
-        emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
+        uxs_emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed (service not running)')${NC}"
+        uxs_emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed (service not running)')${NC}"
     fi
     port=$(grep -E '^port=' /etc/webmin/miniserv.conf 2>/dev/null | cut -d= -f2 || true)
     if [[ -n "${port}" ]]; then
-        emit_extra "port=${port}"
+        uxs_emit_extra "port=${port}"
     fi
 }
 

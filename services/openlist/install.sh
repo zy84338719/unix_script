@@ -58,7 +58,7 @@ install_openlist() {
 
     info "$(_t 'Fetching the latest version...')"
     local version suffix url tmpdir
-    version=$(github_latest_tag "OpenListTeam/OpenList")
+    version=$(http_github_latest_tag "OpenListTeam/OpenList")
     if [[ -z "$version" ]]; then
         error "$(_t 'Cannot fetch the latest version (check the network or set GH_TOKEN to avoid the API rate limit)')"
         exit 1
@@ -195,7 +195,7 @@ uninstall_openlist() {
 status_openlist() {
     detect_os
     if [[ ! -x "$OPENLIST_BIN" ]]; then
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"; return
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"; return
     fi
     local ver
     # 不用 `| head -1`：head 命中即退会给上游 SIGPIPE(141)；grep 无匹配时退出 1。
@@ -204,14 +204,14 @@ status_openlist() {
     # 取不到版本号就回落成空值。
     ver=$("$OPENLIST_BIN" version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | sed -n '1p') || ver=""
     if service_is_active "$SERVICE_NAME" "$PLIST_LABEL"; then
-        emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC}"
+        uxs_emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but not running')${NC}"
+        uxs_emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but not running')${NC}"
     fi
     # 收尾用 if 而不是 `[[ -n "$ver" ]] && ...`：后者在版本号为空时返回 1，
     # 会让 status 子命令整体退出 1（同样是「status 恒 0」契约）。
     if [[ -n "$ver" ]]; then
-        emit_version "$ver"
+        uxs_emit_version "$ver"
     fi
     return 0
 }

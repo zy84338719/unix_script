@@ -34,7 +34,7 @@ arch_for_nomad() {
 
 do_install() {
     preflight
-    if command_exists nomad; then
+    if os_has_cmd nomad; then
         yes_no "$(_t 'nomad detected, overwrite it with the latest version?')" || { info "$(_t 'Cancelled')"; exit 0; }
     fi
     if [[ "$OS_TYPE" == "darwin" ]]; then
@@ -44,12 +44,12 @@ do_install() {
     else
         info "$(_t 'Fetching the latest nomad version (GitHub API)...')"
         local ver
-        ver=$(github_latest_tag "$REPO")
+        ver=$(http_github_latest_tag "$REPO")
         [[ -n "$ver" ]] || { error "$(_t 'Cannot fetch the version (GitHub is unreachable or rate limited), set GH_TOKEN and retry')"; exit 1; }
         local arch
         arch=$(arch_for_nomad)
         local url
-        url=$(github_release_asset_url "$REPO" "nomad_${ver}_linux_${arch}\.zip")
+        url=$(http_github_release_asset "$REPO" "nomad_${ver}_linux_${arch}\.zip")
         [[ -n "$url" ]] || { error "$(_tf 'Asset nomad_%s_linux_%s.zip not found' "${ver}" "${arch}")"; exit 1; }
         info "$(_tf 'Downloading %s ...' "$url")"
         local tmpdir
@@ -82,14 +82,14 @@ do_uninstall() {
 do_status() {
     # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
     detect_os
-    if ! command_exists nomad; then
-        emit_status "not_installed" "$(_t '❌ nomad not installed')"
+    if ! os_has_cmd nomad; then
+        uxs_emit_status "not_installed" "$(_t '❌ nomad not installed')"
         return 0
     fi
     local ver
     ver=$(nomad version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' || true)
-    emit_status "installed" "$(_t '✅ nomad installed') ${ver:-$(_t '(unknown version)')}$(_t '(single binary, dev mode: nomad agent -dev)')"
-    emit_version "${ver#v}"
+    uxs_emit_status "installed" "$(_t '✅ nomad installed') ${ver:-$(_t '(unknown version)')}$(_t '(single binary, dev mode: nomad agent -dev)')"
+    uxs_emit_version "${ver#v}"
 }
 
 do_help() {

@@ -25,7 +25,7 @@ if [[ ! -f "$TARGET/Cargo.toml" ]]; then
 fi
 
 # cargo clippy
-if command_exists cargo; then
+if os_has_cmd cargo; then
     info "$(_t 'Running cargo clippy...')"
     if (cd "$TARGET" && cargo clippy -- -D warnings 2>&1); then
         success "  $(_t 'clippy: passed')"
@@ -40,7 +40,7 @@ fi
 echo
 
 # cargo-audit
-if command_exists cargo-audit; then
+if os_has_cmd cargo-audit; then
     info "$(_t 'Running cargo-audit (dependency vulnerability scan)...')"
     if (cd "$TARGET" && cargo audit 2>&1); then
         success "  $(_t 'cargo-audit: passed')"
@@ -48,7 +48,7 @@ if command_exists cargo-audit; then
         warn "  $(_t 'cargo-audit: vulnerabilities found')"
         ERRORS=$((ERRORS + 1))
     fi
-elif command_exists cargo; then
+elif os_has_cmd cargo; then
     warn "  ⚠️ $(_t 'cargo-audit not installed, skipping (run ./install.sh install-rust)')"
 fi
 

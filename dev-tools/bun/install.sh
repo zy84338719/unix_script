@@ -30,7 +30,7 @@ install_bun() {
     preflight
     info "$(_t '🚀 Installing Bun (the JavaScript/TypeScript runtime and toolchain)')"
 
-    if command_exists bun; then
+    if os_has_cmd bun; then
         local cur
         cur=$(bun --version 2>/dev/null || printf '%s\n' "$(_t 'Installed')")
         warn "$(_tf 'Detected that Bun is already installed (%s)' "${cur}")"
@@ -39,7 +39,7 @@ install_bun() {
         fi
     fi
 
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         info "$(_t 'Installing bun via Homebrew...')"
         brew install bun
     else
@@ -53,7 +53,7 @@ install_bun() {
     fi
 
     # 官方脚本装到 ~/.bun/bin/bun，可能不在当前 PATH
-    if ! command_exists bun; then
+    if ! os_has_cmd bun; then
         if [[ -x "$BUN_DIR/bin/bun" ]]; then
             warn "bun $(_tf 'Installed to %s/bin/bun, but it is not in the current PATH' "$BUN_DIR")"
             # shellcheck disable=SC2016  # 译文里的 $PATH 是要原样打印的字面量，不能展开
@@ -85,7 +85,7 @@ uninstall_bun() {
     preflight
     local removed=false
     # brew 安装的
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         brew uninstall bun 2>/dev/null && removed=true
     fi
     # 官方脚本安装的（~/.bun）
@@ -106,9 +106,9 @@ uninstall_bun() {
 
 status_bun() {
     detect_os
-    # 计算版本与 registry（emit_status 之前完成，保证 STATE= 为首行）
+    # 计算版本与 registry（uxs_emit_status 之前完成，保证 STATE= 为首行）
     local installed=false ver=""
-    if command_exists bun || [[ -x "$BUN_DIR/bin/bun" ]]; then
+    if os_has_cmd bun || [[ -x "$BUN_DIR/bin/bun" ]]; then
         installed=true
         ver=$(bun --version 2>/dev/null || "$BUN_DIR/bin/bun" --version 2>/dev/null || echo "")
     fi
@@ -128,12 +128,12 @@ status_bun() {
     fi
 
     if $installed; then
-        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+(v$ver)}"
-        emit_version "$ver"
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+(v$ver)}"
+        uxs_emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
-    emit_extra "registry=$cur_reg"
+    uxs_emit_extra "registry=$cur_reg"
     if ! uxs_is_machine_mode; then
         echo "   registry: $cur_reg"
     fi
@@ -176,7 +176,7 @@ mirror_bun() {
     _set_registry "$MIRROR_REGISTRY"
     success "$(_tf 'The registry = %s has been configured (written to %s)' "${MIRROR_REGISTRY}" "${BUNFIG}")"
     # 清理 bun 缓存使新源生效
-    if command_exists bun; then
+    if os_has_cmd bun; then
         info "$(_t 'Cleaning the Bun installation cache...')"
         bun pm cache rm >/dev/null 2>&1 || true
     fi
@@ -192,7 +192,7 @@ unmirror_bun() {
     info "$(_tf 'Restoring the official Bun registry (%s)' "${OFFICIAL_REGISTRY}")"
     _set_registry "$OFFICIAL_REGISTRY"
     success "$(_tf 'The registry = %s has been restored' "$OFFICIAL_REGISTRY")"
-    if command_exists bun; then
+    if os_has_cmd bun; then
         bun pm cache rm >/dev/null 2>&1 || true
     fi
 }

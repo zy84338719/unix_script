@@ -56,7 +56,7 @@ install_nerd_font() {
     fi
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        command_exists brew || { error "macOS $(_t 'Homebrew is required')"; return 1; }
+        os_has_cmd brew || { error "macOS $(_t 'Homebrew is required')"; return 1; }
         for f in $fonts; do
             local cask
             cask=$(cask_for "$f")
@@ -70,16 +70,16 @@ install_nerd_font() {
         done
     else
         # Linux：仅本机桌面会话有意义
-        if ! command_exists fc-cache || [[ "${IS_DESKTOP:-0}" != "1" ]]; then
+        if ! os_has_cmd fc-cache || [[ "${IS_DESKTOP:-0}" != "1" ]]; then
             detect_desktop
         fi
-        if [[ "${IS_DESKTOP:-0}" != "1" ]] || ! command_exists fc-cache; then
+        if [[ "${IS_DESKTOP:-0}" != "1" ]] || ! os_has_cmd fc-cache; then
             info "$(_t 'This machine is a remote/headless environment — the font is rendered by your local terminal machine, there is no need to install it here')"
             info "$(_t 'Run it on your local terminal machine: ./install.sh nerd-font')"
             return 0
         fi
         local ver
-        ver=$(github_latest_tag "ryanoasis/nerd-fonts" 2>/dev/null) || { error "$(_t 'Cannot get the nerd-fonts version')"; return 1; }
+        ver=$(http_github_latest_tag "ryanoasis/nerd-fonts" 2>/dev/null) || { error "$(_t 'Cannot get the nerd-fonts version')"; return 1; }
         for f in $fonts; do
             local dest="$HOME/.local/share/fonts/NerdFonts/$f"
             if [[ -d "$dest" ]] && ls "$dest"/*.ttf >/dev/null 2>&1; then
@@ -114,7 +114,7 @@ uninstall_nerd_font() {
         fi
         info "$(_tf 'Uninstalled: %s' "$f")"
     done
-    if command_exists fc-cache; then
+    if os_has_cmd fc-cache; then
         fc-cache -f >/dev/null 2>&1 || true
     fi
 }
@@ -132,13 +132,13 @@ status_nerd_font() {
     local csv
     csv=$(IFS=,; echo "${found[*]:-}")
     if [[ ${#found[@]} -eq $total ]]; then
-        emit_status "installed" "${GREEN}$(_t '✅ Installed:') ${csv:-$(_t 'none')}${NC}"
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed:') ${csv:-$(_t 'none')}${NC}"
     elif [[ ${#found[@]} -gt 0 ]]; then
-        emit_status "installed" "${YELLOW}$(_tf '⚠️ Partially installed: %s' "$csv")${NC}"
+        uxs_emit_status "installed" "${YELLOW}$(_tf '⚠️ Partially installed: %s' "$csv")${NC}"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
-    [[ -n "$csv" ]] && emit_extra "fonts=$csv"
+    [[ -n "$csv" ]] && uxs_emit_extra "fonts=$csv"
     return 0
 }
 

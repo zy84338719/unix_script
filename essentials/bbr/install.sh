@@ -83,19 +83,19 @@ disable_bbr() {
 status_bbr() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux only)')${NC}"; return
+        uxs_emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux only)')${NC}"; return
     fi
     local algo qdisc
     algo=$(sysctl -n net.ipv4.tcp_congestion_control 2>/dev/null || printf '%s\n' "$(_t 'Unknown')")
     qdisc=$(sysctl -n net.core.default_qdisc 2>/dev/null || printf '%s\n' "$(_t 'Unknown')")
     if [[ "$algo" == "bbr" ]]; then
-        emit_status "configured" "${GREEN}$(_t '✅ BBR is enabled')${NC}$(_tf '(qdisc=%s)' "${qdisc}")"
-        emit_extra "qdisc=$qdisc"
-        emit_extra "algorithm=$algo"
+        uxs_emit_status "configured" "${GREEN}$(_t '✅ BBR is enabled')${NC}$(_tf '(qdisc=%s)' "${qdisc}")"
+        uxs_emit_extra "qdisc=$qdisc"
+        uxs_emit_extra "algorithm=$algo"
     else
-        emit_status "not_configured" "${YELLOW}$(_t '⚠️  BBR is not enabled')${NC}$(_tf '(the current algorithm: %s)' "${algo}")"
-        emit_extra "qdisc=$qdisc"
-        emit_extra "algorithm=$algo"
+        uxs_emit_status "not_configured" "${YELLOW}$(_t '⚠️  BBR is not enabled')${NC}$(_tf '(the current algorithm: %s)' "${algo}")"
+        uxs_emit_extra "qdisc=$qdisc"
+        uxs_emit_extra "algorithm=$algo"
     fi
 }
 

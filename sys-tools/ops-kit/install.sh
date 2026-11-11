@@ -499,11 +499,11 @@ _ops_tool_avail() { command -v "$1" >/dev/null 2>&1 && echo 1 || echo 0; }
 
 status_ops_kit() {
     if [[ "${OS_TYPE:-}" == "darwin" ]]; then
-        emit_status "n/a" "$(_t '⏭️  ops-kit toolbox (Linux only, not applicable on this machine)')"
+        uxs_emit_status "n/a" "$(_t '⏭️  ops-kit toolbox (Linux only, not applicable on this machine)')"
         return 0
     fi
-    emit_status "installed" "$(_t '✅ ops-kit toolbox ready (inspect checks / log / svc / audit baseline)')"
-    emit_extra "tools=systemctl:$(_ops_tool_avail systemctl),journalctl:$(_ops_tool_avail journalctl),smartctl:$(_ops_tool_avail smartctl),ss:$(_ops_tool_avail ss)"
+    uxs_emit_status "installed" "$(_t '✅ ops-kit toolbox ready (inspect checks / log / svc / audit baseline)')"
+    uxs_emit_extra "tools=systemctl:$(_ops_tool_avail systemctl),journalctl:$(_ops_tool_avail journalctl),smartctl:$(_ops_tool_avail smartctl),ss:$(_ops_tool_avail ss)"
 }
 
 cmd_install() {

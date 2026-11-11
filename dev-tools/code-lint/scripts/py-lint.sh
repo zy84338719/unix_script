@@ -25,7 +25,7 @@ if ! find "$TARGET" -maxdepth 5 -name "*.py" -print -quit 2>/dev/null | grep -q 
 fi
 
 # ruff（linter + formatter check）
-if command_exists ruff; then
+if os_has_cmd ruff; then
     info "$(_t 'Running ruff check...')"
     if ruff check "$TARGET" 2>&1; then
         success "  $(_t 'ruff check: passed')"
@@ -49,7 +49,7 @@ fi
 echo
 
 # mypy（类型检查）
-if command_exists mypy; then
+if os_has_cmd mypy; then
     info "$(_t 'Running mypy (type check)...')"
     if mypy "$TARGET" --ignore-missing-imports 2>&1; then
         success "  $(_t 'mypy: passed')"
@@ -64,7 +64,7 @@ fi
 echo
 
 # bandit（安全扫描）
-if command_exists bandit; then
+if os_has_cmd bandit; then
     info "$(_t 'Running bandit (security scan)...')"
     if bandit -r "$TARGET" -q 2>&1; then
         success "  $(_t 'bandit: passed')"

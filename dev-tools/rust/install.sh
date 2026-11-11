@@ -27,7 +27,7 @@ install_rust() {
     preflight
     info "$(_t '🦀 Installing Rust (via rustup)')"
 
-    if command_exists rustc; then
+    if os_has_cmd rustc; then
         local cur
         cur=$(rustc --version 2>/dev/null || printf '%s\n' "$(_t 'Installed')")
         warn "$(_tf 'Detected that Rust is already installed (%s)' "${cur}")"
@@ -40,7 +40,7 @@ install_rust() {
         return 0
     fi
 
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         info "$(_t 'Installing rustup via Homebrew...')"
         brew install rustup
         rustup-init -y --no-modify-path 2>/dev/null || true
@@ -56,7 +56,7 @@ install_rust() {
     fi
 
     # rustup 装到 ~/.cargo/bin，当前 session 可能不在 PATH
-    if ! command_exists rustc && [[ -x "$CARGO_DIR/bin/rustc" ]]; then
+    if ! os_has_cmd rustc && [[ -x "$CARGO_DIR/bin/rustc" ]]; then
         warn "rustc $(_tf 'Installed to %s/bin, but it is not in the current PATH' "$CARGO_DIR")"
         # shellcheck disable=SC2016  # 译文里的 $PATH 是要原样打印的字面量，不能展开
         info "$(_tf 'Add it to your shell configuration: export PATH="%s/bin:$PATH"' "$CARGO_DIR")"
@@ -78,14 +78,14 @@ install_rust() {
 
 uninstall_rust() {
     preflight
-    if [[ ! -d "$RUSTUP_DIR" ]] && ! command_exists rustup; then
+    if [[ ! -d "$RUSTUP_DIR" ]] && ! os_has_cmd rustup; then
         warn "$(_t 'Rust is not installed (rustup)')"; return 0
     fi
     if ! yes_no "$(_t 'Confirm uninstalling Rust (deleting ~/.rustup + ~/.cargo)?')"; then
         info "$(_t 'Cancelled')"; return 0
     fi
     # rustup 自带卸载
-    if command_exists rustup; then
+    if os_has_cmd rustup; then
         rustup self uninstall -y 2>/dev/null && success "Rust $(_t 'Uninstalled via rustup')" && return 0
     fi
     # 手动清理
@@ -102,13 +102,13 @@ uninstall_rust() {
 
 status_rust() {
     detect_os
-    if command_exists rustc || [[ -x "$CARGO_DIR/bin/rustc" ]]; then
+    if os_has_cmd rustc || [[ -x "$CARGO_DIR/bin/rustc" ]]; then
         local ver
         ver=$(rustc --version 2>/dev/null || "$CARGO_DIR/bin/rustc" --version 2>/dev/null || echo "")
-        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
-        emit_version "$ver"
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
+        uxs_emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

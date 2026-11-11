@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # tests/unit_usability.sh — 易用性快修包批次① 单测
-# 覆盖：uxs_with_timeout / status 批查容错 / status --json 防截断 / doctor 无 TTY / ufw 降级链 / dry-run 副作用
+# 覆盖：run_timeout / status 批查容错 / status --json 防截断 / doctor 无 TTY / ufw 降级链 / dry-run 副作用
 # 独立运行：bash tests/unit_usability.sh（退出码 0=全过）
 # 也被 tests/ci_run.sh 调用。
 set -u
@@ -30,18 +30,18 @@ t_true() {  # t_true <名称> <条件命令>
 source "$REPO_DIR/lib/common.sh"
 set +e +o pipefail
 
-# ---------- uxs_with_timeout ----------
+# ---------- run_timeout ----------
 # 快/失败命令透传：无 perl 时降级直通，这两条仍成立
-rc=$(uxs_with_timeout 2 true; echo $?)
+rc=$(run_timeout 2 true; echo $?)
 t_eq "timeout: 快命令透传 rc=0" "0" "$rc"
 
-rc=$(uxs_with_timeout 2 false; echo $?)
+rc=$(run_timeout 2 false; echo $?)
 t_eq "timeout: 失败命令透传 rc=1" "1" "$rc"
 
 # 超时行为依赖 perl（无 perl 降级为直通，行为退化为无护栏）——按环境分支
-if command_exists perl; then
+if os_has_cmd perl; then
     S=$SECONDS
-    rc=$(uxs_with_timeout 1 sleep 5 >/dev/null 2>&1; echo $?)
+    rc=$(run_timeout 1 sleep 5 >/dev/null 2>&1; echo $?)
     ELAPSED=$((SECONDS - S))
     t_eq "timeout: 超时 rc=124" "124" "$rc"
     # 上限 3s：1s alarm + 1s KILL 宽限 ≈ 2s，CI 负载下实测会冲到 3s
@@ -49,11 +49,11 @@ if command_exists perl; then
 fi
 
 # 参数护栏：缺命令参数/非法秒数 → rc=2；secs=0 → 不设超时直通（GNU timeout 语义）
-rc=$(uxs_with_timeout 2>/dev/null; echo $?)
+rc=$(run_timeout 2>/dev/null; echo $?)
 t_eq "timeout: 缺命令参数 rc=2" "2" "$rc"
-rc=$(uxs_with_timeout abc true 2>/dev/null; echo $?)
+rc=$(run_timeout abc true 2>/dev/null; echo $?)
 t_eq "timeout: 非法秒数 rc=2" "2" "$rc"
-rc=$(uxs_with_timeout 0 false >/dev/null 2>&1; echo $?)
+rc=$(run_timeout 0 false >/dev/null 2>&1; echo $?)
 t_eq "timeout: 秒数 0 直通 rc=1" "1" "$rc"
 
 # ---------- ufw 三级降级链（仅 Linux；macOS 上 ufw status=n/a）----------
@@ -61,7 +61,7 @@ if [[ "$(uname)" == "Linux" ]]; then
     UFW_SH="$REPO_DIR/sys-tools/ufw/install.sh"
     FAKE=$(mktemp -d)
 
-    # 注入假 ufw（推荐直接注入，不依赖测试机是否装了 ufw；command_exists 需可执行位）
+    # 注入假 ufw（推荐直接注入，不依赖测试机是否装了 ufw；os_has_cmd 需可执行位）
     printf '#!/bin/sh\nexit 0\n' > "$FAKE/ufw"
     chmod +x "$FAKE/ufw"
 
@@ -110,17 +110,17 @@ if [[ "$(uname)" == "Darwin" ]]; then
     t_true "doctor: macOS 显示已跳过" "printf '%s' \"\$DOC_OUT\" | grep -c '不适用发行版检测' >/dev/null"
 fi
 
-# ---------- uxs_func_with_timeout（函数级超时，批查子进程封顶用）----------
+# ---------- run_func_timeout（函数级超时，批查子进程封顶用）----------
 # perl exec 只能拉二进制，包不住 shell 函数——所以批查用这套 background+watchdog 实现
 __usab_fast_fn() { echo "STATE=not_installed"; }
 __usab_slow_fn() { sleep 8; echo "STATE=installed"; }
 
-out=$(uxs_func_with_timeout 2 __usab_fast_fn); rc=$?
+out=$(run_func_timeout 2 __usab_fast_fn); rc=$?
 t_eq "func-timeout: 快函数透传输出" "STATE=not_installed" "$out"
 t_eq "func-timeout: 快函数透传 rc=0" "0" "$rc"
 
 S=$SECONDS
-out=$(uxs_func_with_timeout 1 __usab_slow_fn); rc=$?
+out=$(run_func_timeout 1 __usab_slow_fn); rc=$?
 ELAPSED=$((SECONDS - S))
 t_eq "func-timeout: 慢函数超时返回空" "" "$out"
 t_eq "func-timeout: 慢函数超时 rc=143（SIGTERM）" "143" "$rc"
@@ -128,7 +128,7 @@ t_true "func-timeout: 超时及时返回（实测 ${ELAPSED}s ≤ 3s）" "(( ELA
 
 # 回归：watchdog 不得持有命令替换的管道写端（否则快函数也要等 sleep 睡满才返回）
 S=$SECONDS
-out=$(uxs_func_with_timeout 8 __usab_fast_fn); rc=$?
+out=$(run_func_timeout 8 __usab_fast_fn); rc=$?
 ELAPSED=$((SECONDS - S))
 t_eq "func-timeout: 快函数不被 watchdog 拖住 rc=0" "0" "$rc"
 t_true "func-timeout: 快函数立即返回（实测 ${ELAPSED}s ≤ 3s，防管道持有回归）" "(( ELAPSED <= 3 ))"

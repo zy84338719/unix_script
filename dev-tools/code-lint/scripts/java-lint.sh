@@ -25,7 +25,7 @@ if ! find "$TARGET" -maxdepth 5 -name "*.java" -print -quit 2>/dev/null | grep -
 fi
 
 # spotbugs
-if command_exists spotbugs; then
+if os_has_cmd spotbugs; then
     info "$(_t 'Running spotbugs (bytecode analysis)...')"
     info "  $(_t 'Tip: spotbugs needs .class files, run mvn compile or gradle build first')"
     # spotbugs 需要编译后的 class 文件，这里给出提示
@@ -46,7 +46,7 @@ fi
 echo
 
 # pmd
-if command_exists pmd; then
+if os_has_cmd pmd; then
     info "$(_t 'Running pmd (source analysis)...')"
     if pmd check -d "$TARGET" -R rulesets/java/quickstart.xml -f text 2>&1; then
         success "  $(_t 'pmd: passed')"
@@ -61,7 +61,7 @@ fi
 echo
 
 # checkstyle
-if command_exists checkstyle; then
+if os_has_cmd checkstyle; then
     info "$(_t 'Running checkstyle (code style check)...')"
     # 查找 Java 源文件并运行 checkstyle
     java_files=$(find "$TARGET" -maxdepth 5 -name "*.java" 2>/dev/null | head -100)

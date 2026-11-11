@@ -27,7 +27,7 @@ install_deno() {
     preflight
     info "$(_t '🦕 Installing Deno (the JavaScript/TypeScript runtime)')"
 
-    if command_exists deno; then
+    if os_has_cmd deno; then
         local cur
         cur=$(deno --version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Installed')")
         warn "$(_tf 'Detected that Deno is already installed (%s)' "${cur}")"
@@ -36,7 +36,7 @@ install_deno() {
         fi
     fi
 
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         info "$(_t 'Installing deno via Homebrew...')"
         brew install deno
     else
@@ -47,7 +47,7 @@ install_deno() {
         fi
     fi
 
-    if ! command_exists deno && [[ -x "$DENO_BIN" ]]; then
+    if ! os_has_cmd deno && [[ -x "$DENO_BIN" ]]; then
         warn "deno $(_tf 'Installed to %s, but it is not in the current PATH' "${DENO_BIN}")"
         # shellcheck disable=SC2016  # 译文里的 $PATH 是要原样打印的字面量，不能展开
         info "$(_tf 'Add it to your shell configuration: export PATH="%s/bin:$PATH"' "$DENO_DIR")"
@@ -63,7 +63,7 @@ install_deno() {
 uninstall_deno() {
     preflight
     local removed=false
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         brew uninstall deno 2>/dev/null && removed=true
     fi
     if [[ -x "$DENO_BIN" ]]; then
@@ -82,13 +82,13 @@ uninstall_deno() {
 
 status_deno() {
     detect_os
-    if command_exists deno || [[ -x "$DENO_BIN" ]]; then
+    if os_has_cmd deno || [[ -x "$DENO_BIN" ]]; then
         local ver
         ver=$(deno --version 2>/dev/null | head -1 || "$DENO_BIN" --version 2>/dev/null | head -1 || echo "")
-        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
-        emit_version "$ver"
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
+        uxs_emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

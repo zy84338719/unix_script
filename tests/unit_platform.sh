@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# tests/unit_platform.sh — lib 平台动词 helper（uxs_os_release / uxs_svc）单测
+# tests/unit_platform.sh — lib 平台动词 helper（os_release_field / uxs_svc）单测
 # 独立运行：bash tests/unit_platform.sh（退出码 0=全过）
 # 也被 tests/ci_run.sh 调用。
 set -u
@@ -20,7 +20,7 @@ t_eq() {  # t_eq <名称> <期望> <实际>
 source "$REPO_DIR/lib/common.sh"
 set +e +o pipefail
 
-# ---------- uxs_os_release ----------
+# ---------- os_release_field ----------
 FIX=$(mktemp)
 cat > "$FIX" <<'EOF'
 ID="ubuntu"
@@ -28,15 +28,15 @@ VERSION_ID="24.04"
 PRETTY_NAME='Ubuntu 24.04 LTS'
 VERSION_CODENAME=noble
 EOF
-t_eq "os_release: 双引号值" "ubuntu" "$(uxs_os_release ID "$FIX")"
-t_eq "os_release: 版本" "24.04" "$(uxs_os_release VERSION_ID "$FIX")"
-t_eq "os_release: 单引号含空格" "Ubuntu 24.04 LTS" "$(uxs_os_release PRETTY_NAME "$FIX")"
-t_eq "os_release: 无引号值" "noble" "$(uxs_os_release VERSION_CODENAME "$FIX")"
-t_eq "os_release: 缺失键为空" "" "$(uxs_os_release ID_LIKE "$FIX")"
-t_eq "os_release: 文件不可读为空" "" "$(uxs_os_release ID /nonexistent/os-release)"
+t_eq "os_release: 双引号值" "ubuntu" "$(os_release_field ID "$FIX")"
+t_eq "os_release: 版本" "24.04" "$(os_release_field VERSION_ID "$FIX")"
+t_eq "os_release: 单引号含空格" "Ubuntu 24.04 LTS" "$(os_release_field PRETTY_NAME "$FIX")"
+t_eq "os_release: 无引号值" "noble" "$(os_release_field VERSION_CODENAME "$FIX")"
+t_eq "os_release: 缺失键为空" "" "$(os_release_field ID_LIKE "$FIX")"
+t_eq "os_release: 文件不可读为空" "" "$(os_release_field ID /nonexistent/os-release)"
 rm -f "$FIX"
 
-# ---------- detect_distro 文件模式回归（_osr_field 引号剥离被 uxs_os_release 复用） ----------
+# ---------- detect_distro 文件模式回归（_osr_field 引号剥离被 os_release_field 复用） ----------
 FIX=$(mktemp)
 cat > "$FIX" <<'EOF'
 ID=debian

@@ -41,7 +41,7 @@ machine_extra() {
 
 step_ready() {
     case "$1" in
-        zsh) command_exists zsh ;;
+        zsh) os_has_cmd zsh ;;
         zsh_setup)
             # STATE 只反映 zsh 本体；框架未选（none）视为未就绪，否则会跳过框架安装
             [[ "$(machine_state zsh_setup)" == "installed" ]] \
@@ -68,7 +68,7 @@ install_terminal() {
         fi
         info "$(_tf '🔧 installing: %s ...' "${STEP_DESC[$i]}")"
         if [[ "$mod" == "zsh" ]]; then
-            command_exists zsh || pkg_install zsh || { error "zsh $(_t 'the core installation failed')"; return 1; }
+            os_has_cmd zsh || pkg_install zsh || { error "zsh $(_t 'the core installation failed')"; return 1; }
         else
             bash "$(module_dir "$mod")/install.sh" install || warn "$(_tf '⚠️ %s installation failed (continue with the remaining steps)' "${STEP_DESC[$i]}")"
         fi
@@ -104,16 +104,16 @@ status_terminal() {
         fi
     done
     if [[ $ready -eq $total ]]; then
-        emit_status "installed" "${GREEN}$(_tf '✅ the whole terminal suite is ready (%s/%s)' "${ready}" "${total}")${NC}"
+        uxs_emit_status "installed" "${GREEN}$(_tf '✅ the whole terminal suite is ready (%s/%s)' "${ready}" "${total}")${NC}"
     else
         local csv
         csv=$(IFS=,; echo "${missing[*]}")
         if [[ $ready -gt 0 ]]; then
-            emit_status "not_installed" "${YELLOW}$(_tf '⚠️ partially ready (%s/%s)' "${ready}" "${total}")${NC}"
+            uxs_emit_status "not_installed" "${YELLOW}$(_tf '⚠️ partially ready (%s/%s)' "${ready}" "${total}")${NC}"
         else
-            emit_status "not_installed" "${RED}$(_t '❌ not configured')${NC}"
+            uxs_emit_status "not_installed" "${RED}$(_t '❌ not configured')${NC}"
         fi
-        emit_extra "missing=${csv}"
+        uxs_emit_extra "missing=${csv}"
     fi
     return 0
 }

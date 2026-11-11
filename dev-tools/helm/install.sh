@@ -34,7 +34,7 @@ arch_for_helm() {
 
 do_install() {
     preflight
-    if command_exists helm; then
+    if os_has_cmd helm; then
         yes_no "$(_t 'helm detected, overwrite it with the latest version?')" || { info "$(_t 'Cancelled')"; exit 0; }
     fi
 
@@ -44,7 +44,7 @@ do_install() {
     else
         info "$(_t 'Fetching the latest helm version (GitHub API)...')"
         local ver
-        ver=$(github_latest_tag "$REPO")
+        ver=$(http_github_latest_tag "$REPO")
         [[ -n "$ver" ]] || { error "$(_t 'Cannot fetch the version number (GitHub is unreachable or rate limited), you can set GH_TOKEN and retry')"; exit 1; }
         local arch
         arch=$(arch_for_helm)
@@ -78,14 +78,14 @@ do_uninstall() {
 }
 
 do_status() {
-    if ! command_exists helm; then
-        emit_status "not_installed" "$(_t '❌ helm is not installed')"
+    if ! os_has_cmd helm; then
+        uxs_emit_status "not_installed" "$(_t '❌ helm is not installed')"
         return 0
     fi
     local ver
     ver=$(helm version --short 2>/dev/null | grep -m1 -oE 'v[0-9]+(\.[0-9]+)+' || true)
-    emit_status "installed" "$(_t '✅ helm is installed') ${ver:-$(_t '(unknown version)')}"
-    emit_version "${ver#v}"
+    uxs_emit_status "installed" "$(_t '✅ helm is installed') ${ver:-$(_t '(unknown version)')}"
+    uxs_emit_version "${ver#v}"
 }
 
 do_help() {

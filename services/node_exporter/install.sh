@@ -14,7 +14,7 @@ NE_PLIST_LABEL="com.prometheus.node_exporter"
 # --- 获取最新版本 ---
 get_latest_version() {
     local ver
-    ver=$(github_latest_tag "prometheus/node_exporter")
+    ver=$(http_github_latest_tag "prometheus/node_exporter")
     if [[ -z "$ver" ]]; then
         error "$(_t 'Cannot fetch the latest version info, check the network connection')"
         return 1
@@ -56,11 +56,11 @@ handle_existing_installation() {
         found_install=true
         local current_version ne_path="node_exporter"
         # /usr/local/bin 不在非交互 shell 的默认 PATH 里，只认 command -v 会读不到版本
-        command_exists node_exporter || ne_path="$NE_BIN"
+        os_has_cmd node_exporter || ne_path="$NE_BIN"
         current_version=$("$ne_path" --version 2>&1 | grep -o 'version [0-9.]*' | cut -d' ' -f2 2>/dev/null || true)
         warn "$(_t 'node_exporter v detected')${current_version:-$(_t 'Unknown version')}"
     fi
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         if brew services list 2>/dev/null | awk '$1=="node_exporter" && $2=="started" {f=1} END {exit !f}'; then
             brew_managed=true
         fi
@@ -249,7 +249,7 @@ print_install_summary() {
     local ip_addr installed_ver ne_path="node_exporter"
     ip_addr=$(get_local_ip)
     # brew 兜底装的位置在 /opt/homebrew/bin，不一定在 PATH 里
-    command_exists node_exporter || ne_path="$NE_BIN"
+    os_has_cmd node_exporter || ne_path="$NE_BIN"
     installed_ver=$("$ne_path" --version 2>&1 | grep -o 'version [0-9.]*' | cut -d' ' -f2 || true)
 
     echo
@@ -305,7 +305,7 @@ install_via_brew() {
     fi
 
     # brew 装的在 /opt/homebrew/bin，非交互 shell 下未必在 PATH 里
-    command_exists node_exporter || ne_path="$NE_BIN"
+    os_has_cmd node_exporter || ne_path="$NE_BIN"
     new_ver=$("$ne_path" --version 2>&1 | grep -o 'version [0-9.]*' | cut -d' ' -f2 || true)
 
     local ip_addr
@@ -318,7 +318,7 @@ install_via_brew() {
     # brew 装的是 Homebrew Core 的版本，同步上游有延迟，可能还不是官方最新 tag。
     # 这里如实报出差距——否则「已装到最新版」就是句空头承诺。
     latest_ver=$(get_latest_version 2>/dev/null || true)
-    if [[ -n "$latest_ver" && -n "$new_ver" ]] && version_gt "$latest_ver" "$new_ver"; then
+    if [[ -n "$latest_ver" && -n "$new_ver" ]] && ver_gt "$latest_ver" "$new_ver"; then
         warn "Homebrew Core $(_tf 'The upstream sync lags behind: the official latest is v%s, brew currently provides v%s' "${latest_ver}" "${new_ver}")"
         info "$(_t 'Wait for the Homebrew sync and run this script again, this repository needs no change')"
     fi
@@ -337,9 +337,9 @@ install_node_exporter() {
 
     # macOS 走 Homebrew（macOS 核心安装载体，且自带服务管理）；
     # Linux 与「没装 brew 的 macOS」走 GitHub 官方二进制。
-    # 两条路径的版本都是动态取的（brew upgrade / github_latest_tag），
+    # 两条路径的版本都是动态取的（brew upgrade / http_github_latest_tag），
     # 上游发新版重跑即可，本仓库不需要跟着改。
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         install_via_brew || return 1
         return 0
     fi
@@ -435,13 +435,13 @@ status_node_exporter() {
     fi
     if $is_installed; then
         if $is_running; then
-            emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC} ($version)"
+            uxs_emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC} ($version)"
         else
-            emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but not running')${NC} ($version)"
+            uxs_emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but not running')${NC} ($version)"
         fi
-        emit_version "$version"
+        uxs_emit_version "$version"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

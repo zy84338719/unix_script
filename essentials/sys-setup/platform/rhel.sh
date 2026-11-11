@@ -20,7 +20,7 @@ _rhel_major() {
     local m vid
     m=$(rpm -E '%{rhel}' 2>/dev/null || true)
     if [[ "$m" =~ ^[0-9]+$ ]]; then echo "$m"; return; fi
-    vid=$(uxs_os_release VERSION_ID)
+    vid=$(os_release_field VERSION_ID)
     echo "${vid%%.*}"
 }
 
@@ -62,7 +62,7 @@ plat_mirror_apply() {
         centos)
             # 通过 os-release 的 NAME 区分 CentOS Stream 与 EOL 老版
             local is_stream
-            is_stream=$(uxs_os_release NAME | grep -qi stream && echo yes || echo no)
+            is_stream=$(os_release_field NAME | grep -qi stream && echo yes || echo no)
             _rhel_backup_repos "$ts"
             if [[ "$is_stream" == "yes" ]]; then
                 sudo tee /etc/yum.repos.d/centos.repo >/dev/null <<'EOF'

@@ -26,7 +26,7 @@ install_pnpm() {
     preflight
     info "$(_t '📦 Installing pnpm (the Node.js package manager)')"
 
-    if command_exists pnpm; then
+    if os_has_cmd pnpm; then
         local cur
         cur=$(pnpm --version 2>/dev/null || printf '%s\n' "$(_t 'Installed')")
         warn "$(_tf 'Detected that pnpm is already installed (%s)' "${cur}")"
@@ -35,7 +35,7 @@ install_pnpm() {
         fi
     fi
 
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         info "$(_t 'Installing pnpm via Homebrew...')"
         brew install pnpm
     else
@@ -47,7 +47,7 @@ install_pnpm() {
         fi
     fi
 
-    if ! command_exists pnpm && [[ -x "$PNPM_DIR/pnpm" ]]; then
+    if ! os_has_cmd pnpm && [[ -x "$PNPM_DIR/pnpm" ]]; then
         warn "pnpm $(_tf 'Installed to %s/pnpm, but it is not in the current PATH' "$PNPM_DIR")"
         # shellcheck disable=SC2016  # 译文里的 $PATH 是要原样打印的字面量，不能展开
         info "$(_tf 'Add it to your shell configuration: export PATH="%s:$PATH"' "$PNPM_DIR")"
@@ -62,7 +62,7 @@ install_pnpm() {
 uninstall_pnpm() {
     preflight
     local removed=false
-    if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
+    if [[ "$OS_TYPE" == "darwin" ]] && os_has_cmd brew; then
         brew uninstall pnpm 2>/dev/null && removed=true
     fi
     if [[ -x "$PNPM_DIR/pnpm" ]]; then
@@ -78,13 +78,13 @@ uninstall_pnpm() {
 
 status_pnpm() {
     detect_os
-    if command_exists pnpm || [[ -x "$PNPM_DIR/pnpm" ]]; then
+    if os_has_cmd pnpm || [[ -x "$PNPM_DIR/pnpm" ]]; then
         local ver
         ver=$(pnpm --version 2>/dev/null || "$PNPM_DIR/pnpm" --version 2>/dev/null || echo "")
-        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+(v$ver)}"
-        emit_version "$ver"
+        uxs_emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+(v$ver)}"
+        uxs_emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 

@@ -16,7 +16,7 @@ MARK="# >>> unix_script atuin >>>"
 ENDMARK="# <<< unix_script atuin <<<"
 
 atuin_bin() {
-    if command_exists atuin; then
+    if os_has_cmd atuin; then
         command -v atuin
     elif [[ -x "$HOME/.atuin/bin/atuin" ]]; then
         echo "$HOME/.atuin/bin/atuin"
@@ -29,13 +29,13 @@ install_atuin() {
     detect_os
     if ! atuin_bin >/dev/null; then
         if [[ "$OS_TYPE" == "darwin" ]]; then
-            command_exists brew || { error "macOS $(_t 'Homebrew is required')"; return 1; }
+            os_has_cmd brew || { error "macOS $(_t 'Homebrew is required')"; return 1; }
             brew install atuin
         else
             if ! pkg_install atuin >/dev/null 2>&1; then
                 # 信任模型：setup.atuin.sh 为官方安装器（HTTPS），装到 $HOME/.atuin/bin（实测）
                 local ver
-                ver=$(github_latest_tag "atuinsh/atuin" 2>/dev/null || echo "latest")
+                ver=$(http_github_latest_tag "atuinsh/atuin" 2>/dev/null || echo "latest")
                 info "$(_tf 'The repository has no atuin package, using the official script (target version: %s)...' "${ver}")"
                 curl -fsSL https://setup.atuin.sh | sh || { error "atuin $(_t 'Installation failed')"; return 1; }
             fi
@@ -106,8 +106,8 @@ status_atuin() {
     if atuin_bin >/dev/null; then
         local sync="off"
         grep -qs "$MARK" "$HOME/.zshrc" "$HOME/.bashrc" 2>/dev/null && sync="on"
-        emit_status "installed" "${GREEN}$(_tf '✅ atuin is installed (shell integration: %s)' "${sync}")${NC}"
-        emit_extra "sync=$sync"
+        uxs_emit_status "installed" "${GREEN}$(_tf '✅ atuin is installed (shell integration: %s)' "${sync}")${NC}"
+        uxs_emit_extra "sync=$sync"
         local ver
         # 不用 `| head -1`：head 命中即退会给上游 SIGPIPE(141)；grep 无匹配时退出 1。
         # 两者在 pipefail 下都会让整条管道非 0，set -e 会让 status 子命令整体中止
@@ -116,10 +116,10 @@ status_atuin() {
         ver=$(atuin_bin --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | sed -n '1p') || ver=""
         # 收尾用 if 而不是 `[[ -n "$ver" ]] && ...`：后者在版本号为空时返回 1。
         if [[ -n "$ver" ]]; then
-            emit_version "$ver"
+            uxs_emit_version "$ver"
         fi
     else
-        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
+        uxs_emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
     return 0
 }
