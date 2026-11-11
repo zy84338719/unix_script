@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 17:02+0800\n"
+"POT-Creation-Date: 2026-11-11 17:11+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3313,6 +3313,167 @@ msgstr ""
 msgid "Configure auto-start on boot (legacy name kept)"
 msgstr ""
 
+msgid ""
+"The docker command was not found. Install Docker first: ./install.sh docker"
+msgstr ""
+
+msgid "The daemon is not running. Start Docker first:"
+msgstr ""
+
+msgid "Start the Docker Desktop app"
+msgstr ""
+
+msgid "Enter the image name to pull (e.g. nginx:1.25, press Enter to finish):"
+msgstr ""
+
+#, sh-printf-format
+msgid "Enter the export directory (default %s):"
+msgstr ""
+
+#, sh-printf-format
+msgid "The directory does not exist: %s"
+msgstr ""
+
+msgid "Create it?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Cannot create the directory: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "The directory is not writable: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Enter the export file name (default %s):"
+msgstr ""
+
+#, sh-printf-format
+msgid "Invalid file name (it must not contain / and must not be empty): %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "The file already exists: %s"
+msgstr ""
+
+msgid "Overwrite it?"
+msgstr ""
+
+#, sh-printf-format
+msgid "The image is already present locally: %s"
+msgstr ""
+
+msgid "Pull it again from the public registry (overwriting the local one)?"
+msgstr ""
+
+msgid "Skipped the pull, using the local image"
+msgstr ""
+
+#, sh-printf-format
+msgid "Pulling the image: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Pull failed: %s (wrong image name or network problem)"
+msgstr ""
+
+msgid "Pull complete"
+msgstr ""
+
+#, sh-printf-format
+msgid "Export the image → %s (gzip compressed)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Export failed: %s"
+msgstr ""
+
+msgid "📦 Export summary"
+msgstr ""
+
+#, sh-printf-format
+msgid "Image:   %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "File:   %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Size:   %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Elapsed:   %ss"
+msgstr ""
+
+msgid "No image name entered, exiting"
+msgstr ""
+
+#, sh-printf-format
+msgid "Target image: %s"
+msgstr ""
+
+msgid "📦 Docker image pull and export"
+msgstr ""
+
+#, sh-printf-format
+msgid "Target image (command line argument): %s"
+msgstr ""
+
+msgid "Continue pulling and exporting the next image?"
+msgstr ""
+
+msgid "📋 Export summary of this run"
+msgstr ""
+
+msgid "No file was exported"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s file(s) exported in total"
+msgstr ""
+
+msgid ""
+"How to restore: docker load < <file> (or gunzip -c <file> | docker load)"
+msgstr ""
+
+msgid "Installed and currently running"
+msgstr ""
+
+msgid "Installed but the daemon is not running"
+msgstr ""
+
+msgid ""
+"Image name]   Pull and export the image as .tar.gz (interactive by default; "
+"pass an image name to skip the first prompt)"
+msgstr ""
+
+msgid "Check whether Docker is installed and running"
+msgstr ""
+
+msgid "Examples:"
+msgstr ""
+
+msgid ""
+"# Interactive: ask for the image name, the directory and the file name step "
+"by step"
+msgstr ""
+
+msgid ""
+"# Give the image directly, still ask for the directory and the file name"
+msgstr ""
+
+msgid "The exported file is a gzip-compressed tar, restore command:"
+msgstr ""
+
+msgid ""
+"This module only exports image artifacts and installs no persistent "
+"component; delete the exported .tar.gz files manually when they are no "
+"longer needed"
+msgstr ""
+
 #, sh-printf-format
 msgid ""
 "Download failed, check the network or download it manually: https://"
@@ -3568,9 +3729,6 @@ msgid "Clear all the rules added by this script"
 msgstr ""
 
 msgid "Overview"
-msgstr ""
-
-msgid "Examples:"
 msgstr ""
 
 msgid "# Initialize the eth1 policy routing"

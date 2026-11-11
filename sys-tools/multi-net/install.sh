@@ -25,8 +25,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../lib/common.sh"
 
 # 本脚本使用的 fwmark 与路由表命名前缀
-TABLE_PREFIX="multinet"  # /etc/iproute2/rt_tables 中的表名前缀
-RULE_COMMENT="multinet"  # iptables 规则注释（用于 clear 定位）
+# /etc/iproute2/rt_tables 中的表名前缀
+TABLE_PREFIX="multinet"
+# iptables 规则注释（用于 clear 定位）
+RULE_COMMENT="multinet"
 
 preflight() {
     detect_os
@@ -258,7 +260,8 @@ main() {
         route-port) shift; do_route_port "$@" ;;
         list)       do_list ;;
         clear)      do_clear ;;
-        uninstall)  do_clear ;;   # 等价 clear：移除全部 multinet iptables/ip-rule 规则
+        # 等价 clear：移除全部 multinet iptables/ip-rule 规则
+        uninstall)  do_clear ;;
         status)     status_multinet ;;
         help|--help|-h) usage ;;
         *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;

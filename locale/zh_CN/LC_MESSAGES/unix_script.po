@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 17:02+0800\n"
+"POT-Creation-Date: 2026-11-11 17:11+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
@@ -3342,6 +3342,167 @@ msgstr "卸载服务 + 询问删除 .conf（完整卸载）"
 msgid "Configure auto-start on boot (legacy name kept)"
 msgstr "配置开机自启（保留旧名）"
 
+msgid ""
+"The docker command was not found. Install Docker first: ./install.sh docker"
+msgstr "未检测到 docker 命令。请先安装 Docker：./install.sh docker"
+
+msgid "The daemon is not running. Start Docker first:"
+msgstr "守护进程未运行。请先启动 Docker："
+
+msgid "Start the Docker Desktop app"
+msgstr "启动 Docker Desktop 应用"
+
+msgid "Enter the image name to pull (e.g. nginx:1.25, press Enter to finish):"
+msgstr "请输入要拉取的镜像名（如 nginx:1.25，回车结束）:"
+
+#, sh-printf-format
+msgid "Enter the export directory (default %s):"
+msgstr "请输入导出目录（默认 %s）:"
+
+#, sh-printf-format
+msgid "The directory does not exist: %s"
+msgstr "目录不存在：%s"
+
+msgid "Create it?"
+msgstr "是否创建该目录？"
+
+#, sh-printf-format
+msgid "Cannot create the directory: %s"
+msgstr "无法创建目录：%s"
+
+#, sh-printf-format
+msgid "The directory is not writable: %s"
+msgstr "目录不可写：%s"
+
+#, sh-printf-format
+msgid "Enter the export file name (default %s):"
+msgstr "请输入导出文件名（默认 %s）:"
+
+#, sh-printf-format
+msgid "Invalid file name (it must not contain / and must not be empty): %s"
+msgstr "文件名非法（不能含 / 或为空）: %s"
+
+#, sh-printf-format
+msgid "The file already exists: %s"
+msgstr "文件已存在：%s"
+
+msgid "Overwrite it?"
+msgstr "是否覆盖？"
+
+#, sh-printf-format
+msgid "The image is already present locally: %s"
+msgstr "本地已有镜像：%s"
+
+msgid "Pull it again from the public registry (overwriting the local one)?"
+msgstr "是否重新从公网拉取（覆盖本地）？"
+
+msgid "Skipped the pull, using the local image"
+msgstr "跳过拉取，使用本地已有镜像"
+
+#, sh-printf-format
+msgid "Pulling the image: %s"
+msgstr "拉取镜像：%s"
+
+#, sh-printf-format
+msgid "Pull failed: %s (wrong image name or network problem)"
+msgstr "拉取失败：%s（镜像名错误或网络问题）"
+
+msgid "Pull complete"
+msgstr "拉取完成"
+
+#, sh-printf-format
+msgid "Export the image → %s (gzip compressed)"
+msgstr "导出镜像 → %s （gzip 压缩）"
+
+#, sh-printf-format
+msgid "Export failed: %s"
+msgstr "导出失败：%s"
+
+msgid "📦 Export summary"
+msgstr "📦 导出摘要"
+
+#, sh-printf-format
+msgid "Image:   %s"
+msgstr "镜像:   %s"
+
+#, sh-printf-format
+msgid "File:   %s"
+msgstr "文件:   %s"
+
+#, sh-printf-format
+msgid "Size:   %s"
+msgstr "大小:   %s"
+
+#, sh-printf-format
+msgid "Elapsed:   %ss"
+msgstr "耗时:   %ss"
+
+msgid "No image name entered, exiting"
+msgstr "未输入镜像名，结束"
+
+#, sh-printf-format
+msgid "Target image: %s"
+msgstr "目标镜像：%s"
+
+msgid "📦 Docker image pull and export"
+msgstr "📦 Docker 镜像拉取与导出"
+
+#, sh-printf-format
+msgid "Target image (command line argument): %s"
+msgstr "目标镜像（命令行参数）：%s"
+
+msgid "Continue pulling and exporting the next image?"
+msgstr "是否继续拉取并导出下一个镜像？"
+
+msgid "📋 Export summary of this run"
+msgstr "📋 本次导出汇总"
+
+msgid "No file was exported"
+msgstr "未导出任何文件"
+
+#, sh-printf-format
+msgid "%s file(s) exported in total"
+msgstr "共导出 %s 个文件"
+
+msgid ""
+"How to restore: docker load < <file> (or gunzip -c <file> | docker load)"
+msgstr "恢复方式：docker load < <文件> （或 gunzip -c <文件> | docker load）"
+
+msgid "Installed and currently running"
+msgstr "已安装且正在运行"
+
+msgid "Installed but the daemon is not running"
+msgstr "已安装但守护进程未运行"
+
+msgid ""
+"Image name]   Pull and export the image as .tar.gz (interactive by default; "
+"pass an image name to skip the first prompt)"
+msgstr "镜像名]   拉取并导出镜像为 .tar.gz（默认交互；可传入镜像名跳过首问）"
+
+msgid "Check whether Docker is installed and running"
+msgstr "检查 Docker 是否已安装并运行"
+
+msgid "Examples:"
+msgstr "示例:"
+
+msgid ""
+"# Interactive: ask for the image name, the directory and the file name step "
+"by step"
+msgstr "# 交互式：逐步问镜像名/目录/文件名"
+
+msgid ""
+"# Give the image directly, still ask for the directory and the file name"
+msgstr "# 直接指定镜像，仍问目录与文件名"
+
+msgid "The exported file is a gzip-compressed tar, restore command:"
+msgstr "导出文件为 gzip 压缩的 tar，恢复命令："
+
+msgid ""
+"This module only exports image artifacts and installs no persistent "
+"component; delete the exported .tar.gz files manually when they are no "
+"longer needed"
+msgstr "仅导出镜像产物，不安装持久组件；已导出的 .tar.gz 请按需手动删除"
+
 #, sh-printf-format
 msgid ""
 "Download failed, check the network or download it manually: https://"
@@ -3598,9 +3759,6 @@ msgstr "清除本脚本添加的所有规则"
 
 msgid "Overview"
 msgstr "总览"
-
-msgid "Examples:"
-msgstr "示例:"
 
 msgid "# Initialize the eth1 policy routing"
 msgstr "# 初始化 eth1 策略路由"
