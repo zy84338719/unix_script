@@ -443,3 +443,18 @@ curl -fsSL https://raw.githubusercontent.com/zy84338719/unix_script/main/bootstr
 - 平台不适用的模块默认从列表/菜单隐藏（manifest `PLATFORMS` 声明）；`UNIX_SCRIPT_SHOW_ALL=1` 显示全量；绕过入口直接调模块时仍输出「不适用」并退出 0
 - 状态子命令始终退出 0（用于探测），安装子命令失败退出非 0
 - 输出为中文，子命令名和模块名为英文
+
+## 发版
+
+- **改既有行为（结果、退出码、产出文件名、输出文本）就是破坏性变更 ⇒ 必须按 major 发**。
+  2026-11-11 的教训：CLI v2 切换（旧扁平写法全删 + 命中即退出 2）与
+  `lib/uxs_compat.sh` 删除 + 12 处函数改名，实际随 v1.22.0 / v1.22.1 发布，
+  当时按 minor 发了 —— 版本号与破坏程度对不上，用户按 semver 判断会踩坑。
+- **已发布的 tag 与 GitHub Release 不删不改**：链接可能已经外发，删了就是 404。
+  版本号对不上的历史，用**下一个版本**正名（v2.0.0 的 CHANGELOG 里写明
+  「这些变更实际随 1.22.x 发布，本版起按 major 记」），不要回改历史。
+- 发版改四处，缺一处就会漂：`VERSION`、`AGENTS.md` frontmatter 的
+  `version:`、README 的版本号、`CHANGELOG.md` 的新版本段。
+  流程：提交 `release: vX.Y.Z` → 打注释 tag → 推 tag → `gh release create`。
+- **CI 全绿才发版**：v1.22.0 就是带着红 CI 发的（本地的门禁绿 ≠ CI 绿，
+  见 i18n 规则 15 / 16）。
