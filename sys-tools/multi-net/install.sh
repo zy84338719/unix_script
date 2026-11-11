@@ -31,12 +31,12 @@ RULE_COMMENT="multinet"  # iptables 规则注释（用于 clear 定位）
 preflight() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        error "multi-net 仅支持 Linux。当前：$OS_TYPE"
+        error "multi-net $(_tf 'Linux only. Current: %s' "$OS_TYPE")"
         exit 1
     fi
     require_sudo
     for cmd in ip iptables; do
-        command_exists "$cmd" || { error "需要 '$cmd' 命令，请先安装 iproute2 与 iptables"; exit 1; }
+        command_exists "$cmd" || { error "$(_tf 'The %s command is required, install iproute2 and iptables first' "$cmd")"; exit 1; }
     done
 }
 
@@ -66,7 +66,7 @@ ensure_rt_table() {
     tname="${TABLE_PREFIX}_${iface}"
     if ! grep -q "[[:space:]]$tname\$" /etc/iproute2/rt_tables 2>/dev/null; then
         echo "$tid $tname" >> /etc/iproute2/rt_tables
-        info "已登记路由表: $tid $tname"
+        info "$(_tf 'Registered routing table: %s %s' "$tid" "$tname")"
     fi
 }
 
@@ -81,11 +81,11 @@ do_setup() {
     preflight
     local iface="${1:-}"
     if [[ -z "$iface" ]]; then
-        error "用法: $0 setup <网卡名>   例如: $0 setup eth1"
+        error "$(_tf 'Usage: %s setup <interface>   For example: %s setup eth1' "$0" "$0")"
         exit 1
     fi
     if ! ip link show "$iface" >/dev/null 2>&1; then
-        error "网卡 $iface 不存在。可用网卡:"
+        error "$(_tf 'The interface %s does not exist. Available interfaces:' "$iface")"
         ip -br link show | awk '{print "  "$1}' >&2
         exit 1
     fi
@@ -96,14 +96,14 @@ do_setup() {
     mark=$(mark_for "$iface")
 
     if [[ -z "$gw" ]]; then
-        error "无法获取 $iface 的网关（该网卡可能未配置 IP/默认路由）"
+        error "$(_tf 'Cannot fetch the gateway of %s (the interface may have no IP/default route)' "$iface")"
         ip -br addr show "$iface" >&2
         exit 1
     fi
 
     ensure_rt_table "$iface"
 
-    info "为 $iface 配置独立路由表 (table $tid, gw $gw, mark $mark)"
+    info "$(_tf 'Configuring an independent routing table for %s (table %s, gw %s, mark %s)' "$iface" "$tid" "$gw" "$mark")"
     # 表内默认路由：从该网卡经其网关出
     ip route replace default via "$gw" dev "$iface" table "$tid" 2>/dev/null || true
     # 确保本网卡网段直连在该表
@@ -116,11 +116,11 @@ do_setup() {
     # 规则：带该 mark 的包查该表
     if ! ip rule show 2>/dev/null | grep -q "fwmark $mark"; then
         ip rule add fwmark "$mark" table "$tid"
-        info "已添加规则: fwmark $mark -> table $tid"
+        info "$(_tf 'Rule added: fwmark %s -> table %s' "$mark" "$tid")"
     fi
 
-    success "$iface 策略路由表已就绪（标记 $mark 的流量将走 ${iface}）"
-    info "后续用 route-user / route-port 指定流量走该网卡"
+    success "$iface $(_tf 'The policy routing table is ready (the traffic marked %s goes through %s)' "$mark" "${iface}")"
+    info "$(_t 'Use route-user / route-port later to send the traffic through that interface')"
 }
 
 # route-user <用户> <网卡>: 让某用户的流量打上该网卡 mark
@@ -128,29 +128,29 @@ do_route_user() {
     preflight
     local user="${1:-}" iface="${2:-}"
     if [[ -z "$user" ]] || [[ -z "$iface" ]]; then
-        error "用法: $0 route-user <用户名> <网卡>"
+        error "$(_tf 'Usage: %s route-user <user> <interface>' "$0")"
         exit 1
     fi
     local uid
-    uid=$(id -u "$user" 2>/dev/null) || { error "用户 $user 不存在"; exit 1; }
+    uid=$(id -u "$user" 2>/dev/null) || { error "$(_tf 'The user %s does not exist' "$user")"; exit 1; }
     if ! ip link show "$iface" >/dev/null 2>&1; then
-        error "网卡 $iface 不存在"; exit 1
+        error "$(_tf 'The interface %s does not exist' "$iface")"; exit 1
     fi
     # 确保该网卡已 setup
     if ! ip rule show 2>/dev/null | grep -q "$(mark_for "$iface")"; then
-        warn "$iface 尚未 setup，先执行 setup"
+        warn "$iface $(_t 'Not set up yet, run setup first')"
         do_setup "$iface"
     fi
     local mark tid
     mark=$(mark_for "$iface")
     tid=$(table_id_for "$iface")
 
-    info "让用户 $user (uid $uid) 的流量走 $iface"
+    info "$(_tf 'Send the traffic of the user %s (uid %s) through %s' "$user" "$uid" "$iface")"
     iptables -t mangle -A OUTPUT -m owner --uid-owner "$uid" -j MARK --set-mark "$mark" \
         -m comment --comment "$RULE_COMMENT"
     # 回程包也标记（POSTROUTING 不需要，OUTPUT 标记已够路由决策）
-    success "已设置: 用户 $user 的出站流量走 $iface"
-    info "验证: 以 $user 身份 curl ifconfig.me，应显示 $iface 的公网 IP"
+    success "$(_tf 'Set: the outbound traffic of the user %s goes through %s' "$user" "$iface")"
+    info "$(_tf 'Verify: run curl ifconfig.me as %s, it should show the public IP of %s' "$user" "$iface")"
 }
 
 # route-port <端口> <网卡>: 让访问指定目的端口的流量走指定网卡
@@ -158,44 +158,44 @@ do_route_port() {
     preflight
     local port="${1:-}" iface="${2:-}"
     if [[ -z "$port" ]] || [[ -z "$iface" ]]; then
-        error "用法: $0 route-port <目的端口> <网卡>   例如: $0 route-port 443 eth1"
+        error "$(_tf 'Usage: %s route-port <destination port> <interface>   For example: %s route-port 443 eth1' "$0" "$0")"
         exit 1
     fi
     if ! ip link show "$iface" >/dev/null 2>&1; then
-        error "网卡 $iface 不存在"; exit 1
+        error "$(_tf 'The interface %s does not exist' "$iface")"; exit 1
     fi
     if ! ip rule show 2>/dev/null | grep -q "$(mark_for "$iface")"; then
-        warn "$iface 尚未 setup，先执行 setup"
+        warn "$iface $(_t 'Not set up yet, run setup first')"
         do_setup "$iface"
     fi
     local mark
     mark=$(mark_for "$iface")
 
-    info "让目的端口 $port 的出站流量走 $iface"
+    info "$(_tf 'Send the outbound traffic to the destination port %s through %s' "$port" "$iface")"
     iptables -t mangle -A OUTPUT -p tcp --dport "$port" -j MARK --set-mark "$mark" \
         -m comment --comment "$RULE_COMMENT"
-    success "已设置: 目的端口 $port 的出站流量走 $iface"
+    success "$(_tf 'Set: the outbound traffic to the destination port %s goes through %s' "$port" "$iface")"
 }
 
 do_list() {
     preflight
-    info "=== 策略路由规则 (ip rule) ==="
+    info "=== $(_t 'Policy routing rules (ip rule) ===')"
     ip rule show | grep -E "fwmark|$(table_id_for eth0 2>/dev/null)" 2>/dev/null || ip rule show
     echo
-    info "=== mangle 表 MARK 规则 (iptables) ==="
-    iptables -t mangle -L OUTPUT -v -n 2>/dev/null | grep -E "MARK|$RULE_COMMENT" || echo "  （无）"
+    info "=== mangle $(_t 'Table MARK rules (iptables) ===')"
+    iptables -t mangle -L OUTPUT -v -n 2>/dev/null | grep -E "MARK|$RULE_COMMENT" || echo "  $(_t '(none)')"
 }
 
 # clear: 清除本脚本添加的所有规则
 do_clear() {
     preflight
-    if ! yes_no "确认清除所有 multi-net 策略路由规则与标记？"; then
-        info "已取消"; return 0
+    if ! yes_no "$(_t 'Confirm clearing all the multi-net policy routing rules and marks?')"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
-    info "清除 iptables mangle MARK 规则..."
+    info "$(_t 'Clearing the iptables mangle MARK rules...')"
     while iptables -t mangle -D OUTPUT -m comment --comment "$RULE_COMMENT" 2>/dev/null; do :; done
     # 循环删除所有带该 comment 的规则（不同 mark）
-    info "清除 ip rule fwmark 规则..."
+    info "$(_t 'Clearing the ip rule fwmark rules...')"
     local tid
     for tid in $(seq 100 250); do
         ip rule del table "$tid" 2>/dev/null || true
@@ -209,21 +209,21 @@ do_clear() {
             ip rule del fwmark "$m" 2>/dev/null || true
         fi
     done
-    success "已清除 multi-net 规则（路由表条目保留，可重新 setup 复用）"
+    success "$(_t 'The multi-net rules are cleared (the routing table entries are kept, setup can reuse them)')"
 }
 
 status_multinet() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return 0
+        emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux only)')${NC}"; return 0
     fi
     local rules=0 marks=0
     rules=$(ip rule show 2>/dev/null | grep -c "fwmark" || true)
     marks=$(iptables -t mangle -L OUTPUT 2>/dev/null | grep -c "$RULE_COMMENT" || true)
     if [[ ${rules:-0} -gt 0 ]] || [[ ${marks:-0} -gt 0 ]]; then
-        emit_status "configured" "${GREEN}✅ 已配置${NC}（$rules 条路由规则, $marks 条标记规则）"
+        emit_status "configured" "${GREEN}$(_t '✅ Configured')${NC}$(_tf '(%s routing rules, %s mark rules)' "$rules" "$marks")"
     else
-        emit_status "not_configured" "${RED}❌ 未配置${NC}"
+        emit_status "not_configured" "${RED}$(_t '❌ Not configured')${NC}"
     fi
     emit_extra "rules=$rules"
     emit_extra "marks=$marks"
@@ -233,19 +233,19 @@ usage() {
     cat <<EOF
 用法: $0 {setup|route-user|route-port|list|clear|status|help}  (仅 Linux)
 
-多网卡策略路由: 让指定服务/用户/端口走指定网卡出网。
+$(_t 'Multi-NIC policy routing: send the traffic of a given service/user/port through a given interface.')
 
-  setup <网卡>               为网卡初始化独立路由表
-  route-user <用户> <网卡>   让某用户的所有流量走指定网卡
-  route-port <端口> <网卡>   让访问指定目的端口的流量走指定网卡
-  list                       查看当前策略路由规则
-  clear                      清除本脚本添加的所有规则
-  status                     总览
+  setup <$(_t 'interface>               initialize an independent routing table for the interface')
+  route-user <$(_t 'user> <interface>   send all the traffic of a user through the given interface')
+  route-port <$(_t 'port> <interface>   send the traffic to the given destination port through the given interface')
+  list                       $(_t 'Show the current policy routing rules')
+  clear                      $(_t 'Clear all the rules added by this script')
+  status                     $(_t 'Overview')
 
-示例:
-  $0 setup eth1                       # 初始化 eth1 策略路由
-  $0 route-user www-data eth1         # www-data 用户的流量走 eth1
-  $0 route-port 443 eth1              # 访问 443 端口的流量走 eth1
+$(_t 'Examples:')
+  $0 setup eth1                       $(_t '# Initialize the eth1 policy routing')
+  $0 route-user www-data eth1         $(_t '# www-data The user traffic goes through eth1')
+  $0 route-port 443 eth1              $(_t '# The traffic to port 443 goes through eth1')
 EOF
 }
 
@@ -261,7 +261,7 @@ main() {
         uninstall)  do_clear ;;   # 等价 clear：移除全部 multinet iptables/ip-rule 规则
         status)     status_multinet ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

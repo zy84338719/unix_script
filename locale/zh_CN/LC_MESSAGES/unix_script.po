@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 16:43+0800\n"
+"POT-Creation-Date: 2026-11-11 16:57+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
@@ -2105,7 +2105,8 @@ msgid ""
 "Note: the Deb family supports the jammy/noble/bookworm/trixie codenames; the "
 "RHEL family uses el$releasever."
 msgstr ""
-"说明：Deb 系支持 jammy/noble/bookworm/trixie 代号；RHEL 系走 el\\$releasever。"
+"说明：Deb 系支持 jammy/noble/bookworm/trixie 代号；RHEL 系走 el\\"
+"$releasever。"
 
 msgid "Client shell: mongosh (installed together with mongodb-org)."
 msgstr "客户端 shell：mongosh（随 mongodb-org 安装）。"
@@ -3340,6 +3341,299 @@ msgstr "卸载服务 + 询问删除 .conf（完整卸载）"
 
 msgid "Configure auto-start on boot (legacy name kept)"
 msgstr "配置开机自启（保留旧名）"
+
+#, sh-printf-format
+msgid "Linux only. Current: %s"
+msgstr "仅支持 Linux。当前：%s"
+
+#, sh-printf-format
+msgid "The %s command is required, install iproute2 and iptables first"
+msgstr "需要 '%s' 命令，请先安装 iproute2 与 iptables"
+
+#, sh-printf-format
+msgid "Registered routing table: %s %s"
+msgstr "已登记路由表: %s %s"
+
+#, sh-printf-format
+msgid "Usage: %s setup <interface>   For example: %s setup eth1"
+msgstr "用法: %s setup <网卡名>   例如: %s setup eth1"
+
+#, sh-printf-format
+msgid "The interface %s does not exist. Available interfaces:"
+msgstr "网卡 %s 不存在。可用网卡:"
+
+#, sh-printf-format
+msgid ""
+"Cannot fetch the gateway of %s (the interface may have no IP/default route)"
+msgstr "无法获取 %s 的网关（该网卡可能未配置 IP/默认路由）"
+
+#, sh-printf-format
+msgid ""
+"Configuring an independent routing table for %s (table %s, gw %s, mark %s)"
+msgstr "为 %s 配置独立路由表 (table %s, gw %s, mark %s)"
+
+#, sh-printf-format
+msgid "Rule added: fwmark %s -> table %s"
+msgstr "已添加规则: fwmark %s -> table %s"
+
+#, sh-printf-format
+msgid ""
+"The policy routing table is ready (the traffic marked %s goes through %s)"
+msgstr "策略路由表已就绪（标记 %s 的流量将走 %s）"
+
+msgid ""
+"Use route-user / route-port later to send the traffic through that interface"
+msgstr "后续用 route-user / route-port 指定流量走该网卡"
+
+#, sh-printf-format
+msgid "Usage: %s route-user <user> <interface>"
+msgstr "用法: %s route-user <用户名> <网卡>"
+
+#, sh-printf-format
+msgid "The user %s does not exist"
+msgstr "用户 %s 不存在"
+
+#, sh-printf-format
+msgid "The interface %s does not exist"
+msgstr "网卡 %s 不存在"
+
+msgid "Not set up yet, run setup first"
+msgstr "尚未 setup，先执行 setup"
+
+#, sh-printf-format
+msgid "Send the traffic of the user %s (uid %s) through %s"
+msgstr "让用户 %s (uid %s) 的流量走 %s"
+
+#, sh-printf-format
+msgid "Set: the outbound traffic of the user %s goes through %s"
+msgstr "已设置: 用户 %s 的出站流量走 %s"
+
+#, sh-printf-format
+msgid "Verify: run curl ifconfig.me as %s, it should show the public IP of %s"
+msgstr "验证: 以 %s 身份 curl ifconfig.me，应显示 %s 的公网 IP"
+
+#, sh-printf-format
+msgid ""
+"Usage: %s route-port <destination port> <interface>   For example: %s route-"
+"port 443 eth1"
+msgstr "用法: %s route-port <目的端口> <网卡>   例如: %s route-port 443 eth1"
+
+#, sh-printf-format
+msgid "Send the outbound traffic to the destination port %s through %s"
+msgstr "让目的端口 %s 的出站流量走 %s"
+
+#, sh-printf-format
+msgid "Set: the outbound traffic to the destination port %s goes through %s"
+msgstr "已设置: 目的端口 %s 的出站流量走 %s"
+
+msgid "Policy routing rules (ip rule) ==="
+msgstr "策略路由规则 (ip rule) ==="
+
+msgid "Table MARK rules (iptables) ==="
+msgstr "表 MARK 规则 (iptables) ==="
+
+msgid "(none)"
+msgstr "（无）"
+
+msgid "Confirm clearing all the multi-net policy routing rules and marks?"
+msgstr "确认清除所有 multi-net 策略路由规则与标记？"
+
+msgid "Clearing the iptables mangle MARK rules..."
+msgstr "清除 iptables mangle MARK 规则..."
+
+msgid "Clearing the ip rule fwmark rules..."
+msgstr "清除 ip rule fwmark 规则..."
+
+msgid ""
+"The multi-net rules are cleared (the routing table entries are kept, setup "
+"can reuse them)"
+msgstr "已清除 multi-net 规则（路由表条目保留，可重新 setup 复用）"
+
+msgid "⚠️  Not applicable (Linux only)"
+msgstr "⚠️  不适用（仅 Linux）"
+
+msgid "✅ Configured"
+msgstr "✅ 已配置"
+
+#, sh-printf-format
+msgid "(%s routing rules, %s mark rules)"
+msgstr "（%s 条路由规则, %s 条标记规则）"
+
+msgid "❌ Not configured"
+msgstr "❌ 未配置"
+
+msgid ""
+"Multi-NIC policy routing: send the traffic of a given service/user/port "
+"through a given interface."
+msgstr "多网卡策略路由: 让指定服务/用户/端口走指定网卡出网。"
+
+msgid ""
+"interface>               initialize an independent routing table for the "
+"interface"
+msgstr "网卡>               为网卡初始化独立路由表"
+
+msgid ""
+"user> <interface>   send all the traffic of a user through the given "
+"interface"
+msgstr "用户> <网卡>   让某用户的所有流量走指定网卡"
+
+msgid ""
+"port> <interface>   send the traffic to the given destination port through "
+"the given interface"
+msgstr "端口> <网卡>   让访问指定目的端口的流量走指定网卡"
+
+msgid "Show the current policy routing rules"
+msgstr "查看当前策略路由规则"
+
+msgid "Clear all the rules added by this script"
+msgstr "清除本脚本添加的所有规则"
+
+msgid "Overview"
+msgstr "总览"
+
+msgid "Examples:"
+msgstr "示例:"
+
+msgid "# Initialize the eth1 policy routing"
+msgstr "# 初始化 eth1 策略路由"
+
+msgid "# www-data The user traffic goes through eth1"
+msgstr "# www-data 用户的流量走 eth1"
+
+msgid "# The traffic to port 443 goes through eth1"
+msgstr "# 访问 443 端口的流量走 eth1"
+
+#, sh-printf-format
+msgid "Restic detected (%s)"
+msgstr "检测到已安装 Restic（%s）"
+
+#, sh-printf-format
+msgid "Unsupported architecture: %s"
+msgstr "不支持的架构：%s"
+
+msgid "Extracting..."
+msgstr "正在解压..."
+
+msgid "Extract failed, trying to install bzip2..."
+msgstr "解压失败，尝试安装 bzip2..."
+
+msgid "🚀 Restic backup tool install script"
+msgstr "🚀 Restic 备份工具安装脚本"
+
+msgid "Installing Restic via Homebrew..."
+msgstr "通过 Homebrew 安装 Restic..."
+
+msgid "Installing Restic via apt..."
+msgstr "通过 apt 安装 Restic..."
+
+msgid "Installation failed, falling back to the GitHub binary..."
+msgstr "安装失败，改用 GitHub 二进制..."
+
+#, sh-printf-format
+msgid "Installing Restic via %s..."
+msgstr "通过 %s 安装 Restic..."
+
+msgid ""
+"The current package manager does not ship restic, downloading it from "
+"GitHub..."
+msgstr "当前包管理器不直接提供 restic，从 GitHub 下载..."
+
+msgid "The restic command was not found after the install, check PATH"
+msgstr "安装后找不到 restic 命令，请检查 PATH"
+
+msgid "🎉 Restic installation complete!"
+msgstr "🎉 Restic 安装完成！"
+
+#, sh-printf-format
+msgid "Version info: %s"
+msgstr "版本信息：%s"
+
+msgid "Getting started:"
+msgstr "快速上手："
+
+msgid "Initialize a local backup repository"
+msgstr "初始化本地备份仓库"
+
+msgid "Back up a directory"
+msgstr "备份目录"
+
+msgid "List the backup snapshots"
+msgstr "查看备份快照"
+
+msgid "Restore a file"
+msgstr "恢复文件"
+
+msgid "Initialize a remote repository (S3 example)"
+msgstr "初始化远程仓库（S3 示例）"
+
+msgid "More usage: https://restic.readthedocs.io/"
+msgstr "更多用法：https://restic.readthedocs.io/"
+
+msgid "About to uninstall Restic."
+msgstr "即将卸载 Restic。"
+
+msgid "✅ Installed"
+msgstr "✅ 已安装"
+
+msgid "Install or update Restic (default action)"
+msgstr "安装或更新 Restic（默认动作）"
+
+msgid "Uninstall Restic"
+msgstr "卸载 Restic"
+
+msgid "📂 Installing upftp (a lightweight FTP file sharing tool)"
+msgstr "📂 安装 upftp（轻量级 FTP 文件分享工具）"
+
+#, sh-printf-format
+msgid "upftp detected (%s)"
+msgstr "检测到已安装 upftp（%s）"
+
+msgid "Continue and update?"
+msgstr "是否继续并更新？"
+
+msgid "Installing via Homebrew..."
+msgstr "通过 Homebrew 安装..."
+
+msgid ""
+"Cannot fetch the latest upftp version (check the network or set GH_TOKEN)"
+msgstr "无法获取 upftp 最新版本（请检查网络或设置 GH_TOKEN）"
+
+#, sh-printf-format
+msgid "Trying the bare binary: %s"
+msgstr "尝试裸二进制：%s"
+
+#, sh-printf-format
+msgid ""
+"Download failed, download it manually from https://github.com/%s/releases"
+msgstr "下载失败，请从 https://github.com/%s/releases 手动下载"
+
+msgid "The upftp binary was not found in the archive"
+msgstr "未在压缩包中找到 upftp 二进制"
+
+msgid "It may have been installed outside the PATH, please check"
+msgstr "可能装到非 PATH 路径，请检查"
+
+msgid "Share the current directory (FTP 2121 / HTTP 8080)"
+msgstr "分享当前目录（FTP 2121 / HTTP 8080）"
+
+msgid "Specify a directory and a port"
+msgstr "指定目录和端口"
+
+msgid "Read-only mode"
+msgstr "只读模式"
+
+msgid "Background service mode"
+msgstr "后台服务模式"
+
+msgid "Open http://<your IP>:8080 in a browser to reach the web interface"
+msgstr "浏览器打开 http://<你的IP>:8080 访问 Web 界面"
+
+#, sh-printf-format
+msgid "Docs: https://github.com/%s"
+msgstr "文档：https://github.com/%s"
+
+msgid "Install upftp (the FTP file sharing tool, default action)"
+msgstr "安装 upftp（FTP 文件分享工具，默认动作）"
 
 #~ msgid "Unknown subcommand: $1"
 #~ msgstr "未知子命令：$1"

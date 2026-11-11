@@ -29,55 +29,55 @@ arch_suffix() {
         linux/aarch64|linux/arm64) echo "linux-arm64" ;;
         darwin/x86_64)       echo "darwin-amd64" ;;
         darwin/arm64|darwin/aarch64) echo "darwin-arm64" ;;
-        *) error "不支持的架构：$OS_TYPE/$arch"; exit 1 ;;
+        *) error "$(_tf 'Unsupported architecture: %s/%s' "$OS_TYPE" "$arch")"; exit 1 ;;
     esac
 }
 
 install_upftp() {
     preflight
-    info "📂 安装 upftp（轻量级 FTP 文件分享工具）"
+    info "$(_t '📂 Installing upftp (a lightweight FTP file sharing tool)')"
 
     if command_exists upftp; then
         local cur
-        cur=$(upftp --version 2>/dev/null || echo "已安装")
-        warn "检测到已安装 upftp（${cur}）"
-        if ! yes_no "是否继续并更新？"; then
-            info "已取消"; return 0
+        cur=$(upftp --version 2>/dev/null || printf '%s\n' "$(_t 'Installed')")
+        warn "$(_tf 'upftp detected (%s)' "${cur}")"
+        if ! yes_no "$(_t 'Continue and update?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
     fi
 
     # macOS 优先 brew
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
-        info "通过 Homebrew 安装..."
+        info "$(_t 'Installing via Homebrew...')"
         brew install upftp 2>/dev/null || brew install zy84338719/upftp/upftp 2>/dev/null
     else
         # 从 GitHub Releases 下载二进制
         local version suffix url tmpdir
         version=$(github_latest_tag "$REPO")
         if [[ -z "$version" ]]; then
-            error "无法获取 upftp 最新版本（请检查网络或设置 GH_TOKEN）"
+            error "$(_t 'Cannot fetch the latest upftp version (check the network or set GH_TOKEN)')"
             exit 1
         fi
-        success "最新版本：$version"
+        success "$(_tf 'Latest version: %s' "$version")"
         suffix=$(arch_suffix)
 
         # 尝试常见命名格式
         url="https://github.com/${REPO}/releases/download/${version}/upftp-${suffix}.tar.gz"
-        info "下载：$url"
+        info "$(_tf 'Downloading: %s' "$url")"
         tmpdir=$(mktemp -d)
         if ! curl -fSL "$url" -o "$tmpdir/upftp.tar.gz" 2>/dev/null; then
             # 回退：直接下载裸二进制
             url="https://github.com/${REPO}/releases/download/${version}/upftp-${suffix}"
-            info "尝试裸二进制：$url"
+            info "$(_tf 'Trying the bare binary: %s' "$url")"
             if ! curl -fSL "$url" -o "$tmpdir/upftp"; then
-                error "下载失败，请从 https://github.com/${REPO}/releases 手动下载"
+                error "$(_tf 'Download failed, download it manually from https://github.com/%s/releases' "${REPO}")"
                 rm -rf "$tmpdir"; exit 1
             fi
             require_sudo
             sudo mv "$tmpdir/upftp" /usr/local/bin/upftp
             sudo chmod +x /usr/local/bin/upftp
             rm -rf "$tmpdir"
-            success "upftp $version 安装完成"
+            success "upftp $version $(_t 'Installation complete')"
             _show_usage_hint
             return 0
         fi
@@ -85,37 +85,37 @@ install_upftp() {
         # 解压 tar.gz
         require_sudo
         if ! tar -xzf "$tmpdir/upftp.tar.gz" -C "$tmpdir" 2>/dev/null; then
-            error "解压失败"; rm -rf "$tmpdir"; exit 1
+            error "$(_t 'Extract failed')"; rm -rf "$tmpdir"; exit 1
         fi
         # 找到二进制文件
         local bin_file
         bin_file=$(find "$tmpdir" -name "upftp" -type f | head -1)
         if [[ -z "$bin_file" ]]; then
-            error "未在压缩包中找到 upftp 二进制"; rm -rf "$tmpdir"; exit 1
+            error "$(_t 'The upftp binary was not found in the archive')"; rm -rf "$tmpdir"; exit 1
         fi
         sudo mv "$bin_file" /usr/local/bin/upftp
         sudo chmod +x /usr/local/bin/upftp
         rm -rf "$tmpdir"
-        success "upftp $version 安装完成"
+        success "upftp $version $(_t 'Installation complete')"
     fi
 
     if command_exists upftp; then
         _show_usage_hint
     else
-        warn "upftp 可能装到非 PATH 路径，请检查"
+        warn "upftp $(_t 'It may have been installed outside the PATH, please check')"
     fi
 }
 
 _show_usage_hint() {
     echo
-    info "快速开始："
-    echo "  upftp                        # 分享当前目录（FTP 2121 / HTTP 8080）"
-    echo "  upftp -d /shared -p 3000     # 指定目录和端口"
-    echo "  upftp --read-only            # 只读模式"
-    echo "  upftp --tui=false            # 后台服务模式"
+    info "$(_t 'Quick start:')"
+    echo "  upftp                        # $(_t 'Share the current directory (FTP 2121 / HTTP 8080)')"
+    echo "  upftp -d /shared -p 3000     # $(_t 'Specify a directory and a port')"
+    echo "  upftp --read-only            # $(_t 'Read-only mode')"
+    echo "  upftp --tui=false            # $(_t 'Background service mode')"
     echo
-    info "浏览器打开 http://<你的IP>:8080 访问 Web 界面"
-    info "文档：https://github.com/${REPO}"
+    info "$(_t 'Open http://<your IP>:8080 in a browser to reach the web interface')"
+    info "$(_tf 'Docs: https://github.com/%s' "${REPO}")"
 }
 
 uninstall_upftp() {
@@ -125,7 +125,7 @@ uninstall_upftp() {
     fi
     require_sudo
     sudo rm -f /usr/local/bin/upftp
-    success "upftp 已卸载"
+    success "upftp $(_t 'Uninstalled')"
 }
 
 status_upftp() {
@@ -136,10 +136,10 @@ status_upftp() {
         ver=$(upftp --version 2>/dev/null || echo "")
     fi
     if $installed; then
-        emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
         emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 
@@ -147,9 +147,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装 upftp（FTP 文件分享工具，默认动作）
-  uninstall   卸载
-  status      查看状态
+  install     $(_t 'Install upftp (the FTP file sharing tool, default action)')
+  uninstall   $(_t 'Uninstall')
+  status      $(_t 'View status')
 EOF
 }
 
@@ -161,7 +161,7 @@ main() {
         uninstall) uninstall_upftp ;;
         status)    status_upftp ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

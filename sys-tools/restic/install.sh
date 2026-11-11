@@ -25,10 +25,10 @@ handle_existing_installation() {
         return 0
     fi
     local current_version
-    current_version=$(restic version 2>/dev/null | head -1 || echo "未知版本")
-    warn "检测到已安装 Restic（${current_version}）"
-    if ! yes_no "是否继续并覆盖安装最新版本？"; then
-        info "安装已取消"
+    current_version=$(restic version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Unknown version')")
+    warn "$(_tf 'Restic detected (%s)' "${current_version}")"
+    if ! yes_no "$(_t 'Continue and overwrite it with the latest version?')"; then
+        info "$(_t 'The installation was cancelled')"
         exit 0
     fi
 }
@@ -38,14 +38,14 @@ install_from_github() {
     require_sudo
     check_commands curl
 
-    info "正在获取最新版本信息..."
+    info "$(_t 'Fetching the latest version info...')"
     local latest
     latest=$(github_latest_tag "restic/restic")
     if [[ -z "$latest" ]]; then
-        error "无法获取最新版本信息，请检查网络连接"
+        error "$(_t 'Cannot fetch the latest version info, check the network connection')"
         exit 1
     fi
-    success "最新版本：v$latest"
+    success "$(_tf 'Latest version: v%s' "$latest")"
 
     # 确定架构后缀
     local arch_suffix
@@ -55,24 +55,24 @@ install_from_github() {
         x86_64)         arch_suffix="linux_amd64" ;;
         aarch64|arm64)  arch_suffix="linux_arm64" ;;
         armv7l)         arch_suffix="linux_arm" ;;
-        *) error "不支持的架构：$arch"; exit 1 ;;
+        *) error "$(_tf 'Unsupported architecture: %s' "$arch")"; exit 1 ;;
     esac
 
     local url="https://github.com/restic/restic/releases/download/v${latest}/restic_${latest}_${arch_suffix}.bz2"
-    info "下载地址：$url"
+    info "$(_tf 'Download URL: %s' "$url")"
 
     local tmpdir
     tmpdir=$(mktemp -d)
     trap 'rm -rf "$tmpdir"' EXIT
 
     if ! curl -SL "$url" -o "$tmpdir/restic.bz2"; then
-        error "下载失败"
+        error "$(_t 'Download failed')"
         exit 1
     fi
 
-    info "正在解压..."
+    info "$(_t 'Extracting...')"
     if ! bunzip2 "$tmpdir/restic.bz2"; then
-        error "解压失败，尝试安装 bzip2..."
+        error "$(_t 'Extract failed, trying to install bzip2...')"
         pkg_install bzip2
         bunzip2 "$tmpdir/restic.bz2"
     fi
@@ -87,7 +87,7 @@ install_from_github() {
 
     rm -rf "$tmpdir"
     trap - EXIT
-    success "二进制文件安装完成"
+    success "$(_t 'The binary files are installed')"
 }
 
 # --- 安装 Restic ---
@@ -95,16 +95,16 @@ install_restic() {
     detect_os
     handle_existing_installation
 
-    info "🚀 Restic 备份工具安装脚本"
+    info "$(_t '🚀 Restic backup tool install script')"
     echo "=========================================="
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
         # macOS 优先 brew
         if command_exists brew; then
-            info "通过 Homebrew 安装 Restic..."
+            info "$(_t 'Installing Restic via Homebrew...')"
             brew install restic
         else
-            error "macOS 上需要先安装 Homebrew：https://brew.sh/"
+            error "macOS $(_t 'requires Homebrew to be installed first: https://brew.sh/')"
             exit 1
         fi
     else
@@ -112,72 +112,72 @@ install_restic() {
         detect_pkg_manager
         case "$PKG_MANAGER" in
             apt-get)
-                info "通过 apt 安装 Restic..."
+                info "$(_t 'Installing Restic via apt...')"
                 require_sudo
                 pkg_update
                 if pkg_install restic; then
-                    success "apt 安装完成"
+                    success "apt $(_t 'Installation complete')"
                 else
-                    warn "apt 安装失败，改用 GitHub 二进制..."
+                    warn "apt $(_t 'Installation failed, falling back to the GitHub binary...')"
                     install_from_github
                 fi
                 ;;
             dnf|yum)
-                info "通过 $PKG_MANAGER 安装 Restic..."
+                info "$(_tf 'Installing Restic via %s...' "$PKG_MANAGER")"
                 require_sudo
                 if pkg_install restic; then
-                    success "$PKG_MANAGER 安装完成"
+                    success "$PKG_MANAGER $(_t 'Installation complete')"
                 else
-                    warn "$PKG_MANAGER 安装失败，改用 GitHub 二进制..."
+                    warn "$PKG_MANAGER $(_t 'Installation failed, falling back to the GitHub binary...')"
                     install_from_github
                 fi
                 ;;
             *)
-                warn "当前包管理器不直接提供 restic，从 GitHub 下载..."
+                warn "$(_t 'The current package manager does not ship restic, downloading it from GitHub...')"
                 install_from_github
                 ;;
         esac
     fi
 
     if ! command_exists restic; then
-        error "安装后找不到 restic 命令，请检查 PATH"
+        error "$(_t 'The restic command was not found after the install, check PATH')"
         exit 1
     fi
 
     local version
-    version=$(restic version 2>/dev/null | head -1 || echo "未知")
+    version=$(restic version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Unknown')")
 
     echo
     echo "=========================================="
-    success "🎉 Restic 安装完成！"
+    success "$(_t '🎉 Restic installation complete!')"
     echo
-    info "版本信息：$version"
+    info "$(_tf 'Version info: %s' "$version")"
     echo
-    info "快速上手："
-    echo "  # 初始化本地备份仓库"
+    info "$(_t 'Getting started:')"
+    echo "  # $(_t 'Initialize a local backup repository')"
     echo "  restic init --repo /path/to/backup-repo"
     echo
-    echo "  # 备份目录"
+    echo "  # $(_t 'Back up a directory')"
     echo "  restic -r /path/to/backup-repo backup /home/user/docs"
     echo
-    echo "  # 查看备份快照"
+    echo "  # $(_t 'List the backup snapshots')"
     echo "  restic -r /path/to/backup-repo snapshots"
     echo
-    echo "  # 恢复文件"
+    echo "  # $(_t 'Restore a file')"
     echo "  restic -r /path/to/backup-repo restore latest --target /tmp/restore"
     echo
-    echo "  # 初始化远程仓库（S3 示例）"
+    echo "  # $(_t 'Initialize a remote repository (S3 example)')"
     echo "  restic -r s3:s3.amazonaws.com/bucket-name init"
     echo
-    info "更多用法：https://restic.readthedocs.io/"
+    info "$(_t 'More usage: https://restic.readthedocs.io/')"
 }
 
 # --- 卸载 Restic ---
 uninstall_restic() {
     detect_os
-    warn "即将卸载 Restic。"
-    if ! yes_no "确认卸载？"; then
-        info "已取消"
+    warn "$(_t 'About to uninstall Restic.')"
+    if ! yes_no "$(_t 'Confirm uninstall?')"; then
+        info "$(_t 'Cancelled')"
         return 0
     fi
 
@@ -191,7 +191,7 @@ uninstall_restic() {
         pkg_remove restic 2>/dev/null || true
     fi
 
-    success "Restic 已卸载。"
+    success "Restic $(_t 'Uninstalled.')"
 }
 
 # --- 状态检查 ---
@@ -200,13 +200,13 @@ status_restic() {
     local installed=false version=""
     if command_exists restic; then
         installed=true
-        version=$(restic version 2>/dev/null | head -1 || echo "未知版本")
+        version=$(restic version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Unknown version')")
     fi
     if $installed; then
-        emit_status "installed" "${GREEN}✅ 已安装${NC} ($version)"
+        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ($version)"
         emit_version "$version"
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 
@@ -215,10 +215,10 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装或更新 Restic（默认动作）
-  uninstall   卸载 Restic
-  status      查看安装与运行状态
-  help        显示本帮助
+  install     $(_t 'Install or update Restic (default action)')
+  uninstall   $(_t 'Uninstall Restic')
+  status      $(_t 'View the install and run status')
+  help        $(_t 'Show this help')
 EOF
 }
 
@@ -230,7 +230,7 @@ main() {
         uninstall) uninstall_restic ;;
         status)    status_restic ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

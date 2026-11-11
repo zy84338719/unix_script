@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 16:43+0800\n"
+"POT-Creation-Date: 2026-11-11 16:57+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3311,4 +3311,297 @@ msgid ""
 msgstr ""
 
 msgid "Configure auto-start on boot (legacy name kept)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Linux only. Current: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "The %s command is required, install iproute2 and iptables first"
+msgstr ""
+
+#, sh-printf-format
+msgid "Registered routing table: %s %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Usage: %s setup <interface>   For example: %s setup eth1"
+msgstr ""
+
+#, sh-printf-format
+msgid "The interface %s does not exist. Available interfaces:"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Cannot fetch the gateway of %s (the interface may have no IP/default route)"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Configuring an independent routing table for %s (table %s, gw %s, mark %s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Rule added: fwmark %s -> table %s"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"The policy routing table is ready (the traffic marked %s goes through %s)"
+msgstr ""
+
+msgid ""
+"Use route-user / route-port later to send the traffic through that interface"
+msgstr ""
+
+#, sh-printf-format
+msgid "Usage: %s route-user <user> <interface>"
+msgstr ""
+
+#, sh-printf-format
+msgid "The user %s does not exist"
+msgstr ""
+
+#, sh-printf-format
+msgid "The interface %s does not exist"
+msgstr ""
+
+msgid "Not set up yet, run setup first"
+msgstr ""
+
+#, sh-printf-format
+msgid "Send the traffic of the user %s (uid %s) through %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Set: the outbound traffic of the user %s goes through %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Verify: run curl ifconfig.me as %s, it should show the public IP of %s"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Usage: %s route-port <destination port> <interface>   For example: %s route-"
+"port 443 eth1"
+msgstr ""
+
+#, sh-printf-format
+msgid "Send the outbound traffic to the destination port %s through %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Set: the outbound traffic to the destination port %s goes through %s"
+msgstr ""
+
+msgid "Policy routing rules (ip rule) ==="
+msgstr ""
+
+msgid "Table MARK rules (iptables) ==="
+msgstr ""
+
+msgid "(none)"
+msgstr ""
+
+msgid "Confirm clearing all the multi-net policy routing rules and marks?"
+msgstr ""
+
+msgid "Clearing the iptables mangle MARK rules..."
+msgstr ""
+
+msgid "Clearing the ip rule fwmark rules..."
+msgstr ""
+
+msgid ""
+"The multi-net rules are cleared (the routing table entries are kept, setup "
+"can reuse them)"
+msgstr ""
+
+msgid "⚠️  Not applicable (Linux only)"
+msgstr ""
+
+msgid "✅ Configured"
+msgstr ""
+
+#, sh-printf-format
+msgid "(%s routing rules, %s mark rules)"
+msgstr ""
+
+msgid "❌ Not configured"
+msgstr ""
+
+msgid ""
+"Multi-NIC policy routing: send the traffic of a given service/user/port "
+"through a given interface."
+msgstr ""
+
+msgid ""
+"interface>               initialize an independent routing table for the "
+"interface"
+msgstr ""
+
+msgid ""
+"user> <interface>   send all the traffic of a user through the given "
+"interface"
+msgstr ""
+
+msgid ""
+"port> <interface>   send the traffic to the given destination port through "
+"the given interface"
+msgstr ""
+
+msgid "Show the current policy routing rules"
+msgstr ""
+
+msgid "Clear all the rules added by this script"
+msgstr ""
+
+msgid "Overview"
+msgstr ""
+
+msgid "Examples:"
+msgstr ""
+
+msgid "# Initialize the eth1 policy routing"
+msgstr ""
+
+msgid "# www-data The user traffic goes through eth1"
+msgstr ""
+
+msgid "# The traffic to port 443 goes through eth1"
+msgstr ""
+
+#, sh-printf-format
+msgid "Restic detected (%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unsupported architecture: %s"
+msgstr ""
+
+msgid "Extracting..."
+msgstr ""
+
+msgid "Extract failed, trying to install bzip2..."
+msgstr ""
+
+msgid "🚀 Restic backup tool install script"
+msgstr ""
+
+msgid "Installing Restic via Homebrew..."
+msgstr ""
+
+msgid "Installing Restic via apt..."
+msgstr ""
+
+msgid "Installation failed, falling back to the GitHub binary..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing Restic via %s..."
+msgstr ""
+
+msgid ""
+"The current package manager does not ship restic, downloading it from "
+"GitHub..."
+msgstr ""
+
+msgid "The restic command was not found after the install, check PATH"
+msgstr ""
+
+msgid "🎉 Restic installation complete!"
+msgstr ""
+
+#, sh-printf-format
+msgid "Version info: %s"
+msgstr ""
+
+msgid "Getting started:"
+msgstr ""
+
+msgid "Initialize a local backup repository"
+msgstr ""
+
+msgid "Back up a directory"
+msgstr ""
+
+msgid "List the backup snapshots"
+msgstr ""
+
+msgid "Restore a file"
+msgstr ""
+
+msgid "Initialize a remote repository (S3 example)"
+msgstr ""
+
+msgid "More usage: https://restic.readthedocs.io/"
+msgstr ""
+
+msgid "About to uninstall Restic."
+msgstr ""
+
+msgid "✅ Installed"
+msgstr ""
+
+msgid "Install or update Restic (default action)"
+msgstr ""
+
+msgid "Uninstall Restic"
+msgstr ""
+
+msgid "📂 Installing upftp (a lightweight FTP file sharing tool)"
+msgstr ""
+
+#, sh-printf-format
+msgid "upftp detected (%s)"
+msgstr ""
+
+msgid "Continue and update?"
+msgstr ""
+
+msgid "Installing via Homebrew..."
+msgstr ""
+
+msgid ""
+"Cannot fetch the latest upftp version (check the network or set GH_TOKEN)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Trying the bare binary: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Download failed, download it manually from https://github.com/%s/releases"
+msgstr ""
+
+msgid "The upftp binary was not found in the archive"
+msgstr ""
+
+msgid "It may have been installed outside the PATH, please check"
+msgstr ""
+
+msgid "Share the current directory (FTP 2121 / HTTP 8080)"
+msgstr ""
+
+msgid "Specify a directory and a port"
+msgstr ""
+
+msgid "Read-only mode"
+msgstr ""
+
+msgid "Background service mode"
+msgstr ""
+
+msgid "Open http://<your IP>:8080 in a browser to reach the web interface"
+msgstr ""
+
+#, sh-printf-format
+msgid "Docs: https://github.com/%s"
+msgstr ""
+
+msgid "Install upftp (the FTP file sharing tool, default action)"
 msgstr ""
