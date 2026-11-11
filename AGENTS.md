@@ -60,7 +60,7 @@ unix_script 是一个 macOS/Linux 脚本库，提供 78 个模块的安装、配
 ```
 os:darwin       # 宿主 OS（darwin/linux）
 arch:ARM64      # CPU 架构
-version:1.22.0  # unix_script 自身版本
+version:1.22.1  # unix_script 自身版本
 ```
 
 状态码含义（state 字段）：
@@ -297,6 +297,18 @@ CLI 一次性切换到分组子命令面，旧扁平写法**全部删除**。命
 | `help` | 用法说明 |
 
 部分模块有额外子命令（如 `bun mirror`、`clash start`、`sys-setup all`），用 `list --full` 查询。
+
+**用法行就是子命令表**：`uxs list --full` 的子命令列来自入口脚本里**行首**的用法行，
+形如 `用法: $0 {install|uninstall|status|help}`（英文 `Usage:` 同样认）—— 大括号里就是该模块的子命令表。
+写模块时两条纪律：
+
+1. 用法行必须**行首**且**含大括号**：注释行（`# 用法: …`）与错误提示里的「用法: $0 port <端口号>」
+   都不是子命令表，`list --full` 会跳过它们去找真正那一条。
+2. 大括号里要列**真实支持**的子命令（含 `install`/`uninstall` —— 框架的通用动作也算）。
+   少列会让 `uxs list --full` 和 `uxs info` 漏报用户能用的动作。
+
+> 这两行不是硬门禁，但它们是 `uxs list --full` / `uxs info` 唯一的真相源。
+> 改完跑 `bash tools/snapshot.sh` 重采行为基线（Linux 基线用容器采，见 `tools/snapshot.sh` 注释）。
 
 ### 机器可读 status（模块内部）
 

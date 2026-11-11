@@ -532,7 +532,7 @@ usage() {
     cat <<EOF
 $(_t 'Ops toolbox (Linux only) — one-stop inspection and daily ops')
 
-用法: ops-kit {inspect|log|svc|audit|status|help} [参数...]
+用法: ops-kit {inspect|log|svc|audit|install|uninstall|status|help} [参数...]
 
   inspect [--json]      $(_t 'Aggregate check: disk/SMART/units/journal/SSH/ports/updates/logins')
   log status            journal $(_t 'usage + /var/log top 5 consumers')

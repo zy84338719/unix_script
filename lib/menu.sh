@@ -323,6 +323,18 @@ category_page_loop() {
 
 # 模块支持的子命令（空格分隔）：先解析入口脚本 usage 行的 {a|b|c} 枚举，
 # 回退扫描 case 分支的已知子命令词表；最终兜底 "install"。
+#
+# 锚点行怎么认（三条纪律，每条都对应一个踩过的坑）：
+#   1) 必须**行首**。源码里别的行也会写「用法:」—— 注释行「# 用法: resolve_source <ecosystem>」
+#      是说明，错误提示里的「用法: $0 port <端口号>」是给用户的报错，都不是子命令表。
+#      旧写法取「第一处含『用法:』的行」，于是 dev-mirror 命中了注释行 → 退回粗粒度词表，
+#      把真实存在的 help 子命令漏掉了。
+#   2) 必须含 {…}。带大括号的才是子命令表；「用法: $0 <args>」那种不是。
+#   3) 语言无关。中文「用法:」与英文「Usage:」都认 —— 文案走 gettext，锚点标记不能钉死在一个
+#      语言上（否则哪天模块的用法行译成英文，子命令表就整块失效）。
+#
+# 用 awk 一次扫完取第一条符合条件的：管道里放 grep -m1 / head 这类「命中即退」的消费者会把上游
+# SIGPIPE 打死（调用方一开 pipefail，整条管道按 141 判失败）。
 module_subcommands() {
     local mod="$1"
     local entry_script mod_path script subs usage_line
@@ -331,7 +343,7 @@ module_subcommands() {
     script="$SCRIPT_DIR/$mod_path/$entry_script"
     [[ -f "$script" ]] || { echo ""; return 0; }
     subs=""
-    usage_line=$(grep -m1 '用法:' "$script" 2>/dev/null || true)
+    usage_line=$(awk '/^[[:space:]]*(用法|Usage):/ && index($0, "{") { print; exit }' "$script" 2>/dev/null || true)
     if [[ "$usage_line" == *"{"*"}"* ]]; then
         subs=$(echo "$usage_line" | sed 's/.*{//;s/}.*//' | tr '|' ' ')
     fi

@@ -75,7 +75,7 @@ do_status() {
 
 do_help() {
     # <<EOF（不加引号）：_t 要在这里求值。
-    # 首行保留中文「用法:」—— module_subcommands 靠它解析子命令。
+    # 首行保持「用法:」开头的用法行（行首 + 含 {…}）—— module_subcommands 靠它解析子命令。
     cat <<EOF
 $(_t 'k3s - lightweight Kubernetes (edge/server, Linux only)')
 

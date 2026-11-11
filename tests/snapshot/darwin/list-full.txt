@@ -29,7 +29,7 @@ bun	install mirror unmirror uninstall status help	Bun 运行时（含国内镜�
 code-lint	install install-go install-rust install-java install-python install-semgrep go-lint rust-lint java-lint py-lint security-scan lint-all uninstall status help	代码分析工具集
 deno	install uninstall status help	Deno 运行时
 dev-enhance	install uninstall status help	Neovim+LazyVim / git delta / tmux 配置
-dev-mirror	install status uninstall 	开发换源加速（npm/Go/Rust/pip）
+dev-mirror	install uninstall status help	开发换源加速（npm/Go/Rust/pip）
 dev-tui	install uninstall status help	lazydocker + lazygit
 go	install uninstall status help	Go 语言环境
 helm	install uninstall status help	Kubernetes 包管理器
