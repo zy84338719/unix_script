@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 09:51+0800\n"
+"POT-Creation-Date: 2026-11-11 11:35+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -627,6 +627,363 @@ msgid "Uninstall Certbot (optionally delete certificates)"
 msgstr ""
 
 msgid "View install and renewal status"
+msgstr ""
+
+#, sh-printf-format
+msgid "Cockpit is Linux-only (requires systemd). Current: %s"
+msgstr ""
+
+msgid "Rocket Starting Cockpit installation (package manager: "
+msgstr ""
+
+msgid "Detected Cockpit installed"
+msgstr ""
+
+msgid "Installing cockpit..."
+msgstr ""
+
+msgid "cockpit install failed (package manager: "
+msgstr ""
+
+msgid "Install failed: cockpit-bridge not found"
+msgstr ""
+
+msgid ""
+"Enabling and starting cockpit.socket (on-demand activation socket, more "
+"secure)..."
+msgstr ""
+
+msgid "Firewall cockpit service allowed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Allowed ufw %s/tcp"
+msgstr ""
+
+msgid "Verifying..."
+msgstr ""
+
+msgid "Cockpit socket/service running normally"
+msgstr ""
+
+msgid ""
+"Cockpit service not running (normal in socket mode, activates on first visit)"
+msgstr ""
+
+msgid "Party popper Cockpit installation complete!"
+msgstr ""
+
+#, sh-printf-format
+msgid "Access URL: https://%s:%s"
+msgstr ""
+
+msgid ""
+"Log in with a system user account (the user needs sudo privileges for "
+"management operations)."
+msgstr ""
+
+msgid "Confirm uninstall of Cockpit?"
+msgstr ""
+
+msgid "Failed to remove cockpit package, uninstall it manually"
+msgstr ""
+
+msgid "Cockpit uninstalled."
+msgstr ""
+
+msgid "Installed (socket mode, activates on access)"
+msgstr ""
+
+msgid "Install Cockpit (Web management panel, Linux only, default port 9090)"
+msgstr ""
+
+msgid "Uninstall Cockpit"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unsupported architecture: %s (only x86_64/arm64 supported)"
+msgstr ""
+
+msgid ""
+"Unable to get nerdctl version (GitHub unreachable or rate-limited), skipping "
+"nerdctl"
+msgstr ""
+
+#, sh-printf-format
+msgid "Asset nerdctl-%s-linux-%s.tar.gz not found, skipping nerdctl"
+msgstr ""
+
+#, sh-printf-format
+msgid "Downloading nerdctl v%s ..."
+msgstr ""
+
+msgid "nerdctl download failed, skipping"
+msgstr ""
+
+#, sh-printf-format
+msgid "nerdctl v%s installed to /usr/local/bin/nerdctl (Docker-compatible CLI)"
+msgstr ""
+
+msgid "Detected containerd/ctr, reinstall?"
+msgstr ""
+
+msgid "Installing containerd (with ctr) and nerdctl CLI via Homebrew..."
+msgstr ""
+
+msgid "brew install failed"
+msgstr ""
+
+msgid "macOS host cannot run Linux containers: ctr/nerdctl are client-only,"
+msgstr ""
+
+msgid ""
+"point them to a containerd socket in a Linux environment (VM/remote host), "
+"e.g.:"
+msgstr ""
+
+msgid "(via lima/colima/SSH)"
+msgstr ""
+
+msgid "For local containers use the docker / podman modules"
+msgstr ""
+
+msgid "Installing containerd (with ctr) via system repositories..."
+msgstr ""
+
+msgid ""
+"containerd install failed (RHEL needs docker repo or EPEL configured first)"
+msgstr ""
+
+msgid ""
+"Failed to enable containerd service, manually: sudo systemctl enable --now "
+"containerd"
+msgstr ""
+
+msgid ""
+"containerd installed. Try: sudo ctr images pull docker.io/library/"
+"alpine:latest"
+msgstr ""
+
+msgid "containerd not installed"
+msgstr ""
+
+msgid "containerd/nerdctl CLI uninstalled"
+msgstr ""
+
+msgid ""
+"Confirm uninstall of containerd? (local docker may be affected if it depends "
+"on it)"
+msgstr ""
+
+msgid ""
+"Package manager uninstall failed, please confirm the package name manually"
+msgstr ""
+
+msgid "containerd uninstalled"
+msgstr ""
+
+msgid ""
+"Delete container data /var/lib/containerd (images/snapshots, irreversible)?"
+msgstr ""
+
+msgid "Data deleted"
+msgstr ""
+
+msgid "Data kept"
+msgstr ""
+
+msgid "If docker is affected by this uninstall, reinstall: ./install.sh docker"
+msgstr ""
+
+msgid "containerd installed"
+msgstr ""
+
+msgid "(macOS CLI only, cannot run local containers)"
+msgstr ""
+
+msgid "containerd installed and service running"
+msgstr ""
+
+msgid "containerd installed but service not running"
+msgstr ""
+
+msgid "containerd - container runtime (ctr included, with nerdctl)"
+msgstr ""
+
+msgid "Install containerd (ctr included) + nerdctl (Docker-compatible CLI)"
+msgstr ""
+
+msgid "Linux: system repos (falls back to containerd.io); macOS: brew"
+msgstr ""
+
+msgid ""
+"Uninstall (keeps /var/lib/containerd data by default, deletion needs second "
+"confirmation)"
+msgstr ""
+
+msgid "Notes:"
+msgstr ""
+
+msgid ""
+"  - ctr is the built-in low-level CLI of containerd, shipped with "
+"containerd, cannot be installed separately"
+msgstr ""
+
+msgid ""
+"  - macOS host cannot run Linux containers; ctr/nerdctl only connect to a "
+"remote/VM containerd as clients"
+msgstr ""
+
+msgid "  - For local containers use the docker / podman modules"
+msgstr ""
+
+msgid "Detected OS: macOS"
+msgstr ""
+
+msgid "Detected OS: Linux"
+msgstr ""
+
+#, sh-printf-format
+msgid "Detected ddns-go %s installed"
+msgstr ""
+
+msgid "Continue and overwrite-install the latest version? [y/N]: "
+msgstr ""
+
+msgid "Install cancelled"
+msgstr ""
+
+msgid "Stopping and uninstalling existing service..."
+msgstr ""
+
+msgid "Rocket ddns-go cross-platform install script"
+msgstr ""
+
+msgid "Fetching latest version info..."
+msgstr ""
+
+msgid ""
+"Unable to fetch latest version info, check network connection or API rate "
+"limit"
+msgstr ""
+
+#, sh-printf-format
+msgid "Latest version: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unsupported Linux architecture: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unsupported macOS architecture: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "No download link found for %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "About to install ddns-go %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Install location: %s"
+msgstr ""
+
+msgid "Service port: 9876"
+msgstr ""
+
+msgid "Confirm continue installation? [y/N]: "
+msgstr ""
+
+msgid "Downloading and extracting..."
+msgstr ""
+
+msgid "Download failed"
+msgstr ""
+
+msgid "Extract failed"
+msgstr ""
+
+msgid "Download and extract complete"
+msgstr ""
+
+msgid "Installing ddns-go..."
+msgstr ""
+
+msgid "Files installed"
+msgstr ""
+
+msgid "Installing service..."
+msgstr ""
+
+msgid "Service installed successfully"
+msgstr ""
+
+msgid "Service install failed"
+msgstr ""
+
+msgid "Starting service..."
+msgstr ""
+
+msgid "ddns-go service started and enabled on boot"
+msgstr ""
+
+msgid "Service start failed"
+msgstr ""
+
+msgid "Service already running"
+msgstr ""
+
+msgid "bootstrap failed, trying load"
+msgstr ""
+
+msgid "ddns-go service started (load)"
+msgstr ""
+
+msgid "Auto-start failed, service file installed"
+msgstr ""
+
+msgid "Verifying installation..."
+msgstr ""
+
+msgid "Service running normally"
+msgstr ""
+
+msgid "Service not running normally"
+msgstr ""
+
+#, sh-printf-format
+msgid "Party popper ddns-go %s installation complete!"
+msgstr ""
+
+msgid "Install directory:"
+msgstr ""
+
+msgid "(auto-created after first visit)"
+msgstr ""
+
+msgid "Start service:"
+msgstr ""
+
+msgid ""
+"Be sure to set your DNS provider info and the domain to update in the Web UI!"
+msgstr ""
+
+msgid "Uninstalling DDNS-GO..."
+msgstr ""
+
+msgid "DDNS-GO uninstalled successfully!"
+msgstr ""
+
+msgid "Installed but not running"
+msgstr ""
+
+msgid "Install or update DDNS-GO (default action)"
+msgstr ""
+
+msgid "Uninstall DDNS-GO"
 msgstr ""
 
 msgid "Detected installed Docker"

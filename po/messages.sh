@@ -48,14 +48,19 @@ fi
 
 if [ "$HAVE_XGETTEXT" = "1" ]; then
   XGETTEXT_ARGS=(
-    --language=Shell --keyword=_t --from-code=UTF-8 --no-location
+    --language=Shell --keyword=_t --keyword=_tf:1 --from-code=UTF-8 --no-location
     --package-name=unix_script --package-version="$(tr -d '[:space:]' <VERSION)"
   )
+  # _tf 的第 1 个参数是 msgid，其余是 printf 的实参 —— 只抽第 1 个。
+  # --flag 把带占位符的 msgid 标成 sh-printf-format，msgfmt --check 据此校验
+  # 「译文的占位符与原文一致」：漏掉 %s 会在编译期就红，而不是上线后
+  # 打印出「未知操作: 」这种缺了变量的文案。
+  XGETTEXT_FLAGS=(--flag=_tf:1:sh-printf-format)
 
   if [ "$CHECK_ONLY" = "1" ]; then
     TMP_CLEAN="$(mktemp -d "${TMPDIR:-/tmp}/uxs-po.XXXXXX")"
     tmp="$TMP_CLEAN/pot"
-    xgettext "${XGETTEXT_ARGS[@]}" -o "$tmp" "${SOURCES[@]}"
+    xgettext "${XGETTEXT_ARGS[@]}" "${XGETTEXT_FLAGS[@]}" -o "$tmp" "${SOURCES[@]}"
     # 只比内容：注释行（#: 行号）与 POT-Creation-Date 每次生成都会变
     strip_header() { grep -v '^#' "$1" | grep -v '^"POT-Creation-Date:'; }
     if [ -f "$POT" ] && ! diff -q <(strip_header "$POT") <(strip_header "$tmp") >/dev/null; then
@@ -63,14 +68,18 @@ if [ "$HAVE_XGETTEXT" = "1" ]; then
       exit 1
     fi
   else
-    xgettext "${XGETTEXT_ARGS[@]}" --add-comments=TRANSLATORS -o "$POT" "${SOURCES[@]}"
+    xgettext "${XGETTEXT_ARGS[@]}" "${XGETTEXT_FLAGS[@]}" --add-comments=TRANSLATORS -o "$POT" "${SOURCES[@]}"
     printf 'po: wrote %s\n' "${POT#"$ROOT"/}"
 
     need_msgfmt=0
     for po in "$ROOT"/locale/*/LC_MESSAGES/unix_script.po; do
       [ -f "$po" ] || continue
       if command -v msgmerge >/dev/null 2>&1; then
-        msgmerge --quiet --update --backup=none "$po" "$POT"
+        # -N（--no-fuzzy-matching）：新增 msgid 一律留空，绝不猜译文。
+        # 默认的模糊匹配会把新 msgid 猜匹配到别的模块的旧条目上（如「检测到 Certbot 已安装（」
+        # 被猜成「检测到 1Panel 已安装（」），标 fuzzy 后 msgfmt 会排除它 ——
+        # 结果是运行时静默回落英文 msgid，译文表里还留着一条看着像对的错译文。
+        msgmerge --quiet --update --backup=none -N "$po" "$POT"
       fi
       need_msgfmt=1
     done

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 09:51+0800\n"
+"POT-Creation-Date: 2026-11-11 10:01+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
@@ -115,7 +115,8 @@ msgstr "检测到既有 Web/数据库环境在运行："
 msgid ""
 "BT Panel officially requires a clean system (it installs its own Nginx/"
 "Apache/MySQL/PHP, which may conflict with existing services)."
-msgstr "宝塔官方要求在纯净系统上安装（会自建 Nginx/Apache/MySQL/PHP，易端口冲突）。"
+msgstr ""
+"宝塔官方要求在纯净系统上安装（会自建 Nginx/Apache/MySQL/PHP，易端口冲突）。"
 
 msgid "Still continue installing BT Panel?"
 msgstr "仍要继续安装宝塔面板？"
@@ -163,7 +164,9 @@ msgstr "宝塔面板未安装，无需卸载。"
 msgid ""
 "Will stop the panel and delete: /etc/init.d/bt, bt command, /www/server/"
 "panel (panel and software environment)."
-msgstr "将停止面板并删除：/etc/init.d/bt、bt 命令、/www/server/panel（面板与软件环境）。"
+msgstr ""
+"将停止面板并删除：/etc/init.d/bt、bt 命令、/www/server/panel（面板与软件环"
+"境）。"
 
 msgid ""
 "Site data /www/wwwroot, logs /www/wwwlogs and database directories are kept "
@@ -237,7 +240,7 @@ msgid "Storage kept"
 msgstr "保留存储"
 
 msgid "buildah installed"
-msgstr "未安装"
+msgstr "buildah 已安装"
 
 msgid "(unknown version)"
 msgstr "未知版本"
@@ -251,7 +254,7 @@ msgstr "通过系统仓库安装 buildah"
 msgid ""
 "Uninstall (user container storage kept by default, deletion needs second "
 "confirmation)"
-msgstr "卸载面板（站点数据默认保留，二次确认后可选删除 /www）"
+msgstr "卸载（用户容器存储默认保留，删除需二次确认）"
 
 msgid "View install status (supports UXS_STATUS_MODE=machine)"
 msgstr "查看安装状态（支持 UXS_STATUS_MODE=machine）"
@@ -267,15 +270,15 @@ msgstr "说明：macOS 上无本地容器存储，buildah 不可用，本模块�
 msgid "You can also build images with podman build (Dockerfile compatible)."
 msgstr "构建镜像也可用 podman build（Dockerfile 兼容）。"
 
-#, fuzzy, sh-printf-format
+#, sh-printf-format
 msgid "Unknown subcommand: %s"
-msgstr "未知操作: "
+msgstr "未知子命令：%s"
 
 msgid "Installing dependencies and adding Caddy GPG key..."
 msgstr "安装依赖并添加 Caddy GPG 密钥..."
 
 msgid "Installing Caddy..."
-msgstr "通过 zypper 安装 Docker..."
+msgstr "正在安装 Caddy..."
 
 msgid "Adding Caddy COPR repository..."
 msgstr "添加 Caddy COPR 仓库..."
@@ -290,16 +293,16 @@ msgid "Rocket Caddy Web server install script"
 msgstr "🚀 Caddy Web 服务器安装脚本"
 
 msgid "Detected Caddy installed ("
-msgstr "检测到 1Panel 已安装（"
+msgstr "检测到已安装 Caddy（"
 
 msgid "Continue and try to update?"
 msgstr "是否继续并尝试更新？"
 
 msgid "Homebrew is required on macOS:"
-msgstr "macOS 上推荐使用 Docker Desktop。"
+msgstr "macOS 上需要先安装 Homebrew：https://brew.sh/"
 
 msgid "Installing Caddy via Homebrew..."
-msgstr "通过 zypper 安装 Docker..."
+msgstr "通过 Homebrew 安装 Caddy..."
 
 msgid "Current package manager ("
 msgstr "当前包管理器（"
@@ -317,7 +320,7 @@ msgid "Unknown"
 msgstr "未知版本"
 
 msgid "Party popper Caddy installation complete!"
-msgstr "🎉 1Panel 安装完成！"
+msgstr "🎉 Caddy 安装完成！"
 
 msgid "Version info: "
 msgstr "版本信息："
@@ -368,7 +371,7 @@ msgid "Confirm uninstall?"
 msgstr "确认卸载 1Panel？"
 
 msgid "Caddy uninstalled."
-msgstr "1Panel 已卸载。"
+msgstr "Caddy 已卸载。"
 
 msgid "Installed but service not running"
 msgstr "已安装但服务未运行"
@@ -385,9 +388,9 @@ msgstr "查看安装与运行状态"
 msgid "Show this help"
 msgstr "显示本帮助"
 
-#, fuzzy, sh-printf-format
+#, sh-printf-format
 msgid "Unknown action: %s"
-msgstr "未知操作: "
+msgstr "未知操作: %s"
 
 msgid "CasaOS is Linux-only. Current: "
 msgstr "CasaOS 仅支持 Linux。当前："
@@ -399,8 +402,6 @@ msgid ""
 "Port 80 is already in use (nginx/caddy/other Web services), CasaOS uses port "
 "80 by default, which may conflict."
 msgstr "80 端口已被占用（nginx/caddy/其他 Web 服务），CasaOS 默认使用 80 端口，可能冲突。"
-"80 端口已被占用（nginx/caddy/其他 Web 服务），CasaOS 默认使用 80 端口，可能冲"
-"突。"
 
 msgid "Still continue installing?"
 msgstr "仍要继续安装？"
@@ -433,8 +434,6 @@ msgid ""
 "The official uninstall script will stop and remove all casaos services; "
 "created apps (Docker containers) and data are kept by default."
 msgstr "官方卸载脚本会停止并移除 casaos 全家桶服务；已创建的应用（Docker 容器）与数据默认保留。"
-"官方卸载脚本会停止并移除 casaos 全家桶服务；已创建的应用（Docker 容器）与数据"
-"默认保留。"
 
 msgid "Confirm uninstall of CasaOS?"
 msgstr "确认卸载 CasaOS？"
@@ -448,17 +447,14 @@ msgstr "安装 CasaOS（家庭云/NAS 面板，默认 80 端口，仅 Linux）"
 msgid "Uninstall CasaOS (Docker apps and data kept)"
 msgstr "卸载 CasaOS（Docker 应用与数据保留）"
 
-#, fuzzy
 msgid "Detected Certbot installed ("
-msgstr "检测到 1Panel 已安装（"
+msgstr "检测到已安装 Certbot（"
 
-#, fuzzy
 msgid "Installing Certbot (package manager: "
-msgstr "当前包管理器（"
+msgstr "安装 Certbot（包管理器："
 
-#, fuzzy
 msgid "Certbot install failed (package manager: "
-msgstr "当前包管理器（"
+msgstr "Certbot 安装失败（包管理器："
 
 msgid "Install failed: certbot command not found"
 msgstr "安装失败：找不到 certbot 命令"
@@ -471,9 +467,8 @@ msgstr "检测到已安装 Nginx，建议安装 certbot nginx 插件以自动配
 msgid "Install python3-certbot-nginx?"
 msgstr "是否安装 python3-certbot-nginx？"
 
-#, fuzzy
 msgid "python3-certbot-nginx install failed, install it manually"
-msgstr "1pctl uninstall 失败，请手动检查。"
+msgstr "python3-certbot-nginx 安装失败，可手动安装"
 
 msgid "Checking certificate auto-renewal..."
 msgstr "检查证书自动续期..."
@@ -521,13 +516,11 @@ msgstr "是否添加 certbot renew cron 任务（每天凌晨 2 点）？"
 msgid "cron renewal task added"
 msgstr "cron 续期任务已添加"
 
-#, fuzzy
 msgid "Certbot installation complete!"
-msgstr "🎉 1Panel 安装完成！"
+msgstr "Certbot 安装完成！"
 
-#, fuzzy
 msgid "Version: "
-msgstr "版本信息："
+msgstr "版本："
 
 msgid "Nginx plugin mode (auto-modifies nginx config)"
 msgstr "Nginx 插件模式（自动修改 nginx 配置）"
@@ -565,9 +558,8 @@ msgstr "服务器证书"
 msgid "intermediate certificate"
 msgstr "中间证书"
 
-#, fuzzy
 msgid "Confirm uninstall of Certbot?"
-msgstr "确认卸载 CasaOS？"
+msgstr "确认卸载 Certbot？"
 
 msgid "Failed to remove certbot package, uninstall it manually"
 msgstr "certbot 包移除失败，请手动卸载"
@@ -586,9 +578,8 @@ msgid ""
 "irreversible!"
 msgstr "是否删除所有证书和配置（/etc/letsencrypt）？此操作不可逆！"
 
-#, fuzzy
 msgid "Certificate directory deleted."
-msgstr "数据目录已删除。"
+msgstr "证书目录已删除。"
 
 msgid "Certificate directory kept: /etc/letsencrypt"
 msgstr "证书目录已保留：/etc/letsencrypt"
@@ -596,9 +587,8 @@ msgstr "证书目录已保留：/etc/letsencrypt"
 msgid "To delete manually: sudo rm -rf /etc/letsencrypt"
 msgstr "如需手动删除：sudo rm -rf /etc/letsencrypt"
 
-#, fuzzy
 msgid "Certbot uninstalled."
-msgstr "Docker 已卸载。"
+msgstr "Certbot 已卸载。"
 
 msgid "Renewal timer running"
 msgstr "续期定时器运行中"
@@ -612,9 +602,8 @@ msgstr "cron 续期任务已配置"
 msgid "Auto-renewal not configured"
 msgstr "未配置自动续期"
 
-#, fuzzy
 msgid "Installed"
-msgstr "安装失败"
+msgstr "已安装"
 
 msgid "Auto-renewal: "
 msgstr "自动续期: "
@@ -629,9 +618,365 @@ msgstr "安装 Certbot 并配置自动续期"
 msgid "Uninstall Certbot (optionally delete certificates)"
 msgstr "卸载 Certbot（可选删除证书）"
 
-#, fuzzy
 msgid "View install and renewal status"
-msgstr "查看安装与运行状态"
+msgstr "查看安装与续期状态"
+
+#, sh-printf-format
+msgid "Cockpit is Linux-only (requires systemd). Current: %s"
+msgstr "Cockpit 仅支持 Linux（依赖 systemd）。当前：%s"
+
+msgid "Rocket Starting Cockpit installation (package manager: "
+msgstr "🚀 开始安装 Cockpit（包管理器："
+
+msgid "Detected Cockpit installed"
+msgstr "检测到 Cockpit 已安装"
+
+msgid "Installing cockpit..."
+msgstr "安装 cockpit..."
+
+msgid "cockpit install failed (package manager: "
+msgstr "cockpit 安装失败（包管理器："
+
+msgid "Install failed: cockpit-bridge not found"
+msgstr "安装失败：找不到 cockpit-bridge"
+
+msgid ""
+"Enabling and starting cockpit.socket (on-demand activation socket, more "
+"secure)..."
+msgstr "启用并启动 cockpit.socket（按需激活的 socket，更安全）..."
+
+msgid "Firewall cockpit service allowed"
+msgstr "已放行防火墙 cockpit 服务"
+
+#, sh-printf-format
+msgid "Allowed ufw %s/tcp"
+msgstr "已放行 ufw %s/tcp"
+
+msgid "Verifying..."
+msgstr "验证..."
+
+msgid "Cockpit socket/service running normally"
+msgstr "Cockpit socket/service 运行正常"
+
+msgid ""
+"Cockpit service not running (normal in socket mode, activates on first visit)"
+msgstr "Cockpit 服务未运行（socket 模式下首次访问才激活，属正常）"
+
+msgid "Party popper Cockpit installation complete!"
+msgstr "🎉 Cockpit 安装完成！"
+
+#, sh-printf-format
+msgid "Access URL: https://%s:%s"
+msgstr "访问地址：https://%s:%s"
+
+msgid ""
+"Log in with a system user account (the user needs sudo privileges for "
+"management operations)."
+msgstr "使用系统用户账号登录（需要该用户有 sudo 权限以进行管理操作）。"
+
+msgid "Confirm uninstall of Cockpit?"
+msgstr "确认卸载 Cockpit？"
+
+msgid "Failed to remove cockpit package, uninstall it manually"
+msgstr "cockpit 包移除失败，请手动卸载"
+
+msgid "Cockpit uninstalled."
+msgstr "Cockpit 已卸载。"
+
+msgid "Installed (socket mode, activates on access)"
+msgstr "已安装（socket 模式，访问时激活）"
+
+msgid "Install Cockpit (Web management panel, Linux only, default port 9090)"
+msgstr "安装 Cockpit（Web 管理面板，仅 Linux，默认端口 9090）"
+
+msgid "Uninstall Cockpit"
+msgstr "卸载 Cockpit"
+
+#, sh-printf-format
+msgid "Unsupported architecture: %s (only x86_64/arm64 supported)"
+msgstr "不支持的架构：%s（仅支持 x86_64/arm64）"
+
+msgid ""
+"Unable to get nerdctl version (GitHub unreachable or rate-limited), skipping "
+"nerdctl"
+msgstr "无法获取 nerdctl 版本（GitHub 不可达或限流），跳过 nerdctl"
+
+#, sh-printf-format
+msgid "Asset nerdctl-%s-linux-%s.tar.gz not found, skipping nerdctl"
+msgstr "未找到 nerdctl-%s-linux-%s.tar.gz 资产，跳过 nerdctl"
+
+#, sh-printf-format
+msgid "Downloading nerdctl v%s ..."
+msgstr "下载 nerdctl v%s ..."
+
+msgid "nerdctl download failed, skipping"
+msgstr "nerdctl 下载失败，跳过"
+
+#, sh-printf-format
+msgid "nerdctl v%s installed to /usr/local/bin/nerdctl (Docker-compatible CLI)"
+msgstr "nerdctl v%s 已安装到 /usr/local/bin/nerdctl（Docker 兼容 CLI）"
+
+msgid "Detected containerd/ctr, reinstall?"
+msgstr "已检测到 containerd/ctr，是否重新安装？"
+
+msgid "Installing containerd (with ctr) and nerdctl CLI via Homebrew..."
+msgstr "通过 Homebrew 安装 containerd（含 ctr）与 nerdctl CLI..."
+
+msgid "brew install failed"
+msgstr "brew 安装失败"
+
+msgid "macOS host cannot run Linux containers: ctr/nerdctl are client-only,"
+msgstr "macOS 宿主无法运行 Linux 容器：ctr/nerdctl 仅作为客户端使用，"
+
+msgid ""
+"point them to a containerd socket in a Linux environment (VM/remote host), "
+"e.g.:"
+msgstr "需指向 Linux 环境（VM/远程主机）的 containerd socket，例如："
+
+msgid "(via lima/colima/SSH)"
+msgstr "（经 lima/colima/SSH）"
+
+msgid "For local containers use the docker / podman modules"
+msgstr "本机跑容器请用 docker / podman 模块"
+
+msgid "Installing containerd (with ctr) via system repositories..."
+msgstr "通过系统仓库安装 containerd（ctr 随附）..."
+
+msgid ""
+"containerd install failed (RHEL needs docker repo or EPEL configured first)"
+msgstr "containerd 安装失败（RHEL 系需先配 docker 仓库或 EPEL）"
+
+msgid ""
+"Failed to enable containerd service, manually: sudo systemctl enable --now "
+"containerd"
+msgstr "containerd 服务启用失败，可手动：sudo systemctl enable --now containerd"
+
+msgid ""
+"containerd installed. Try: sudo ctr images pull docker.io/library/"
+"alpine:latest"
+msgstr "containerd 安装完成。试一下：sudo ctr images pull docker.io/library/alpine:latest"
+
+msgid "containerd not installed"
+msgstr "containerd 未安装"
+
+msgid "containerd/nerdctl CLI uninstalled"
+msgstr "containerd/nerdctl CLI 已卸载"
+
+msgid ""
+"Confirm uninstall of containerd? (local docker may be affected if it depends "
+"on it)"
+msgstr "确认卸载 containerd？（若本机 docker 以其为依赖，可能受影响）"
+
+msgid ""
+"Package manager uninstall failed, please confirm the package name manually"
+msgstr "包管理器卸载失败，请手动确认包名"
+
+msgid "containerd uninstalled"
+msgstr "containerd 已卸载"
+
+msgid ""
+"Delete container data /var/lib/containerd (images/snapshots, irreversible)?"
+msgstr "是否删除容器数据 /var/lib/containerd（镜像/快照，不可恢复）？"
+
+msgid "Data deleted"
+msgstr "数据已删除"
+
+msgid "Data kept"
+msgstr "保留数据"
+
+msgid "If docker is affected by this uninstall, reinstall: ./install.sh docker"
+msgstr "若 docker 因本卸载受损，重装：./install.sh docker"
+
+msgid "containerd installed"
+msgstr "containerd 已安装"
+
+msgid "(macOS CLI only, cannot run local containers)"
+msgstr "（macOS 仅 CLI，无法本机跑容器）"
+
+msgid "containerd installed and service running"
+msgstr "containerd 已安装且服务运行中"
+
+msgid "containerd installed but service not running"
+msgstr "containerd 已安装但服务未运行"
+
+msgid "containerd - container runtime (ctr included, with nerdctl)"
+msgstr "containerd —— 容器运行时（ctr 随附，含 nerdctl）"
+
+msgid "Install containerd (ctr included) + nerdctl (Docker-compatible CLI)"
+msgstr "安装 containerd（ctr 随附）+ nerdctl（Docker 兼容 CLI）"
+
+msgid "Linux: system repos (falls back to containerd.io); macOS: brew"
+msgstr "Linux: 系统仓库（缺包时回退 containerd.io）；macOS: brew"
+
+msgid ""
+"Uninstall (keeps /var/lib/containerd data by default, deletion needs second "
+"confirmation)"
+msgstr "卸载（默认保留 /var/lib/containerd 数据，删除需二次确认）"
+
+msgid "Notes:"
+msgstr "说明："
+
+msgid ""
+"  - ctr is the built-in low-level CLI of containerd, shipped with "
+"containerd, cannot be installed separately"
+msgstr "  - ctr 是 containerd 自带的底层 CLI，随 containerd 一并提供，无法单独安装"
+
+msgid ""
+"  - macOS host cannot run Linux containers; ctr/nerdctl only connect to a "
+"remote/VM containerd as clients"
+msgstr "  - macOS 宿主无法运行 Linux 容器，ctr/nerdctl 仅作客户端连远程/VM 的 containerd"
+
+msgid "  - For local containers use the docker / podman modules"
+msgstr "  - 本机跑容器请用 docker / podman 模块"
+
+msgid "Detected OS: macOS"
+msgstr "检测到操作系统：macOS"
+
+msgid "Detected OS: Linux"
+msgstr "检测到操作系统：Linux"
+
+#, sh-printf-format
+msgid "Detected ddns-go %s installed"
+msgstr "检测到已安装 ddns-go %s"
+
+msgid "Continue and overwrite-install the latest version? [y/N]: "
+msgstr "是否继续并覆盖安装最新版本？[y/N]: "
+
+msgid "Install cancelled"
+msgstr "安装已取消"
+
+msgid "Stopping and uninstalling existing service..."
+msgstr "正在停止并卸载现有服务..."
+
+msgid "Rocket ddns-go cross-platform install script"
+msgstr "🚀 ddns-go 跨平台安装脚本"
+
+msgid "Fetching latest version info..."
+msgstr "正在获取最新版本信息..."
+
+msgid ""
+"Unable to fetch latest version info, check network connection or API rate "
+"limit"
+msgstr "无法获取最新版本信息，请检查网络连接或 API 速率限制"
+
+#, sh-printf-format
+msgid "Latest version: %s"
+msgstr "最新版本：%s"
+
+#, sh-printf-format
+msgid "Unsupported Linux architecture: %s"
+msgstr "不支持的 Linux 架构：%s"
+
+#, sh-printf-format
+msgid "Unsupported macOS architecture: %s"
+msgstr "不支持的 macOS 架构：%s"
+
+#, sh-printf-format
+msgid "No download link found for %s"
+msgstr "无法找到适用于 %s 的下载链接"
+
+#, sh-printf-format
+msgid "About to install ddns-go %s"
+msgstr "即将安装 ddns-go %s"
+
+#, sh-printf-format
+msgid "Install location: %s"
+msgstr "安装位置：%s"
+
+msgid "Service port: 9876"
+msgstr "服务端口：9876"
+
+msgid "Confirm continue installation? [y/N]: "
+msgstr "确认继续安装？[y/N]: "
+
+msgid "Downloading and extracting..."
+msgstr "正在下载和解压..."
+
+msgid "Download failed"
+msgstr "下载失败"
+
+msgid "Extract failed"
+msgstr "解压失败"
+
+msgid "Download and extract complete"
+msgstr "下载和解压完成"
+
+msgid "Installing ddns-go..."
+msgstr "正在安装 ddns-go..."
+
+msgid "Files installed"
+msgstr "文件安装完成"
+
+msgid "Installing service..."
+msgstr "正在安装服务..."
+
+msgid "Service installed successfully"
+msgstr "服务安装成功"
+
+msgid "Service install failed"
+msgstr "服务安装失败"
+
+msgid "Starting service..."
+msgstr "正在启动服务..."
+
+msgid "ddns-go service started and enabled on boot"
+msgstr "ddns-go 服务已启动并设置为开机自启"
+
+msgid "Service start failed"
+msgstr "服务启动失败"
+
+msgid "Service already running"
+msgstr "服务已在运行中"
+
+msgid "bootstrap failed, trying load"
+msgstr "bootstrap 失败，尝试 load"
+
+msgid "ddns-go service started (load)"
+msgstr "ddns-go 服务已启动（load）"
+
+msgid "Auto-start failed, service file installed"
+msgstr "自动启动失败，服务文件已安装"
+
+msgid "Verifying installation..."
+msgstr "正在验证安装..."
+
+msgid "Service running normally"
+msgstr "服务运行正常"
+
+msgid "Service not running normally"
+msgstr "服务未正常运行"
+
+#, sh-printf-format
+msgid "Party popper ddns-go %s installation complete!"
+msgstr "🎉 ddns-go %s 安装完成！"
+
+msgid "Install directory:"
+msgstr "安装目录："
+
+msgid "(auto-created after first visit)"
+msgstr "(首次访问后自动创建)"
+
+msgid "Start service:"
+msgstr "启动服务："
+
+msgid ""
+"Be sure to set your DNS provider info and the domain to update in the Web UI!"
+msgstr "请务必在 Web 界面中设置您的 DNS 服务商信息和要更新的域名！"
+
+msgid "Uninstalling DDNS-GO..."
+msgstr "正在卸载 DDNS-GO..."
+
+msgid "DDNS-GO uninstalled successfully!"
+msgstr "DDNS-GO 已成功卸载！"
+
+msgid "Installed but not running"
+msgstr "已安装但未运行"
+
+msgid "Install or update DDNS-GO (default action)"
+msgstr "安装或更新 DDNS-GO（默认动作）"
+
+msgid "Uninstall DDNS-GO"
+msgstr "卸载 DDNS-GO"
 
 msgid "Detected installed Docker"
 msgstr "检测到已安装 Docker"
@@ -738,7 +1083,9 @@ msgstr "确认卸载 Docker Engine？"
 msgid ""
 "Also delete all images/containers/volumes (/var/lib/docker, /var/lib/"
 "containerd)? This is irreversible!"
-msgstr "是否同时删除所有镜像/容器/卷（/var/lib/docker, /var/lib/containerd）？此操作不可逆！"
+msgstr ""
+"是否同时删除所有镜像/容器/卷（/var/lib/docker, /var/lib/containerd）？此操作"
+"不可逆！"
 
 msgid "Data directory deleted."
 msgstr "数据目录已删除。"
@@ -756,7 +1103,9 @@ msgstr "镜像加速器换源（linuxmirrors）仅支持 Linux。当前："
 msgid ""
 "Docker not detected. The registry mirror configuration will only take effect "
 "after Docker is installed and started."
-msgstr "未检测到 Docker。镜像加速器配置写入 /etc/docker/daemon.json 后需安装并启动 Docker 才会生效。"
+msgstr ""
+"未检测到 Docker。镜像加速器配置写入 /etc/docker/daemon.json 后需安装并启动 "
+"Docker 才会生效。"
 
 msgid "Still continue?"
 msgstr "仍然继续？"
