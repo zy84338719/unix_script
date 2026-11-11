@@ -2,12 +2,109 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 03:12+0800\n"
+"POT-Creation-Date: 2026-11-11 09:02+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgid "1Panel is Linux-only. Current: "
+msgstr "1Panel 仅支持 Linux。当前："
+
+msgid "systemctl (systemd) is required."
+msgstr "需要 systemctl（systemd）。"
+
+msgid "Either curl or wget is required, please install one first."
+msgstr "需要 curl 或 wget 之一，请先安装。"
+
+msgid "Detected 1Panel installed ("
+msgstr "检测到 1Panel 已安装（"
+
 msgid "Unknown version"
 msgstr "未知版本"
+
+msgid ")"
+msgstr "）"
+
+msgid "Continue and reinstall/update?"
+msgstr "是否继续并重装/更新？"
+
+msgid "Cancelled"
+msgstr "已取消"
+
+msgid "Downloading official installer ("
+msgstr "下载官方安装脚本（"
+
+msgid ")..."
+msgstr "）..."
+
+msgid ""
+"Running official installer (non-interactive if PANEL_* env vars are set)..."
+msgstr "执行官方安装脚本（如已设置 PANEL_* 环境变量则按其非交互安装）..."
+
+msgid "Party popper 1Panel installation complete!"
+msgstr "🎉 1Panel 安装完成！"
+
+msgid "View panel address/security entry/account: sudo 1pctl user-info"
+msgstr "查看面板地址/安全入口/账号：sudo 1pctl user-info"
+
+msgid "Common commands: 1pctl status | 1pctl restart | 1pctl update"
+msgstr "常用命令：1pctl status | 1pctl restart | 1pctl update"
+
+msgid ""
+"Installer ran but 1pctl was not detected — check the output above to confirm "
+"the result."
+msgstr "安装脚本已执行，但未检测到 1pctl——请检查上方输出确认安装结果。"
+
+msgid "1Panel is not installed."
+msgstr "1Panel 未安装。"
+
+msgid "1Panel is not installed, nothing to uninstall."
+msgstr "1Panel 未安装，无需卸载。"
+
+msgid ""
+"Uninstalling does not delete the panel data directory (default /opt/1panel), "
+"site and image data will be kept."
+msgstr ""
+
+msgid "Confirm uninstall of 1Panel?"
+msgstr "确认卸载 1Panel？"
+
+msgid "1pctl uninstall failed, please check manually."
+msgstr ""
+
+msgid "1Panel uninstalled."
+msgstr "1Panel 已卸载。"
+
+msgid "Not applicable (Linux only)"
+msgstr ""
+
+msgid "Not installed"
+msgstr "未安装"
+
+msgid "Installed and running"
+msgstr "已安装并运行"
+
+msgid "Installed (service not running)"
+msgstr ""
+
+msgid ""
+"Install 1Panel (official v2 script, interactive/pass PANEL_* for non-"
+"interactive, Linux only)"
+msgstr ""
+
+msgid "View panel address, security entry and account (1pctl user-info)"
+msgstr ""
+
+msgid "Upgrade 1Panel (1pctl update)"
+msgstr "升级 1Panel（1pctl update）"
+
+msgid "Uninstall 1Panel (keep data directory)"
+msgstr "卸载 1Panel（保留数据目录）"
+
+msgid "View status"
+msgstr ""
+
+msgid "Unknown action: "
+msgstr "未知操作: "
 
 msgid "Detected installed Docker"
 msgstr "检测到已安装 Docker"
@@ -15,10 +112,9 @@ msgstr "检测到已安装 Docker"
 msgid "Continue and try to update?"
 msgstr "是否继续并尝试更新？"
 
-msgid "Cancelled"
-msgstr "已取消"
-
-msgid "Install from a domestic mirror (linuxmirrors.cn, includes registry acceleration, recommended for China network)?"
+msgid ""
+"Install from a domestic mirror (linuxmirrors.cn, includes registry "
+"acceleration, recommended for China network)?"
 msgstr ""
 
 msgid "Installing Docker via domestic mirror script (linuxmirrors.cn)..."
@@ -57,10 +153,13 @@ msgstr "是否将用户"
 msgid "to the docker group (passwordless docker, requires re-login)?"
 msgstr "加入 docker 组（免 sudo 使用 docker，需重新登录生效）？"
 
-msgid "Log out and back in (or run newgrp docker) for the change to take effect."
+msgid ""
+"Log out and back in (or run newgrp docker) for the change to take effect."
 msgstr ""
 
-msgid "docker compose subcommand not detected. Recent Docker includes the compose plugin."
+msgid ""
+"docker compose subcommand not detected. Recent Docker includes the compose "
+"plugin."
 msgstr ""
 
 msgid "For standalone docker-compose, see:"
@@ -93,7 +192,9 @@ msgstr "验证："
 msgid "Test run (first pull is slow)"
 msgstr "测试运行（首次拉取镜像较慢）"
 
-msgid "Docker Desktop may not have been installed via brew, please uninstall manually."
+msgid ""
+"Docker Desktop may not have been installed via brew, please uninstall "
+"manually."
 msgstr ""
 
 msgid "Please uninstall Docker Desktop manually."
@@ -102,13 +203,17 @@ msgstr "请手动卸载 Docker Desktop。"
 msgid "Uninstalling will stop the docker service and remove the package."
 msgstr "卸载将停止 docker 服务并移除软件包。"
 
-msgid "Image/container/volume data is kept in /var/lib/docker, please clean it up manually."
+msgid ""
+"Image/container/volume data is kept in /var/lib/docker, please clean it up "
+"manually."
 msgstr ""
 
 msgid "Confirm uninstall of Docker Engine?"
 msgstr "确认卸载 Docker Engine？"
 
-msgid "Also delete all images/containers/volumes (/var/lib/docker, /var/lib/containerd)? This is irreversible!"
+msgid ""
+"Also delete all images/containers/volumes (/var/lib/docker, /var/lib/"
+"containerd)? This is irreversible!"
 msgstr ""
 
 msgid "Data directory deleted."
@@ -117,34 +222,36 @@ msgstr "数据目录已删除。"
 msgid "Docker uninstalled."
 msgstr "Docker 已卸载。"
 
-msgid "Not installed"
-msgstr "未安装"
-
-msgid "Installed and running"
-msgstr "已安装并运行"
-
 msgid "Installed but service not running"
 msgstr "已安装但服务未运行"
 
-msgid "Installed, but the Docker daemon is not running (please start Docker Desktop)"
+msgid ""
+"Installed, but the Docker daemon is not running (please start Docker Desktop)"
 msgstr ""
 
 msgid "Registry mirror configuration (linuxmirrors) is Linux-only. Current: "
 msgstr "镜像加速器换源（linuxmirrors）仅支持 Linux。当前："
 
-msgid "Docker not detected. The registry mirror configuration will only take effect after Docker is installed and started."
+msgid ""
+"Docker not detected. The registry mirror configuration will only take effect "
+"after Docker is installed and started."
 msgstr ""
 
 msgid "Still continue?"
 msgstr "仍然继续？"
 
-msgid "Calling linuxmirrors script to configure registry mirror only (--only-registry)..."
+msgid ""
+"Calling linuxmirrors script to configure registry mirror only (--only-"
+"registry)..."
 msgstr ""
 
-msgid "(The script will back up daemon.json and write a domestic mirror address)"
+msgid ""
+"(The script will back up daemon.json and write a domestic mirror address)"
 msgstr ""
 
-msgid "Registry mirror configuration failed, check the network or configure manually:"
+msgid ""
+"Registry mirror configuration failed, check the network or configure "
+"manually:"
 msgstr ""
 
 msgid "Registry mirror configuration complete."
@@ -156,7 +263,9 @@ msgstr "如已运行 Docker，可重启使配置生效:"
 msgid "Domestic mirror installation (linuxmirrors) is Linux-only. Current: "
 msgstr "国内镜像源安装（linuxmirrors）仅支持 Linux。当前："
 
-msgid "Calling linuxmirrors script to install/replace Docker mirror (includes registry acceleration)..."
+msgid ""
+"Calling linuxmirrors script to install/replace Docker mirror (includes "
+"registry acceleration)..."
 msgstr ""
 
 msgid "Domestic mirror script failed, check the network"
@@ -174,7 +283,9 @@ msgstr "查看镜像加速器"
 msgid "Install or update Docker (optional domestic mirror)"
 msgstr "安装或更新 Docker（可选国内镜像源）"
 
-msgid "Install/replace Docker via domestic mirror (linuxmirrors.cn), includes registry acceleration"
+msgid ""
+"Install/replace Docker via domestic mirror (linuxmirrors.cn), includes "
+"registry acceleration"
 msgstr ""
 
 msgid "Configure registry mirror only (no reinstall, Linux only)"
@@ -185,6 +296,3 @@ msgstr "卸载 Docker"
 
 msgid "View installation and running status"
 msgstr "查看安装与运行状态"
-
-msgid "Unknown action: "
-msgstr "未知操作: "

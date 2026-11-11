@@ -8,25 +8,119 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 03:12+0800\n"
+"POT-Creation-Date: 2026-11-11 09:02+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgid "1Panel is Linux-only. Current: "
+msgstr ""
+
+msgid "systemctl (systemd) is required."
+msgstr ""
+
+msgid "Either curl or wget is required, please install one first."
+msgstr ""
+
+msgid "Detected 1Panel installed ("
+msgstr ""
+
 msgid "Unknown version"
+msgstr ""
+
+msgid ")"
+msgstr ""
+
+msgid "Continue and reinstall/update?"
+msgstr ""
+
+msgid "Cancelled"
+msgstr ""
+
+msgid "Downloading official installer ("
+msgstr ""
+
+msgid ")..."
+msgstr ""
+
+msgid ""
+"Running official installer (non-interactive if PANEL_* env vars are set)..."
+msgstr ""
+
+msgid "Party popper 1Panel installation complete!"
+msgstr ""
+
+msgid "View panel address/security entry/account: sudo 1pctl user-info"
+msgstr ""
+
+msgid "Common commands: 1pctl status | 1pctl restart | 1pctl update"
+msgstr ""
+
+msgid ""
+"Installer ran but 1pctl was not detected — check the output above to confirm "
+"the result."
+msgstr ""
+
+msgid "1Panel is not installed."
+msgstr ""
+
+msgid "1Panel is not installed, nothing to uninstall."
+msgstr ""
+
+msgid ""
+"Uninstalling does not delete the panel data directory (default /opt/1panel), "
+"site and image data will be kept."
+msgstr ""
+
+msgid "Confirm uninstall of 1Panel?"
+msgstr ""
+
+msgid "1pctl uninstall failed, please check manually."
+msgstr ""
+
+msgid "1Panel uninstalled."
+msgstr ""
+
+msgid "Not applicable (Linux only)"
+msgstr ""
+
+msgid "Not installed"
+msgstr ""
+
+msgid "Installed and running"
+msgstr ""
+
+msgid "Installed (service not running)"
+msgstr ""
+
+msgid ""
+"Install 1Panel (official v2 script, interactive/pass PANEL_* for non-"
+"interactive, Linux only)"
+msgstr ""
+
+msgid "View panel address, security entry and account (1pctl user-info)"
+msgstr ""
+
+msgid "Upgrade 1Panel (1pctl update)"
+msgstr ""
+
+msgid "Uninstall 1Panel (keep data directory)"
+msgstr ""
+
+msgid "View status"
+msgstr ""
+
+msgid "Unknown action: "
 msgstr ""
 
 msgid "Detected installed Docker"
 msgstr ""
 
 msgid "Continue and try to update?"
-msgstr ""
-
-msgid "Cancelled"
 msgstr ""
 
 msgid ""
@@ -139,12 +233,6 @@ msgstr ""
 msgid "Docker uninstalled."
 msgstr ""
 
-msgid "Not installed"
-msgstr ""
-
-msgid "Installed and running"
-msgstr ""
-
 msgid "Installed but service not running"
 msgstr ""
 
@@ -218,7 +306,4 @@ msgid "Uninstall Docker"
 msgstr ""
 
 msgid "View installation and running status"
-msgstr ""
-
-msgid "Unknown action: "
 msgstr ""

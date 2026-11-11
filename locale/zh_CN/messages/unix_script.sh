@@ -3,10 +3,32 @@
 # 域：unix_script
 _sk_msg_lookup_unix_script() {
   case "$1" in
+    '1Panel is Linux-only. Current: ') printf '%s' '1Panel 仅支持 Linux。当前：' ;;
+    'systemctl (systemd) is required.') printf '%s' '需要 systemctl（systemd）。' ;;
+    'Either curl or wget is required, please install one first.') printf '%s' '需要 curl 或 wget 之一，请先安装。' ;;
+    'Detected 1Panel installed (') printf '%s' '检测到 1Panel 已安装（' ;;
     'Unknown version') printf '%s' '未知版本' ;;
+    ')') printf '%s' '）' ;;
+    'Continue and reinstall/update'\?) printf '%s' '是否继续并重装/更新？' ;;
+    'Cancelled') printf '%s' '已取消' ;;
+    'Downloading official installer (') printf '%s' '下载官方安装脚本（' ;;
+    ')...') printf '%s' '）...' ;;
+    'Running official installer (non-interactive if PANEL_'\*' env vars are set)...') printf '%s' '执行官方安装脚本（如已设置 PANEL_* 环境变量则按其非交互安装）...' ;;
+    'Party popper 1Panel installation complete!') printf '%s' '🎉 1Panel 安装完成！' ;;
+    'View panel address/security entry/account: sudo 1pctl user-info') printf '%s' '查看面板地址/安全入口/账号：sudo 1pctl user-info' ;;
+    'Common commands: 1pctl status | 1pctl restart | 1pctl update') printf '%s' '常用命令：1pctl status | 1pctl restart | 1pctl update' ;;
+    'Installer ran but 1pctl was not detected — check the output above to confirm the result.') printf '%s' '安装脚本已执行，但未检测到 1pctl——请检查上方输出确认安装结果。' ;;
+    '1Panel is not installed.') printf '%s' '1Panel 未安装。' ;;
+    '1Panel is not installed, nothing to uninstall.') printf '%s' '1Panel 未安装，无需卸载。' ;;
+    'Confirm uninstall of 1Panel'\?) printf '%s' '确认卸载 1Panel？' ;;
+    '1Panel uninstalled.') printf '%s' '1Panel 已卸载。' ;;
+    'Not installed') printf '%s' '未安装' ;;
+    'Installed and running') printf '%s' '已安装并运行' ;;
+    'Upgrade 1Panel (1pctl update)') printf '%s' '升级 1Panel（1pctl update）' ;;
+    'Uninstall 1Panel (keep data directory)') printf '%s' '卸载 1Panel（保留数据目录）' ;;
+    'Unknown action: ') printf '%s' '未知操作: ' ;;
     'Detected installed Docker') printf '%s' '检测到已安装 Docker' ;;
     'Continue and try to update'\?) printf '%s' '是否继续并尝试更新？' ;;
-    'Cancelled') printf '%s' '已取消' ;;
     'Installing Docker via domestic mirror script (linuxmirrors.cn)...') printf '%s' '使用国内镜像源一键脚本（linuxmirrors.cn）安装/换源 Docker...' ;;
     'Domestic mirror script failed, try the official installer instead') printf '%s' '国内镜像源安装脚本执行失败，可改用官方源重试' ;;
     'Installing Docker via pacman...') printf '%s' '通过 pacman 安装 Docker...' ;;
@@ -34,8 +56,6 @@ _sk_msg_lookup_unix_script() {
     'Confirm uninstall of Docker Engine'\?) printf '%s' '确认卸载 Docker Engine？' ;;
     'Data directory deleted.') printf '%s' '数据目录已删除。' ;;
     'Docker uninstalled.') printf '%s' 'Docker 已卸载。' ;;
-    'Not installed') printf '%s' '未安装' ;;
-    'Installed and running') printf '%s' '已安装并运行' ;;
     'Installed but service not running') printf '%s' '已安装但服务未运行' ;;
     'Registry mirror configuration (linuxmirrors) is Linux-only. Current: ') printf '%s' '镜像加速器换源（linuxmirrors）仅支持 Linux。当前：' ;;
     'Still continue'\?) printf '%s' '仍然继续？' ;;
@@ -50,7 +70,6 @@ _sk_msg_lookup_unix_script() {
     'Configure registry mirror only (no reinstall, Linux only)') printf '%s' '仅更换 Docker 镜像加速器（不重装 Docker，仅 Linux）' ;;
     'Uninstall Docker') printf '%s' '卸载 Docker' ;;
     'View installation and running status') printf '%s' '查看安装与运行状态' ;;
-    'Unknown action: ') printf '%s' '未知操作: ' ;;
     *) return 1 ;;
   esac
 }
