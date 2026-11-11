@@ -428,7 +428,7 @@ source completions/uxs.zsh        # 或手动 source（zsh）
 
 | 分类 | 系统 | 镜像 / 版本 | 包管理 | CI |
 |------|------|-------------|--------|:--:|
-| 实机 | Ubuntu（runner 内置） | ubuntu-latest | apt | ✅ |
+| 实机 | Ubuntu（runner 内置） | ubuntu-latest | apt | ❌ |
 | 实机 | macOS（runner 内置） | macos-latest | brew | ✅ |
 | 容器 | Ubuntu 26.04 | `ubuntu:26.04` | apt | ❌ |
 | 容器 | Ubuntu 24.04 | `ubuntu:24.04` | apt | ❌ |
