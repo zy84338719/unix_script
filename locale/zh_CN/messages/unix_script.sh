@@ -350,6 +350,49 @@ _sk_msg_lookup_unix_script() {
     'Configure registry mirror only (no reinstall, Linux only)') printf '%s' '仅更换 Docker 镜像加速器（不重装 Docker，仅 Linux）' ;;
     'Uninstall Docker') printf '%s' '卸载 Docker' ;;
     'View installation and running status') printf '%s' '查看安装与运行状态' ;;
+    'Detected k3s %s installed, reinstall'\?) printf '%s' '已检测到 k3s %s，是否重新安装？' ;;
+    'Installing k3s via the official script (get.k3s.io)...') printf '%s' '通过官方脚本安装 k3s（get.k3s.io）...' ;;
+    'k3s install failed; check /var/log or run the official script manually to troubleshoot') printf '%s' 'k3s 安装失败，可查看 /var/log 或手动执行官方脚本排查' ;;
+    'Waiting for the service to be ready...') printf '%s' '等待服务就绪...' ;;
+    'k3s installation complete, node is ready') printf '%s' 'k3s 安装完成，节点已就绪' ;;
+    'Node not ready yet; verify later: sudo k3s kubectl get node') printf '%s' '节点尚未就绪，稍后验证：sudo k3s kubectl get node' ;;
+    'kubeconfig: /etc/rancher/k3s/k3s.yaml (mode 644, readable)') printf '%s' 'kubeconfig：/etc/rancher/k3s/k3s.yaml（已设 644 可读）' ;;
+    'Terminal UI: ./install.sh k9s; package manager: ./install.sh helm') printf '%s' '终端面板：./install.sh k9s；包管理：./install.sh helm' ;;
+    'k3s not installed') printf '%s' 'k3s 未安装' ;;
+    'Confirm uninstall of k3s (the official uninstall script also cleans up cluster data)'\?) printf '%s' '确认卸载 k3s（官方卸载脚本会连带清理集群数据）？' ;;
+    'k3s uninstalled') printf '%s' 'k3s 已卸载' ;;
+    'Official uninstall script /usr/local/bin/k3s-uninstall.sh not found; please handle it manually') printf '%s' '未找到官方卸载脚本 /usr/local/bin/k3s-uninstall.sh，请手动处理' ;;
+    'k3s installed and service running') printf '%s' 'k3s 已安装且服务运行中' ;;
+    'k3s installed but service not running') printf '%s' 'k3s 已安装但服务未运行' ;;
+    'k3s - lightweight Kubernetes (edge/server, Linux only)') printf '%s' 'k3s —— 轻量级 Kubernetes（边缘/服务器，仅 Linux）' ;;
+    'Install via the official get.k3s.io script (--write-kubeconfig-mode 644)') printf '%s' 'get.k3s.io 官方脚本安装（--write-kubeconfig-mode 644）' ;;
+    'Official uninstall script (also cleans up cluster data)') printf '%s' '官方卸载脚本（连带清理集群数据）' ;;
+    'Notes: kubeconfig is at /etc/rancher/k3s/k3s.yaml; terminal management uses k9s,
+package management uses helm — ./install.sh k9s / ./install.sh helm') printf '%s' '说明：kubeconfig 在 /etc/rancher/k3s/k3s.yaml；终端管理配 k9s，
+包管理配 helm——./install.sh k9s / ./install.sh helm' ;;
+    'Detected Podman Desktop, reinstall'\?) printf '%s' '已检测到 Podman Desktop，是否重新安装？' ;;
+    'Installing Podman Desktop via Homebrew cask...') printf '%s' '通过 Homebrew cask 安装 Podman Desktop...' ;;
+    'cask install failed') printf '%s' 'cask 安装失败' ;;
+    'Podman Desktop installed to /Applications') printf '%s' 'Podman Desktop 已安装到 /Applications' ;;
+    'Container runtime setup: podman machine — ./install.sh podman') printf '%s' '容器运行时配 podman machine：./install.sh podman' ;;
+    'On Linux, Podman Desktop is distributed via Flatpak; please install flatpak (apt/dnf install flatpak) and add the flathub remote first') printf '%s' 'Linux 上 Podman Desktop 经 Flatpak 分发，请先安装 flatpak（apt/dnf install flatpak）并添加 flathub 远程' ;;
+    'Detected Podman Desktop (Flatpak), reinstall'\?) printf '%s' '已检测到 Podman Desktop（Flatpak），是否重新安装？' ;;
+    'Installing Podman Desktop via Flatpak (flathub)...') printf '%s' '通过 Flatpak 安装 Podman Desktop（flathub）...' ;;
+    'Flatpak install failed (has the flathub remote been added'\?')') printf '%s' 'Flatpak 安装失败（flathub 远程已添加？）' ;;
+    'Podman Desktop installed; launch it from the applications menu') printf '%s' 'Podman Desktop 已安装，应用菜单启动' ;;
+    'Container runtime setup: podman — ./install.sh podman') printf '%s' '容器运行时配 podman：./install.sh podman' ;;
+    'Podman Desktop uninstalled') printf '%s' '已卸载 Podman Desktop' ;;
+    'podman-desktop not detected via brew') printf '%s' '未通过 brew 检测到 podman-desktop' ;;
+    'Podman Desktop (Flatpak) not detected') printf '%s' '未检测到 Podman Desktop（Flatpak）' ;;
+    'Podman Desktop installed (/Applications)') printf '%s' 'Podman Desktop 已安装（/Applications）' ;;
+    'Podman Desktop not installed') printf '%s' 'Podman Desktop 未安装' ;;
+    'Podman Desktop installed (Flatpak)') printf '%s' 'Podman Desktop 已安装（Flatpak）' ;;
+    'Podman Desktop - container/K8s desktop manager (GUI)') printf '%s' 'Podman Desktop —— 容器/K8s 桌面管理台（GUI）' ;;
+    'Install (macOS: brew cask; Linux: Flatpak/flathub)') printf '%s' '安装（macOS: brew cask；Linux: Flatpak/flathub）' ;;
+    'Uninstall') printf '%s' '卸载' ;;
+    'Notes: the GUI manages containers and K8s contexts; on Linux install flatpak and add flathub first;
+container runtime setup uses podman — ./install.sh podman') printf '%s' '说明：GUI 管理容器与 K8s 上下文；Linux 需先装 flatpak 并添加 flathub；
+容器运行时配 podman——./install.sh podman' ;;
     'Detected skopeo %s installed, reinstall'\?) printf '%s' '检测到已安装 skopeo %s，是否重新安装？' ;;
     'Installing skopeo via Homebrew...') printf '%s' '通过 Homebrew 安装 skopeo...' ;;
     'Installing skopeo via system repositories...') printf '%s' '通过系统仓库安装 skopeo...' ;;
@@ -361,8 +404,18 @@ _sk_msg_lookup_unix_script() {
     'skopeo installed') printf '%s' 'skopeo 已安装' ;;
     'skopeo - image copy/inspection tool (no local container runtime needed)') printf '%s' 'skopeo —— 镜像搬运/检查工具（无需本地容器运行时）' ;;
     'Install (Linux: system repositories; macOS: brew)') printf '%s' '安装（Linux: 系统仓库；macOS: brew）' ;;
-    'Uninstall') printf '%s' '卸载' ;;
     'Common: skopeo inspect/copy docker://<image> (cross-registry image copy, offline sync)') printf '%s' '常用：skopeo inspect/copy docker://<镜像>（跨仓库镜像搬运、离线同步）' ;;
+    'wireguard-tools install failed (%s)') printf '%s' 'wireguard-tools 安装失败（%s）' ;;
+    'interface') printf '%s' '接口' ;;
+    'Delete the .conf configuration files under the wireguard directory'\?) printf '%s' '是否删除 wireguard 目录下的 .conf 配置文件？' ;;
+    'Config files deleted.') printf '%s' '配置文件已删除。' ;;
+    'Service removed. To fully uninstall, remove wireguard-tools manually with the package manager (apt/brew, etc.).') printf '%s' '服务已移除。要完全卸载，请使用包管理器 (apt/brew 等) 手动移除 wireguard-tools。' ;;
+    'WireGuard uninstall complete!') printf '%s' 'WireGuard 卸载完成！' ;;
+    'legacy aliases: install_tools/configure_service/uninstall_service') printf '%s' '兼容旧词 install_tools/configure_service/uninstall_service' ;;
+    'Install WireGuard tools (same as install_tools)') printf '%s' '安装 WireGuard 工具（同 install_tools）' ;;
+    'Uninstall the service and ask about deleting .conf files (full uninstall)') printf '%s' '卸载服务 + 询问删除 .conf（完整卸载）' ;;
+    'View install and run status') printf '%s' '查看安装与运行状态' ;;
+    'Configure auto-start on boot (legacy name kept)') printf '%s' '配置开机自启（保留旧名）' ;;
     *) return 1 ;;
   esac
 }

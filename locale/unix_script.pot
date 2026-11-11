@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 12:13+0800\n"
+"POT-Creation-Date: 2026-11-11 12:22+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1169,6 +1169,139 @@ msgid "View installation and running status"
 msgstr ""
 
 #, sh-printf-format
+msgid "Detected k3s %s installed, reinstall?"
+msgstr ""
+
+msgid "Installing k3s via the official script (get.k3s.io)..."
+msgstr ""
+
+msgid ""
+"k3s install failed; check /var/log or run the official script manually to "
+"troubleshoot"
+msgstr ""
+
+msgid "Waiting for the service to be ready..."
+msgstr ""
+
+msgid "k3s installation complete, node is ready"
+msgstr ""
+
+msgid "Node not ready yet; verify later: sudo k3s kubectl get node"
+msgstr ""
+
+msgid "kubeconfig: /etc/rancher/k3s/k3s.yaml (mode 644, readable)"
+msgstr ""
+
+msgid "Terminal UI: ./install.sh k9s; package manager: ./install.sh helm"
+msgstr ""
+
+msgid "k3s not installed"
+msgstr ""
+
+msgid ""
+"Confirm uninstall of k3s (the official uninstall script also cleans up "
+"cluster data)?"
+msgstr ""
+
+msgid "k3s uninstalled"
+msgstr ""
+
+msgid ""
+"Official uninstall script /usr/local/bin/k3s-uninstall.sh not found; please "
+"handle it manually"
+msgstr ""
+
+msgid "k3s installed and service running"
+msgstr ""
+
+msgid "k3s installed but service not running"
+msgstr ""
+
+msgid "k3s - lightweight Kubernetes (edge/server, Linux only)"
+msgstr ""
+
+msgid ""
+"Install via the official get.k3s.io script (--write-kubeconfig-mode 644)"
+msgstr ""
+
+msgid "Official uninstall script (also cleans up cluster data)"
+msgstr ""
+
+msgid ""
+"Notes: kubeconfig is at /etc/rancher/k3s/k3s.yaml; terminal management uses "
+"k9s,\n"
+"package management uses helm — ./install.sh k9s / ./install.sh helm"
+msgstr ""
+
+msgid "Detected Podman Desktop, reinstall?"
+msgstr ""
+
+msgid "Installing Podman Desktop via Homebrew cask..."
+msgstr ""
+
+msgid "cask install failed"
+msgstr ""
+
+msgid "Podman Desktop installed to /Applications"
+msgstr ""
+
+msgid "Container runtime setup: podman machine — ./install.sh podman"
+msgstr ""
+
+msgid ""
+"On Linux, Podman Desktop is distributed via Flatpak; please install flatpak "
+"(apt/dnf install flatpak) and add the flathub remote first"
+msgstr ""
+
+msgid "Detected Podman Desktop (Flatpak), reinstall?"
+msgstr ""
+
+msgid "Installing Podman Desktop via Flatpak (flathub)..."
+msgstr ""
+
+msgid "Flatpak install failed (has the flathub remote been added?)"
+msgstr ""
+
+msgid "Podman Desktop installed; launch it from the applications menu"
+msgstr ""
+
+msgid "Container runtime setup: podman — ./install.sh podman"
+msgstr ""
+
+msgid "Podman Desktop uninstalled"
+msgstr ""
+
+msgid "podman-desktop not detected via brew"
+msgstr ""
+
+msgid "Podman Desktop (Flatpak) not detected"
+msgstr ""
+
+msgid "Podman Desktop installed (/Applications)"
+msgstr ""
+
+msgid "Podman Desktop not installed"
+msgstr ""
+
+msgid "Podman Desktop installed (Flatpak)"
+msgstr ""
+
+msgid "Podman Desktop - container/K8s desktop manager (GUI)"
+msgstr ""
+
+msgid "Install (macOS: brew cask; Linux: Flatpak/flathub)"
+msgstr ""
+
+msgid "Uninstall"
+msgstr ""
+
+msgid ""
+"Notes: the GUI manages containers and K8s contexts; on Linux install flatpak "
+"and add flathub first;\n"
+"container runtime setup uses podman — ./install.sh podman"
+msgstr ""
+
+#, sh-printf-format
 msgid "Detected skopeo %s installed, reinstall?"
 msgstr ""
 
@@ -1204,10 +1337,44 @@ msgstr ""
 msgid "Install (Linux: system repositories; macOS: brew)"
 msgstr ""
 
-msgid "Uninstall"
-msgstr ""
-
 msgid ""
 "Common: skopeo inspect/copy docker://<image> (cross-registry image copy, "
 "offline sync)"
+msgstr ""
+
+#, sh-printf-format
+msgid "wireguard-tools install failed (%s)"
+msgstr ""
+
+msgid "interface"
+msgstr ""
+
+msgid "Delete the .conf configuration files under the wireguard directory?"
+msgstr ""
+
+msgid "Config files deleted."
+msgstr ""
+
+msgid ""
+"Service removed. To fully uninstall, remove wireguard-tools manually with "
+"the package manager (apt/brew, etc.)."
+msgstr ""
+
+msgid "WireGuard uninstall complete!"
+msgstr ""
+
+msgid "legacy aliases: install_tools/configure_service/uninstall_service"
+msgstr ""
+
+msgid "Install WireGuard tools (same as install_tools)"
+msgstr ""
+
+msgid ""
+"Uninstall the service and ask about deleting .conf files (full uninstall)"
+msgstr ""
+
+msgid "View install and run status"
+msgstr ""
+
+msgid "Configure auto-start on boot (legacy name kept)"
 msgstr ""

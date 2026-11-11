@@ -58,7 +58,7 @@ install_tools() {
     info "WireGuard tools not found. Attempting to install..."
     if [[ "$OS" == "Linux" ]]; then
         ensure_epel
-        pkg_install wireguard-tools || { error "wireguard-tools 安装失败（${PKG_MANAGER}）"; exit 1; }
+        pkg_install wireguard-tools || { error "$(_tf 'wireguard-tools install failed (%s)' "$PKG_MANAGER")"; exit 1; }
     elif [[ "$OS" == "Darwin" ]]; then
         if ! command_exists brew; then
             error "Homebrew is not installed. Please install it first: https://brew.sh/"
@@ -206,10 +206,10 @@ status_wireguard() {
     fi
     if $wg_installed; then
         if $service_running; then
-            emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} (接口: ${interface})"
+            emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} ($(_t 'interface'): ${interface})"
             emit_extra "interface=${interface}"
         else
-            emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC}"
+            emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but service not running')${NC}"
         fi
         local wg_ver
         # 不用 `| head -1`：head 命中即退会给上游 SIGPIPE(141)；grep 无匹配时退出 1。
@@ -223,7 +223,7 @@ status_wireguard() {
             emit_version "$wg_ver"
         fi
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
     fi
     return 0
 }
@@ -234,26 +234,26 @@ uninstall_wireguard_full() {
     check_privileges
     uninstall_service
     echo
-    if yes_no "是否删除 wireguard 目录下的 .conf 配置文件？"; then
+    if yes_no "$(_t 'Delete the .conf configuration files under the wireguard directory?')"; then
         if [[ "$OS" == "Linux" ]]; then
             sudo rm -f /etc/wireguard/*.conf
         elif [[ "$OS" == "Darwin" ]]; then
             sudo rm -f /usr/local/etc/wireguard/*.conf
         fi
-        success "配置文件已删除。"
+        success "$(_t 'Config files deleted.')"
     fi
-    warn "服务已移除。要完全卸载，请使用包管理器 (apt/brew 等) 手动移除 'wireguard-tools'。"
-    success "WireGuard 卸载完成！"
+    warn "$(_t 'Service removed. To fully uninstall, remove wireguard-tools manually with the package manager (apt/brew, etc.).')"
+    success "$(_t 'WireGuard uninstall complete!')"
 }
 
 usage() {
     cat <<EOF
-用法: $0 {install|uninstall|status|help}  (兼容旧词 install_tools/configure_service/uninstall_service)
+用法: $0 {install|uninstall|status|help}  ($(_t 'legacy aliases: install_tools/configure_service/uninstall_service'))
 
-  install              安装 WireGuard 工具（同 install_tools）
-  uninstall            卸载服务 + 询问删除 .conf（完整卸载）
-  status               查看安装与运行状态
-  configure_service    配置开机自启（保留旧名）
+  install              $(_t 'Install WireGuard tools (same as install_tools)')
+  uninstall            $(_t 'Uninstall the service and ask about deleting .conf files (full uninstall)')
+  status               $(_t 'View install and run status')
+  configure_service    $(_t 'Configure auto-start on boot (legacy name kept)')
 EOF
 }
 

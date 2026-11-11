@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 12:13+0800\n"
+"POT-Creation-Date: 2026-11-11 12:22+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
@@ -1175,6 +1175,139 @@ msgid "View installation and running status"
 msgstr "查看安装与运行状态"
 
 #, sh-printf-format
+msgid "Detected k3s %s installed, reinstall?"
+msgstr "已检测到 k3s %s，是否重新安装？"
+
+msgid "Installing k3s via the official script (get.k3s.io)..."
+msgstr "通过官方脚本安装 k3s（get.k3s.io）..."
+
+msgid ""
+"k3s install failed; check /var/log or run the official script manually to "
+"troubleshoot"
+msgstr "k3s 安装失败，可查看 /var/log 或手动执行官方脚本排查"
+
+msgid "Waiting for the service to be ready..."
+msgstr "等待服务就绪..."
+
+msgid "k3s installation complete, node is ready"
+msgstr "k3s 安装完成，节点已就绪"
+
+msgid "Node not ready yet; verify later: sudo k3s kubectl get node"
+msgstr "节点尚未就绪，稍后验证：sudo k3s kubectl get node"
+
+msgid "kubeconfig: /etc/rancher/k3s/k3s.yaml (mode 644, readable)"
+msgstr "kubeconfig：/etc/rancher/k3s/k3s.yaml（已设 644 可读）"
+
+msgid "Terminal UI: ./install.sh k9s; package manager: ./install.sh helm"
+msgstr "终端面板：./install.sh k9s；包管理：./install.sh helm"
+
+msgid "k3s not installed"
+msgstr "k3s 未安装"
+
+msgid ""
+"Confirm uninstall of k3s (the official uninstall script also cleans up "
+"cluster data)?"
+msgstr "确认卸载 k3s（官方卸载脚本会连带清理集群数据）？"
+
+msgid "k3s uninstalled"
+msgstr "k3s 已卸载"
+
+msgid ""
+"Official uninstall script /usr/local/bin/k3s-uninstall.sh not found; please "
+"handle it manually"
+msgstr "未找到官方卸载脚本 /usr/local/bin/k3s-uninstall.sh，请手动处理"
+
+msgid "k3s installed and service running"
+msgstr "k3s 已安装且服务运行中"
+
+msgid "k3s installed but service not running"
+msgstr "k3s 已安装但服务未运行"
+
+msgid "k3s - lightweight Kubernetes (edge/server, Linux only)"
+msgstr "k3s —— 轻量级 Kubernetes（边缘/服务器，仅 Linux）"
+
+msgid ""
+"Install via the official get.k3s.io script (--write-kubeconfig-mode 644)"
+msgstr "get.k3s.io 官方脚本安装（--write-kubeconfig-mode 644）"
+
+msgid "Official uninstall script (also cleans up cluster data)"
+msgstr "官方卸载脚本（连带清理集群数据）"
+
+msgid ""
+"Notes: kubeconfig is at /etc/rancher/k3s/k3s.yaml; terminal management uses "
+"k9s,\n"
+"package management uses helm — ./install.sh k9s / ./install.sh helm"
+msgstr "说明：kubeconfig 在 /etc/rancher/k3s/k3s.yaml；终端管理配 k9s，\n包管理配 helm——./install.sh k9s / ./install.sh helm"
+
+msgid "Detected Podman Desktop, reinstall?"
+msgstr "已检测到 Podman Desktop，是否重新安装？"
+
+msgid "Installing Podman Desktop via Homebrew cask..."
+msgstr "通过 Homebrew cask 安装 Podman Desktop..."
+
+msgid "cask install failed"
+msgstr "cask 安装失败"
+
+msgid "Podman Desktop installed to /Applications"
+msgstr "Podman Desktop 已安装到 /Applications"
+
+msgid "Container runtime setup: podman machine — ./install.sh podman"
+msgstr "容器运行时配 podman machine：./install.sh podman"
+
+msgid ""
+"On Linux, Podman Desktop is distributed via Flatpak; please install flatpak "
+"(apt/dnf install flatpak) and add the flathub remote first"
+msgstr "Linux 上 Podman Desktop 经 Flatpak 分发，请先安装 flatpak（apt/dnf install flatpak）并添加 flathub 远程"
+
+msgid "Detected Podman Desktop (Flatpak), reinstall?"
+msgstr "已检测到 Podman Desktop（Flatpak），是否重新安装？"
+
+msgid "Installing Podman Desktop via Flatpak (flathub)..."
+msgstr "通过 Flatpak 安装 Podman Desktop（flathub）..."
+
+msgid "Flatpak install failed (has the flathub remote been added?)"
+msgstr "Flatpak 安装失败（flathub 远程已添加？）"
+
+msgid "Podman Desktop installed; launch it from the applications menu"
+msgstr "Podman Desktop 已安装，应用菜单启动"
+
+msgid "Container runtime setup: podman — ./install.sh podman"
+msgstr "容器运行时配 podman：./install.sh podman"
+
+msgid "Podman Desktop uninstalled"
+msgstr "已卸载 Podman Desktop"
+
+msgid "podman-desktop not detected via brew"
+msgstr "未通过 brew 检测到 podman-desktop"
+
+msgid "Podman Desktop (Flatpak) not detected"
+msgstr "未检测到 Podman Desktop（Flatpak）"
+
+msgid "Podman Desktop installed (/Applications)"
+msgstr "Podman Desktop 已安装（/Applications）"
+
+msgid "Podman Desktop not installed"
+msgstr "Podman Desktop 未安装"
+
+msgid "Podman Desktop installed (Flatpak)"
+msgstr "Podman Desktop 已安装（Flatpak）"
+
+msgid "Podman Desktop - container/K8s desktop manager (GUI)"
+msgstr "Podman Desktop —— 容器/K8s 桌面管理台（GUI）"
+
+msgid "Install (macOS: brew cask; Linux: Flatpak/flathub)"
+msgstr "安装（macOS: brew cask；Linux: Flatpak/flathub）"
+
+msgid "Uninstall"
+msgstr "卸载"
+
+msgid ""
+"Notes: the GUI manages containers and K8s contexts; on Linux install flatpak "
+"and add flathub first;\n"
+"container runtime setup uses podman — ./install.sh podman"
+msgstr "说明：GUI 管理容器与 K8s 上下文；Linux 需先装 flatpak 并添加 flathub；\n容器运行时配 podman——./install.sh podman"
+
+#, sh-printf-format
 msgid "Detected skopeo %s installed, reinstall?"
 msgstr "检测到已安装 skopeo %s，是否重新安装？"
 
@@ -1190,7 +1323,9 @@ msgstr "skopeo 安装失败"
 msgid ""
 "skopeo installed. Try: skopeo inspect docker://docker.io/library/"
 "alpine:latest"
-msgstr "skopeo 安装完成。试一下：skopeo inspect docker://docker.io/library/alpine:latest"
+msgstr ""
+"skopeo 安装完成。试一下：skopeo inspect docker://docker.io/library/"
+"alpine:latest"
 
 msgid "skopeo not installed"
 msgstr "skopeo 未安装"
@@ -1210,10 +1345,44 @@ msgstr "skopeo —— 镜像搬运/检查工具（无需本地容器运行时）
 msgid "Install (Linux: system repositories; macOS: brew)"
 msgstr "安装（Linux: 系统仓库；macOS: brew）"
 
-msgid "Uninstall"
-msgstr "卸载"
-
 msgid ""
 "Common: skopeo inspect/copy docker://<image> (cross-registry image copy, "
 "offline sync)"
 msgstr "常用：skopeo inspect/copy docker://<镜像>（跨仓库镜像搬运、离线同步）"
+
+#, sh-printf-format
+msgid "wireguard-tools install failed (%s)"
+msgstr "wireguard-tools 安装失败（%s）"
+
+msgid "interface"
+msgstr "接口"
+
+msgid "Delete the .conf configuration files under the wireguard directory?"
+msgstr "是否删除 wireguard 目录下的 .conf 配置文件？"
+
+msgid "Config files deleted."
+msgstr "配置文件已删除。"
+
+msgid ""
+"Service removed. To fully uninstall, remove wireguard-tools manually with "
+"the package manager (apt/brew, etc.)."
+msgstr "服务已移除。要完全卸载，请使用包管理器 (apt/brew 等) 手动移除 wireguard-tools。"
+
+msgid "WireGuard uninstall complete!"
+msgstr "WireGuard 卸载完成！"
+
+msgid "legacy aliases: install_tools/configure_service/uninstall_service"
+msgstr "兼容旧词 install_tools/configure_service/uninstall_service"
+
+msgid "Install WireGuard tools (same as install_tools)"
+msgstr "安装 WireGuard 工具（同 install_tools）"
+
+msgid ""
+"Uninstall the service and ask about deleting .conf files (full uninstall)"
+msgstr "卸载服务 + 询问删除 .conf（完整卸载）"
+
+msgid "View install and run status"
+msgstr "查看安装与运行状态"
+
+msgid "Configure auto-start on boot (legacy name kept)"
+msgstr "配置开机自启（保留旧名）"

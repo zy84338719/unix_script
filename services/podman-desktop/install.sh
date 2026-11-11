@@ -25,25 +25,25 @@ do_install() {
     preflight
     if [[ "$OS_TYPE" == "darwin" ]]; then
         if [[ -d "/Applications/Podman Desktop.app" ]]; then
-            yes_no "已检测到 Podman Desktop，是否重新安装？" || { info "已取消"; exit 0; }
+            yes_no "$(_t 'Detected Podman Desktop, reinstall?')" || { info "$(_t 'Cancelled')"; exit 0; }
         fi
-        info "通过 Homebrew cask 安装 Podman Desktop..."
+        info "$(_t 'Installing Podman Desktop via Homebrew cask...')"
         pkg_install --cask podman-desktop 2>/dev/null || brew install --cask podman-desktop \
-            || { error "cask 安装失败"; exit 1; }
-        success "Podman Desktop 已安装到 /Applications"
-        info "容器运行时配 podman machine：./install.sh podman"
+            || { error "$(_t 'cask install failed')"; exit 1; }
+        success "$(_t 'Podman Desktop installed to /Applications')"
+        info "$(_t 'Container runtime setup: podman machine — ./install.sh podman')"
     else
         if ! command_exists flatpak; then
-            error "Linux 上 Podman Desktop 经 Flatpak 分发，请先安装 flatpak（apt/dnf install flatpak）并添加 flathub 远程"
+            error "$(_t 'On Linux, Podman Desktop is distributed via Flatpak; please install flatpak (apt/dnf install flatpak) and add the flathub remote first')"
             exit 1
         fi
         if flatpak list --app 2>/dev/null | grep -q "$FLATPAK_ID"; then
-            yes_no "已检测到 Podman Desktop（Flatpak），是否重新安装？" || { info "已取消"; exit 0; }
+            yes_no "$(_t 'Detected Podman Desktop (Flatpak), reinstall?')" || { info "$(_t 'Cancelled')"; exit 0; }
         fi
-        info "通过 Flatpak 安装 Podman Desktop（flathub）..."
-        flatpak install -y flathub "$FLATPAK_ID" || { error "Flatpak 安装失败（flathub 远程已添加？）"; exit 1; }
-        success "Podman Desktop 已安装，应用菜单启动"
-        info "容器运行时配 podman：./install.sh podman"
+        info "$(_t 'Installing Podman Desktop via Flatpak (flathub)...')"
+        flatpak install -y flathub "$FLATPAK_ID" || { error "$(_t 'Flatpak install failed (has the flathub remote been added?)')"; exit 1; }
+        success "$(_t 'Podman Desktop installed; launch it from the applications menu')"
+        info "$(_t 'Container runtime setup: podman — ./install.sh podman')"
     fi
 }
 
@@ -51,15 +51,15 @@ do_uninstall() {
     preflight
     if [[ "$OS_TYPE" == "darwin" ]]; then
         if command -v brew >/dev/null 2>&1 && brew list --cask 2>/dev/null | grep -qx "podman-desktop"; then
-            brew uninstall --cask podman-desktop && success "已卸载 Podman Desktop"
+            brew uninstall --cask podman-desktop && success "$(_t 'Podman Desktop uninstalled')"
         else
-            warn "未通过 brew 检测到 podman-desktop"
+            warn "$(_t 'podman-desktop not detected via brew')"
         fi
     else
         if command_exists flatpak && flatpak list --app 2>/dev/null | grep -q "$FLATPAK_ID"; then
-            flatpak uninstall -y "$FLATPAK_ID" && success "已卸载 Podman Desktop"
+            flatpak uninstall -y "$FLATPAK_ID" && success "$(_t 'Podman Desktop uninstalled')"
         else
-            warn "未检测到 Podman Desktop（Flatpak）"
+            warn "$(_t 'Podman Desktop (Flatpak) not detected')"
         fi
     fi
 }
@@ -69,32 +69,34 @@ do_status() {
     detect_os
     if [[ "$OS_TYPE" == "darwin" ]]; then
         if [[ -d "/Applications/Podman Desktop.app" ]]; then
-            emit_status "installed" "✅ Podman Desktop 已安装（/Applications）"
+            emit_status "installed" "✅ $(_t 'Podman Desktop installed (/Applications)')"
         else
-            emit_status "not_installed" "❌ Podman Desktop 未安装"
+            emit_status "not_installed" "❌ $(_t 'Podman Desktop not installed')"
         fi
     else
         if command_exists flatpak && flatpak list --app 2>/dev/null | grep -q "$FLATPAK_ID"; then
-            emit_status "installed" "✅ Podman Desktop 已安装（Flatpak）"
+            emit_status "installed" "✅ $(_t 'Podman Desktop installed (Flatpak)')"
         else
-            emit_status "not_installed" "❌ Podman Desktop 未安装"
+            emit_status "not_installed" "❌ $(_t 'Podman Desktop not installed')"
         fi
     fi
 }
 
 do_help() {
-    cat <<'EOF'
-Podman Desktop —— 容器/K8s 桌面管理台（GUI）
+    # <<EOF（不加引号）：_t 要在这里求值。
+    # 首行保留中文「用法:」—— module_subcommands 靠它解析子命令。
+    cat <<EOF
+$(_t 'Podman Desktop - container/K8s desktop manager (GUI)')
 
 用法: install.sh {install|uninstall|status|help}
 
-  install    安装（macOS: brew cask；Linux: Flatpak/flathub）
-  uninstall  卸载
-  status     查看安装状态（支持 UXS_STATUS_MODE=machine）
-  help       本帮助
+  install    $(_t 'Install (macOS: brew cask; Linux: Flatpak/flathub)')
+  uninstall  $(_t 'Uninstall')
+  status     $(_t 'View install status (supports UXS_STATUS_MODE=machine)')
+  help       $(_t 'This help')
 
-说明：GUI 管理容器与 K8s 上下文；Linux 需先装 flatpak 并添加 flathub；
-容器运行时配 podman——./install.sh podman
+$(_t 'Notes: the GUI manages containers and K8s contexts; on Linux install flatpak and add flathub first;
+container runtime setup uses podman — ./install.sh podman')
 EOF
 }
 
@@ -103,5 +105,5 @@ case "${1:-install}" in
     uninstall)      do_uninstall ;;
     status)         do_status ;;
     help|--help|-h) do_help ;;
-    *)              error "未知子命令：$1"; do_help; exit 1 ;;
+    *)              error "$(_tf 'Unknown subcommand: %s' "$1")"; do_help; exit 1 ;;
 esac
