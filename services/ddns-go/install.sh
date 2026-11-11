@@ -15,8 +15,8 @@ DDNS_PLIST_LABEL="jeessy.ddns-go"
 
 check_os() {
     detect_os
-    if [[ "$OS_TYPE" == "darwin" ]]; then info "检测到操作系统：macOS"; fi
-    if [[ "$OS_TYPE" == "linux" ]];  then info "检测到操作系统：Linux"; fi
+    if [[ "$OS_TYPE" == "darwin" ]]; then info "$(_t 'Detected OS: macOS')"; fi
+    if [[ "$OS_TYPE" == "linux" ]];  then info "$(_t 'Detected OS: Linux')"; fi
 }
 
 check_permissions() { require_sudo; }
@@ -26,13 +26,13 @@ check_existing_installation() {
     if [ -f "$DDNS_BIN" ]; then
         local current_version
         current_version=$("$DDNS_BIN" --version 2>&1)
-        warn "检测到已安装 ddns-go $current_version"
-        read -r -p "是否继续并覆盖安装最新版本？[y/N]: " -n 1
+        warn "$(_tf 'Detected ddns-go %s installed' "$current_version")"
+        read -r -p "$(_t 'Continue and overwrite-install the latest version? [y/N]: ')" -n 1
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            info "安装已取消"; exit 0
+            info "$(_t 'Install cancelled')"; exit 0
         fi
-        info "正在停止并卸载现有服务..."
+        info "$(_t 'Stopping and uninstalling existing service...')"
         if [[ "$OS_TYPE" == "linux" ]]; then
             uxs_svc stop ddns-go &>/dev/null || true
         fi
@@ -46,17 +46,17 @@ install_ddns_go() {
     check_dependencies
     check_existing_installation
 
-    info "🚀 ddns-go 跨平台安装脚本"
+    info "$(_t 'Rocket ddns-go cross-platform install script')"
     echo "=========================================="
 
-    info "正在获取最新版本信息..."
+    info "$(_t 'Fetching latest version info...')"
     # 复用 common.sh 的 github_latest_tag（jq 优先 + grep 回退 + GH_TOKEN 认证）
     latest_tag=$(github_latest_tag "jeessy2/ddns-go")
     if [[ -z "$latest_tag" ]]; then
-        error "无法获取最新版本信息，请检查网络连接或 API 速率限制"
+        error "$(_t 'Unable to fetch latest version info, check network connection or API rate limit')"
         exit 1
     fi
-    success "最新版本：$latest_tag"
+    success "$(_tf 'Latest version: %s' "$latest_tag")"
 
     arch=$(uname -m)
     arch_suffix=""
@@ -66,14 +66,14 @@ install_ddns_go() {
           x86_64) arch_suffix=linux_x86_64;;
           aarch64|arm64) arch_suffix=linux_arm64;;
           armv7l) arch_suffix=linux_armv7;;
-          *) error "不支持的 Linux 架构：$arch"; exit 1;;
+          *) error "$(_tf 'Unsupported Linux architecture: %s' "$arch")"; exit 1;;
         esac
         ;;
       "darwin")
         case "$arch" in
           x86_64) arch_suffix=darwin_amd64;;
           arm64) arch_suffix=darwin_arm64;;
-          *) error "不支持的 macOS 架构：$arch"; exit 1;;
+          *) error "$(_tf 'Unsupported macOS architecture: %s' "$arch")"; exit 1;;
         esac
         ;;
     esac
@@ -82,31 +82,31 @@ install_ddns_go() {
     # 替代脆弱的 cut -d'"' -f4 字段下标）
     download_url=$(github_release_asset_url "jeessy2/ddns-go" "$arch_suffix.tar.gz")
     if [[ -z "$download_url" ]]; then
-        error "无法找到适用于 $arch_suffix 的下载链接"; exit 1
+        error "$(_tf 'No download link found for %s' "$arch_suffix")"; exit 1
     fi
 
     echo
-    info "即将安装 ddns-go $latest_tag"
-    info "安装位置：$DDNS_DIR"
-    info "服务端口：9876"
+    info "$(_tf 'About to install ddns-go %s' "$latest_tag")"
+    info "$(_tf 'Install location: %s' "$DDNS_DIR")"
+    info "$(_t 'Service port: 9876')"
     echo
-    read -r -p "确认继续安装？[y/N]: " -n 1
+    read -r -p "$(_t 'Confirm continue installation? [y/N]: ')" -n 1
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        info "安装已取消"; exit 0
+        info "$(_t 'Install cancelled')"; exit 0
     fi
 
-    info "正在下载和解压..."
+    info "$(_t 'Downloading and extracting...')"
     tmpdir=$(mktemp -d)
     if ! curl -SL "$download_url" -o "$tmpdir/ddns-go.tar.gz"; then
-        error "下载失败"; rm -rf "$tmpdir"; exit 1
+        error "$(_t 'Download failed')"; rm -rf "$tmpdir"; exit 1
     fi
     if ! tar -xzf "$tmpdir/ddns-go.tar.gz" -C "$tmpdir"; then
-        error "解压失败"; rm -rf "$tmpdir"; exit 1
+        error "$(_t 'Extract failed')"; rm -rf "$tmpdir"; exit 1
     fi
-    success "下载和解压完成"
+    success "$(_t 'Download and extract complete')"
 
-    info "正在安装 ddns-go..."
+    info "$(_t 'Installing ddns-go...')"
     sudo mkdir -p "$DDNS_DIR"
     sudo mv "$tmpdir/ddns-go" "$DDNS_DIR/"
     sudo mv "$tmpdir/README.md" "$DDNS_DIR/" 2>/dev/null || true
@@ -117,34 +117,34 @@ install_ddns_go() {
         sudo chown -R root:root "$DDNS_DIR"
     fi
     sudo chmod +x "$DDNS_BIN"
-    success "文件安装完成"
+    success "$(_t 'Files installed')"
 
-    info "正在安装服务..."
+    info "$(_t 'Installing service...')"
     if sudo "$DDNS_BIN" -s install; then
-        success "服务安装成功"
+        success "$(_t 'Service installed successfully')"
     else
-        error "服务安装失败"; rm -rf "$tmpdir"; exit 1
+        error "$(_t 'Service install failed')"; rm -rf "$tmpdir"; exit 1
     fi
 
-    info "正在启动服务..."
+    info "$(_t 'Starting service...')"
     if [[ "$OS_TYPE" == "linux" ]]; then
         if uxs_svc enable-now ddns-go; then
-            success "ddns-go 服务已启动并设置为开机自启"
+            success "$(_t 'ddns-go service started and enabled on boot')"
         else
-            error "服务启动失败"; rm -rf "$tmpdir"; exit 1
+            error "$(_t 'Service start failed')"; rm -rf "$tmpdir"; exit 1
         fi
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         if sudo launchctl list | grep -q "$DDNS_PLIST_LABEL"; then
-            info "服务已在运行中"; success "ddns-go 服务已启动并设置为开机自启"
+            info "$(_t 'Service already running')"; success "$(_t 'ddns-go service started and enabled on boot')"
         else
             if sudo launchctl bootstrap system "$DDNS_PLIST"; then
-                success "ddns-go 服务已启动并设置为开机自启"
+                success "$(_t 'ddns-go service started and enabled on boot')"
             else
-                warn "bootstrap 失败，尝试 load"
+                warn "$(_t 'bootstrap failed, trying load')"
                 if sudo launchctl load "$DDNS_PLIST" 2>/dev/null; then
-                    success "ddns-go 服务已启动（load）"
+                    success "$(_t 'ddns-go service started (load)')"
                 else
-                    warn "自动启动失败，服务文件已安装"
+                    warn "$(_t 'Auto-start failed, service file installed')"
                 fi
             fi
         fi
@@ -152,13 +152,13 @@ install_ddns_go() {
 
     rm -rf "$tmpdir"
 
-    info "正在验证安装..."
+    info "$(_t 'Verifying installation...')"
     sleep 3
     if service_is_active ddns-go "$DDNS_PLIST_LABEL"; then
-        success "服务运行正常"
+        success "$(_t 'Service running normally')"
     else
-        error "服务未正常运行"
-        info "查看日志："
+        error "$(_t 'Service not running normally')"
+        info "$(_t 'View logs:')"
         if [[ "$OS_TYPE" == "linux" ]]; then
             echo "  sudo systemctl status ddns-go"
             echo "  sudo journalctl -u ddns-go -f"
@@ -170,29 +170,29 @@ install_ddns_go() {
     ip_addr=$(get_local_ip)
     echo
     echo "=========================================="
-    success "🎉 ddns-go $latest_tag 安装完成！"
+    success "$(_tf 'Party popper ddns-go %s installation complete!' "$latest_tag")"
     echo
-    info "服务信息："
-    echo "  - 访问地址：http://${ip_addr}:9876"
-    echo "  - 安装目录：$DDNS_DIR"
-    echo "  - 配置文件：$DDNS_DIR/.ddns_go_config.yaml (首次访问后自动创建)"
+    info "$(_t 'Service info:')"
+    echo "  - $(_t 'Access URL:') http://${ip_addr}:9876"
+    echo "  - $(_t 'Install directory:') $DDNS_DIR"
+    echo "  - $(_t 'Config file:') $DDNS_DIR/.ddns_go_config.yaml $(_t '(auto-created after first visit)')"
     echo
-    info "常用命令："
+    info "$(_t 'Common commands:')"
     if [[ "$OS_TYPE" == "linux" ]]; then
-        echo "  - 服务状态：sudo systemctl status ddns-go"
-        echo "  - 查看日志：sudo journalctl -u ddns-go -f"
+        echo "  - $(_t 'Service status:') sudo systemctl status ddns-go"
+        echo "  - $(_t 'View logs:') sudo journalctl -u ddns-go -f"
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        echo "  - 服务状态：sudo launchctl list | grep ddns-go"
-        echo "  - 启动服务：sudo launchctl bootstrap system $DDNS_PLIST"
+        echo "  - $(_t 'Service status:') sudo launchctl list | grep ddns-go"
+        echo "  - $(_t 'Start service:') sudo launchctl bootstrap system $DDNS_PLIST"
     fi
     echo
-    warn "请务必在 Web 界面中设置您的 DNS 服务商信息和要更新的域名！"
+    warn "$(_t 'Be sure to set your DNS provider info and the domain to update in the Web UI!')"
 }
 
 uninstall_ddns_go() {
     detect_os
     require_sudo
-    info "正在卸载 DDNS-GO..."
+    info "$(_t 'Uninstalling DDNS-GO...')"
     if [[ "$OS_TYPE" == "linux" ]]; then
         uxs_svc stop ddns-go &>/dev/null || true
         uxs_svc disable ddns-go &>/dev/null || true
@@ -202,7 +202,7 @@ uninstall_ddns_go() {
         sudo rm -f "$DDNS_PLIST"
     fi
     sudo rm -rf "$DDNS_DIR"
-    success "DDNS-GO 已成功卸载！"
+    success "$(_t 'DDNS-GO uninstalled successfully!')"
 }
 
 status_ddns_go() {
@@ -219,13 +219,13 @@ status_ddns_go() {
     fi
     if $is_installed; then
         if $is_running; then
-            emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} ($version)"
+            emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} ($version)"
         else
-            emit_status "installed:stopped" "${YELLOW}⚠️  已安装但未运行${NC} ($version)"
+            emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but not running')${NC} ($version)"
         fi
         emit_version "$version"
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
     fi
 }
 
@@ -233,9 +233,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装或更新 DDNS-GO（默认动作）
-  uninstall   卸载 DDNS-GO
-  status      查看安装与运行状态
+  install     $(_t 'Install or update DDNS-GO (default action)')
+  uninstall   $(_t 'Uninstall DDNS-GO')
+  status      $(_t 'View install and running status')
 EOF
 }
 
@@ -247,7 +247,7 @@ main() {
         uninstall) uninstall_ddns_go ;;
         status)    status_ddns_go ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

@@ -19,11 +19,11 @@ COCKPIT_PORT=9090
 preflight() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        error "Cockpit 仅支持 Linux（依赖 systemd）。当前：$OS_TYPE"
+        error "$(_tf 'Cockpit is Linux-only (requires systemd). Current: %s' "$OS_TYPE")"
         exit 1
     fi
     if ! command_exists systemctl; then
-        error "需要 systemctl（systemd）。"
+        error "$(_t 'systemctl (systemd) is required.')"
         exit 1
     fi
 }
@@ -32,55 +32,55 @@ install_cockpit() {
     preflight
     require_sudo
     detect_pkg_manager
-    info "🚀 开始安装 Cockpit（包管理器：${PKG_MANAGER}）"
+    info "$(_t 'Rocket Starting Cockpit installation (package manager: ')${PKG_MANAGER}$(_t ')')"
 
     if command_exists cockpit-bridge 2>/dev/null || rpm -q cockpit >/dev/null 2>&1 || dpkg -s cockpit >/dev/null 2>&1; then
-        warn "检测到 Cockpit 已安装"
-        if ! yes_no "是否继续并重装/更新？"; then
-            info "已取消"; return 0
+        warn "$(_t 'Detected Cockpit installed')"
+        if ! yes_no "$(_t 'Continue and reinstall/update?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
     fi
 
-    info "安装 cockpit..."
+    info "$(_t 'Installing cockpit...')"
     if ! pkg_install cockpit; then
-        error "cockpit 安装失败（包管理器：${PKG_MANAGER}）"
+        error "$(_t 'cockpit install failed (package manager: ')${PKG_MANAGER}$(_t ')')"
         exit 1
     fi
 
     if ! command_exists cockpit-bridge 2>/dev/null; then
-        error "安装失败：找不到 cockpit-bridge"
+        error "$(_t 'Install failed: cockpit-bridge not found')"
         exit 1
     fi
 
-    info "启用并启动 cockpit.socket（按需激活的 socket，更安全）..."
+    info "$(_t 'Enabling and starting cockpit.socket (on-demand activation socket, more secure)...')"
     uxs_svc enable-now cockpit.socket 2>/dev/null || uxs_svc enable-now cockpit 2>/dev/null || true
 
     # 放行防火墙（若存在）
     if command_exists firewall-cmd; then
         sudo firewall-cmd --add-service=cockpit --permanent 2>/dev/null || true
         sudo firewall-cmd --reload 2>/dev/null || true
-        success "已放行防火墙 cockpit 服务"
+        success "$(_t 'Firewall cockpit service allowed')"
     fi
     if command_exists ufw; then
         sudo ufw allow "$COCKPIT_PORT"/tcp 2>/dev/null || true
-        success "已放行 ufw $COCKPIT_PORT/tcp"
+        success "$(_tf 'Allowed ufw %s/tcp' "$COCKPIT_PORT")"
     fi
 
-    info "验证..."
+    info "$(_t 'Verifying...')"
     sleep 2
     if uxs_svc is-active cockpit.socket 2>/dev/null || uxs_svc is-active cockpit 2>/dev/null; then
-        success "Cockpit socket/service 运行正常"
+        success "$(_t 'Cockpit socket/service running normally')"
     else
-        warn "Cockpit 服务未运行（socket 模式下首次访问才激活，属正常）"
+        warn "$(_t 'Cockpit service not running (normal in socket mode, activates on first visit)')"
     fi
 
     local ip_addr
     ip_addr=$(get_local_ip)
     echo
-    success "🎉 Cockpit 安装完成！"
-    info "访问地址：https://${ip_addr}:${COCKPIT_PORT}"
-    warn "使用系统用户账号登录（需要该用户有 sudo 权限以进行管理操作）。"
-    info "常用命令："
+    success "$(_t 'Party popper Cockpit installation complete!')"
+    info "$(_tf 'Access URL: https://%s:%s' "${ip_addr}" "${COCKPIT_PORT}")"
+    warn "$(_t 'Log in with a system user account (the user needs sudo privileges for management operations).')"
+    info "$(_t 'Common commands:')"
     echo "  sudo systemctl status cockpit.socket"
     echo "  sudo journalctl -u cockpit -f"
 }
@@ -89,31 +89,31 @@ uninstall_cockpit() {
     preflight
     require_sudo
     detect_pkg_manager
-    if ! yes_no "确认卸载 Cockpit？"; then
-        info "已取消"; return 0
+    if ! yes_no "$(_t 'Confirm uninstall of Cockpit?')"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
     uxs_svc disable-now cockpit.socket 2>/dev/null || true
     uxs_svc disable-now cockpit 2>/dev/null || true
-    pkg_remove cockpit 2>/dev/null || warn "cockpit 包移除失败，请手动卸载"
+    pkg_remove cockpit 2>/dev/null || warn "$(_t 'Failed to remove cockpit package, uninstall it manually')"
     if command_exists firewall-cmd; then
         sudo firewall-cmd --remove-service=cockpit --permanent 2>/dev/null || true
         sudo firewall-cmd --reload 2>/dev/null || true
     fi
-    success "Cockpit 已卸载。"
+    success "$(_t 'Cockpit uninstalled.')"
 }
 
 status_cockpit() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return
+        emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"; return
     fi
     if ! command_exists cockpit-bridge 2>/dev/null && ! rpm -q cockpit >/dev/null 2>&1 && ! dpkg -s cockpit >/dev/null 2>&1; then
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
+        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
     fi
     if uxs_svc is-active cockpit.socket 2>/dev/null || uxs_svc is-active cockpit 2>/dev/null; then
-        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
+        emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  已安装（socket 模式，访问时激活）${NC}"
+        emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed (socket mode, activates on access)')${NC}"
     fi
 }
 
@@ -121,9 +121,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装 Cockpit（Web 管理面板，仅 Linux，默认端口 9090）
-  uninstall   卸载 Cockpit
-  status      查看状态
+  install     $(_t 'Install Cockpit (Web management panel, Linux only, default port 9090)')
+  uninstall   $(_t 'Uninstall Cockpit')
+  status      $(_t 'View status')
 EOF
 }
 
@@ -135,7 +135,7 @@ main() {
         uninstall) uninstall_cockpit ;;
         status)    status_cockpit ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 
