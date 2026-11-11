@@ -33,7 +33,7 @@ get_caddyfile_path() {
 # --- 通过 APT 安装（Debian/Ubuntu） ---
 install_caddy_apt() {
     require_sudo
-    info "安装依赖并添加 Caddy GPG 密钥..."
+    info "$(_t 'Installing dependencies and adding Caddy GPG key...')"
     apt-get install -y debian-keyring debian-archive-keyring apt-transport-https curl gnupg
 
     curl -1fsSL 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' \
@@ -42,7 +42,7 @@ install_caddy_apt() {
     curl -1fsSL 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' \
         | sudo tee /etc/apt/sources.list.d/caddy-stable.list >/dev/null
 
-    info "正在安装 Caddy..."
+    info "$(_t 'Installing Caddy...')"
     pkg_update
     apt-get install -y caddy
 }
@@ -51,18 +51,18 @@ install_caddy_apt() {
 install_caddy_rpm() {
     require_sudo
     local pm="$1"
-    info "添加 Caddy COPR 仓库..."
+    info "$(_t 'Adding Caddy COPR repository...')"
     if [[ "$pm" == "dnf" ]]; then
         dnf install -y 'dnf-command(copr)' 2>/dev/null || true
         dnf copr enable -y @caddy/caddy 2>/dev/null || {
-            warn "COPR 方式失败，尝试直接安装 caddy..."
+            warn "$(_t 'COPR method failed, trying direct caddy install...')"
         }
         dnf install -y caddy
     else
         # yum 不支持 copr，使用 COPR repo 文件
         yum install -y yum-plugin-copr 2>/dev/null || true
         yum copr enable -y @caddy/caddy 2>/dev/null || {
-            warn "COPR 方式失败，请手动添加 Caddy 仓库"
+            warn "$(_t 'COPR method failed, please add the Caddy repository manually')"
             exit 1
         }
         yum install -y caddy
@@ -72,25 +72,25 @@ install_caddy_rpm() {
 # --- 安装 Caddy ---
 install_caddy() {
     detect_os
-    info "🚀 Caddy Web 服务器安装脚本"
+    info "$(_t 'Rocket Caddy Web server install script')"
     echo "=========================================="
 
     if command_exists caddy; then
         local cur
-        cur=$(caddy version 2>/dev/null | head -1 || echo "未知版本")
-        warn "检测到已安装 Caddy（${cur}）"
-        if ! yes_no "是否继续并尝试更新？"; then
-            info "已取消"
+        cur=$(caddy version 2>/dev/null | head -1 || echo "$(_t 'Unknown version')")
+        warn "$(_t 'Detected Caddy installed (')${cur}$(_t ')')"
+        if ! yes_no "$(_t 'Continue and try to update?')"; then
+            info "$(_t 'Cancelled')"
             return 0
         fi
     fi
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
         if ! command_exists brew; then
-            error "macOS 上需要先安装 Homebrew：https://brew.sh/"
+            error "$(_t 'Homebrew is required on macOS:') https://brew.sh/"
             exit 1
         fi
-        info "通过 Homebrew 安装 Caddy..."
+        info "$(_t 'Installing Caddy via Homebrew...')"
         brew install caddy
         brew services start caddy 2>/dev/null || true
     else
@@ -100,8 +100,8 @@ install_caddy() {
             dnf)     install_caddy_rpm dnf ;;
             yum)     install_caddy_rpm yum ;;
             *)
-                error "当前包管理器（${PKG_MANAGER}）暂不支持自动安装 Caddy"
-                info "请参考官方文档手动安装：https://caddyserver.com/docs/install"
+                error "$(_t 'Current package manager (')${PKG_MANAGER}$(_t ') does not support automatic Caddy installation')"
+                info "$(_t 'Please install manually per the official docs:') https://caddyserver.com/docs/install"
                 exit 1
                 ;;
         esac
@@ -110,12 +110,12 @@ install_caddy() {
     fi
 
     if ! command_exists caddy; then
-        error "安装后找不到 caddy 命令，请检查 PATH"
+        error "$(_t 'caddy command not found after install, check PATH')"
         exit 1
     fi
 
     local version
-    version=$(caddy version 2>/dev/null | head -1 || echo "未知")
+    version=$(caddy version 2>/dev/null | head -1 || echo "$(_t 'Unknown')")
     local caddyfile
     caddyfile=$(get_caddyfile_path)
     local ip_addr
@@ -123,50 +123,50 @@ install_caddy() {
 
     echo
     echo "=========================================="
-    success "🎉 Caddy 安装完成！"
+    success "$(_t 'Party popper Caddy installation complete!')"
     echo
-    info "版本信息：$version"
+    info "$(_t 'Version info: ')$version"
     echo
-    info "服务信息："
-    echo "  - 访问地址：http://${ip_addr} (端口 80/443)"
-    echo "  - 配置文件：$caddyfile"
+    info "$(_t 'Service info:')"
+    echo "  - $(_t 'Access URL:') http://${ip_addr} $(_t '(ports 80/443)')"
+    echo "  - $(_t 'Config file:') $caddyfile"
     echo
-    info "快速开始："
-    echo "  # 编辑 Caddyfile"
+    info "$(_t 'Quick start:')"
+    echo "  # $(_t 'Edit Caddyfile')"
     if [[ "$OS_TYPE" == "darwin" ]]; then
         echo "  sudo nano $caddyfile"
     else
         echo "  sudo nano $caddyfile"
     fi
     echo
-    echo "  # 示例：反向代理"
+    echo "  # $(_t 'Example: reverse proxy')"
     echo "  example.com {"
     echo "      reverse_proxy localhost:8080"
     echo "  }"
     echo
-    echo "  # 重载配置"
+    echo "  # $(_t 'Reload config')"
     echo "  sudo caddy reload --config $caddyfile"
     echo
-    info "常用命令："
+    info "$(_t 'Common commands:')"
     if [[ "$OS_TYPE" == "linux" ]]; then
-        echo "  - 服务状态：sudo systemctl status caddy"
-        echo "  - 查看日志：sudo journalctl -u caddy -f"
-        echo "  - 重载配置：sudo caddy reload --config $caddyfile"
-        echo "  - 重启服务：sudo systemctl restart caddy"
+        echo "  - $(_t 'Service status:') sudo systemctl status caddy"
+        echo "  - $(_t 'View logs:') sudo journalctl -u caddy -f"
+        echo "  - $(_t 'Reload config:') sudo caddy reload --config $caddyfile"
+        echo "  - $(_t 'Restart service:') sudo systemctl restart caddy"
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        echo "  - 服务状态：brew services info caddy"
-        echo "  - 查看日志：brew services log caddy"
-        echo "  - 重载配置：sudo caddy reload --config $caddyfile"
-        echo "  - 重启服务：brew services restart caddy"
+        echo "  - $(_t 'Service status:') brew services info caddy"
+        echo "  - $(_t 'View logs:') brew services log caddy"
+        echo "  - $(_t 'Reload config:') sudo caddy reload --config $caddyfile"
+        echo "  - $(_t 'Restart service:') brew services restart caddy"
     fi
 }
 
 # --- 卸载 Caddy ---
 uninstall_caddy() {
     detect_os
-    warn "即将卸载 Caddy。"
-    if ! yes_no "确认卸载？"; then
-        info "已取消"
+    warn "$(_t 'About to uninstall Caddy.')"
+    if ! yes_no "$(_t 'Confirm uninstall?')"; then
+        info "$(_t 'Cancelled')"
         return 0
     fi
 
@@ -182,26 +182,26 @@ uninstall_caddy() {
         brew uninstall caddy 2>/dev/null || true
     fi
 
-    success "Caddy 已卸载。"
+    success "$(_t 'Caddy uninstalled.')"
 }
 
 # --- 状态检查 ---
 status_caddy() {
     detect_os
     if ! command_exists caddy; then
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
         return
     fi
     local version
-    version=$(caddy version 2>/dev/null | head -1 || echo "未知版本")
+    version=$(caddy version 2>/dev/null | head -1 || echo "$(_t 'Unknown version')")
     local running=false
     if service_is_active caddy "$CADDY_PLIST_LABEL"; then
         running=true
     fi
     if $running; then
-        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} ($version)"
+        emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} ($version)"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC} ($version)"
+        emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but service not running')${NC} ($version)"
     fi
     emit_version "$version"
 }
@@ -211,10 +211,10 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装或更新 Caddy（默认动作）
-  uninstall   卸载 Caddy
-  status      查看安装与运行状态
-  help        显示本帮助
+  install     $(_t 'Install or update Caddy (default action)')
+  uninstall   $(_t 'Uninstall Caddy')
+  status      $(_t 'View install and running status')
+  help        $(_t 'Show this help')
 EOF
 }
 
@@ -226,7 +226,7 @@ main() {
         uninstall) uninstall_caddy ;;
         status)    status_caddy ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(printf "$(_t 'Unknown action: %s')" "$action")"; usage; exit 1 ;;
     esac
 }
 

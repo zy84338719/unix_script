@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 09:32+0800\n"
+"POT-Creation-Date: 2026-11-11 09:42+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -282,10 +282,125 @@ msgstr ""
 msgid "Unknown subcommand: %s"
 msgstr ""
 
-msgid "Detected installed Docker"
+msgid "Installing dependencies and adding Caddy GPG key..."
+msgstr ""
+
+msgid "Installing Caddy..."
+msgstr ""
+
+msgid "Adding Caddy COPR repository..."
+msgstr ""
+
+msgid "COPR method failed, trying direct caddy install..."
+msgstr ""
+
+msgid "COPR method failed, please add the Caddy repository manually"
+msgstr ""
+
+msgid "Rocket Caddy Web server install script"
+msgstr ""
+
+msgid "Detected Caddy installed ("
 msgstr ""
 
 msgid "Continue and try to update?"
+msgstr ""
+
+msgid "Homebrew is required on macOS:"
+msgstr ""
+
+msgid "Installing Caddy via Homebrew..."
+msgstr ""
+
+msgid "Current package manager ("
+msgstr ""
+
+msgid ") does not support automatic Caddy installation"
+msgstr ""
+
+msgid "Please install manually per the official docs:"
+msgstr ""
+
+msgid "caddy command not found after install, check PATH"
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+msgid "Party popper Caddy installation complete!"
+msgstr ""
+
+msgid "Version info: "
+msgstr ""
+
+msgid "Service info:"
+msgstr ""
+
+msgid "Access URL:"
+msgstr ""
+
+msgid "(ports 80/443)"
+msgstr ""
+
+msgid "Config file:"
+msgstr ""
+
+msgid "Quick start:"
+msgstr ""
+
+msgid "Edit Caddyfile"
+msgstr ""
+
+msgid "Example: reverse proxy"
+msgstr ""
+
+msgid "Reload config"
+msgstr ""
+
+msgid "Common commands:"
+msgstr ""
+
+msgid "Service status:"
+msgstr ""
+
+msgid "View logs:"
+msgstr ""
+
+msgid "Reload config:"
+msgstr ""
+
+msgid "Restart service:"
+msgstr ""
+
+msgid "About to uninstall Caddy."
+msgstr ""
+
+msgid "Confirm uninstall?"
+msgstr ""
+
+msgid "Caddy uninstalled."
+msgstr ""
+
+msgid "Installed but service not running"
+msgstr ""
+
+msgid "Install or update Caddy (default action)"
+msgstr ""
+
+msgid "Uninstall Caddy"
+msgstr ""
+
+msgid "View install and running status"
+msgstr ""
+
+msgid "Show this help"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unknown action: %s"
+msgstr ""
+
+msgid "Detected installed Docker"
 msgstr ""
 
 msgid ""
@@ -398,9 +513,6 @@ msgstr ""
 msgid "Docker uninstalled."
 msgstr ""
 
-msgid "Installed but service not running"
-msgstr ""
-
 msgid ""
 "Installed, but the Docker daemon is not running (please start Docker Desktop)"
 msgstr ""
@@ -448,9 +560,6 @@ msgid "Domestic mirror script failed, check the network"
 msgstr ""
 
 msgid "Docker mirror installation/replacement complete."
-msgstr ""
-
-msgid "Common commands:"
 msgstr ""
 
 msgid "View registry mirror"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 09:32+0800\n"
+"POT-Creation-Date: 2026-11-11 09:42+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
@@ -274,11 +274,126 @@ msgstr "构建镜像也可用 podman build（Dockerfile 兼容）。"
 msgid "Unknown subcommand: %s"
 msgstr "未知操作: "
 
-msgid "Detected installed Docker"
-msgstr "检测到已安装 Docker"
+msgid "Installing dependencies and adding Caddy GPG key..."
+msgstr "安装依赖并添加 Caddy GPG 密钥..."
+
+msgid "Installing Caddy..."
+msgstr "通过 zypper 安装 Docker..."
+
+msgid "Adding Caddy COPR repository..."
+msgstr "添加 Caddy COPR 仓库..."
+
+msgid "COPR method failed, trying direct caddy install..."
+msgstr "COPR 方式失败，尝试直接安装 caddy..."
+
+msgid "COPR method failed, please add the Caddy repository manually"
+msgstr "COPR 方式失败，请手动添加 Caddy 仓库"
+
+msgid "Rocket Caddy Web server install script"
+msgstr "🚀 Caddy Web 服务器安装脚本"
+
+msgid "Detected Caddy installed ("
+msgstr "检测到 1Panel 已安装（"
 
 msgid "Continue and try to update?"
 msgstr "是否继续并尝试更新？"
+
+msgid "Homebrew is required on macOS:"
+msgstr "macOS 上推荐使用 Docker Desktop。"
+
+msgid "Installing Caddy via Homebrew..."
+msgstr "通过 zypper 安装 Docker..."
+
+msgid "Current package manager ("
+msgstr "当前包管理器（"
+
+msgid ") does not support automatic Caddy installation"
+msgstr "）暂不支持自动安装 Caddy"
+
+msgid "Please install manually per the official docs:"
+msgstr "请参考官方文档手动安装："
+
+msgid "caddy command not found after install, check PATH"
+msgstr "安装后找不到 caddy 命令，请检查 PATH"
+
+msgid "Unknown"
+msgstr "未知版本"
+
+msgid "Party popper Caddy installation complete!"
+msgstr "🎉 1Panel 安装完成！"
+
+msgid "Version info: "
+msgstr "版本信息："
+
+msgid "Service info:"
+msgstr "服务信息："
+
+msgid "Access URL:"
+msgstr "访问地址："
+
+msgid "(ports 80/443)"
+msgstr "(端口 80/443)"
+
+msgid "Config file:"
+msgstr "配置文件："
+
+msgid "Quick start:"
+msgstr "快速开始："
+
+msgid "Edit Caddyfile"
+msgstr "编辑 Caddyfile"
+
+msgid "Example: reverse proxy"
+msgstr "示例：反向代理"
+
+msgid "Reload config"
+msgstr "重载配置"
+
+msgid "Common commands:"
+msgstr "常用命令:"
+
+msgid "Service status:"
+msgstr "查看状态"
+
+msgid "View logs:"
+msgstr "查看日志："
+
+msgid "Reload config:"
+msgstr "重载配置："
+
+msgid "Restart service:"
+msgstr "重启服务："
+
+msgid "About to uninstall Caddy."
+msgstr "即将卸载 Caddy。"
+
+msgid "Confirm uninstall?"
+msgstr "确认卸载 1Panel？"
+
+msgid "Caddy uninstalled."
+msgstr "1Panel 已卸载。"
+
+msgid "Installed but service not running"
+msgstr "已安装但服务未运行"
+
+msgid "Install or update Caddy (default action)"
+msgstr "安装或更新 Caddy（默认动作）"
+
+msgid "Uninstall Caddy"
+msgstr "卸载 Caddy"
+
+msgid "View install and running status"
+msgstr "查看安装与运行状态"
+
+msgid "Show this help"
+msgstr "显示本帮助"
+
+#, fuzzy, sh-printf-format
+msgid "Unknown action: %s"
+msgstr "未知操作: "
+
+msgid "Detected installed Docker"
+msgstr "检测到已安装 Docker"
 
 msgid ""
 "Install from a domestic mirror (linuxmirrors.cn, includes registry "
@@ -392,9 +507,6 @@ msgstr "数据目录已删除。"
 msgid "Docker uninstalled."
 msgstr "Docker 已卸载。"
 
-msgid "Installed but service not running"
-msgstr "已安装但服务未运行"
-
 msgid ""
 "Installed, but the Docker daemon is not running (please start Docker Desktop)"
 msgstr "已安装，但 Docker 守护进程未运行（请启动 Docker Desktop）"
@@ -445,9 +557,6 @@ msgstr "国内镜像源安装脚本执行失败，请检查网络"
 
 msgid "Docker mirror installation/replacement complete."
 msgstr "Docker 镜像源安装/换源完成。"
-
-msgid "Common commands:"
-msgstr "常用命令:"
 
 msgid "View registry mirror"
 msgstr "查看镜像加速器"
