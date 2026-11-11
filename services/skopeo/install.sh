@@ -24,59 +24,61 @@ do_install() {
     if command_exists skopeo; then
         local cur
         cur=$(skopeo --version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' || true)
-        yes_no "已检测到 skopeo ${cur:-}，是否重新安装？" || { info "已取消"; exit 0; }
+        yes_no "$(_tf 'Detected skopeo %s installed, reinstall?' "${cur:-}")" || { info "$(_t 'Cancelled')"; exit 0; }
     fi
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        info "通过 Homebrew 安装 skopeo..."
-        pkg_install skopeo || { error "brew 安装失败"; exit 1; }
+        info "$(_t 'Installing skopeo via Homebrew...')"
+        pkg_install skopeo || { error "$(_t 'brew install failed')"; exit 1; }
     else
-        info "通过系统仓库安装 skopeo..."
+        info "$(_t 'Installing skopeo via system repositories...')"
         pkg_update || true
-        pkg_install skopeo || { error "skopeo 安装失败"; exit 1; }
+        pkg_install skopeo || { error "$(_t 'skopeo install failed')"; exit 1; }
     fi
-    success "skopeo 安装完成。试一下：skopeo inspect docker://docker.io/library/alpine:latest"
+    success "$(_t 'skopeo installed. Try: skopeo inspect docker://docker.io/library/alpine:latest')"
 }
 
 do_uninstall() {
     preflight
     if ! command_exists skopeo; then
-        warn "skopeo 未安装"
+        warn "$(_t 'skopeo not installed')"
         exit 0
     fi
-    yes_no "确认卸载 skopeo？" || { info "已取消"; exit 0; }
+    yes_no "$(_t 'Confirm uninstall of skopeo?')" || { info "$(_t 'Cancelled')"; exit 0; }
     if [[ "$OS_TYPE" == "darwin" ]]; then
         brew uninstall skopeo 2>/dev/null || true
     else
-        pkg_remove skopeo || { error "卸载失败"; exit 1; }
+        pkg_remove skopeo || { error "$(_t 'Uninstall failed')"; exit 1; }
     fi
-    success "skopeo 已卸载"
+    success "$(_t 'skopeo uninstalled')"
 }
 
 do_status() {
     # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
     detect_os
     if ! command_exists skopeo; then
-        emit_status "not_installed" "❌ skopeo 未安装"
+        emit_status "not_installed" "❌ $(_t 'skopeo not installed')"
         return 0
     fi
     local ver
     ver=$(skopeo --version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' || true)
-    emit_status "installed" "✅ skopeo 已安装 ${ver:-(版本未知)}"
+    emit_status "installed" "✅ $(_t 'skopeo installed') ${ver:-$(_t '(unknown version)')}"
     emit_version "${ver#v}"
 }
 
 do_help() {
-    cat <<'EOF'
-skopeo —— 镜像搬运/检查工具（无需本地容器运行时）
+    # <<EOF（不加引号）：_t 要在这里求值。
+    # 首行保持中文「用法:」—— module_subcommands 靠它解析子命令。
+    cat <<EOF
+$(_t 'skopeo - image copy/inspection tool (no local container runtime needed)')
 
 用法: install.sh {install|uninstall|status|help}
 
-  install    安装（Linux: 系统仓库；macOS: brew）
-  uninstall  卸载
-  status     查看安装状态（支持 UXS_STATUS_MODE=machine）
-  help       本帮助
+  install    $(_t 'Install (Linux: system repositories; macOS: brew)')
+  uninstall  $(_t 'Uninstall')
+  status     $(_t 'View install status (supports UXS_STATUS_MODE=machine)')
+  help       $(_t 'This help')
 
-常用：skopeo inspect/copy docker://<镜像>（跨仓库镜像搬运、离线同步）
+$(_t 'Common: skopeo inspect/copy docker://<image> (cross-registry image copy, offline sync)')
 EOF
 }
 
@@ -85,5 +87,5 @@ case "${1:-install}" in
     uninstall)      do_uninstall ;;
     status)         do_status ;;
     help|--help|-h) do_help ;;
-    *)              error "未知子命令：$1"; do_help; exit 1 ;;
+    *)              error "$(_tf 'Unknown subcommand: %s' "$1")"; do_help; exit 1 ;;
 esac

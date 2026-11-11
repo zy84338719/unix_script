@@ -350,6 +350,19 @@ _sk_msg_lookup_unix_script() {
     'Configure registry mirror only (no reinstall, Linux only)') printf '%s' '仅更换 Docker 镜像加速器（不重装 Docker，仅 Linux）' ;;
     'Uninstall Docker') printf '%s' '卸载 Docker' ;;
     'View installation and running status') printf '%s' '查看安装与运行状态' ;;
+    'Detected skopeo %s installed, reinstall'\?) printf '%s' '检测到已安装 skopeo %s，是否重新安装？' ;;
+    'Installing skopeo via Homebrew...') printf '%s' '通过 Homebrew 安装 skopeo...' ;;
+    'Installing skopeo via system repositories...') printf '%s' '通过系统仓库安装 skopeo...' ;;
+    'skopeo install failed') printf '%s' 'skopeo 安装失败' ;;
+    'skopeo installed. Try: skopeo inspect docker://docker.io/library/alpine:latest') printf '%s' 'skopeo 安装完成。试一下：skopeo inspect docker://docker.io/library/alpine:latest' ;;
+    'skopeo not installed') printf '%s' 'skopeo 未安装' ;;
+    'Confirm uninstall of skopeo'\?) printf '%s' '确认卸载 skopeo？' ;;
+    'skopeo uninstalled') printf '%s' 'skopeo 已卸载' ;;
+    'skopeo installed') printf '%s' 'skopeo 已安装' ;;
+    'skopeo - image copy/inspection tool (no local container runtime needed)') printf '%s' 'skopeo —— 镜像搬运/检查工具（无需本地容器运行时）' ;;
+    'Install (Linux: system repositories; macOS: brew)') printf '%s' '安装（Linux: 系统仓库；macOS: brew）' ;;
+    'Uninstall') printf '%s' '卸载' ;;
+    'Common: skopeo inspect/copy docker://<image> (cross-registry image copy, offline sync)') printf '%s' '常用：skopeo inspect/copy docker://<镜像>（跨仓库镜像搬运、离线同步）' ;;
     *) return 1 ;;
   esac
 }

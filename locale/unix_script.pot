@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 11:35+0800\n"
+"POT-Creation-Date: 2026-11-11 12:13+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1166,4 +1166,48 @@ msgid "Uninstall Docker"
 msgstr ""
 
 msgid "View installation and running status"
+msgstr ""
+
+#, sh-printf-format
+msgid "Detected skopeo %s installed, reinstall?"
+msgstr ""
+
+msgid "Installing skopeo via Homebrew..."
+msgstr ""
+
+msgid "Installing skopeo via system repositories..."
+msgstr ""
+
+msgid "skopeo install failed"
+msgstr ""
+
+msgid ""
+"skopeo installed. Try: skopeo inspect docker://docker.io/library/"
+"alpine:latest"
+msgstr ""
+
+msgid "skopeo not installed"
+msgstr ""
+
+msgid "Confirm uninstall of skopeo?"
+msgstr ""
+
+msgid "skopeo uninstalled"
+msgstr ""
+
+msgid "skopeo installed"
+msgstr ""
+
+msgid "skopeo - image copy/inspection tool (no local container runtime needed)"
+msgstr ""
+
+msgid "Install (Linux: system repositories; macOS: brew)"
+msgstr ""
+
+msgid "Uninstall"
+msgstr ""
+
+msgid ""
+"Common: skopeo inspect/copy docker://<image> (cross-registry image copy, "
+"offline sync)"
 msgstr ""
