@@ -28,58 +28,58 @@ arch_for_kind() {
     case "$ARCH_TYPE_LOWER" in
         x86_64) echo "amd64" ;;
         arm64)  echo "arm64" ;;
-        *)      error "不支持的架构：${ARCH_TYPE}（仅支持 x86_64/arm64）"; return 1 ;;
+        *)      error "$(_tf 'unsupported architecture: %s (only x86_64/arm64 are supported)' "${ARCH_TYPE}")"; return 1 ;;
     esac
 }
 
 do_install() {
     preflight
     if command_exists kind; then
-        yes_no "已检测到 kind，是否覆盖安装最新版？" || { info "已取消"; exit 0; }
+        yes_no "$(_t 'kind detected, overwrite it with the latest version?')" || { info "$(_t 'Cancelled')"; exit 0; }
     fi
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        info "通过 Homebrew 安装 kind..."
-        pkg_install kind || { error "brew 安装失败"; exit 1; }
+        info "$(_t 'Installing kind via Homebrew...')"
+        pkg_install kind || { error "brew $(_t 'Installation failed')"; exit 1; }
     else
-        info "获取 kind 最新版本（GitHub API）..."
+        info "$(_t 'Fetching the latest kind version (GitHub API)...')"
         local ver
         ver=$(github_latest_tag "$REPO")
-        [[ -n "$ver" ]] || { error "无法获取版本号（GitHub 不可达或限流），可设 GH_TOKEN 重试"; exit 1; }
+        [[ -n "$ver" ]] || { error "$(_t 'Cannot fetch the version number (GitHub is unreachable or rate limited), you can set GH_TOKEN and retry')"; exit 1; }
         local arch
         arch=$(arch_for_kind)
         local url
         url=$(github_release_asset_url "$REPO" "kind-linux-${arch}\$")
-        [[ -n "$url" ]] || { error "未找到资产 kind-linux-${arch}"; exit 1; }
-        info "下载 $url ..."
+        [[ -n "$url" ]] || { error "$(_tf 'asset kind-linux-%s not found' "${arch}")"; exit 1; }
+        info "$(_tf 'Downloading %s ...' "$url")"
         local tmp
         tmp=$(mktemp)
         trap 'rm -f "$tmp"' EXIT
-        curl -fSL "$url" -o "$tmp" || { error "下载失败"; exit 1; }
+        curl -fSL "$url" -o "$tmp" || { error "$(_t 'Download failed')"; exit 1; }
         sudo install -m 0755 "$tmp" "$BIN"
-        success "kind v$ver 已安装到 $BIN"
+        success "kind v$ver $(_tf 'Installed to %s' "$BIN")"
     fi
     if ! command_exists docker; then
-        warn "未检测到 docker——kind 创建集群需要它：./install.sh docker"
+        warn "$(_t 'docker was not detected — kind needs it to create a cluster: ./install.sh docker')"
     fi
-    info "试一下：kind create cluster --name demo"
+    info "$(_t 'Try it: kind create cluster --name demo')"
 }
 
 do_uninstall() {
     if command_exists kind; then
-        info "注意：kind 卸载不影响已创建的集群，删除集群用：kind delete clusters --all"
+        info "$(_t 'Note: uninstalling kind does not affect the clusters already created, delete them with: kind delete clusters --all')"
     fi
     if [[ "$OS_TYPE" == "darwin" ]]; then
         if command -v brew >/dev/null 2>&1 && brew list --formula 2>/dev/null | grep -qx "kind"; then
-            brew uninstall kind && success "已卸载 kind"
+            brew uninstall kind && success "$(_t 'kind has been uninstalled')"
         else
-            warn "未通过 brew 检测到 kind"
+            warn "$(_t 'kind was not detected via brew')"
         fi
     else
         if [[ -e "$BIN" ]]; then
-            sudo rm -f "$BIN" && success "已删除 $BIN"
+            sudo rm -f "$BIN" && success "$(_tf 'Deleted %s' "$BIN")"
         else
-            warn "未检测到 $BIN"
+            warn "$(_tf '%s was not detected' "$BIN")"
         fi
     fi
 }
@@ -88,28 +88,28 @@ do_status() {
     # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
     detect_os
     if ! command_exists kind; then
-        emit_status "not_installed" "❌ kind 未安装"
+        emit_status "not_installed" "$(_t '❌ kind is not installed')"
         return 0
     fi
     local ver
     ver=$(kind version 2>/dev/null | grep -m1 -oE 'v[0-9]+(\.[0-9]+)+' || true)
-    emit_status "installed" "✅ kind 已安装 ${ver:-(版本未知)}"
+    emit_status "installed" "$(_t '✅ kind is installed') ${ver:-$(_t '(unknown version)')}"
     emit_version "${ver#v}"
 }
 
 do_help() {
-    cat <<'EOF'
-kind —— 用 Docker 起本地 Kubernetes 集群
+    cat <<EOF
+kind $(_t '— spin up a local Kubernetes cluster with Docker')
 
 用法: install.sh {install|uninstall|status|help}
 
-  install    安装最新版（Linux: GitHub release 二进制；macOS: brew）
-  uninstall  卸载二进制（不动已创建的集群）
-  status     查看安装状态（支持 UXS_STATUS_MODE=machine）
-  help       本帮助
+  install    $(_t 'Install the latest version (Linux: the GitHub release binary; macOS: brew)')
+  uninstall  $(_t 'Uninstall the binary (the clusters already created are left untouched)')
+  status     $(_t 'View the installation status (UXS_STATUS_MODE=machine is supported)')
+  help       $(_t 'this help')
 
-说明：运行依赖 docker（安装本模块时框架自动先装）。本地开发集群也可选
-minikube（功能更全）——./install.sh minikube
+$(_t 'Note: it depends on docker (the framework installs it first when this module is installed). For a local dev cluster you can also choose')
+minikube$(_t ' (more features) —— ./install.sh minikube')
 EOF
 }
 
@@ -118,5 +118,5 @@ case "${1:-install}" in
     uninstall)      do_uninstall ;;
     status)         do_status ;;
     help|--help|-h) do_help ;;
-    *)              error "未知子命令：$1"; do_help; exit 1 ;;
+    *)              error "$(_tf 'Unknown subcommand: %s' "$1")"; do_help; exit 1 ;;
 esac

@@ -41,3 +41,7 @@ tests/*-report.md
 
 # 快照门禁的采集清单（每次采集重写，不参与判定 —— 门禁读的是临时目录里那份）
 tests/snapshot/*/.collected
+
+# Python 工具产生的字节码缓存
+__pycache__/
+*.pyc

@@ -27,31 +27,31 @@ _rhel_major() {
 plat_mirror_preview() {
     case "$DISTRO_ID" in
         centos)
-            echo "  1. 备份 /etc/yum.repos.d"
-            echo "  2. 重写 centos.repo 为清华 TUNA（CentOS Stream）"
+            echo "  1. $(_t 'Back up /etc/yum.repos.d')"
+            echo "  2. $(_t 'Rewrite centos.repo to Tsinghua TUNA (CentOS Stream)')"
             echo "  3. dnf/yum clean all + makecache" ;;
         almalinux)
-            echo "  1. 备份 /etc/yum.repos.d"
-            echo "  2. 整写 almalinux.repo 指向阿里云镜像（BaseOS/AppStream/CRB/extras）"
+            echo "  1. $(_t 'Back up /etc/yum.repos.d')"
+            echo "  2. $(_t 'Rewrite almalinux.repo to point to the Aliyun mirror')"
             echo "  3. dnf/yum clean all + makecache" ;;
         rocky)
-            echo "  1. 备份 /etc/yum.repos.d"
-            echo "  2. 整写 rocky.repo 指向中科大 USTC 镜像（BaseOS/AppStream/CRB/Extras，主版本路径）"
+            echo "  1. $(_t 'Back up /etc/yum.repos.d')"
+            echo "  2. $(_t 'Rewrite rocky.repo to point to the USTC mirror (major version path)')"
             echo "  3. dnf/yum clean all + makecache" ;;
         fedora)
-            echo "  1. 备份 /etc/yum.repos.d"
-            echo "  2. 整写 fedora.repo 与 fedora-updates.repo 指向清华 TUNA"
+            echo "  1. $(_t 'Back up /etc/yum.repos.d')"
+            echo "  2. $(_t 'Rewrite fedora.repo and fedora-updates.repo to point to Tsinghua TUNA')"
             echo "  3. dnf/yum clean all + makecache" ;;
         openeuler)
-            echo "  1. 备份 /etc/yum.repos.d"
-            echo "  2. sed 将 mirror.openeuler.org / repo.openeuler.org 替换为清华 TUNA（保留原 repo 结构）"
+            echo "  1. $(_t 'Back up /etc/yum.repos.d')"
+            echo "  2. $(_t 'sed: replace the openEuler sources with Tsinghua TUNA')"
             echo "  3. dnf/yum clean all + makecache" ;;
         anolis)
-            echo "  1. 备份 /etc/yum.repos.d"
-            echo "  2. sed 将 openanolis / anolis 官方源替换为阿里云镜像（保留原 repo 结构）"
+            echo "  1. $(_t 'Back up /etc/yum.repos.d')"
+            echo "  2. $(_t 'sed: replace the openAnolis sources with the Aliyun mirror')"
             echo "  3. dnf/yum clean all + makecache" ;;
         *)
-            echo "  1. ${DISTRO_ID} 暂无公开镜像，仅打印指引（不改动系统）" ;;
+            echo "  1. $(_tf '%s: no public mirror, guidance only (no system change)' "${DISTRO_ID}")" ;;
     esac
 }
 
@@ -95,10 +95,10 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-Extras-SHA512
 gpgcheck=1
 enabled=1
 EOF
-                success "CentOS Stream 源已更换为清华镜像（原 /etc/yum.repos.d 已备份）"
+                success "$(_t 'CentOS Stream source switched to the Tsinghua mirror (repos backed up)')"
             else
-                warn "CentOS 7/8（EOL）请参考 vault：https://mirrors.tuna.tsinghua.edu.cn/help/centos-vault/"
-                warn "已备份原 /etc/yum.repos.d 到 /etc/yum.repos.d.bak.${ts}，请按指引手动替换 baseurl"
+                warn "$(_tf 'CentOS 7/8 (EOL) refer to the vault: %s' "https://mirrors.tuna.tsinghua.edu.cn/help/centos-vault/")"
+                warn "$(_tf 'Original /etc/yum.repos.d backed up to .bak.%s, replace baseurl' "${ts}")"
             fi
             ;;
         almalinux)
@@ -134,7 +134,7 @@ gpgcheck=1
 enabled=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-$releasever
 EOF
-            success "AlmaLinux 源已更换为阿里云镜像（原 /etc/yum.repos.d 已备份）"
+            success "$(_t 'AlmaLinux source switched to the Aliyun mirror (repos.d backed up)')"
             ;;
         rocky)
             local major
@@ -171,7 +171,7 @@ gpgcheck=1
 enabled=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rocky-${major}
 EOF
-            success "Rocky Linux 源已更换为中科大镜像（原 /etc/yum.repos.d 已备份）"
+            success "$(_t 'Rocky Linux source switched to the USTC mirror (repos.d backed up)')"
             ;;
         fedora)
             # TUNA 帮助页核对：updates 路径无 /os 后缀；老版本已移 archive 保持默认
@@ -196,7 +196,7 @@ enabled=1
 gpgcheck=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-$releasever-$basearch
 EOF
-            success "Fedora 源已更换为清华镜像（原 /etc/yum.repos.d 已备份）"
+            success "$(_t 'Fedora source switched to the Tsinghua mirror (repos.d backed up)')"
             ;;
         openeuler)
             _rhel_backup_repos "$ts"
@@ -204,7 +204,7 @@ EOF
                 -e 's|mirror.openeuler.org|mirrors.tuna.tsinghua.edu.cn/openeuler|g' \
                 -e 's|repo.openeuler.org|mirrors.tuna.tsinghua.edu.cn/openeuler|g' \
                 /etc/yum.repos.d/*.repo 2>/dev/null || true
-            success "openEuler 源已替换为清华镜像（原 repo 已备份 *.bak）"
+            success "$(_t 'openEuler source replaced by the Tsinghua mirror (repos backed *.bak)')"
             ;;
         anolis)
             _rhel_backup_repos "$ts"
@@ -212,11 +212,11 @@ EOF
                 -e 's|mirrors.openanolis.cn|mirrors.aliyun.com/anolis|g' \
                 -e 's|mirrors.anolis.org|mirrors.aliyun.com/anolis|g' \
                 /etc/yum.repos.d/*.repo 2>/dev/null || true
-            success "Anolis OS 源已替换为阿里云镜像（原 repo 已备份 *.bak）"
+            success "$(_t 'Anolis OS source replaced by the Aliyun mirror (repos backed up *.bak)')"
             ;;
         *)
-            warn "RHEL/麒麟(服务器) 无公开镜像（订阅授权），保持系统源不变"
-            warn "RHEL 请使用订阅管理（subscription-manager）；麒麟请使用系统自带更新源"
+            warn "$(_t 'RHEL/Kylin (server) has no public mirror, the system sources are kept')"
+            warn "$(_t 'RHEL: use subscription-manager; Kylin: use the built-in update source')"
             ;;
     esac
     sudo dnf clean all 2>/dev/null || sudo yum clean all 2>/dev/null || true
@@ -228,10 +228,10 @@ plat_autoupdate() {
         pkg_install dnf-automatic
         sudo sed -i 's/^apply_updates = no/apply_updates = yes/' /etc/dnf/automatic.conf 2>/dev/null || true
         uxs_svc enable-now dnf-automatic.timer
-        success "已启用 dnf-automatic"
+        success "$(_t 'dnf-automatic has been enabled')"
     else
         pkg_install yum-cron
         uxs_svc enable-now yum-cron
-        success "已启用 yum-cron"
+        success "$(_t 'yum-cron has been enabled')"
     fi
 }

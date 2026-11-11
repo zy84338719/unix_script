@@ -53,7 +53,10 @@ export LC_CTYPE=C.UTF-8
 
 violation=0
 for dir in "${DIRS[@]}"; do
-  for script in "$ROOT/$dir"/*/install.sh "$ROOT/$dir"/*/*.sh; do
+  # 扫**所有层级**的 .sh —— 只扫一层（$dir/*/*.sh）会漏掉子目录：
+  # zsh_setup 的 lib/ 与 frameworks/、sys-setup 的 platform/ 都在子目录里，
+  # 那些文件里的文案同样要进 _t（漏扫 ⇒ 硬编码中文溜过去）。
+  while IFS= read -r script; do
     [ -f "$script" ] || continue
     case "$script" in
       *.manifest|*.md) continue ;;
@@ -65,7 +68,7 @@ for dir in "${DIRS[@]}"; do
       echo "check_i18n_drift: $script 含硬编码中文（应改为 _t）"
       violation=1
     fi
-  done
+  done < <(find "$ROOT/$dir" -type f -name '*.sh' | LC_ALL=C sort)
 done
 
 if [ "$violation" -eq 1 ]; then

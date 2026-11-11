@@ -23,20 +23,20 @@ preflight() {
 
 install_pi() {
     preflight
-    info "🤖 安装 Pi（AI 编程代理框架，pi.dev）"
+    info "$(_t '🤖 Installing Pi (the AI coding agent framework, pi.dev)')"
 
     if command_exists pi; then
         local cur
-        cur=$(pi --version 2>/dev/null || echo "已安装")
-        warn "检测到已安装 Pi（${cur}）"
-        if ! yes_no "是否继续并重新安装/更新？"; then
-            info "已取消"; return 0
+        cur=$(pi --version 2>/dev/null || printf '%s\n' "$(_t 'Installed')")
+        warn "$(_tf 'Pi detected (%s)' "${cur}")"
+        if ! yes_no "$(_t 'Continue and reinstall/update it?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
     fi
 
-    info "通过官方脚本安装（${OFFICIAL_INSTALLER}）..."
+    info "$(_tf 'Installing with the official script (%s)...' "${OFFICIAL_INSTALLER}")"
     if ! bash -c "$(curl -fsSL "$OFFICIAL_INSTALLER")"; then
-        error "官方安装脚本执行失败，请检查网络或参考 https://pi.dev"
+        error "$(_t 'The official installation script failed, check the network or see https://pi.dev')"
         exit 1
     fi
 
@@ -48,21 +48,21 @@ install_pi() {
             [[ -x "$p" ]] && found="$p" && break
         done
         if [[ -n "$found" ]]; then
-            warn "pi 已装到 ${found}，但不在当前 PATH"
-            info "请添加到 shell 配置：export PATH=\"$(dirname "$found"):\$PATH\""
+            warn "pi $(_tf 'It has been installed to %s, but it is not in the current PATH' "${found}")"
+            info "$(_t 'Please add it to your shell configuration:')export PATH=\"$(dirname "$found"):\$PATH\""
         else
-            warn "安装后未立即找到 pi 命令，请重新打开终端或检查 PATH"
-            info "Pi 也支持通过 npm/pnpm/bun 安装：npm install -g @earendil-works/pi-coding-agent"
+            warn "$(_t 'The pi command was not found right after the installation, reopen the terminal or check PATH')"
+            info "Pi $(_t 'It can also be installed via npm/pnpm/bun: npm install -g @earendil-works/pi-coding-agent')"
         fi
     fi
 
-    success "🎉 Pi 安装完成！"
-    info "快速开始："
-    echo "  pi                         # 启动交互式 TUI 会话"
-    echo "  pi '修复这个 bug'           # 直接给提示"
-    echo "  pi --help                  # 查看帮助"
+    success "$(_t '🎉 Pi installation complete!')"
+    info "$(_t 'Quick start:')"
+    echo "  pi                         # $(_t 'Start an interactive TUI session')"
+    echo "  pi '$(_t 'fix this bug           # give the prompt directly')"
+    echo "  pi --help                  # $(_t 'View the help')"
     echo
-    info "配置模型/API Key 与扩展：参考 https://pi.dev"
+    info "$(_t 'Configure the model / API key and the extensions: see https://pi.dev')"
 }
 
 uninstall_pi() {
@@ -79,14 +79,14 @@ uninstall_pi() {
             removed=true
         fi
     done
-    if [[ -d "$HOME/.pi" ]] && yes_no "是否删除 $HOME/.pi（含配置与扩展）？"; then
+    if [[ -d "$HOME/.pi" ]] && yes_no "$(_tf 'Delete %s/.pi (with the configuration and the extensions)?' "$HOME")"; then
         rm -rf "$HOME/.pi"
-        success "已删除 $HOME/.pi"
+        success "$(_tf 'Deleted %s/.pi' "$HOME")"
     fi
     if $removed; then
-        success "Pi 已卸载"
+        success "Pi $(_t 'Uninstalled')"
     else
-        warn "未找到 Pi 二进制（可能通过 npm 全局安装，请用 npm uninstall -g @earendil-works/pi-coding-agent 卸载）"
+        warn "$(_t 'The Pi binary was not found (it may have been installed globally with npm, uninstall it with npm uninstall -g @earendil-works/pi-coding-agent)')"
     fi
 }
 
@@ -95,10 +95,10 @@ status_pi() {
     if command_exists pi || [[ -x "$HOME/.pi/bin/pi" ]]; then
         local ver
         ver=$(pi --version 2>/dev/null || "$HOME/.pi/bin/pi" --version 2>/dev/null || echo "")
-        emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
         emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 
@@ -106,9 +106,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装 Pi（AI 编程代理框架，默认动作）
-  uninstall   卸载
-  status      查看状态
+  install     $(_t 'Install Pi (the AI coding agent framework, default action)')
+  uninstall   $(_t 'Uninstall')
+  status      $(_t 'View the status')
 EOF
 }
 
@@ -120,7 +120,7 @@ main() {
         uninstall) uninstall_pi ;;
         status)    status_pi ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

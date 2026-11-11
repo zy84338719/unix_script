@@ -106,7 +106,7 @@ ExecStart=$BIN -d $CONFIG_DIR -f $CONFIG_FILE
 Restart=on-failure
 RestartSec=3
 LimitNOFILE=1048576
-# $(_t 'Allow TUN mode (if enabled)')
+# 允许 TUN 模式（如启用）
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 

@@ -79,41 +79,41 @@ count_installed() {
 # ─── Go 工具安装 ──────────────────────────────────────────────────────────────
 
 install_go_tools() {
-    info "📦 安装 Go 分析工具（golangci-lint + gosec）"
+    info "$(_t 'Install Go analysis tools (golangci-lint + gosec)')"
 
     if ! command_exists go; then
-        warn "  ⚠️ 未检测到 go 命令，跳过 Go 工具安装"
+        warn "  $(_t 'go command not detected, skipping Go tool installation')"
         return 0
     fi
 
     # golangci-lint
     if tool_installed golangci-lint; then
-        info "  ✅ golangci-lint 已安装，跳过"
+        info "  $(_t 'golangci-lint already installed, skipping')"
     else
         if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
             brew install golangci-lint
         else
-            info "  通过官方脚本安装 golangci-lint..."
+            info "  $(_t 'Installing golangci-lint via the official script...')"
             if curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)/bin" 2>/dev/null; then
                 success "  ✅ golangci-lint"
             else
-                warn "  ⚠️ golangci-lint 安装失败"
+                warn "  $(_t 'golangci-lint installation failed')"
             fi
         fi
     fi
 
     # gosec
     if tool_installed gosec; then
-        info "  ✅ gosec 已安装，跳过"
+        info "  $(_t 'gosec already installed, skipping')"
     else
         if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
             brew install gosec
         else
-            info "  通过 go install 安装 gosec..."
+            info "  $(_t 'Installing gosec via go install...')"
             if go install github.com/securego/gosec/v2/cmd/gosec@latest 2>/dev/null; then
                 success "  ✅ gosec"
             else
-                warn "  ⚠️ gosec 安装失败（可能需要设置 GOPATH/bin 到 PATH）"
+                warn "  $(_t 'gosec installation failed (you may need to add GOPATH/bin to PATH)')"
             fi
         fi
     fi
@@ -122,37 +122,37 @@ install_go_tools() {
 # ─── Rust 工具安装 ─────────────────────────────────────────────────────────────
 
 install_rust_tools() {
-    info "🦀 安装 Rust 分析工具（clippy + cargo-audit）"
+    info "$(_t 'Install Rust analysis tools (clippy + cargo-audit)')"
 
     if ! command_exists cargo; then
-        warn "  ⚠️ 未检测到 cargo 命令，跳过 Rust 工具安装"
+        warn "  $(_t 'cargo command not detected, skipping Rust tool installation')"
         return 0
     fi
 
     # clippy（rustup 组件）
     if tool_installed clippy; then
-        info "  ✅ clippy 已安装，跳过"
+        info "  $(_t 'clippy already installed, skipping')"
     else
-        info "  安装 clippy 组件..."
+        info "  $(_t 'Installing the clippy component...')"
         if rustup component add clippy 2>/dev/null; then
             success "  ✅ clippy"
         else
-            warn "  ⚠️ clippy 安装失败（需要 rustup）"
+            warn "  $(_t 'clippy installation failed (rustup is required)')"
         fi
     fi
 
     # cargo-audit
     if tool_installed cargo-audit; then
-        info "  ✅ cargo-audit 已安装，跳过"
+        info "  $(_t 'cargo-audit already installed, skipping')"
     else
         if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
             brew install cargo-audit
         else
-            info "  通过 cargo install 安装 cargo-audit..."
+            info "  $(_t 'Installing cargo-audit via cargo install...')"
             if cargo install cargo-audit 2>/dev/null; then
                 success "  ✅ cargo-audit"
             else
-                warn "  ⚠️ cargo-audit 安装失败"
+                warn "  $(_t 'cargo-audit installation failed')"
             fi
         fi
     fi
@@ -161,23 +161,23 @@ install_rust_tools() {
 # ─── Java 工具安装 ─────────────────────────────────────────────────────────────
 
 install_java_tools() {
-    info "☕ 安装 Java 分析工具（spotbugs + pmd + checkstyle）"
+    info "$(_t 'Install Java analysis tools (spotbugs + pmd + checkstyle)')"
 
     if ! command_exists java; then
-        warn "  ⚠️ 未检测到 java 命令，跳过 Java 工具安装"
+        warn "  $(_t 'java command not detected, skipping Java tool installation')"
         return 0
     fi
 
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
-        info "  通过 Homebrew 安装..."
+        info "  $(_t 'Installing via Homebrew...')"
         for tool in spotbugs pmd checkstyle; do
             if tool_installed "$tool"; then
-                info "  ✅ $tool 已安装，跳过"
+                info "  $(_tf '%s already installed, skipping' "$tool")"
             else
                 if brew install "$tool"; then
                     success "  ✅ $tool"
                 else
-                    warn "  ⚠️ $tool 安装失败"
+                    warn "  $(_tf '%s installation failed' "$tool")"
                 fi
             fi
         done
@@ -187,18 +187,18 @@ install_java_tools() {
         local installed_any=false
         for tool in spotbugs pmd checkstyle; do
             if tool_installed "$tool"; then
-                info "  ✅ $tool 已安装，跳过"
+                info "  $(_tf '%s already installed, skipping' "$tool")"
                 continue
             fi
             if pkg_install "$tool" >/dev/null 2>&1; then
-                success "  ✅ ${tool}（包管理器）"
+                success "  $(_tf '%s (package manager)' "${tool}")"
                 installed_any=true
             else
-                warn "  ⚠️ $tool 不在仓库中"
+                warn "  $(_tf '%s is not available in the repository' "$tool")"
             fi
         done
         if ! $installed_any; then
-            info "  提示：Java 工具可通过 sdkman.io 或手动下载安装"
+            info "  $(_t 'Tip: Java tools can be installed via sdkman.io or by downloading them manually')"
             info "  sdk install spotbugs / sdk install pmd / sdk install checkstyle"
         fi
     fi
@@ -207,10 +207,10 @@ install_java_tools() {
 # ─── Python 工具安装 ───────────────────────────────────────────────────────────
 
 install_python_tools() {
-    info "🐍 安装 Python 分析工具（ruff + mypy + bandit）"
+    info "$(_t 'Install Python analysis tools (ruff + mypy + bandit)')"
 
     if ! command_exists python3; then
-        warn "  ⚠️ 未检测到 python3 命令，跳过 Python 工具安装"
+        warn "  $(_t 'python3 command not detected, skipping Python tool installation')"
         return 0
     fi
 
@@ -218,34 +218,34 @@ install_python_tools() {
     command_exists pip3 || pip_cmd="pip"
 
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
-        info "  通过 Homebrew 安装..."
+        info "  $(_t 'Installing via Homebrew...')"
         for tool in ruff mypy bandit; do
             if tool_installed "$tool"; then
-                info "  ✅ $tool 已安装，跳过"
+                info "  $(_tf '%s already installed, skipping' "$tool")"
             else
                 if brew install "$tool" 2>/dev/null; then
                     success "  ✅ $tool"
                 else
                     # brew 可能没有 bandit，回退到 pip
-                    info "  回退到 $pip_cmd 安装 $tool..."
+                    info "  $(_tf 'Falling back to %s to install %s...' "$pip_cmd" "$tool")"
                     if "$pip_cmd" install --user "$tool" 2>/dev/null; then
-                        success "  ✅ ${tool}（pip）"
+                        success "  $(_tf '%s (pip)' "${tool}")"
                     else
-                        warn "  ⚠️ $tool 安装失败"
+                        warn "  $(_tf '%s installation failed' "$tool")"
                     fi
                 fi
             fi
         done
     else
-        info "  通过 $pip_cmd 安装..."
+        info "  $(_tf 'Installing via %s...' "$pip_cmd")"
         for tool in ruff mypy bandit; do
             if tool_installed "$tool"; then
-                info "  ✅ $tool 已安装，跳过"
+                info "  $(_tf '%s already installed, skipping' "$tool")"
             else
                 if "$pip_cmd" install --user "$tool" 2>/dev/null; then
                     success "  ✅ $tool"
                 else
-                    warn "  ⚠️ $tool 安装失败"
+                    warn "  $(_tf '%s installation failed' "$tool")"
                 fi
             fi
         done
@@ -255,10 +255,10 @@ install_python_tools() {
 # ─── Semgrep 安装 ─────────────────────────────────────────────────────────────
 
 install_semgrep() {
-    info "🔍 安装 semgrep（跨语言安全扫描）"
+    info "$(_t 'Install semgrep (cross-language security scanning)')"
 
     if tool_installed semgrep; then
-        info "  ✅ semgrep 已安装，跳过"
+        info "  $(_t 'semgrep already installed, skipping')"
         return 0
     fi
 
@@ -270,7 +270,7 @@ install_semgrep() {
         if "$pip_cmd" install --user semgrep 2>/dev/null; then
             success "  ✅ semgrep"
         else
-            warn "  ⚠️ semgrep 安装失败"
+            warn "  $(_t 'semgrep installation failed')"
         fi
     fi
 }
@@ -279,7 +279,7 @@ install_semgrep() {
 
 install_code_lint() {
     preflight
-    header "🚀 安装代码分析工具集"
+    header "$(_t 'Install the code analysis toolset')"
     echo
 
     install_go_tools
@@ -295,42 +295,42 @@ install_code_lint() {
     echo
     status_code_lint
     echo
-    success "🎉 代码分析工具集安装完成！"
-    info "运行分析：./install.sh go-lint | rust-lint | java-lint | py-lint | security-scan | lint-all"
+    success "$(_t 'Code analysis toolset installation completed!')"
+    info "$(_t 'Run analysis: ./install.sh go-lint | rust-lint | java-lint | py-lint | security-scan | lint-all')"
 }
 
 # ─── 卸载 ─────────────────────────────────────────────────────────────────────
 
 uninstall_code_lint() {
     detect_os
-    warn "code-lint 卸载说明："
+    warn "code-lint $(_t 'Uninstall instructions:')"
     echo
-    echo "  Go 工具:"
-    echo "    golangci-lint: 移除 \$(go env GOPATH)/bin/golangci-lint"
-    echo "    gosec:         移除 \$(go env GOPATH)/bin/gosec"
+    echo "  Go $(_t 'Tools:')"
+    echo "    golangci-lint: $(_t 'Remove') \$(go env GOPATH)/bin/golangci-lint"
+    echo "    gosec:         $(_t 'Remove') \$(go env GOPATH)/bin/gosec"
     echo
-    echo "  Rust 工具:"
+    echo "  Rust $(_t 'Tools:')"
     echo "    clippy:        rustup component remove clippy"
     echo "    cargo-audit:   cargo uninstall cargo-audit"
     echo
-    echo "  Java 工具:"
+    echo "  Java $(_t 'Tools:')"
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
         echo "    brew uninstall spotbugs pmd checkstyle"
     else
         echo "    sudo <pkgmgr> remove spotbugs pmd checkstyle"
     fi
     echo
-    echo "  Python 工具:"
+    echo "  Python $(_t 'Tools:')"
     echo "    pip3 uninstall ruff mypy bandit"
     echo
-    echo "  跨语言:"
+    echo "  $(_t 'Cross-language:')"
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
         echo "    brew uninstall semgrep"
     else
         echo "    pip3 uninstall semgrep"
     fi
     echo
-    info "（按需手动清理）"
+    info "$(_t '(clean up manually as needed)')"
 }
 
 # ─── 状态检查 ──────────────────────────────────────────────────────────────────
@@ -354,13 +354,13 @@ status_code_lint() {
     local state human_msg
     if [[ $installed -ge $total ]]; then
         state="installed"
-        human_msg="  ${GREEN}✅ 全部已安装 ($installed/$total)${NC}"
+        human_msg="  ${GREEN}$(_tf 'All installed (%s/%s)' "$installed" "$total")${NC}"
     elif [[ $installed -gt 0 ]]; then
         state="installed"
-        human_msg="  ${YELLOW}⚠️  部分已安装 ($installed/$total)${NC}"
+        human_msg="  ${YELLOW}$(_tf 'Partially installed (%s/%s)' "$installed" "$total")${NC}"
     else
         state="not_installed"
-        human_msg="  ${RED}❌ 未安装任何工具${NC}"
+        human_msg="  ${RED}$(_t 'No tools installed')${NC}"
     fi
     emit_status "$state" "$human_msg"
     emit_extra "installed=$installed/$total"
@@ -373,7 +373,7 @@ status_code_lint() {
 
     # 第二阶段：人类模式详情（逐工具 ✅/❌ 清单）
     if ! uxs_is_machine_mode; then
-        header "📊 代码分析工具状态"
+        header "$(_t 'Code analysis tool status')"
         echo
 
         # Go
@@ -421,7 +421,7 @@ status_code_lint() {
         echo
 
         # 跨语言
-        printf "  %-8s" "跨语言:"
+        printf "  %-8s" "$(_t 'Cross-language:')"
         for t in "${CROSS_TOOLS[@]}"; do
             if tool_installed "$t"; then
                 printf " ${GREEN}%s ✅${NC}" "$t"
@@ -439,7 +439,7 @@ lint_all() {
     local target="${1:-.}"
     local has_error=false
 
-    header "🔍 全语言代码分析：$target"
+    header "$(_tf 'Full-language code analysis: %s' "$target")"
     echo
 
     # 检测语言并运行
@@ -469,10 +469,10 @@ lint_all() {
     fi
 
     if $has_error; then
-        error "分析完成，存在错误"
+        error "$(_t 'Analysis completed with errors')"
         return 1
     else
-        success "🎉 所有分析通过"
+        success "$(_t 'All analyses passed')"
     fi
 }
 
@@ -482,26 +482,26 @@ usage() {
     cat <<EOF
 用法: $0 {install|install-go|install-rust|install-java|install-python|install-semgrep|go-lint|rust-lint|java-lint|py-lint|security-scan|lint-all|uninstall|status|help}
 
-安装类:
-  install          安装全部代码分析工具（默认动作）
-  install-go       仅安装 Go 工具（golangci-lint + gosec）
-  install-rust     仅安装 Rust 工具（clippy + cargo-audit）
-  install-java     仅安装 Java 工具（spotbugs + pmd + checkstyle）
-  install-python   仅安装 Python 工具（ruff + mypy + bandit）
-  install-semgrep  仅安装 semgrep
+$(_t 'Install commands:')
+  install          $(_t 'Install all code analysis tools (default action)')
+  install-go       $(_t 'Install only Go tools (golangci-lint + gosec)')
+  install-rust     $(_t 'Install only Rust tools (clippy + cargo-audit)')
+  install-java     $(_t 'Install only Java tools (spotbugs + pmd + checkstyle)')
+  install-python   $(_t 'Install only Python tools (ruff + mypy + bandit)')
+  install-semgrep  $(_t 'Install only semgrep')
 
-运行类:
-  go-lint [path]       运行 Go 代码分析
-  rust-lint [path]     运行 Rust 代码分析
-  java-lint [path]     运行 Java 代码分析
-  py-lint [path]       运行 Python 代码分析
-  security-scan [path] 运行跨语言安全扫描（semgrep）
-  lint-all [path]      自动检测语言并运行所有适用的分析
+$(_t 'Run commands:')
+  go-lint [path]       $(_t 'Run Go code analysis')
+  rust-lint [path]     $(_t 'Run Rust code analysis')
+  java-lint [path]     $(_t 'Run Java code analysis')
+  py-lint [path]       $(_t 'Run Python code analysis')
+  security-scan [path] $(_t 'Run cross-language security scanning (semgrep)')
+  lint-all [path]      $(_t 'Auto-detect the language and run all applicable analyses')
 
-管理类:
-  uninstall        显示卸载说明
-  status           查看各工具安装状态
-  help             显示此帮助
+$(_t 'Management commands:')
+  uninstall        $(_t 'Show the uninstall instructions')
+  status           $(_t 'Show the installation status of each tool')
+  help             $(_t 'Show this help message')
 EOF
 }
 
@@ -527,7 +527,7 @@ main() {
         uninstall)          uninstall_code_lint ;;
         status)             status_code_lint ;;
         help|--help|-h)     usage ;;
-        *)                  error "未知操作: $action"; usage; exit 1 ;;
+        *)                  error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

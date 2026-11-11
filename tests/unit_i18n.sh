@@ -80,5 +80,57 @@ if [ -f "$table" ]; then
     done < <(sed -n "s/^    '\([^']*\)'.*/\1/p" "$table" | grep -E '%[0-9]*[sd]')
 fi
 
+# ---------------------------------------------------------------------------
+# uxs_i18n_localize_file：把译文烘进被复制到用户环境的独立脚本
+#
+# 背景：safe-rm 的 trash.sh、process_manager_tool 的 pm 脚本会被复制到
+# 用户环境里跑，运行时没有 unix_script 的 _t —— 只能在安装时把译文烘进去。
+# 烘完的文件里不能再有 _t 调用（否则用户环境里会报 command not found）。
+# ---------------------------------------------------------------------------
+t_localize() { # t_localize <实际> <期望>
+    if [ "$1" = "$2" ]; then
+        PASS=$((PASS + 1))
+    else
+        FAIL=$((FAIL + 1))
+        echo "FAIL: 本地化 期望 '$2' 实际 '$1'"
+    fi
+}
+
+loc_tmp="$(mktemp -d "${TMPDIR:-/tmp}/uxs-loc.XXXXXX")"
+cat > "$loc_tmp/src.sh" <<'LOC_EOF'
+echo "a=$(_t 'Cancelled')"
+echo "b=$(_tf 'Unknown action: %s' "$act")"
+LOC_EOF
+if uxs_i18n_localize_file "$loc_tmp/src.sh" "$loc_tmp/dst.sh" 2>/dev/null; then
+    if grep -q "_t '" "$loc_tmp/dst.sh"; then
+        FAIL=$((FAIL + 1))
+        echo "FAIL: 本地化后仍残留 _t 调用"
+    else
+        PASS=$((PASS + 1))
+    fi
+    got="$(act=foo bash "$loc_tmp/dst.sh")"
+    t_localize "$(printf '%s' "$got" | sed -n 1p)" "a=已取消"
+    t_localize "$(printf '%s' "$got" | sed -n 2p)" "b=未知操作: foo"
+else
+    FAIL=$((FAIL + 1))
+    echo "FAIL: uxs_i18n_localize_file 执行失败"
+fi
+
+# 译文里带单引号时，烘出来的文件仍要能正确解析
+_t_real="$(declare -f _t)"
+_t() { printf '%s' "带'引号'的"; }
+cat > "$loc_tmp/q.sh" <<'LOC_EOF'
+echo "q=$(_t 'Q')"
+LOC_EOF
+if uxs_i18n_localize_file "$loc_tmp/q.sh" "$loc_tmp/q_dst.sh" 2>/dev/null; then
+    t_localize "$(bash "$loc_tmp/q_dst.sh")" "q=带'引号'的"
+else
+    FAIL=$((FAIL + 1))
+    echo "FAIL: uxs_i18n_localize_file（单引号）执行失败"
+fi
+eval "$_t_real"
+
+rm -rf "$loc_tmp"
+
 echo "unit_i18n: 通过 $PASS / 失败 $FAIL"
 [[ "$FAIL" -eq 0 ]]

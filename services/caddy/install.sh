@@ -101,7 +101,7 @@ install_caddy() {
             yum)     install_caddy_rpm yum ;;
             *)
                 error "$(_t 'Current package manager (')${PKG_MANAGER}$(_t ') does not support automatic Caddy installation')"
-                info "$(_t 'Please install manually per the official docs:') https://caddyserver.com/docs/install"
+                info "$(_t 'Please install manually per the official docs:')https://caddyserver.com/docs/install"
                 exit 1
                 ;;
         esac
@@ -128,8 +128,8 @@ install_caddy() {
     info "$(_t 'Version info: ')$version"
     echo
     info "$(_t 'Service info:')"
-    echo "  - $(_t 'Access URL:') http://${ip_addr} $(_t '(ports 80/443)')"
-    echo "  - $(_t 'Config file:') $caddyfile"
+    echo "  - $(_t 'Access URL:')http://${ip_addr} $(_t '(ports 80/443)')"
+    echo "  - $(_t 'Config file:')$caddyfile"
     echo
     info "$(_t 'Quick start:')"
     echo "  # $(_t 'Edit Caddyfile')"
@@ -149,15 +149,15 @@ install_caddy() {
     echo
     info "$(_t 'Common commands:')"
     if [[ "$OS_TYPE" == "linux" ]]; then
-        echo "  - $(_t 'Service status:') sudo systemctl status caddy"
-        echo "  - $(_t 'View logs:') sudo journalctl -u caddy -f"
-        echo "  - $(_t 'Reload config:') sudo caddy reload --config $caddyfile"
-        echo "  - $(_t 'Restart service:') sudo systemctl restart caddy"
+        echo "  - $(_t 'Service status:')sudo systemctl status caddy"
+        echo "  - $(_t 'View logs:')sudo journalctl -u caddy -f"
+        echo "  - $(_t 'Reload config:')sudo caddy reload --config $caddyfile"
+        echo "  - $(_t 'Restart service:')sudo systemctl restart caddy"
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        echo "  - $(_t 'Service status:') brew services info caddy"
-        echo "  - $(_t 'View logs:') brew services log caddy"
-        echo "  - $(_t 'Reload config:') sudo caddy reload --config $caddyfile"
-        echo "  - $(_t 'Restart service:') brew services restart caddy"
+        echo "  - $(_t 'Service status:')brew services info caddy"
+        echo "  - $(_t 'View logs:')brew services log caddy"
+        echo "  - $(_t 'Reload config:')sudo caddy reload --config $caddyfile"
+        echo "  - $(_t 'Restart service:')brew services restart caddy"
     fi
 }
 

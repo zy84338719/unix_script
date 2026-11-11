@@ -47,7 +47,8 @@ pkg_name_for() {
 dev_tools_pkg() {
     case "$PKG_MANAGER" in
         apt-get) echo "build-essential" ;;
-        dnf|yum) echo "" ;;              # 用组：@development tools（单独处理）
+        # 用组：@development tools（单独处理）
+        dnf|yum) echo "" ;;
         pacman)  echo "base-devel" ;;
         apk)     echo "build-base" ;;
         zypper)  echo "patterns-devel_basis" ;;
@@ -58,17 +59,17 @@ dev_tools_pkg() {
 install_pkgs() {
     detect_os
     require_sudo
-    info "📦 安装装机必备工具"
+    info "$(_t '📦 Installing the essential tools')"
 
     # macOS：用 brew（brew 本身不需 sudo）
     if [[ "$OS_TYPE" == "darwin" ]]; then
         if ! command_exists brew; then
-            error "macOS 需要 Homebrew。请先安装：https://brew.sh/"
+            error "macOS $(_t 'Homebrew is required. Install it first: https://brew.sh/')"
             exit 1
         fi
-        info "通过 Homebrew 安装：${ESSENTIAL_TOOLS[*]}"
+        info "$(_tf 'Installing via Homebrew: %s' "${ESSENTIAL_TOOLS[*]}")"
         brew install "${ESSENTIAL_TOOLS[@]}"
-        success "macOS 必备工具安装完成"
+        success "macOS $(_t 'The essential tools installation is complete')"
         return
     fi
 
@@ -78,7 +79,7 @@ install_pkgs() {
     local t pkg
 
     # 逐个安装（容错：个别包缺失不中断）
-    info "安装必备工具（包管理器：${PKG_MANAGER}）..."
+    info "$(_tf 'Installing the essential tools (package manager: %s)...' "${PKG_MANAGER}")"
     for t in "${ESSENTIAL_TOOLS[@]}" "${LINUX_EXTRA[@]}"; do
         if ! command_exists "$t" 2>/dev/null; then
             pkg=$(pkg_name_for "$t")
@@ -104,22 +105,22 @@ install_pkgs() {
     esac
 
     if [[ ${#missing_pkgs[@]} -gt 0 ]]; then
-        warn "以下包未能安装：${missing_pkgs[*]}"
+        warn "$(_tf 'The following packages could not be installed: %s' "${missing_pkgs[*]}")"
     fi
-    success "装机必备工具安装完成"
+    success "$(_t 'The essential tools have been installed')"
     echo
-    info "已安装工具：${ESSENTIAL_TOOLS[*]}"
+    info "$(_tf 'The installed tools: %s' "${ESSENTIAL_TOOLS[*]}")"
     [[ "$OS_TYPE" == "linux" ]] && echo "         ${LINUX_EXTRA[*]} build-essential"
 }
 
 # 卸载（通常不建议卸载必备工具，这里提供按需移除个别包的入口）
 uninstall_pkgs() {
     detect_os
-    warn "通常不建议卸载装机必备工具（其他程序可能依赖它们）。"
-    warn "如确需卸载个别包，请用系统包管理器手动移除，例如："
-    echo "  Debian/Ubuntu: sudo apt-get remove <包名>"
-    echo "  RHEL/CentOS:   sudo dnf/yum remove <包名>"
-    echo "  macOS:         brew uninstall <包名>"
+    warn "$(_t 'Uninstalling the essential tools is usually not recommended (other programs may depend on them).')"
+    warn "$(_t 'If you really need to uninstall a specific package, remove it manually with the system package manager, for example:')"
+    echo "  Debian/Ubuntu: sudo apt-get remove <$(_t 'package name>')"
+    echo "  RHEL/CentOS:   sudo dnf/yum remove <$(_t 'package name>')"
+    echo "  macOS:         brew uninstall <$(_t 'package name>')"
 }
 
 status_pkgs() {
@@ -129,9 +130,9 @@ status_pkgs() {
         command_exists "$t" 2>/dev/null || missing+=("$t")
     done
     if [[ ${#missing[@]} -eq 0 ]]; then
-        emit_status "installed" "${GREEN}✅ 必备工具已安装齐全${NC}"
+        emit_status "installed" "${GREEN}$(_t '✅ All the essential tools are installed')${NC}"
     else
-        emit_status "not_installed" "${YELLOW}⚠️  缺少：${missing[*]}${NC}"
+        emit_status "not_installed" "${YELLOW}$(_tf '⚠️  Missing: %s' "${missing[*]}")${NC}"
         # 缺少的工具列表：逗号分隔，机器模式 EXTRA 行
         local missing_csv
         missing_csv=$(IFS=,; echo "${missing[*]}")
@@ -143,9 +144,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装装机必备工具包（curl/wget/git/vim/htop/tmux/jq/开发工具 等）
-  status      检查必备工具是否齐全
-  uninstall   说明（不建议卸载，给出手动命令）
+  install     $(_t 'Install the essential tool packages (curl/wget/git/vim/htop/tmux/jq/development tools etc.)')
+  status      $(_t 'Check whether all the essential tools are installed')
+  uninstall   $(_t 'Description (uninstalling is not recommended, the manual command is given)')
 EOF
 }
 
@@ -157,7 +158,7 @@ main() {
         uninstall) uninstall_pkgs ;;
         status)    status_pkgs ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

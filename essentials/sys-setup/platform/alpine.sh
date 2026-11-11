@@ -3,8 +3,10 @@
 # essentials/sys-setup/platform/alpine.sh — Alpine
 
 plat_mirror_preview() {
-    echo "  1. 备份 /etc/apk/repositories"
-    echo "  2. 重写为清华 TUNA（v$(uxs_os_release VERSION_ID) main + community）"
+    local ver
+    ver=$(uxs_os_release VERSION_ID)
+    echo "  1. $(_t 'Back up /etc/apk/repositories')"
+    echo "  2. $(_tf 'Rewrite to Tsinghua TUNA (v%s main + community)' "$ver")"
     echo "  3. sudo apk update"
 }
 
@@ -20,9 +22,9 @@ https://mirrors.tuna.tsinghua.edu.cn/alpine/v${ver}/main
 https://mirrors.tuna.tsinghua.edu.cn/alpine/v${ver}/community
 EOF
     sudo apk update 2>/dev/null || true
-    success "Alpine 源已替换为清华镜像"
+    success "$(_t 'The Alpine source has been replaced by the Tsinghua mirror')"
 }
 
 plat_autoupdate() {
-    info "Alpine 无原生自动安全更新；建议定期执行 sudo apk upgrade"
+    info "$(_t 'No native automatic security updates in Alpine, run sudo apk upgrade')"
 }

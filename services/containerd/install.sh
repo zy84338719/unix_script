@@ -71,7 +71,7 @@ do_install() {
         pkg_install containerd nerdctl || { error "$(_t 'brew install failed')"; exit 1; }
         warn "$(_t 'macOS host cannot run Linux containers: ctr/nerdctl are client-only,')"
         warn "$(_t 'point them to a containerd socket in a Linux environment (VM/remote host), e.g.:')"
-        warn "  export CONTAINERD_ADDRESS=/run/containerd/containerd.sock $(_t '(via lima/colima/SSH)')"
+        warn "  export CONTAINERD_ADDRESS=/run/containerd/containerd.sock$(_t '(via lima/colima/SSH)')"
         info "$(_t 'For local containers use the docker / podman modules')"
     else
         info "$(_t 'Installing containerd (with ctr) via system repositories...')"

@@ -21,7 +21,7 @@ SWAP_SIZE_GB=""
 preflight() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        error "swap 配置仅支持 Linux。当前：$OS_TYPE"
+        error "swap $(_tf 'The configuration is Linux only. Current: %s' "$OS_TYPE")"
         exit 1
     fi
     require_sudo
@@ -52,22 +52,22 @@ install_swap() {
     size_gb="$SWAP_SIZE_GB"
     if [[ -z "$size_gb" ]]; then
         size_gb=$(suggest_size)
-        info "未指定大小，根据内存建议：${size_gb}GB"
+        info "$(_tf 'No size specified, based on the memory the suggestion is: %sGB' "${size_gb}")"
     fi
 
     if swapon --show 2>/dev/null | grep -q .; then
-        warn "当前已有 swap："
+        warn "$(_t 'There is already a swap:')"
         swapon --show
-        if ! yes_no "是否禁用并重建 swap？"; then
-            info "已取消"; return 0
+        if ! yes_no "$(_t 'Disable it and rebuild the swap?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
         sudo swapoff "$SWAP_FILE" 2>/dev/null || sudo swapoff -a 2>/dev/null || true
     fi
 
-    info "💾 创建 ${size_gb}GB swap 文件（${SWAP_FILE}）"
+    info "$(_tf '💾 Creating a %sGB swap file (%s)' "${size_gb}" "${SWAP_FILE}")"
     # fallocate 更快；不支持则回退 dd
     if ! sudo fallocate -l "${size_gb}G" "$SWAP_FILE" 2>/dev/null; then
-        warn "fallocate 不支持，使用 dd（较慢）..."
+        warn "fallocate $(_t 'Not supported, using dd (slower)...')"
         sudo dd if=/dev/zero of="$SWAP_FILE" bs=1M count=$((size_gb * 1024)) status=progress
     fi
     sudo chmod 600 "$SWAP_FILE"
@@ -77,7 +77,7 @@ install_swap() {
     # 写入 /etc/fstab 持久化
     if ! grep -q "^$SWAP_FILE " /etc/fstab; then
         echo "$SWAP_FILE none swap sw 0 0" | sudo tee -a /etc/fstab >/dev/null
-        success "已写入 /etc/fstab（开机自动挂载）"
+        success "$(_t 'Written to /etc/fstab (mounted automatically at boot)')"
     fi
 
     # swappiness：有 swap 时倾向少用（10），避免频繁交换
@@ -86,40 +86,40 @@ install_swap() {
         sudo sysctl -p /etc/sysctl.d/99-swap.conf >/dev/null 2>&1 || true
     fi
 
-    info "验证："
+    info "$(_t 'Verifying:')"
     free -h
-    success "🎉 swap 创建完成"
+    success "$(_t '🎉 The swap has been created')"
 }
 
 uninstall_swap() {
     preflight
     if ! swapon --show 2>/dev/null | grep -q "$SWAP_FILE"; then
-        warn "未发现 $SWAP_FILE"
+        warn "$(_tf '%s was not found' "$SWAP_FILE")"
         return 0
     fi
-    if ! yes_no "确认禁用并删除 ${SWAP_FILE}？"; then
-        info "已取消"; return 0
+    if ! yes_no "$(_tf 'Confirm disabling and deleting %s?' "${SWAP_FILE}")"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
     sudo swapoff "$SWAP_FILE"
     sudo rm -f "$SWAP_FILE"
     sudo sed -i "\#^$SWAP_FILE #d" /etc/fstab
     sudo rm -f /etc/sysctl.d/99-swap.conf
-    success "swap 已禁用并删除"
+    success "swap $(_t 'It has been disabled and deleted')"
 }
 
 status_swap() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return
+        emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux only)')${NC}"; return
     fi
     if swapon --show 2>/dev/null | grep -q .; then
-        emit_status "configured" "${GREEN}✅ 已启用 swap${NC}"
+        emit_status "configured" "${GREEN}$(_t '✅ The swap is enabled')${NC}"
         # swapon --show 输出多行表格：机器模式不输出（仅 STATE），人类模式照常打印
         if ! uxs_is_machine_mode; then
             swapon --show
         fi
     else
-        emit_status "not_configured" "${RED}❌ 未启用 swap${NC}"
+        emit_status "not_configured" "${RED}$(_t '❌ The swap is not enabled')${NC}"
     fi
 }
 
@@ -127,11 +127,11 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help} [--size <GB>]  (仅 Linux)
 
-  install     创建 swap（默认根据内存自动计算大小，可用 --size 指定 GB）
-  uninstall   禁用并删除 swap 文件
-  status      查看 swap 状态
+  install     $(_t 'Create a swap (the size is computed from the memory by default, --size sets the GB)')
+  uninstall   $(_t 'Disable and delete the swap file')
+  status      $(_t 'View the swap status')
 
-示例:
+$(_t 'Examples:')
   $0 install --size 4
 EOF
 }
@@ -152,7 +152,7 @@ main() {
         uninstall) uninstall_swap ;;
         status)    status_swap ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

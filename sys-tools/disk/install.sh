@@ -20,7 +20,7 @@ readonly DISK_SUPPORTED_FS="ext4 xfs vfat exfat ntfs"
 _linux_require() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        warn "disk 仅支持 Linux（当前：${OS_TYPE}）"
+        warn "disk $(_tf 'Linux-only (current: %s)' "${OS_TYPE}")"
         return 1
     fi
 }
@@ -29,7 +29,7 @@ _disk_require_tool() {
     local t
     for t in "$@"; do
         if ! command -v "$t" >/dev/null 2>&1; then
-            error "缺少命令: ${t}（可运行: ./install.sh disk install 补装依赖）"
+            error "$(_tf 'Missing command: %s (run ./install.sh disk install)' "${t}")"
             return 1
         fi
     done
@@ -53,7 +53,7 @@ _disk_ensure_mkfs() {
                ;;
         ntfs)  command -v mkfs.ntfs  >/dev/null 2>&1 && return 0; pkgs="ntfs-3g" ;;
     esac
-    info "补装 $fs 工具: $pkgs"
+    info "$(_tf 'Installing %s tools: %s' "$fs" "$pkgs")"
     # shellcheck disable=SC2086  # $pkgs 为受控包名列表，需按空格拆分传参
     pkg_install $pkgs
 }
@@ -65,9 +65,9 @@ _disk_ensure_mkfs() {
 # 归一化设备名：sdb → /dev/sdb；校验为块设备后输出绝对路径
 _disk_resolve() {
     local d="$1"
-    [[ -n "$d" ]] || { error "未指定设备"; return 1; }
+    [[ -n "$d" ]] || { error "$(_t 'No device specified')"; return 1; }
     [[ "$d" == /dev/* ]] || d="/dev/$d"
-    [[ -b "$d" ]] || { error "块设备不存在: $d"; return 1; }
+    [[ -b "$d" ]] || { error "$(_tf 'Block device does not exist: %s' "$d")"; return 1; }
     echo "$d"
 }
 
@@ -142,26 +142,26 @@ _disk_in_use_report() {
     while IFS='|' read -r kind rd dt; do
         case "$kind" in
             MOUNT)
-                printf '  ⛔ %s 已挂载到 %s（请先 umount）\n' "$rd" "$dt" ;;
+                printf '  %s\n' "$(_tf '⛔ %s is mounted at %s (umount it first)' "$rd" "$dt")" ;;
             HOLD)
-                printf '  ⛔ %s 被激活的内核设备 %s 占用（多为激活中的 LVM LV/RAID；LVM 可 sudo vgchange -an <VG名> 停用）\n' "$rd" "$dt" ;;
+                printf '  %s\n' "$(_tf '⛔ %s is held by kernel device %s (LVM LV/RAID; deactivate it)' "$rd" "$dt")" ;;
             SIG)
                 if [[ "$dt" == "LVM2_member" ]]; then
                     vg=$(_disk_lvm_pv_vg "$rd")
                     if [[ -n "$vg" ]]; then
-                        printf '  ⛔ %s 是 LVM PV（VG %s，未激活）\n' "$rd" "$vg"
+                        printf '  %s\n' "$(_tf '⛔ %s is an LVM PV (VG %s, not activated)' "$rd" "$vg")"
                     else
-                        printf '  ⛔ %s 含 LVM PV 签名（旧 VG 残留）\n' "$rd"
+                        printf '  %s\n' "$(_tf '⛔ %s holds an LVM PV signature (old VG leftover)' "$rd")"
                     fi
                 else
-                    printf '  ⛔ %s 含 %s 签名\n' "$rd" "$dt"
+                    printf '  %s\n' "$(_tf '⛔ %s holds a %s signature' "$rd" "$dt")"
                 fi ;;
         esac
     done < <(_disk_in_use_reasons "$dev")
 }
 
 _disk_show_detail() {
-    echo "目标设备详情："
+    printf '%s\n' "$(_t 'Target device details:')"
     lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,MOUNTPOINT,MODEL "$1" 2>/dev/null || true
 }
 
@@ -171,30 +171,30 @@ _disk_show_detail() {
 _disk_guard_destructive() {
     local dev="$1" action="$2" allow_sig_only="${3:-0}" typed reasons
     if [[ ! -t 0 ]]; then
-        error "拒绝：$action 属破坏性操作，仅允许在交互终端执行（安全护栏，无 --yes 跳过）"
+        error "$(_tf 'Refused: %s is destructive, interactive terminal only (no --yes bypass)' "$action")"
         return 1
     fi
     if _disk_is_protected "$dev"; then
-        error "拒绝：$dev 是系统/启动/swap 所在盘或其分区，禁止破坏性操作"
+        error "$(_tf 'Refused: %s is the system/boot/swap disk or a partition of it' "$dev")"
         return 1
     fi
     reasons=$(_disk_in_use_reasons "$dev")
     if [[ -n "$reasons" ]]; then
         if [[ "$allow_sig_only" == "1" ]] && ! grep -qE '^(MOUNT\||HOLD\|)' <<< "$reasons"; then
             # wipe 特例：无挂载、无激活占用，仅旧签名——擦签名正是解除它们的操作
-            warn "$dev 无挂载、无激活占用，仅存旧签名（wipefs 可解除）："
+            warn "$dev $(_t 'Not mounted, no holder, only old signatures (wipefs clears):')"
             _disk_in_use_report "$dev"
         else
-            error "拒绝：$dev 正在使用中："
+            error "$(_tf 'Refused: %s is in use:' "$dev")"
             _disk_in_use_report "$dev"
-            info "提示：若仅剩旧签名残留（无挂载/无激活占用），可用 wipe 解除后重试（如：wipe sdb3）"
+            info "$(_t 'Hint: only old signatures left? clear them with wipe and retry')"
             return 1
         fi
     fi
     _disk_show_detail "$dev"
-    read -r -p "⚠️  $action 将清除 $dev 上的全部数据。请输入完整设备名（如 sdb 或 sdb1）确认: " typed
+    read -r -p "$(_tf '⚠️  %s will erase all data on %s. Type the full device name:' "$action" "$dev") " typed
     if [[ "${typed#/dev/}" != "${dev#/dev/}" || -z "$typed" ]]; then
-        error "输入不一致（期望: ${dev#/dev/}），已取消"
+        error "$(_tf 'Input mismatch (expected: %s), cancelled' "${dev#/dev/}")"
         return 1
     fi
 }
@@ -247,9 +247,9 @@ _smart_verdict() {
     health=$(_smart_health_word "$h_out")
     if [[ "$health" == "FAILED" ]]; then
         verdict="critical"
-        reasons="SMART 总评 FAILED"
+        reasons="SMART $(_t 'overall verdict FAILED')"
     elif [[ -z "$health" ]]; then
-        echo "unknown|读不到 SMART 数据（USB 桥/RAID 背板不支持或权限不足）"
+        echo "unknown|$(_t 'Cannot read SMART data (USB bridge/RAID unsupported, or no rights)')"
         return 0
     fi
     case "$bus" in
@@ -266,36 +266,38 @@ _smart_verdict() {
             fi
             if _smart_num_gt "$media" 0; then
                 verdict="critical"
-                reasons="${reasons:+${reasons};}介质错误(Media Errors)=${media}"
+                reasons="${reasons:+${reasons};}$(_tf 'Media errors(Media Errors)=%s' "${media}")"
             fi
             if [[ "$spare" =~ ^[0-9]+$ && "$spare_th" =~ ^[0-9]+$ ]] && (( 10#$spare < 10#$spare_th )); then
                 verdict="critical"
-                reasons="${reasons:+${reasons};}备用空间 ${spare}% 低于阈值 ${spare_th}%"
+                reasons="${reasons:+${reasons};}$(_tf 'Available spare %s%% below threshold %s%%' "${spare}" "${spare_th}")"
             fi
             if _smart_num_gt "$pct" 89; then
                 [[ "$verdict" == "healthy" ]] && verdict="warning"
-                reasons="${reasons:+${reasons};}寿命已耗 ${pct}%"
+                reasons="${reasons:+${reasons};}$(_tf 'Lifetime used up %s%%' "${pct}")"
             fi
             ;;
         *)
-            for id in 197 198 187; do   # 待定/不可修复/不可纠正 → 危险
+            # 待定/不可修复/不可纠正 → 危险
+            for id in 197 198 187; do
                 raw=$(_smart_ata_raw "$a_out" "$id")
                 if _smart_num_gt "$raw" 0; then
                     verdict="critical"
                     case "$id" in
-                        197) reasons="${reasons:+${reasons};}待定扇区(Current_Pending)=${raw}" ;;
-                        198) reasons="${reasons:+${reasons};}不可修复扇区(Offline_Uncorrectable)=${raw}" ;;
-                        187) reasons="${reasons:+${reasons};}不可纠正(Reported_Uncorrect)=${raw}" ;;
+                        197) reasons="${reasons:+${reasons};}$(_tf 'Pending sectors(Current_Pending)=%s' "${raw}")" ;;
+                        198) reasons="${reasons:+${reasons};}$(_tf 'Uncorrectable sectors(Offline_Uncorrectable)=%s' "${raw}")" ;;
+                        187) reasons="${reasons:+${reasons};}$(_tf 'Uncorrectable errors(Reported_Uncorrect)=%s' "${raw}")" ;;
                     esac
                 fi
             done
-            for id in 5 196; do         # 重映射扇区/事件 → 注意（盘在自愈）
+            # 重映射扇区/事件 → 注意（盘在自愈）
+            for id in 5 196; do
                 raw=$(_smart_ata_raw "$a_out" "$id")
                 if _smart_num_gt "$raw" 0; then
                     [[ "$verdict" == "healthy" ]] && verdict="warning"
                     case "$id" in
-                        5)   reasons="${reasons:+${reasons};}重映射扇区(Reallocated_Sector)=${raw}" ;;
-                        196) reasons="${reasons:+${reasons};}重映射事件(Reallocation_Event)=${raw}" ;;
+                        5)   reasons="${reasons:+${reasons};}$(_tf 'Reallocated sectors(Reallocated_Sector)=%s' "${raw}")" ;;
+                        196) reasons="${reasons:+${reasons};}$(_tf 'Reallocation events(Reallocation_Event)=%s' "${raw}")" ;;
                     esac
                 fi
             done
@@ -315,10 +317,10 @@ _smart_verdict_emoji() {
 
 _smart_verdict_cn() {
     case "$1" in
-        healthy)  echo "健康" ;;
-        warning)  echo "注意" ;;
-        critical) echo "危险" ;;
-        *)        echo "未知" ;;
+        healthy)  printf '%s\n' "$(_t 'Healthy')" ;;
+        warning)  printf '%s\n' "$(_t 'Warning')" ;;
+        critical) printf '%s\n' "$(_t 'Dangerous')" ;;
+        *)        printf '%s\n' "$(_t 'Unknown')" ;;
     esac
 }
 
@@ -329,10 +331,10 @@ _smart_verdict_cn() {
 cmd_list() {
     _linux_require || return 1
     _disk_require_tool lsblk || return 1
-    info "块设备一览（⚠️ 行见下方受保护清单）："
+    info "$(_t 'Block device overview (⚠️ see the protected list below):')"
     lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,MOUNTPOINT,MODEL 2>/dev/null || lsblk
     echo
-    echo "受保护设备（系统/启动/swap 相关，禁止破坏性操作）："
+    printf '%s\n' "$(_t 'Protected devices (system/boot/swap: no destructive ops):')"
     local found=false d info_line
     while IFS= read -r d; do
         [[ -z "$d" ]] && continue
@@ -342,20 +344,21 @@ cmd_list() {
         info_line=$(lsblk -rno SIZE,TYPE,FSTYPE,MOUNTPOINT "$d" 2>/dev/null | tail -1 || true)
         printf '  ⚠️  %-40s %s\n' "$d" "$info_line"
     done < <(_disk_system_devices)
-    $found || echo "  （无）"
+    $found || echo "  $(_t '(none)')"
 }
 
 # 实际格式化（无护栏；护栏由调用方负责）
 _disk_format_device() {
     local dev="$1" fs="$2"
     _disk_ensure_mkfs "$fs"
-    info "格式化 $dev → $fs ..."
+    info "$(_tf 'Formatting %s -> %s ...' "$dev" "$fs")"
     case "$fs" in
         ext4)  sudo mkfs.ext4 -F "$dev" ;;
         xfs)   sudo mkfs.xfs -f "$dev" ;;
         vfat)  sudo mkfs.vfat -F 32 "$dev" ;;
         exfat) sudo mkfs.exfat "$dev" ;;
-        ntfs)  sudo mkfs.ntfs -f "$dev" ;;   # -f 快速格式化（不清零全盘）
+        # -f 快速格式化（不清零全盘）
+        ntfs)  sudo mkfs.ntfs -f "$dev" ;;
     esac
     sync
     # mkfs 后 udev 数据库有延迟：紧接着读 UUID（wizard 的 fstab add）可能拿到旧签名
@@ -368,38 +371,38 @@ _disk_format_device() {
 
 cmd_format() {
     local dev_s="${1:-}" fs="${2:-ext4}" dev
-    [[ -n "$dev_s" ]] || { error "用法: format <设备> [ext4|xfs|vfat|exfat|ntfs]（默认 ext4）"; return 1; }
-    case " $DISK_SUPPORTED_FS " in *" $fs "*) ;; *) error "不支持的文件系统: ${fs}（支持: ${DISK_SUPPORTED_FS}）"; return 1 ;; esac
+    [[ -n "$dev_s" ]] || { error "$(_t 'Usage: format <device> [ext4|xfs|vfat|exfat|ntfs] (default ext4)')"; return 1; }
+    case " $DISK_SUPPORTED_FS " in *" $fs "*) ;; *) error "$(_tf 'Unsupported file system: %s (supported: %s)' "${fs}" "${DISK_SUPPORTED_FS}")"; return 1 ;; esac
     dev=$(_disk_resolve "$dev_s") || return 1
     _linux_require || return 1
     require_sudo
-    _disk_guard_destructive "$dev" "格式化" || return 1
+    _disk_guard_destructive "$dev" "$(_t 'format')" || return 1
     _disk_format_device "$dev" "$fs"
-    success "格式化完成: $dev ($fs)，UUID=$(lsblk -no UUID "$dev" 2>/dev/null | head -1)"
-    echo "  下一步: ./install.sh disk fstab add ${dev} /mnt/point"
+    success "$(_tf 'Format complete: %s (%s),' "$dev" "$fs")UUID=$(lsblk -no UUID "$dev" 2>/dev/null | head -1)"
+    echo "  $(_tf 'Next step: ./install.sh disk fstab add %s /mnt/point' "${dev}")"
 }
 
 cmd_partition() {
     local dev_s="${1:-}" dev child
-    [[ -n "$dev_s" ]] || { error "用法: partition <整盘>（GPT 单分区全盘）"; return 1; }
+    [[ -n "$dev_s" ]] || { error "$(_t 'Usage: partition <whole disk> (GPT single partition of the whole disk)')"; return 1; }
     dev=$(_disk_resolve "$dev_s") || return 1
     _linux_require || return 1
     _disk_require_tool parted || return 1
     require_sudo
-    [[ "$(_disk_type "$dev")" == "disk" ]] || { error "$dev 不是整盘（向导/分区只接受整盘，分区请直接 format）"; return 1; }
-    _disk_guard_destructive "$dev" "分区（清签名 + GPT 单分区）" || return 1
+    [[ "$(_disk_type "$dev")" == "disk" ]] || { error "$dev $(_t 'Not a whole disk (wizard/partition need a whole disk; use format)')"; return 1; }
+    _disk_guard_destructive "$dev" "$(_t 'partition (clear signatures + GPT single partition)')" || return 1
     sudo wipefs -a "$dev"
     sudo parted -s "$dev" mklabel gpt mkpart primary 1MiB 100%
     sudo partprobe "$dev" 2>/dev/null || true
     sync; sleep 1
     child=$(lsblk -rno NAME,TYPE "$dev" | awk '$2=="part" {print "/dev/" $1; exit}')
-    [[ -n "$child" ]] || { error "分区创建失败"; return 1; }
-    success "分区完成: ${child}（GPT）。下一步: ./install.sh disk format $child ext4"
+    [[ -n "$child" ]] || { error "$(_t 'Partition creation failed')"; return 1; }
+    success "$(_tf 'Partition complete: %s (GPT). Next: ./install.sh disk format %s ext4' "${child}" "$child")"
 }
 
 cmd_mount() {
     local dev_s="${1:-}" mp="${2:-}" persist="${3:-}" dev fs
-    [[ -n "$dev_s" && -n "$mp" ]] || { error "用法: mount <设备> <挂载点> [--fstab]"; return 1; }
+    [[ -n "$dev_s" && -n "$mp" ]] || { error "$(_t 'Usage: mount <device> <mount point> [--fstab]')"; return 1; }
     dev=$(_disk_resolve "$dev_s") || return 1
     _linux_require || return 1
     require_sudo
@@ -408,37 +411,37 @@ cmd_mount() {
         return
     fi
     fs=$(lsblk -no FSTYPE "$dev" 2>/dev/null | head -1)
-    [[ -n "$fs" ]] || { error "$dev 无文件系统签名，请先 format"; return 1; }
+    [[ -n "$fs" ]] || { error "$dev $(_t 'No file system signature, please run format first')"; return 1; }
     sudo mkdir -p "$mp"
     sudo mount "$dev" "$mp"
-    success "已挂载: $dev → ${mp}（持久化请用 --fstab 或 fstab add）"
+    success "$(_tf 'Mounted: %s -> %s (use --fstab or fstab add to persist)' "$dev" "${mp}")"
 }
 
 cmd_umount() {
     local target="${1:-}"
-    [[ -n "$target" ]] || { error "用法: umount <挂载点|设备>"; return 1; }
+    [[ -n "$target" ]] || { error "$(_t 'Usage: umount <mount point|device>')"; return 1; }
     _linux_require || return 1
     require_sudo
     sudo umount "$target"
-    success "已卸载: $target"
+    success "$(_tf 'Unmounted: %s' "$target")"
     if grep -qs "[[:space:]]${target}[[:space:]]" /etc/fstab 2>/dev/null; then
-        warn "$target 仍在 fstab 中，重启后会重新挂载；如需移除: ./install.sh disk fstab remove $target"
+        warn "$target $(_tf 'Still in fstab, mounted again after reboot; remove: fstab remove %s' "$target")"
     fi
 }
 
 cmd_fstab() {
     local sub="${1:-list}"; shift || true
     case "$sub" in
-        list)   _linux_require || return 1; info "fstab 非注释条目："; grep -v '^\s*#' /etc/fstab | grep -v '^\s*$' || true ;;
+        list)   _linux_require || return 1; info "fstab $(_t 'Non-comment entries:')"; grep -v '^\s*#' /etc/fstab | grep -v '^\s*$' || true ;;
         add)    _disk_fstab_add_cmd "$@" ;;
         remove) _disk_fstab_remove "${1:-}" ;;
-        *)      error "用法: fstab {list|add <设备> <挂载点> [选项]|remove <挂载点>}"; return 1 ;;
+        *)      error "$(_t 'Usage: fstab {list|add <dev> <mount point> [opts]|remove <mount point>}')"; return 1 ;;
     esac
 }
 
 _disk_fstab_add_cmd() {
     local dev_s="${1:-}" mp="${2:-}" opt="${3:-defaults,nofail}" dev
-    [[ -n "$dev_s" && -n "$mp" ]] || { error "用法: fstab add <设备> <挂载点> [选项]（默认 defaults,nofail）"; return 1; }
+    [[ -n "$dev_s" && -n "$mp" ]] || { error "$(_t 'Usage: fstab add <dev> <mount point> [opts] (default defaults,nofail)')"; return 1; }
     dev=$(_disk_resolve "$dev_s") || return 1
     _linux_require || return 1
     require_sudo
@@ -448,38 +451,38 @@ _disk_fstab_add_cmd() {
 # 实际写入 fstab：挂载验证 → 备份 → 追加 → mount -a 验证 → 失败回滚
 _disk_fstab_add() {
     local dev="$1" opt="${2:-defaults,nofail}" mp="${3:-}" fs uuid ts
-    [[ -n "$mp" ]] || { error "未指定挂载点"; return 1; }
+    [[ -n "$mp" ]] || { error "$(_t 'No mount point specified')"; return 1; }
     fs=$(lsblk -no FSTYPE "$dev" 2>/dev/null | head -1)
-    [[ -n "$fs" ]] || { error "$dev 无文件系统签名，请先 format"; return 1; }
+    [[ -n "$fs" ]] || { error "$dev $(_t 'No file system signature, please run format first')"; return 1; }
     uuid=$(lsblk -no UUID "$dev" 2>/dev/null | head -1)
-    [[ -n "$uuid" ]] || { error "无法获取 $dev 的 UUID"; return 1; }
+    [[ -n "$uuid" ]] || { error "$(_tf 'Cannot get the UUID of %s' "$dev")"; return 1; }
     sudo mkdir -p "$mp"
     if ! findmnt -rn -o SOURCE "$mp" 2>/dev/null | grep -q "^${dev}"; then
-        sudo mount "$dev" "$mp" || { error "挂载 $dev → $mp 失败，fstab 未写入"; return 1; }
+        sudo mount "$dev" "$mp" || { error "$(_tf 'Mounting %s -> %s failed, fstab was not written' "$dev" "$mp")"; return 1; }
     fi
     ts=$(date +%s)
     sudo cp -a /etc/fstab "/etc/fstab.bak.$ts"
     echo "UUID=$uuid $mp $fs $opt 0 2" | sudo tee -a /etc/fstab >/dev/null
     if ! sudo mount -a 2>/dev/null; then
-        error "mount -a 验证失败，已回滚 fstab（备份: /etc/fstab.bak.${ts}）"
+        error "mount -a $(_tf 'validation failed, fstab rolled back (backup: /etc/fstab.bak.%s)' "${ts}")"
         sudo cp -a "/etc/fstab.bak.$ts" /etc/fstab
         return 1
     fi
-    success "已写入 fstab: UUID=$uuid → ${mp}（$fs, ${opt}），备份: /etc/fstab.bak.$ts"
+    success "$(_tf 'Written to fstab: UUID=%s -> %s (%s, %s), backup: /etc/fstab.bak.%s' "$uuid" "${mp}" "$fs" "${opt}" "$ts")"
 }
 
 _disk_fstab_remove() {
     local mp="${1:-}" ts
-    [[ -n "$mp" ]] || { error "用法: fstab remove <挂载点>"; return 1; }
+    [[ -n "$mp" ]] || { error "$(_t 'Usage: fstab remove <mount point>')"; return 1; }
     _linux_require || return 1
     require_sudo
-    grep -qs "[[:space:]]${mp}[[:space:]]" /etc/fstab || { warn "fstab 中没有 ${mp} 的条目"; return 0; }
+    grep -qs "[[:space:]]${mp}[[:space:]]" /etc/fstab || { warn "fstab $(_tf 'No entry for %s in fstab' "${mp}")"; return 0; }
     ts=$(date +%s)
     sudo cp -a /etc/fstab "/etc/fstab.bak.$ts"
     sudo awk -v m="$mp" '$2 != m' /etc/fstab | sudo tee /etc/fstab.new >/dev/null
     sudo mv /etc/fstab.new /etc/fstab
     sudo mount -a 2>/dev/null || true
-    success "已移除 fstab 条目: ${mp}（备份: /etc/fstab.bak.${ts}）"
+    success "$(_tf 'fstab entry removed: %s (backup: /etc/fstab.bak.%s)' "${mp}" "${ts}")"
 }
 
 # smartctl 统一读取：自动探测失败（提示 SAT 层，某些 SAT 层/USB 桥/虚拟化环境会出现）时
@@ -516,7 +519,8 @@ _smart_bus() {
 _smart_report_one() {
     local dev="$1" raw h a vout verdict reasons model size
     raw=$(_smartctl_read "$dev")
-    raw=${raw#*$'\x1e'}   # 丢弃 -i 段（概览不需要设备信息）
+    # 丢弃 -i 段（概览不需要设备信息）
+    raw=${raw#*$'\x1e'}
     h=${raw%%$'\x1e'*}
     a=${raw#*$'\x1e'}
     vout=$(_smart_verdict "$h" "$a" "$(_smart_bus "$dev")")
@@ -528,7 +532,11 @@ _smart_report_one() {
     else
         model=$(lsblk -dno MODEL "$dev" 2>/dev/null | head -1 || true)
         size=$(lsblk -dno SIZE "$dev" 2>/dev/null | head -1 || true)
-        emit_status "$verdict" "$(_smart_verdict_emoji "$verdict") ${dev##*/}  ${model:-?}  ${size:-?}  $(_smart_verdict_cn "$verdict")${reasons:+（${reasons}）}"
+        local rdetail=""
+        if [[ -n "$reasons" ]]; then
+            rdetail="$(_tf 'SMART reason detail: (%s)' "$reasons")"
+        fi
+        emit_status "$verdict" "$(_smart_verdict_emoji "$verdict") ${dev##*/}  ${model:-?}  ${size:-?}  $(_smart_verdict_cn "$verdict")$rdetail"
     fi
 }
 
@@ -546,29 +554,30 @@ _smart_report_detail() {
         emit_extra "dev=${dev##*/} reasons=${reasons}"
         return 0
     fi
-    header "═══ SMART 健康体检：${dev} ═══"
-    echo "—— 设备信息 ——"
+    header "$(_tf '═══ SMART health check: %s ═══' "${dev}")"
+    printf '%s\n' "$(_t '—— Device information ——')"
     sed -n '1,20p' <<<"$i"
     echo
-    echo "—— SMART 总评 ——"
-    cat <<<"$h"   # 健康异常时 smartctl 退出非零是正常语义，以输出为准
+    printf '%s\n' "$(_t '—— SMART overall verdict ——')"
+    # 健康异常时 smartctl 退出非零是正常语义，以输出为准
+    cat <<<"$h"
     echo
-    echo "—— 关键指标 ——"
+    printf '%s\n' "$(_t '—— Key metrics ——')"
     temp=$(_smart_ata_raw "$a" 194)
     [[ -n "$temp" ]] || temp=$(_smart_pct "$(_smart_nvme_val "$a" "Temperature:")")
     hours=$(_smart_ata_raw "$a" 9)
     [[ -n "$hours" ]] || hours=$(_smart_nvme_val "$a" "Power On Hours:")
-    [[ -n "$temp" ]] && echo "温度: ${temp}°C"
-    [[ -n "$hours" ]] && echo "通电时长: ${hours} 小时"
+    [[ -n "$temp" ]] && printf '%s\n' "$(_tf 'Temperature: %s°C' "${temp}")"
+    [[ -n "$hours" ]] && printf '%s\n' "$(_tf 'Power on time: %s hours' "${hours}")"
     echo
-    echo "—— 属性表 ——"
+    printf '%s\n' "$(_t '—— Attribute table ——')"
     cat <<<"$a"
     echo
     case "$verdict" in
-        healthy)  success "$(_smart_verdict_emoji healthy) 结论：健康——未发现异常指标" ;;
-        warning)  warn "$(_smart_verdict_emoji warning) 结论：注意——${reasons}（盘正在自愈，关注趋势，保持备份）" ;;
-        critical) error "$(_smart_verdict_emoji critical) 结论：危险——${reasons}（建议立即备份数据，评估换盘）" ;;
-        *)        warn "$(_smart_verdict_emoji unknown) 结论：未知——${reasons}" ;;
+        healthy)  success "$(_smart_verdict_emoji healthy) $(_t 'Conclusion: healthy — no abnormal metrics found')" ;;
+        warning)  warn "$(_smart_verdict_emoji warning) $(_tf 'Conclusion: warning — %s (disk self-healing, watch trend, keep backups)' "${reasons}")" ;;
+        critical) error "$(_smart_verdict_emoji critical) $(_tf 'Conclusion: dangerous — %s (back up data now, consider a new disk)' "${reasons}")" ;;
+        *)        warn "$(_smart_verdict_emoji unknown) $(_tf 'Conclusion: unknown — %s' "${reasons}")" ;;
     esac
     [[ "$verdict" == "critical" ]] && return 1
     return 0
@@ -577,18 +586,18 @@ _smart_report_detail() {
 cmd_smart() {
     _linux_require || return 1
     if ! command -v smartctl >/dev/null 2>&1; then
-        info "未安装 smartmontools，正在补装..."
+        info "$(_t 'smartmontools is not installed, installing it now...')"
         pkg_install smartmontools
     fi
     require_sudo
     if [[ $# -eq 0 ]]; then
-        header "SMART 健康概览（全部整盘）："
+        header "SMART $(_t 'Health overview (all whole disks):')"
         local d any=false
         while IFS= read -r d; do
             any=true
             _smart_report_one "/dev/$d"
         done < <(lsblk -drno NAME,TYPE 2>/dev/null | awk '$2=="disk"{print $1}')
-        $any || warn "未发现整盘设备"
+        $any || warn "$(_t 'No whole disk device found')"
         return 0
     fi
     local dev_s="$1" dev
@@ -599,11 +608,11 @@ cmd_smart() {
 
 cmd_scan() {
     local dev_s="${1:-}" dev base size est_min bb_out badn rc
-    [[ -n "$dev_s" ]] || { error "用法: scan <整盘|分区>（如 sdb 或 sdb1）"; return 1; }
+    [[ -n "$dev_s" ]] || { error "$(_t 'Usage: scan <whole disk|partition> (e.g. sdb or sdb1)')"; return 1; }
     _linux_require || return 1
     dev=$(_disk_resolve "$dev_s") || return 1
     if ! command -v badblocks >/dev/null 2>&1; then
-        info "未安装 badblocks（e2fsprogs），正在补装..."
+        info "$(_t 'badblocks (e2fsprogs) is not installed, installing it now...')"
         pkg_install e2fsprogs
     fi
     require_sudo
@@ -611,43 +620,43 @@ cmd_scan() {
     _disk_show_detail "$dev"
     # 只读扫描不走破坏性护栏：使用中/系统盘仅警告 IO 竞争，不拒绝（不写盘，数据零风险）
     if _disk_in_use "$dev" || _disk_is_protected "$base"; then
-        warn "扫描为只读（不写盘），但 ${dev} 正在使用中/属系统盘：扫描会显著变慢且拖累系统 IO"
+        warn "$(_tf 'Scan is read-only, but %s is in use or a system disk: it will be slow' "${dev}")"
     fi
     size=$(lsblk -bno SIZE "$dev" 2>/dev/null | head -1 || true)
     if [[ "$size" =~ ^[0-9]+$ ]]; then
         est_min=$(( size / 1048576 / 150 / 60 ))
         (( est_min < 1 )) && est_min=1
-        info "预计耗时约 $(( est_min / 60 )) 小时 $(( est_min % 60 )) 分钟（按 ~150MB/s 估算，SSD 通常更快）"
+        info "$(_tf 'Estimated time: %s h %s min (at ~150MB/s, SSD is usually faster)' "$(( est_min / 60 ))" "$(( est_min % 60 ))")"
     fi
-    header "开始只读盘面扫描（badblocks，不写盘）。长时间扫描建议放 tmux/screen；Ctrl-C 可中断，已扫部分无结论可直接重跑。"
+    header "$(_t 'Starting a read-only disk scan (badblocks). Ctrl-C stops it, rerun.')"
     bb_out=$(mktemp "${TMPDIR:-/tmp}/uxs-badblocks.XXXXXX")
     rc=0
     sudo badblocks -sv -b 4096 -o "$bb_out" "$dev" || rc=$?
     badn=$(wc -l < "$bb_out" 2>/dev/null || true)
     badn=$(printf '%s' "${badn:-0}" | tr -d '[:space:]')
     if (( badn > 0 )); then
-        error "🔴 发现 ${badn} 个坏块！建议：① 立即备份重要数据 ② ./install.sh disk smart ${base##*/} 查看重映射趋势 ③ 评估更换硬盘"
-        echo "坏块 LBA 清单（前 20 行；完整清单: ${bb_out}）:"
+        error "$(_tf '🔴 Found %s bad blocks! Back up data; check disk smart %s for trends' "${badn}" "${base##*/}")"
+        printf '%s\n' "$(_tf 'Bad block LBA list (first 20 lines; full list: %s):' "${bb_out}")"
         head -20 "$bb_out" || true
         return 1
     elif (( rc != 0 )); then
-        error "扫描异常退出（rc=${rc}；退出码 bit2=被中断）。已扫描部分无结论，可直接重跑"
+        error "$(_tf 'The scan exited abnormally (rc=%s; bit2 = interrupted). Just rerun it' "${rc}")"
         return 1
     fi
     rm -f "$bb_out"
-    success "✅ 盘面完好：${dev} 全盘只读扫描未发现坏块"
+    success "$(_tf '✅ Disk surface is healthy: a full scan of %s found no bad blocks' "${dev}")"
 }
 
 cmd_wipe() {
     local dev_s="${1:-}" dev
-    [[ -n "$dev_s" ]] || { error "用法: wipe <设备>（清文件系统/分区表签名）"; return 1; }
+    [[ -n "$dev_s" ]] || { error "$(_t 'Usage: wipe <device> (clear file system/partition table signatures)')"; return 1; }
     dev=$(_disk_resolve "$dev_s") || return 1
     _linux_require || return 1
     require_sudo
-    _disk_guard_destructive "$dev" "擦除签名（wipefs）" 1 || return 1
+    _disk_guard_destructive "$dev" "$(_t 'erase signatures (wipefs)')" 1 || return 1
     sudo wipefs -a "$dev"
     sync
-    success "已清除 $dev 的所有签名"
+    success "$(_tf 'All signatures of %s have been cleared' "$dev")"
 }
 
 cmd_wizard() {
@@ -655,75 +664,75 @@ cmd_wizard() {
     _disk_require_tool lsblk parted || return 1
     require_sudo
     if [[ ! -t 0 ]]; then
-        error "向导需要交互终端（安全护栏）"
+        error "$(_t 'The wizard needs an interactive terminal (safety guard)')"
         return 1
     fi
-    header "🧙 新盘一键上线向导：分区 → 格式化 → 挂载 → fstab"
+    header "$(_t '🧙 New disk one-click wizard: partition -> format -> mount -> fstab')"
     echo "========================================"
     cmd_list || true
     local ds dev fs mp child
-    read -r -p "选择要上线的整盘（如 sdb）: " ds
+    read -r -p "$(_t 'Select the whole disk to bring online (e.g. sdb):') " ds
     dev=$(_disk_resolve "$ds") || return 1
-    [[ "$(_disk_type "$dev")" == "disk" ]] || { error "$dev 不是整盘，向导只接受整盘（分区请直接用 format）"; return 1; }
-    _disk_guard_destructive "$dev" "新盘向导（分区+格式化）" || return 1
-    read -r -p "文件系统 [$DISK_SUPPORTED_FS]（回车=ext4）: " fs
+    [[ "$(_disk_type "$dev")" == "disk" ]] || { error "$dev $(_t 'Not a whole disk, the wizard needs a whole disk (use format)')"; return 1; }
+    _disk_guard_destructive "$dev" "$(_t 'new disk wizard (partition+format)')" || return 1
+    read -r -p "$(_tf 'File system [%s] (press Enter for ext4):' "$DISK_SUPPORTED_FS") " fs
     fs=${fs:-ext4}
-    case " $DISK_SUPPORTED_FS " in *" $fs "*) ;; *) error "不支持的文件系统: $fs"; return 1 ;; esac
-    read -r -p "挂载点（回车=/mnt/${ds}）: " mp
+    case " $DISK_SUPPORTED_FS " in *" $fs "*) ;; *) error "$(_tf 'Unsupported file system: %s' "$fs")"; return 1 ;; esac
+    read -r -p "$(_tf 'Mount point (press Enter for /mnt/%s):' "${ds}") " mp
     mp=${mp:-/mnt/${ds}}
-    case "$mp" in /*) ;; *) error "挂载点必须是绝对路径: $mp"; return 1 ;; esac
+    case "$mp" in /*) ;; *) error "$(_tf 'The mount point must be an absolute path: %s' "$mp")"; return 1 ;; esac
 
-    info "① 分区（GPT 单分区全盘）..."
+    info "$(_t '① Partition (GPT single partition of the whole disk)...')"
     sudo wipefs -a "$dev"
     sudo parted -s "$dev" mklabel gpt mkpart primary 1MiB 100%
     sudo partprobe "$dev" 2>/dev/null || true
     sync; sleep 1
     child=$(lsblk -rno NAME,TYPE "$dev" | awk '$2=="part" {print "/dev/" $1; exit}')
-    [[ -n "$child" ]] || { error "分区创建失败，向导中止"; return 1; }
+    [[ -n "$child" ]] || { error "$(_t 'Partition creation failed, the wizard aborts')"; return 1; }
 
-    info "② 格式化 $child → $fs ..."
+    info "$(_tf '② Format %s -> %s ...' "$child" "$fs")"
     _disk_format_device "$child" "$fs"
 
-    info "③ 挂载 + 写 fstab + 验证 ..."
+    info "$(_t '③ Mount + write fstab + verify ...')"
     if ! _disk_fstab_add "$child" "defaults,nofail" "$mp"; then
-        warn "分区与格式化已完成，但 fstab 未写入。可手动补: ./install.sh disk fstab add $child $mp"
+        warn "$(_tf 'Done, but fstab not written. Add manually: disk fstab add %s %s' "$child" "$mp")"
         return 1
     fi
     echo
-    success "🎉 新盘上线完成: $child ($fs) → ${mp}（已持久化，重启自动挂载）"
+    success "$(_tf '🎉 New disk is online: %s (%s) -> %s (persisted, auto-mounted)' "$child" "$fs" "${mp}")"
 }
 
 cmd_install() {
     _linux_require || return 1
-    detect_pkg_manager || { error "无法识别包管理器"; return 1; }
+    detect_pkg_manager || { error "$(_t 'Cannot detect the package manager')"; return 1; }
     require_sudo
-    info "🚀 安装磁盘管理工具箱依赖（parted/xfsprogs/dosfstools/exfatprogs/ntfs-3g/smartmontools）..."
+    info "$(_t '🚀 Installing the disk toolbox dependencies (parted/xfsprogs/...)...')"
     pkg_install parted xfsprogs dosfstools exfatprogs ntfs-3g smartmontools \
-        || { warn "按包名安装失败（老发行版 exfat 包名不同），尝试兜底 exfat-utils..."; pkg_install exfat-utils; }
-    success "磁盘管理工具箱依赖安装完成"
-    echo "  可用: ./install.sh disk list | wizard | format | fstab | smart ..."
+        || { warn "$(_t 'Install by package name failed, trying the exfat-utils fallback...')"; pkg_install exfat-utils; }
+    success "$(_t 'Disk toolbox dependencies installed')"
+    echo "  $(_t 'Available: ./install.sh disk list | wizard | format | fstab | smart ...')"
 }
 
 cmd_uninstall() {
     _linux_require || return 1
     detect_pkg_manager || true
-    warn "uninstall 仅移除本模块安装的辅助工具（parted xfsprogs dosfstools exfatprogs ntfs-3g smartmontools）"
-    warn "不会触碰任何磁盘数据、挂载与 fstab"
-    if ! yes_no "确认卸载这些工具包？"; then
-        info "已取消"
+    warn "uninstall $(_t 'Only removes the helper tools this module installed')"
+    warn "$(_t 'It will not touch any disk data, mounts or fstab')"
+    if ! yes_no "$(_t 'Confirm uninstalling these tool packages?')"; then
+        info "$(_t 'Cancelled')"
         return 0
     fi
     # e2fsprogs 是系统基础包，不参与卸载
     pkg_remove parted xfsprogs dosfstools exfatprogs ntfs-3g smartmontools 2>/dev/null \
         || pkg_remove parted xfsprogs dosfstools ntfs-3g smartmontools 2>/dev/null \
-        || warn "部分包未能移除（可能未安装或被其他软件依赖），不影响系统"
-    success "磁盘管理工具箱辅助工具已卸载"
+        || warn "$(_t 'Some packages could not be removed (not installed or needed); system OK')"
+    success "$(_t 'Disk toolbox helper tools uninstalled')"
 }
 
 cmd_status() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "disk 仅支持 Linux（当前：${OS_TYPE}）"
+        emit_status "n/a" "disk $(_tf 'Linux-only (current: %s)' "${OS_TYPE}")"
         return 0
     fi
     local miss_tools="" t opt_missing="" disks=0
@@ -732,7 +741,7 @@ cmd_status() {
     done
     command -v mkfs.ext4 >/dev/null 2>&1 || miss_tools="$miss_tools mkfs.ext4"
     if [[ -n "$miss_tools" ]]; then
-        emit_status "not_installed" "⚠️  磁盘工具箱依赖缺失:${miss_tools}（运行 ./install.sh disk install 补齐）"
+        emit_status "not_installed" "$(_tf '⚠️  Disk toolbox dependencies missing: %s (run disk install)' "${miss_tools}")"
         emit_extra "missing=${miss_tools// /,}"
         return 0
     fi
@@ -740,13 +749,13 @@ cmd_status() {
         command -v "$t" >/dev/null 2>&1 || opt_missing="$opt_missing$t,"
     done
     disks=$(lsblk -drno TYPE 2>/dev/null | grep -c '^disk$' || true)
-    emit_status "installed" "✅ 磁盘管理工具箱就绪（${disks} 块整盘）"
+    emit_status "installed" "$(_tf '✅ Disk toolbox is ready (%s whole disks)' "${disks}")"
     # 不 emit_version：工具箱无版本概念；输出 VERSION=n/a 会污染 status --json（拼成 disk:installed:n/a）
     emit_extra "disks=$disks"
     if [[ -n "$opt_missing" ]]; then
         emit_extra "optional_missing=${opt_missing%,}"
         if [[ "${UXS_STATUS_MODE:-human}" == "human" ]]; then
-            warn "可选工具未安装:${opt_missing%,}（对应功能首次使用时会自动补装）"
+            warn "$(_tf 'Optional tools not installed: %s (auto-installed on first use)' "${opt_missing%,}")"
         fi
     fi
     return 0
@@ -754,29 +763,29 @@ cmd_status() {
 
 usage() {
     cat <<EOF
-磁盘管理工具箱（仅 Linux）：分区 / 格式化 / 挂载 / fstab / SMART / 擦除签名
+$(_t 'Disk toolbox (Linux only): partition/format/mount/fstab/SMART/erase')
 
 用法: install.sh {list|wizard|partition|format|mount|umount|fstab|smart|scan|wipe|install|uninstall|status|help}
 
-  list                          列出块设备与受保护设备（默认动作）
-  wizard                        新盘一键上线：分区→格式化→挂载→fstab（交互）
-  partition <整盘>              GPT 单分区全盘（先清签名）
-  format <设备> [类型]          格式化：ext4(默认)/xfs/vfat/exfat/ntfs
-  mount <设备> <挂载点> [--fstab]  挂载（--fstab 同时持久化）
-  umount <挂载点|设备>          卸载
-  fstab list|add|remove         fstab 管理（UUID 方式，写前备份写后验证）
-  smart [整盘]                  SMART 健康体检（无参=全部整盘概览；单盘=详情+判读）
-  scan <整盘|分区>              盘面坏块只读扫描（badblocks 不写盘，耗时可能数小时）
-  wipe <设备>                   清除文件系统/分区表签名（wipefs）
-  install                       补装依赖工具
-  uninstall                     移除辅助工具（不碰磁盘数据）
-  status                        查看状态（机器可读: UXS_STATUS_MODE=machine）
+  list                          $(_t 'List block devices and protected devices (default action)')
+  wizard                        $(_t 'New disk wizard: partition -> format -> mount -> fstab (interactive)')
+  partition <$(_t 'whole disk')>              $(_t 'GPT single partition of the whole disk (signatures cleared first)')
+  format <$(_t 'disk device')> [$(_t 'file system type')]          $(_t 'Format: ext4 (default)/xfs/vfat/exfat/ntfs')
+  mount <$(_t 'disk device')> <$(_t 'mount point')> [--fstab]  $(_t 'Mount (--fstab also persists it)')
+  umount <$(_t 'mount point or device')>          $(_t 'Unmount')
+  fstab list|add|remove         fstab $(_t 'management (UUID based, backs up before writing and verifies after)')
+  smart [$(_t 'whole disk')]                  SMART $(_t 'health check (no arg = all disks overview; one disk = details)')
+  scan <$(_t 'whole disk or partition')>              $(_t 'Read-only bad block scan (badblocks does not write, may take hours)')
+  wipe <$(_t 'disk device')>                   $(_t 'Clear file system/partition table signatures (wipefs)')
+  install                       $(_t 'Install the missing dependency tools')
+  uninstall                     $(_t 'Remove the helper tools (does not touch disk data)')
+  status                        $(_t 'View status (machine readable: UXS_STATUS_MODE=machine)')
 
-⚠️  安全护栏（严格，无 --yes 绕过）：
-  · 根盘/启动盘/EFI/swap 及其所在整盘硬拒绝，使用中设备硬拒绝
-  · 破坏性操作仅限交互终端，且需手动输入完整设备名确认
-  · fstab 写入前自动备份，mount -a 验证失败自动回滚
-  · smart/scan 为只读体检：不写盘，scan 对使用中设备仅警告不拒绝
+$(_t '⚠️  Safety guard (strict, no --yes bypass):')
+  · $(_t 'Root/boot/EFI/swap disks and devices in use are hard-rejected')
+  · $(_t 'Destructive ops need an interactive terminal and the typed device name')
+  · $(_t 'fstab is backed up before writing; a failed mount -a rolls back')
+  · $(_t 'smart/scan are read-only checks: no disk writes, scan only warns')
 EOF
 }
 
@@ -797,7 +806,7 @@ main() {
         uninstall) cmd_uninstall ;;
         status)    cmd_status ;;
         help|-h|--help) usage ;;
-        *) usage; error "未知子命令: $cmd"; return 1 ;;
+        *) usage; error "$(_tf 'Unknown disk subcommand: %s' "$cmd")"; return 1 ;;
     esac
 }
 

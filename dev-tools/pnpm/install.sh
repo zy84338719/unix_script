@@ -24,38 +24,39 @@ preflight() {
 
 install_pnpm() {
     preflight
-    info "📦 安装 pnpm（Node.js 包管理器）"
+    info "$(_t '📦 Installing pnpm (the Node.js package manager)')"
 
     if command_exists pnpm; then
         local cur
-        cur=$(pnpm --version 2>/dev/null || echo "已安装")
-        warn "检测到已安装 pnpm（${cur}）"
-        if ! yes_no "是否继续并重新安装/更新？"; then
-            info "已取消"; return 0
+        cur=$(pnpm --version 2>/dev/null || printf '%s\n' "$(_t 'Installed')")
+        warn "$(_tf 'Detected that pnpm is already installed (%s)' "${cur}")"
+        if ! yes_no "$(_t 'Continue and reinstall/update it?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
     fi
 
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
-        info "通过 Homebrew 安装 pnpm..."
+        info "$(_t 'Installing pnpm via Homebrew...')"
         brew install pnpm
     else
-        info "通过官方独立脚本安装（${OFFICIAL_INSTALLER}）..."
+        info "$(_tf 'Installing via the official standalone script (%s)...' "${OFFICIAL_INSTALLER}")"
         # get.pnpm.io 的脚本需要 sh - 接收管道
         if ! bash -c "$(curl -fsSL "$OFFICIAL_INSTALLER")" -; then
-            error "官方安装脚本执行失败，请参考 https://pnpm.io/installation"
+            error "$(_t 'The official installation script failed, see https://pnpm.io/installation')"
             exit 1
         fi
     fi
 
     if ! command_exists pnpm && [[ -x "$PNPM_DIR/pnpm" ]]; then
-        warn "pnpm 已装到 $PNPM_DIR/pnpm，但不在当前 PATH"
-        info "请添加到 shell 配置：export PATH=\"$PNPM_DIR:\$PATH\""
+        warn "pnpm $(_tf 'Installed to %s/pnpm, but it is not in the current PATH' "$PNPM_DIR")"
+        # shellcheck disable=SC2016  # 译文里的 $PATH 是要原样打印的字面量，不能展开
+        info "$(_tf 'Add it to your shell configuration: export PATH="%s:$PATH"' "$PNPM_DIR")"
     fi
-    success "🎉 pnpm 安装完成！"
-    info "快速开始："
-    echo "  pnpm install         # 安装依赖"
-    echo "  pnpm run dev         # 运行脚本"
-    echo "  pnpm add <包名>       # 添加依赖"
+    success "$(_t '🎉 pnpm installation complete!')"
+    info "$(_t 'Quick start:')"
+    echo "  pnpm install         # $(_t 'Install dependencies')"
+    echo "  pnpm run dev         # $(_t 'Run a script')"
+    echo "  pnpm add <$(_t 'package name>       # Add a dependency')"
 }
 
 uninstall_pnpm() {
@@ -69,9 +70,9 @@ uninstall_pnpm() {
         removed=true
     fi
     if $removed; then
-        success "pnpm 已卸载"
+        success "pnpm $(_t 'Uninstalled')"
     else
-        warn "未找到 pnpm 安装"
+        warn "$(_t 'No pnpm installation found')"
     fi
 }
 
@@ -80,10 +81,10 @@ status_pnpm() {
     if command_exists pnpm || [[ -x "$PNPM_DIR/pnpm" ]]; then
         local ver
         ver=$(pnpm --version 2>/dev/null || "$PNPM_DIR/pnpm" --version 2>/dev/null || echo "")
-        emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+(v$ver)}"
+        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+(v$ver)}"
         emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 
@@ -91,9 +92,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装 pnpm（默认动作）
-  uninstall   卸载
-  status      查看状态
+  install     $(_t 'Install pnpm (default action)')
+  uninstall   $(_t 'Uninstall')
+  status      $(_t 'View the status')
 EOF
 }
 
@@ -105,7 +106,7 @@ main() {
         uninstall) uninstall_pnpm ;;
         status)    status_pnpm ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

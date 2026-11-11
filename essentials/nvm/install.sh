@@ -33,45 +33,45 @@ nvm_latest() {
 
 install_nvm() {
     preflight
-    info "🚀 安装 nvm（Node 版本管理）"
+    info "$(_t '🚀 Installing nvm (the Node version manager)')"
 
     if [[ -d "$NVM_DIR" ]]; then
-        warn "检测到已安装 nvm（${NVM_DIR}）"
-        if ! yes_no "是否重新安装/更新？"; then
-            info "已取消"; return 0
+        warn "$(_tf 'nvm detected (%s)' "${NVM_DIR}")"
+        if ! yes_no "$(_t 'Reinstall/update it?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
-        info "如需更新 nvm，安装后执行：nvm install-latest-nvm"
+        info "$(_t 'To update nvm, run this after the installation: nvm install-latest-nvm')"
     fi
 
     local version
     version=$(nvm_latest)
     if [[ -z "$version" ]]; then
-        error "无法获取 nvm 最新版本（请检查网络或设置 GH_TOKEN）"
+        error "$(_t 'Cannot fetch the latest nvm version (check the network or set GH_TOKEN)')"
         exit 1
     fi
-    success "最新版本：$version"
+    success "$(_tf 'Latest version: %s' "$version")"
 
-    info "下载安装脚本..."
+    info "$(_t 'Downloading the installation script...')"
     # 使用官方安装脚本（兼容性最好）
     local installer_url="https://raw.githubusercontent.com/${NVM_REPO}/${version}/install.sh"
     if ! curl -fsSL "$installer_url" | bash; then
-        error "nvm 安装失败"
+        error "nvm $(_t 'Installation failed')"
         exit 1
     fi
 
-    success "nvm 安装完成到 $NVM_DIR"
+    success "nvm $(_tf 'The installation is complete in %s' "$NVM_DIR")"
 
     # 配置 shell 启动文件（官方脚本通常会自动配置，这里确保覆盖）
     ensure_shell_config
 
     echo
-    info "激活 nvm（执行其一）："
+    info "$(_t 'Activate nvm (run one of them):')"
     echo "  source ~/.bashrc   # bash"
     echo "  source ~/.zshrc    # zsh"
     echo
-    info "常用命令："
-    echo "  nvm install --lts   # 安装最新 LTS 版 Node"
-    echo "  nvm install 20      # 安装指定版本"
+    info "$(_t 'Common commands:')"
+    echo "  nvm install --lts   # $(_t 'Install the latest LTS version of Node')"
+    echo "  nvm install 20      # $(_t 'Install a specific version')"
     echo "  nvm use 20"
     echo "  nvm ls"
 }
@@ -90,10 +90,10 @@ ensure_shell_config() {
         if [[ -f "$f" ]] && ! grep -q 'NVM_DIR' "$f" 2>/dev/null; then
             {
                 echo ""
-                echo "# nvm 配置（由 unix_script 添加）"
+                echo "# nvm $(_t 'the configuration (added by unix_script)')"
                 echo "$block"
             } >> "$f"
-            info "已为 $(basename "$f") 添加 nvm 配置"
+            info "$(_t 'nvm configuration has been added to') $(basename "$f") $(_t 'by unix_script')"
         fi
     done
 }
@@ -101,10 +101,10 @@ ensure_shell_config() {
 uninstall_nvm() {
     preflight
     if [[ ! -d "$NVM_DIR" ]]; then
-        warn "未安装 nvm"; return 0
+        warn "$(_t 'nvm is not installed')"; return 0
     fi
-    if ! yes_no "确认卸载 nvm（将删除 ${NVM_DIR}）？"; then
-        info "已取消"; return 0
+    if ! yes_no "$(_tf 'Confirm uninstalling nvm (it will delete %s)?' "${NVM_DIR}")"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
     rm -rf "$NVM_DIR"
     # 清理 shell 配置中的 nvm 行
@@ -112,10 +112,13 @@ uninstall_nvm() {
     for f in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile"; do
         if [[ -f "$f" ]]; then
             # 删除 NVM_DIR 相关行与注释
-            sed -i.bak '/NVM_DIR\|nvm.sh\|nvm 配置/d' "$f" 2>/dev/null || true
+            # 只匹配语言无关的标识：rc 里写入的 block 只含 NVM_DIR / nvm.sh / bash_completion。
+            # （原来还匹配中文「nvm 配置」—— 那是早期版本写进 rc 的中文注释，现已不再写入；
+            #  留着它会让卸载时的 sed 在英文环境下匹配不到，rc 残留。）
+            sed -i.bak '/NVM_DIR\|nvm\.sh\|bash_completion/d' "$f" 2>/dev/null || true
         fi
     done
-    success "nvm 已卸载（shell 配置中的相关行已移除）"
+    success "nvm $(_t 'It has been uninstalled (the related lines in the shell configuration have been removed)')"
 }
 
 status_nvm() {
@@ -123,11 +126,11 @@ status_nvm() {
     if [[ -d "$NVM_DIR" ]] && [[ -s "$NVM_DIR/nvm.sh" ]]; then
         # 不污染当前 shell，子 shell 加载后取版本
         local ver
-        ver=$(bash -c "source '$NVM_DIR/nvm.sh' && nvm --version" 2>/dev/null || echo "未知")
-        emit_status "installed" "${GREEN}✅ 已安装 nvm v${ver}${NC}"
+        ver=$(bash -c "source '$NVM_DIR/nvm.sh' && nvm --version" 2>/dev/null || printf '%s\n' "$(_t 'Unknown')")
+        emit_status "installed" "${GREEN}$(_tf '✅ nvm v%s is installed' "${ver}")${NC}"
         emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 
@@ -135,9 +138,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装 nvm 到 ~/.nvm 并配置 bash/zsh/profile
-  uninstall   卸载 nvm
-  status      查看安装状态
+  install     $(_t 'Install nvm into ~/.nvm and configure bash/zsh/profile')
+  uninstall   $(_t 'Uninstall nvm')
+  status      $(_t 'View the installation status')
 EOF
 }
 
@@ -149,7 +152,7 @@ main() {
         uninstall) uninstall_nvm ;;
         status)    status_nvm ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

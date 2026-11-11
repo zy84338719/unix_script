@@ -42,7 +42,7 @@ trash() {
     done
 
     if [[ ${#args[@]} -eq 0 ]]; then
-        echo "用法: t <文件...>   安全删除（移到回收站，可用 -r/-f 兼容 rm 习惯）" >&2
+        printf '%s\n' "$(_t 'Usage: t <file...>   Safe delete (move to trash; -r/-f accepted for rm compatibility)')" >&2
         return 1
     fi
 
@@ -58,7 +58,7 @@ trash() {
             full="$orig_dir/$item"
         fi
         if [[ ! -e "$full" ]] && [[ ! -L "$full" ]]; then
-            echo "trash: 无法删除 '$item'：文件不存在" >&2
+            printf '%s\n' "trash: $(_tf 'cannot delete %s: file does not exist' "$item")" >&2
             err=1
             continue
         fi
@@ -79,7 +79,7 @@ trash() {
                 printf 'DeletionDate=%s\n' "$(date +%Y-%m-%dT%H:%M:%S)"
             } > "$dest_info"
         else
-            echo "trash: 删除 '$item' 失败" >&2
+            printf '%s\n' "trash: $(_tf 'failed to delete %s' "$item")" >&2
             err=1
         fi
     done
@@ -90,7 +90,7 @@ trash() {
 trashlist() {
     _trash_init
     local count=0
-    echo "回收站：$_TRASH_FILES"
+    printf '%s\n' "$(_tf 'Trash: %s' "$_TRASH_FILES")"
     echo "-----------------------------------------------"
     # 按删除时间倒序（文件名含时间戳）。ls -1t 输出纯文件名，需拼接目录。
     local name f base orig
@@ -101,15 +101,15 @@ trashlist() {
         base="$name"
         # 读取原路径
         orig=$(grep '^Path=' "$_TRASH_INFO/$name.trashinfo" 2>/dev/null | cut -d= -f2-)
-        [[ -z "$orig" ]] && orig="(未知)"
+        [[ -z "$orig" ]] && orig="($(_t 'unknown)')"
         count=$((count + 1))
         printf '%2d) %-30s <- %s\n' "$count" "$base" "$orig"
     done < <(ls -1t "$_TRASH_FILES" 2>/dev/null)
     echo "-----------------------------------------------"
     if [[ $count -eq 0 ]]; then
-        echo "（回收站为空）"
+        printf '%s\n' "$(_t '(the trash is empty)')"
     else
-        echo "共 $count 项。恢复请用：trash-restore <序号>"
+        printf '%s\n' "$(_tf '%s item(s) in total. To restore, run: trash-restore <index>' "$count")"
     fi
 }
 
@@ -118,7 +118,7 @@ trash-restore() {
     _trash_init
     local idx="${1:-}"
     if [[ -z "$idx" ]]; then
-        echo "用法: trash-restore <序号>   （序号来自 tls）" >&2
+        printf '%s\n' "$(_t 'Usage: trash-restore <index>   (the index comes from tls)')" >&2
         return 1
     fi
     # 按同样的排序取出第 idx 个
@@ -135,29 +135,29 @@ trash-restore() {
     done < <(ls -1t "$_TRASH_FILES" 2>/dev/null)
 
     if [[ -z "$target" ]]; then
-        echo "trash-restore: 序号 $idx 无效" >&2
+        printf '%s\n' "trash-restore: $(_tf 'invalid index %s' "$idx")" >&2
         return 1
     fi
     # trashinfo 文件位于 ${_TRASH_INFO}，文件名 = <回收站文件名>.trashinfo
     target_info="$_TRASH_INFO/$(basename -- "$target").trashinfo"
     orig=$(grep '^Path=' "$target_info" 2>/dev/null | cut -d= -f2-)
     if [[ -z "$orig" ]]; then
-        echo "trash-restore: 找不到原始路径信息，无法恢复" >&2
+        printf '%s\n' "trash-restore: $(_t 'original path information not found, cannot restore')" >&2
         return 1
     fi
     # 若原路径已存在（被新文件占用），加 .restored 后缀避免覆盖
     local restore_path="$orig"
     if [[ -e "$restore_path" ]]; then
         restore_path="${orig}.restored.$(date +%s)"
-        echo "注意：原路径已存在文件，恢复到：$restore_path"
+        printf '%s\n' "$(_tf 'Note: a file already exists at the original path, restoring to: %s' "$restore_path")"
     fi
     # 确保父目录存在
     mkdir -p "$(dirname -- "$restore_path")" 2>/dev/null
     if mv -f -- "$target" "$restore_path" 2>/dev/null; then
         rm -f -- "$target_info"
-        echo "已恢复：$restore_path"
+        printf '%s\n' "$(_tf 'Restored: %s' "$restore_path")"
     else
-        echo "trash-restore: 恢复失败" >&2
+        printf '%s\n' "trash-restore: $(_t 'restore failed')" >&2
         return 1
     fi
 }
@@ -171,22 +171,22 @@ trash-empty() {
     local c
     c=$(find "$_TRASH_FILES" -mindepth 1 -maxdepth 1 2>/dev/null | wc -l | tr -d ' ')
     if [[ "$c" -eq 0 ]]; then
-        echo "回收站已是空的。"
+        printf '%s\n' "$(_t 'The trash is already empty.')"
         return 0
     fi
     if [[ "$force" != true ]]; then
-        echo "回收站有 $c 项。确认清空请用：trash-empty --force"
+        printf '%s\n' "$(_tf '%s item(s) in the trash. To empty it, run: trash-empty --force' "$c")"
         trash-size
         return 0
     fi
     rm -rf "${_TRASH_FILES:?}/"* "${_TRASH_INFO:?}/"* 2>/dev/null || true
-    echo "回收站已清空。"
+    printf '%s\n' "$(_t 'The trash has been emptied.')"
 }
 
 # 查看回收站占用空间：trash-size
 trash-size() {
     _trash_init
-    echo "回收站占用："
+    printf '%s\n' "$(_t 'Trash disk usage:')"
     du -sh "$_TRASH_FILES" 2>/dev/null | cut -f1 | sed 's/^/  /'
 }
 

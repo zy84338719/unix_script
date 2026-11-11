@@ -15,47 +15,47 @@ source "$SCRIPT_DIR/../../../lib/common.sh"
 TARGET="${1:-.}"
 ERRORS=0
 
-header "🔍 Rust 代码分析：$TARGET"
+header "🔍 $(_tf 'Rust code analysis: %s' "$TARGET")"
 echo
 
 # 检查是否是 Cargo 项目
 if [[ ! -f "$TARGET/Cargo.toml" ]]; then
-    warn "未找到 Cargo.toml，跳过 Rust 分析"
+    warn "$(_t 'Cargo.toml not found, skipping Rust analysis')"
     exit 0
 fi
 
 # cargo clippy
 if command_exists cargo; then
-    info "运行 cargo clippy..."
+    info "$(_t 'Running cargo clippy...')"
     if (cd "$TARGET" && cargo clippy -- -D warnings 2>&1); then
-        success "  clippy：通过"
+        success "  $(_t 'clippy: passed')"
     else
-        warn "  clippy：发现问题"
+        warn "  $(_t 'clippy: problems found')"
         ERRORS=$((ERRORS + 1))
     fi
 else
-    warn "  ⚠️ cargo 未安装，跳过"
+    warn "  ⚠️ $(_t 'cargo not installed, skipping')"
 fi
 
 echo
 
 # cargo-audit
 if command_exists cargo-audit; then
-    info "运行 cargo-audit（依赖漏洞扫描）..."
+    info "$(_t 'Running cargo-audit (dependency vulnerability scan)...')"
     if (cd "$TARGET" && cargo audit 2>&1); then
-        success "  cargo-audit：通过"
+        success "  $(_t 'cargo-audit: passed')"
     else
-        warn "  cargo-audit：发现漏洞"
+        warn "  $(_t 'cargo-audit: vulnerabilities found')"
         ERRORS=$((ERRORS + 1))
     fi
 elif command_exists cargo; then
-    warn "  ⚠️ cargo-audit 未安装，跳过（运行 ./install.sh install-rust 安装）"
+    warn "  ⚠️ $(_t 'cargo-audit not installed, skipping (run ./install.sh install-rust)')"
 fi
 
 echo
 if [[ $ERRORS -gt 0 ]]; then
-    error "Rust 分析完成：$ERRORS 个工具报告了问题"
+    error "$(_tf 'Rust analysis complete: %s tools reported problems' "$ERRORS")"
     exit 1
 else
-    success "✅ Rust 分析全部通过"
+    success "✅ $(_t 'Rust analysis all passed')"
 fi

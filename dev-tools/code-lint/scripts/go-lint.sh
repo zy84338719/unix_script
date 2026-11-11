@@ -16,41 +16,41 @@ TARGET="${1:-.}"
 ERRORS=0
 WARNINGS=0
 
-header "🔍 Go 代码分析：$TARGET"
+header "🔍 $(_tf 'Go code analysis: %s' "$TARGET")"
 echo
 
 # golangci-lint
 if command_exists golangci-lint; then
-    info "运行 golangci-lint..."
+    info "$(_t 'Running golangci-lint...')"
     if golangci-lint run "$TARGET/..." 2>&1; then
-        success "  golangci-lint：通过"
+        success "  $(_t 'golangci-lint: passed')"
     else
-        warn "  golangci-lint：发现问题"
+        warn "  $(_t 'golangci-lint: problems found')"
         ERRORS=$((ERRORS + 1))
     fi
 else
-    warn "  ⚠️ golangci-lint 未安装，跳过"
+    warn "  ⚠️ $(_t 'golangci-lint not installed, skipping')"
 fi
 
 echo
 
 # gosec
 if command_exists gosec; then
-    info "运行 gosec（安全扫描）..."
+    info "$(_t 'Running gosec (security scan)...')"
     if gosec "$TARGET/..." 2>&1; then
-        success "  gosec：通过"
+        success "  $(_t 'gosec: passed')"
     else
-        warn "  gosec：发现安全问题"
+        warn "  $(_t 'gosec: security issues found')"
         ERRORS=$((ERRORS + 1))
     fi
 else
-    warn "  ⚠️ gosec 未安装，跳过"
+    warn "  ⚠️ $(_t 'gosec not installed, skipping')"
 fi
 
 echo
 if [[ $ERRORS -gt 0 ]]; then
-    error "Go 分析完成：$ERRORS 个工具报告了问题"
+    error "$(_tf 'Go analysis complete: %s tools reported problems' "$ERRORS")"
     exit 1
 else
-    success "✅ Go 分析全部通过"
+    success "✅ $(_t 'Go analysis all passed')"
 fi

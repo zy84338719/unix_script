@@ -14,34 +14,34 @@ theme_list() {
     framework=$(detect_framework)
 
     if [ "$framework" == "none" ]; then
-        warn "未安装框架"
+        warn "$(_t 'No framework installed')"
         return 0
     fi
 
-    info "当前框架: $framework"
+    info "$(_tf 'Current framework: %s' "$framework")"
 
     case "$framework" in
         oh-my-zsh)
-            echo "可用主题:"
+            printf '%s\n' "$(_t 'Available themes:')"
             find "$HOME/.oh-my-zsh/themes" -maxdepth 1 -name '*.zsh-theme' -exec basename {} .zsh-theme \; 2>/dev/null
             if [ -d "$HOME/.oh-my-zsh/custom/themes" ]; then
                 echo ""
-                echo "自定义主题:"
+                printf '%s\n' "$(_t 'Custom themes:')"
                 find "$HOME/.oh-my-zsh/custom/themes" -maxdepth 1 -name '*.zsh-theme' -exec basename {} .zsh-theme \; 2>/dev/null
             fi
             ;;
         prezto)
-            echo "可用主题:"
+            printf '%s\n' "$(_t 'Available themes:')"
             find "${ZDOTDIR:-$HOME}/.zprezto/modules/prompt/external/themes" -maxdepth 1 -mindepth 1 -exec basename {} \; 2>/dev/null
             ;;
         zinit)
-            echo "常用主题:"
+            printf '%s\n' "$(_t 'Common themes:')"
             echo "  - powerlevel10k"
             echo "  - starship"
             echo "  - pure"
             ;;
         sheldon)
-            echo "常用主题:"
+            printf '%s\n' "$(_t 'Common themes:')"
             echo "  - powerlevel10k"
             echo "  - starship"
             echo "  - pure"
@@ -54,7 +54,7 @@ theme_set() {
     local theme_name="$1"
 
     if [ -z "$theme_name" ]; then
-        error "请指定主题名称"
+        error "$(_t 'Please specify a theme name')"
         return 1
     fi
 
@@ -62,7 +62,7 @@ theme_set() {
     framework=$(detect_framework)
 
     if [ "$framework" == "none" ]; then
-        error "未安装框架"
+        error "$(_t 'No framework installed')"
         return 1
     fi
 
@@ -70,32 +70,32 @@ theme_set() {
         oh-my-zsh)
             local zshrc="$HOME/.zshrc"
             if [ ! -f "$zshrc" ]; then
-                error "未找到 .zshrc 文件"
+                error "$(_t '.zshrc file not found')"
                 return 1
             fi
 
             # 更新主题
             sed -i.bak "s/^ZSH_THEME=.*/ZSH_THEME=\"$theme_name\"/" "$zshrc"
-            success "主题已设置为 $theme_name"
+            success "$(_tf 'Theme set to %s' "$theme_name")"
             ;;
         prezto)
             local preztorc="${ZDOTDIR:-$HOME}/.zpreztorc"
             if [ ! -f "$preztorc" ]; then
-                error "未找到 .zpreztorc 文件"
+                error "$(_t '.zpreztorc file not found')"
                 return 1
             fi
 
             # 更新主题
             sed -i.bak "s/^zstyle ':prezto:module:prompt' theme.*/zstyle ':prezto:module:prompt' theme '$theme_name'/" "$preztorc"
-            success "主题已设置为 $theme_name"
+            success "$(_tf 'Theme set to %s' "$theme_name")"
             ;;
         zinit)
-            info "请在 .zshrc 中添加主题配置"
-            echo "示例:"
+            info "$(_t 'Add the theme configuration in .zshrc')"
+            printf '%s\n' "$(_t 'Example:')"
             echo "  zinit ice depth=1; zinit light romkatv/powerlevel10k"
             ;;
         sheldon)
-            info "请在 ~/.config/sheldon/plugins.toml 中添加主题配置"
+            info "$(_t 'Add the theme config in ~/.config/sheldon/plugins.toml')"
             ;;
     esac
 }
@@ -106,21 +106,21 @@ theme_install_p10k() {
     framework=$(detect_framework)
 
     if [ "$framework" == "none" ]; then
-        error "未安装框架"
+        error "$(_t 'No framework installed')"
         return 1
     fi
 
-    info "正在安装 Powerlevel10k..."
+    info "$(_t 'Installing Powerlevel10k...')"
 
     case "$framework" in
         oh-my-zsh)
             local theme_dir="$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
             if [ -d "$theme_dir" ]; then
-                warn "Powerlevel10k 已安装"
+                warn "$(_t 'Powerlevel10k is already installed')"
                 return 0
             fi
             if ! git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$theme_dir"; then
-                error "Powerlevel10k 克隆失败"
+                error "$(_t 'Failed to clone Powerlevel10k')"
                 return 1
             fi
             theme_set "powerlevel10k/powerlevel10k"
@@ -128,11 +128,11 @@ theme_install_p10k() {
         prezto)
             local theme_dir="${ZDOTDIR:-$HOME}/.zprezto/modules/prompt/external/themes/powerlevel10k"
             if [ -d "$theme_dir" ]; then
-                warn "Powerlevel10k 已安装"
+                warn "$(_t 'Powerlevel10k is already installed')"
                 return 0
             fi
             if ! git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$theme_dir"; then
-                error "Powerlevel10k 克隆失败"
+                error "$(_t 'Failed to clone Powerlevel10k')"
                 return 1
             fi
             theme_set "powerlevel10k"
@@ -142,7 +142,7 @@ theme_install_p10k() {
             if ! grep -q "powerlevel10k" "$zshrc" 2>/dev/null; then
                 echo 'zinit ice depth=1; zinit light romkatv/powerlevel10k' >> "$zshrc"
             fi
-            success "Powerlevel10k 已添加到 .zshrc"
+            success "$(_t 'Powerlevel10k added to .zshrc')"
             ;;
         sheldon)
             load_framework "sheldon" || return 1
@@ -150,6 +150,6 @@ theme_install_p10k() {
             ;;
     esac
 
-    success "Powerlevel10k 安装完成"
-    info "请运行 'p10k configure' 进行配置"
+    success "$(_t 'Powerlevel10k installation complete')"
+    info "$(_t 'Run p10k configure to set it up')"
 }

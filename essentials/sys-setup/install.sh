@@ -26,7 +26,7 @@ source "$SCRIPT_DIR/../../lib/common.sh"
 preflight() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        error "sys-setup 仅支持 Linux。当前：$OS_TYPE"
+        error "$(_tf 'sys-setup only supports Linux. Current: %s' "$OS_TYPE")"
         exit 1
     fi
     require_sudo
@@ -42,7 +42,7 @@ _load_platform() {
     fi
     local plat="$SCRIPT_DIR/platform/${DISTRO_FAMILY}.sh"
     if [[ ! -f "$plat" ]]; then
-        error "platform 文件缺失（框架错误）：$plat"
+        error "$(_tf 'The platform file is missing (framework error): %s' "$plat")"
         return 1
     fi
     # shellcheck source=platform/debian.sh
@@ -56,7 +56,7 @@ do_mirror() {
     local rc=0
     _load_platform || rc=$?
     if [[ "$rc" == "2" ]]; then
-        warn "暂不支持该发行版（族未知），跳过换源"
+        warn "$(_t 'Unsupported distribution (unknown family), skipping the mirror switch')"
         return 0
     fi
     if [[ "$rc" != "0" ]]; then
@@ -65,25 +65,25 @@ do_mirror() {
 
     # 严格档：换源属破坏性操作，非交互环境跳过不阻断（无逃生开关）
     if [[ ! -t 0 ]]; then
-        warn "换源需交互确认，已跳过（非交互环境）"
+        warn "$(_t 'The mirror switch needs a confirmation, skipped (non-interactive)')"
         return 0
     fi
 
-    info "🌐 更换软件源为国内镜像"
+    info "$(_t '🌐 Switching the package sources to domestic mirrors')"
     local os_ver os_codename detect_line
     os_ver=$(uxs_os_release VERSION_ID)
     os_codename=$(uxs_os_release VERSION_CODENAME)
-    detect_line="${DISTRO_NAME:-${DISTRO_ID:-未知}} ${os_ver}"
+    detect_line="${DISTRO_NAME:-${DISTRO_ID:-$(_t 'Unknown')}} ${os_ver}"
     [[ -n "$os_codename" ]] && detect_line+=" (${os_codename})"
     detect_line+=" · $(uname -m) · ${PKG_MANAGER:-?}"
 
-    echo "── 换源预览 ──────────────────────────────"
-    echo "检测到:  ${detect_line}"
-    echo "执行动作:"
+    echo "── $(_t 'Mirror switch preview') ──────────────────────────────"
+    printf '%s\n' "$(_tf 'Detected: %s' "${detect_line}")"
+    printf '%s\n' "$(_t 'Actions to be performed:')"
     plat_mirror_preview
     echo "──────────────────────────────────────────"
-    if ! yes_no "确认执行换源？"; then
-        info "已取消换源"
+    if ! yes_no "$(_t 'Confirm the mirror switch?')"; then
+        info "$(_t 'The mirror switch has been cancelled')"
         return 0
     fi
     plat_mirror_apply
@@ -141,7 +141,7 @@ _configure_chrony() {
     for conf in /etc/chrony/chrony.conf /etc/chrony.conf; do
         [[ -f "$conf" ]] && break
     done
-    [[ -f "$conf" ]] || { warn "未找到 chrony 配置文件"; return 1; }
+    [[ -f "$conf" ]] || { warn "$(_t 'The chrony configuration file was not found')"; return 1; }
 
     sudo cp -a "$conf" "${conf}.bak.$(date +%s)" 2>/dev/null || true
 
@@ -161,7 +161,7 @@ _configure_chrony() {
 _configure_ntpd() {
     local servers="$1"
     local conf="/etc/ntp.conf"
-    [[ -f "$conf" ]] || { warn "未找到 ntp.conf"; return 1; }
+    [[ -f "$conf" ]] || { warn "$(_t 'ntp.conf was not found')"; return 1; }
 
     sudo cp -a "$conf" "${conf}.bak.$(date +%s)" 2>/dev/null || true
 
@@ -186,42 +186,42 @@ set_ntp_servers() {
     if uxs_svc is-active systemd-timesyncd 2>/dev/null || \
        uxs_svc list-unit-files 2>/dev/null | grep -q systemd-timesyncd; then
         if _configure_timesyncd "$servers"; then
-            success "已配置 systemd-timesyncd: $servers"
+            success "$(_tf 'systemd-timesyncd is configured: %s' "$servers")"
         else
-            error "配置 systemd-timesyncd 失败"; return 1
+            error "$(_t 'Configuring systemd-timesyncd failed')"; return 1
         fi
     elif uxs_svc is-active chrony 2>/dev/null || \
          uxs_svc is-active chronyd 2>/dev/null || \
          command_exists chronyc; then
         if _configure_chrony "$servers"; then
-            success "已配置 chrony: $servers"
+            success "$(_tf 'chrony is configured: %s' "$servers")"
         else
-            error "配置 chrony 失败"; return 1
+            error "$(_t 'Configuring chrony failed')"; return 1
         fi
     elif uxs_svc is-active ntpd 2>/dev/null || \
          command_exists ntpd; then
         if _configure_ntpd "$servers"; then
-            success "已配置 ntpd: $servers"
+            success "$(_tf 'ntpd is configured: %s' "$servers")"
         else
-            error "配置 ntpd 失败"; return 1
+            error "$(_t 'Configuring ntpd failed')"; return 1
         fi
     else
         # 没有 NTP 服务，尝试安装 chrony（unit 名是名词：debian 系 chrony、rhel 系 chronyd）
-        warn "未检测到 NTP 服务，尝试安装 chrony..."
+        warn "$(_t 'No NTP service detected, trying to install chrony...')"
         if pkg_install chrony; then
             local unit="chronyd"
             [[ "$DISTRO_FAMILY" == "debian" ]] && unit="chrony"
             if uxs_svc enable-now "$unit"; then
                 if _configure_chrony "$servers"; then
-                    success "已安装 chrony 并配置: $servers"
+                    success "$(_tf 'chrony is installed and configured: %s' "$servers")"
                 else
-                    error "配置 chrony 失败"; return 1
+                    error "$(_t 'Configuring chrony failed')"; return 1
                 fi
             else
-                error "chrony 服务启用失败"; return 1
+                error "$(_t 'Enabling the chrony service failed')"; return 1
             fi
         else
-            error "chrony 安装失败，请手动安装"
+            error "$(_t 'Installing chrony failed, please install it manually')"
             return 1
         fi
     fi
@@ -229,52 +229,52 @@ set_ntp_servers() {
 
 # 查看当前 NTP 状态
 show_ntp_status() {
-    echo "当前 NTP 状态："
+    printf '%s\n' "$(_t 'Current NTP status:')"
     if command_exists timedatectl; then
         timedatectl status 2>/dev/null | grep -E 'Local time|Time zone|NTP|synchronized' | sed 's/^/  /'
     fi
     # 显示实际使用的 NTP 服务器
     if uxs_svc is-active systemd-timesyncd 2>/dev/null; then
-        echo "  后端: systemd-timesyncd"
+        echo "  $(_t 'Backend: systemd-timesyncd')"
         local conf="/etc/systemd/timesyncd.conf"
         if [[ -f "$conf" ]] && grep -q '^NTP=' "$conf"; then
-            echo "  配置: $(grep '^NTP=' "$conf")"
+            echo "  $(_t 'Config'): $(grep '^NTP=' "$conf")"
         else
-            echo "  配置: (默认)"
+            echo "  $(_t 'Config: (default)')"
         fi
     elif command_exists chronyc 2>/dev/null; then
-        echo "  后端: chrony"
+        echo "  $(_t 'Backend: chrony')"
         chronyc sources 2>/dev/null | head -8 | sed 's/^/  /'
     elif command_exists ntpq 2>/dev/null; then
-        echo "  后端: ntpd"
+        echo "  $(_t 'Backend: ntpd')"
         ntpq -p 2>/dev/null | head -8 | sed 's/^/  /'
     else
-        echo "  (未检测到 NTP 服务)"
+        echo "  $(_t '(No NTP service detected)')"
     fi
 }
 
 # NTP 交互式设置
 do_ntp() {
     preflight
-    info "🕐 配置 NTP 时间同步服务器"
+    info "$(_t '🕐 Configuring the NTP time synchronization servers')"
     echo
 
     show_ntp_status
     echo
 
-    menu "请选择 NTP 服务器方案："
-    echo "  1) 阿里云     ($NTP_PRESET_ALIYUN)"
-    echo "  2) 清华 TUNA  ($NTP_PRESET_TUNA)"
-    echo "  3) 华为云     ($NTP_PRESET_HUAWEI)"
-    echo "  4) 中国 NTP   ($NTP_PRESET_CSTTIME)"
+    menu "$(_t 'Please choose an NTP server option:')"
+    echo "  1) $(_t 'Aliyun')     ($NTP_PRESET_ALIYUN)"
+    echo "  2) $(_t 'Tsinghua TUNA')  ($NTP_PRESET_TUNA)"
+    echo "  3) $(_t 'Huawei Cloud')     ($NTP_PRESET_HUAWEI)"
+    echo "  4) $(_t 'China NTP')   ($NTP_PRESET_CSTTIME)"
     echo "  5) NTP Pool   ($NTP_PRESET_NTPPOOL)"
     echo "  6) Google     ($NTP_PRESET_GOOGLE)"
-    echo "  7) 自定义（手动输入 NTP 服务器地址）"
-    echo "  0) 取消"
+    echo "  7) $(_t 'Custom (enter the NTP server address manually)')"
+    echo "  0) $(_t 'Cancel')"
     echo "========================================"
 
     local choice
-    read -r -p "请输入选项 [0-7]: " choice
+    read -r -p "$(_t 'Please enter an option [0-7]: ')" choice
 
     local servers=""
     case "$choice" in
@@ -286,32 +286,32 @@ do_ntp() {
         6) servers="$NTP_PRESET_GOOGLE" ;;
         7)
             echo
-            info "请输入 NTP 服务器地址（多个用空格分隔）："
-            info "示例: ntp.aliyun.com ntp1.aliyun.com"
+            info "$(_t 'Please enter the NTP server addresses (separate them with spaces):')"
+            info "$(_t 'Example: ntp.aliyun.com ntp1.aliyun.com')"
             read -r -p "> " servers
             # 去除首尾空白
             servers=$(echo "$servers" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
             if [[ -z "$servers" ]]; then
-                warn "未输入任何服务器，已取消"
+                warn "$(_t 'No server entered, cancelled')"
                 return 0
             fi
             # 基本校验：每个词应像合法主机名（含字母/数字/点/连字符）
             local word
             for word in $servers; do
                 if [[ ! "$word" =~ ^[a-zA-Z0-9._:-]+$ ]]; then
-                    error "无效的服务器地址: $word"
-                    info "地址应只包含字母、数字、点、连字符，例如: ntp.aliyun.com"
+                    error "$(_tf 'Invalid server address: %s' "$word")"
+                    info "$(_t 'Only letters, digits, dots and hyphens are allowed, e.g. ntp.aliyun.com')"
                     return 1
                 fi
             done
             ;;
-        0|*) info "已取消"; return 0 ;;
+        0|*) info "$(_t 'Cancelled')"; return 0 ;;
     esac
 
     echo
-    info "即将配置 NTP 服务器: $servers"
-    if ! yes_no "确认继续？"; then
-        info "已取消"; return 0
+    info "$(_tf 'About to configure the NTP servers: %s' "$servers")"
+    if ! yes_no "$(_t 'Continue?')"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
 
     set_ntp_servers "$servers"
@@ -326,20 +326,20 @@ do_timezone() {
     preflight
     detect_distro
     local tz="${1:-Asia/Shanghai}"
-    info "🕐 设置时区为 $tz 并启用时间同步"
+    info "$(_tf '🕐 Setting the timezone to %s and enabling time synchronization' "$tz")"
 
     if command_exists timedatectl; then
         sudo timedatectl set-timezone "$tz"
-        success "时区已设置为 $tz"
+        success "$(_tf 'The timezone has been set to %s' "$tz")"
         # 优先启用 systemd-timesyncd
         if uxs_svc list-unit-files 2>/dev/null | grep -q systemd-timesyncd; then
             uxs_svc enable-now systemd-timesyncd 2>/dev/null || true
             sudo timedatectl set-ntp true 2>/dev/null || true
-            success "已启用 systemd-timesyncd (NTP)"
+            success "$(_t 'systemd-timesyncd (NTP) has been enabled')"
         fi
     else
         sudo ln -sf "/usr/share/zoneinfo/$tz" /etc/localtime
-        success "时区已设置为 ${tz}（符号链接）"
+        success "$(_tf 'The timezone has been set to %s (symlink)' "${tz}")"
     fi
 
     # 没有 timesyncd 时回退装 chrony（unit 名是名词：debian 系 chrony、rhel 系 chronyd）
@@ -348,9 +348,9 @@ do_timezone() {
             local unit="chronyd"
             [[ "$DISTRO_FAMILY" == "debian" ]] && unit="chrony"
             uxs_svc enable-now "$unit" 2>/dev/null || true
-            success "已安装并启用 chrony 时间同步"
+            success "$(_t 'chrony time synchronization has been installed and enabled')"
         else
-            warn "chrony 安装失败，跳过时间同步服务配置"
+            warn "$(_t 'Installing chrony failed, skipping the time synchronization setup')"
         fi
     fi
 }
@@ -358,7 +358,7 @@ do_timezone() {
 # -------- 3. 系统参数优化 --------
 do_optimize() {
     preflight
-    info "⚙️  优化系统参数（文件描述符、内核）"
+    info "$(_t '⚙️  Optimizing the system parameters (file descriptors, kernel)')"
 
     # 文件描述符上限
     local limits_file=/etc/security/limits.d/99-unix-script.conf
@@ -369,7 +369,7 @@ do_optimize() {
 root            soft    nofile          65536
 root            hard    nofile          65536
 EOF
-    success "已提升文件描述符上限到 65536（${limits_file}）"
+    success "$(_tf 'The file descriptor limit has been raised to 65536 (%s)' "${limits_file}")"
 
     # 内核参数（网络/内存）
     local sysctl_file=/etc/sysctl.d/99-unix-script.conf
@@ -389,13 +389,13 @@ vm.swappiness = 10
 vm.overcommit_memory = 1
 EOF
     sudo sysctl --system >/dev/null 2>&1 || sudo sysctl -p "$sysctl_file" >/dev/null 2>&1 || true
-    success "已写入内核优化参数（${sysctl_file}）"
+    success "$(_tf 'The kernel optimization parameters have been written (%s)' "${sysctl_file}")"
 }
 
 # -------- 4. SSH 加固 --------
 do_ssh() {
     preflight
-    info "🔐 SSH 加固（禁用密码登录、禁用 root 直登）"
+    info "$(_t '🔐 SSH hardening (disable password login and root login)')"
 
     local sshd_config
     for sshd_config in /etc/ssh/sshd_config /etc/ssh/sshd_config.d/99-unix-script.conf; do
@@ -405,10 +405,10 @@ do_ssh() {
     local dropin=/etc/ssh/sshd_config.d/99-unix-script.conf
     sudo mkdir -p /etc/ssh/sshd_config.d
 
-    warn "SSH 加固是敏感操作：将禁用密码登录与 root 直登。"
-    warn "请确保你已配置好 SSH 密钥登录，否则可能无法登录服务器！"
-    if ! yes_no "确认继续（仅当你已配置好密钥登录）？"; then
-        info "已跳过 SSH 加固"; return 0
+    warn "$(_t 'SSH hardening is sensitive: password and root login will be disabled.')"
+    warn "$(_t 'Set up SSH key login first, otherwise you may not be able to log in!')"
+    if ! yes_no "$(_t 'Continue (only if the key login is already set up)?')"; then
+        info "$(_t 'SSH hardening has been skipped')"; return 0
     fi
 
     sudo tee "$dropin" >/dev/null <<'EOF'
@@ -417,22 +417,22 @@ PasswordAuthentication no
 PermitRootLogin no
 PubkeyAuthentication yes
 EOF
-    success "已写入 SSH 加固配置（${dropin}）"
+    success "$(_tf 'The SSH hardening configuration has been written (%s)' "${dropin}")"
 
     if command_exists systemctl; then
         uxs_svc reload sshd 2>/dev/null || uxs_svc reload ssh 2>/dev/null || true
-        success "sshd 已 reload（配置在新连接生效）"
+        success "$(_t 'sshd has been reloaded (the configuration applies to new connections)')"
     fi
 }
 
 # -------- 5. 自动安全更新 --------
 do_autoupdate() {
     preflight
-    info "🛡️  启用自动安全更新"
+    info "$(_t '🛡️  Enabling the automatic security updates')"
     local rc=0
     _load_platform || rc=$?
     if [[ "$rc" == "2" ]]; then
-        warn "暂不支持该发行版（族未知），跳过自动更新配置"
+        warn "$(_t 'Unsupported distribution (unknown family), skipping the auto update')"
         return 0
     fi
     if [[ "$rc" != "0" ]]; then
@@ -443,7 +443,7 @@ do_autoupdate() {
 
 # -------- 全部执行 --------
 do_all() {
-    info "🚀 执行全部装机必设置"
+    info "$(_t '🚀 Running all the essential system setups')"
     do_mirror
     echo
     do_timezone
@@ -454,30 +454,30 @@ do_all() {
     echo
     do_ssh
     echo
-    success "🎉 全部装机必设置执行完成"
+    success "$(_t '🎉 All the essential system setups are complete')"
 }
 
 # -------- 状态 --------
 status_sys_setup() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return
+        emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux only)')${NC}"; return
     fi
 
     # ---- 先计算各子项的事实，用于聚合并聚态与 emit_extra ----
     # 镜像源（现代 Ubuntu/Debian 的发行版源在 sources.list.d/*.sources，需一并检测）
-    local mirror_ok=false mirror_val="默认源"
+    local mirror_ok=false mirror_val; mirror_val="$(_t 'Default source')"
     if grep -qs "tuna.tsinghua\|mirrors.aliyun\|mirrors.ustc" /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources 2>/dev/null; then
-        mirror_ok=true; mirror_val="已换国内源"
+        mirror_ok=true; mirror_val="$(_t 'Domestic mirror source in use')"
     fi
     # 时区
     local tz_val
-    tz_val=$(timedatectl show -p Timezone --value 2>/dev/null || cat /etc/timezone 2>/dev/null || echo '未知')
+    tz_val=$(timedatectl show -p Timezone --value 2>/dev/null || cat /etc/timezone 2>/dev/null || printf '%s\n' "$(_t 'Unknown')")
     # NTP 同步开关
     local ntp_sync
-    ntp_sync=$(timedatectl show -p NTP --value 2>/dev/null || echo '未知')
+    ntp_sync=$(timedatectl show -p NTP --value 2>/dev/null || printf '%s\n' "$(_t 'Unknown')")
     # NTP 服务器（含后端）
-    local ntp_servers="(系统默认)" ntp_backend="" ntp_val=""
+    local ntp_servers ntp_backend="" ntp_val=""; ntp_servers="$(_t '(system default)')"
     if uxs_svc is-active systemd-timesyncd 2>/dev/null; then
         ntp_backend="timesyncd"
         local ntp_conf="/etc/systemd/timesyncd.conf"
@@ -487,23 +487,23 @@ status_sys_setup() {
         ntp_val="$ntp_servers (timesyncd)"
     elif command_exists chronyc 2>/dev/null; then
         ntp_backend="chrony"
-        ntp_val="(chrony，用 chronyc sources 查看)"
+        ntp_val="$(_t '(chrony, view with chronyc sources)')"
     elif command_exists ntpq 2>/dev/null; then
         ntp_backend="ntpd"
-        ntp_val="(ntpd，用 ntpq -p 查看)"
+        ntp_val="$(_t '(ntpd, view with ntpq -p)')"
     fi
     # 文件描述符（ulimit）
-    local fd_ok=false fd_state="默认"
-    if [[ -f /etc/security/limits.d/99-unix-script.conf ]]; then fd_ok=true; fd_state="✅ 已优化"; fi
+    local fd_ok=false fd_state; fd_state="$(_t 'Default')"
+    if [[ -f /etc/security/limits.d/99-unix-script.conf ]]; then fd_ok=true; fd_state="$(_t '✅ Optimized')"; fi
     # SSH 加固
-    local ssh_ok=false ssh_state="默认"
-    if [[ -f /etc/ssh/sshd_config.d/99-unix-script.conf ]]; then ssh_ok=true; ssh_state="✅ 已加固"; fi
+    local ssh_ok=false ssh_state; ssh_state="$(_t 'Default')"
+    if [[ -f /etc/ssh/sshd_config.d/99-unix-script.conf ]]; then ssh_ok=true; ssh_state="$(_t '✅ Hardened')"; fi
 
     # ---- 聚合主状态：镜像源/fd/ssh 全部 ✅ → configured，否则 not_configured ----
     if $mirror_ok && $fd_ok && $ssh_ok; then
-        emit_status "configured" "${GREEN}✅ 系统配置已完成${NC}"
+        emit_status "configured" "${GREEN}$(_t '✅ The system configuration is complete')${NC}"
     else
-        emit_status "not_configured" "${YELLOW}⚠️  系统配置未完成${NC}"
+        emit_status "not_configured" "${YELLOW}$(_t '⚠️  The system configuration is not complete')${NC}"
     fi
 
     # ---- 机器模式 EXTRA 行（每个子项一条）----
@@ -519,19 +519,19 @@ status_sys_setup() {
 
     # ---- 人类模式：保留原始多行配置概览 ----
     if ! uxs_is_machine_mode; then
-        echo "软件源镜像:"
+        printf '%s\n' "$(_t 'Package source mirror:')"
         if $mirror_ok; then
-            echo -e "  ${GREEN}✅ 已换国内源${NC}"
+            echo -e "  ${GREEN}$(_t '✅ Domestic mirror source in use')${NC}"
         else
-            echo -e "  ${YELLOW}⚠️  默认源${NC}"
+            echo -e "  ${YELLOW}$(_t '⚠️  Default source')${NC}"
         fi
-        echo "时区: $tz_val"
-        echo "NTP 同步: $ntp_sync"
+        printf '%s\n' "$(_tf 'Timezone: %s' "$tz_val")"
+        printf '%s\n' "$(_tf 'NTP sync: %s' "$ntp_sync")"
         if [[ -n "$ntp_val" ]]; then
-            echo "NTP 服务器: $ntp_val"
+            printf '%s\n' "$(_tf 'NTP servers: %s' "$ntp_val")"
         fi
-        echo "文件描述符上限: $fd_state"
-        echo "SSH 加固: $ssh_state"
+        printf '%s\n' "$(_tf 'File descriptor limit: %s' "$fd_state")"
+        printf '%s\n' "$(_tf 'SSH hardening: %s' "$ssh_state")"
     fi
 }
 
@@ -539,14 +539,14 @@ usage() {
     cat <<EOF
 用法: $0 {mirror|timezone|ntp|optimize|ssh|autoupdate|all|status|help}  (仅 Linux)
 
-  mirror      更换软件源为国内镜像（预览确认后执行；Alma/Rocky/Fedora/openEuler/Anolis/deepin 已支持）
-  timezone    设置时区并启用 NTP 时间同步（默认 Asia/Shanghai）
-  ntp         配置自定义 NTP 服务器（阿里云/清华/华为/Google/自定义）
-  optimize    优化系统参数（文件描述符、TCP、内核）
-  ssh         SSH 加固（禁用密码登录、禁用 root 直登，需先配好密钥）
-  autoupdate  启用自动安全更新
-  all         依次执行以上全部
-  status      查看各项配置状态
+  mirror      $(_t 'Switch to domestic mirrors (Alma/Rocky/Fedora/openEuler/Anolis/deepin)')
+  timezone    $(_t 'Set the timezone and enable NTP sync (default Asia/Shanghai)')
+  ntp         $(_t 'Configure custom NTP servers (Aliyun/TUNA/Huawei/Google/custom)')
+  optimize    $(_t 'Optimize system parameters (file descriptors, TCP, kernel)')
+  ssh         $(_t 'SSH hardening (disable password and root login, set up keys first)')
+  autoupdate  $(_t 'Enable the automatic security updates')
+  all         $(_t 'Run all of the above')
+  status      $(_t 'View the status of each configuration')
 EOF
 }
 
@@ -555,10 +555,10 @@ EOF
 uninstall_sys_setup() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        info "sys-setup 的卸载仅适用 Linux（drop-in 配置为 Linux 路径），当前平台无需卸载"
+        info "$(_t 'The sys-setup uninstall only applies to Linux, nothing to do here')"
         return 0
     fi
-    info "卸载 sys-setup 写入的增量配置（drop-in）..."
+    info "$(_t 'Removing the incremental drop-in configs written by sys-setup...')"
     require_sudo
     local removed=0
     local f
@@ -568,20 +568,20 @@ uninstall_sys_setup() {
         /etc/ssh/sshd_config.d/99-unix-script.conf; do
         if [[ -f "$f" ]]; then
             sudo rm -f "$f"
-            success "已移除：$f"
+            success "$(_tf 'Removed: %s' "$f")"
             removed=$((removed + 1))
         fi
     done
     # 应用 sysctl 变更（drop-in 删除后重新加载系统默认）
     sudo sysctl --system >/dev/null 2>&1 || true
     if [[ $removed -eq 0 ]]; then
-        info "未发现 sys-setup 写入的 drop-in 配置（可能未执行过 optimize/ssh）"
+        info "$(_t 'No sys-setup drop-in config found (optimize/ssh may not have run)')"
     else
-        success "已移除 $removed 个 drop-in 配置，系统已恢复默认值"
+        success "$(_tf 'Removed %s drop-in configurations, the system defaults are restored' "$removed")"
     fi
-    warn "镜像源/NTP 等修改在安装时已生成 .bak.* 备份，如需还原请手动查找："
+    warn "$(_t 'The mirror/NTP changes have .bak.* backups, find them to restore:')"
     warn "  ls -t /etc/apt/sources.list.bak.* /etc/yum.repos.d/*.bak.* 2>/dev/null"
-    warn "SSH 服务策略已恢复默认，如修改过 sshd 建议复查：sudo sshd -t && sudo systemctl restart sshd"
+    warn "$(_tf 'The SSH service policy is restored, review it if you changed sshd: %s' "sudo sshd -t && sudo systemctl restart sshd")"
 }
 
 main() {
@@ -598,7 +598,7 @@ main() {
         uninstall)  uninstall_sys_setup ;;
         status)     status_sys_setup ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

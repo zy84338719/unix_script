@@ -27,24 +27,27 @@ _arch_mirror_line() {
 }
 
 plat_mirror_preview() {
+    local m
+    m=$(uname -m)
     case "$DISTRO_ID" in
         arch|manjaro)
-            echo "  1. 备份 /etc/pacman.d/mirrorlist"
-            echo "  2. 重写为清华 TUNA（${DISTRO_ID} · $(uname -m) 路径）"
+            echo "  1. $(_t 'Back up /etc/pacman.d/mirrorlist')"
+            echo "  2. $(_tf 'Rewrite to Tsinghua TUNA (%s · %s path)' "${DISTRO_ID}" "$m")"
             echo "  3. sudo pacman -Sy"
             ;;
         *)
-            echo "  1. ${DISTRO_ID} 暂无把握的镜像路径，仅打印指引（不改动系统）"
+            echo "  1. $(_tf '%s: no known mirror path, guidance only (no system change)' "${DISTRO_ID}")"
             ;;
     esac
 }
 
 plat_mirror_apply() {
-    local line ts
+    local line ts m
     line=$(_arch_mirror_line)
     ts=$(date +%s)
+    m=$(uname -m)
     if [[ -z "$line" ]]; then
-        warn "${DISTRO_ID} · $(uname -m) 暂无把握的镜像路径，保持 mirrorlist 不变"
+        warn "$(_tf '%s · %s: no known mirror path, mirrorlist is left unchanged' "${DISTRO_ID}" "$m")"
         return 0
     fi
     sudo cp -a /etc/pacman.d/mirrorlist "/etc/pacman.d/mirrorlist.bak.$ts" 2>/dev/null || true
@@ -53,10 +56,10 @@ plat_mirror_apply() {
 ${line}
 EOF
     sudo pacman -Sy 2>/dev/null || true
-    success "${DISTRO_ID} mirrorlist 已替换为清华镜像（$(uname -m) 路径）"
+    success "$(_tf '%s mirrorlist has been replaced by the Tsinghua mirror (%s path)' "${DISTRO_ID}" "$m")"
 }
 
 plat_autoupdate() {
     pkg_install pacman-contrib 2>/dev/null || true
-    info "Arch 为滚动发布，建议定期执行 sudo pacman -Syu 保持更新"
+    info "$(_t 'Arch is rolling release, run sudo pacman -Syu to stay updated')"
 }

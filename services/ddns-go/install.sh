@@ -173,17 +173,17 @@ install_ddns_go() {
     success "$(_tf 'ddns-go %s installation complete!' "$latest_tag")"
     echo
     info "$(_t 'Service info:')"
-    echo "  - $(_t 'Access URL:') http://${ip_addr}:9876"
-    echo "  - $(_t 'Install directory:') $DDNS_DIR"
-    echo "  - $(_t 'Config file:') $DDNS_DIR/.ddns_go_config.yaml $(_t '(auto-created after first visit)')"
+    echo "  - $(_t 'Access URL:')http://${ip_addr}:9876"
+    echo "  - $(_t 'Install directory:')$DDNS_DIR"
+    echo "  - $(_t 'Config file:')$DDNS_DIR/.ddns_go_config.yaml $(_t '(auto-created after first visit)')"
     echo
     info "$(_t 'Common commands:')"
     if [[ "$OS_TYPE" == "linux" ]]; then
-        echo "  - $(_t 'Service status:') sudo systemctl status ddns-go"
-        echo "  - $(_t 'View logs:') sudo journalctl -u ddns-go -f"
+        echo "  - $(_t 'Service status:')sudo systemctl status ddns-go"
+        echo "  - $(_t 'View logs:')sudo journalctl -u ddns-go -f"
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        echo "  - $(_t 'Service status:') sudo launchctl list | grep ddns-go"
-        echo "  - $(_t 'Start service:') sudo launchctl bootstrap system $DDNS_PLIST"
+        echo "  - $(_t 'Service status:')sudo launchctl list | grep ddns-go"
+        echo "  - $(_t 'Start service:')sudo launchctl bootstrap system $DDNS_PLIST"
     fi
     echo
     warn "$(_t 'Be sure to set your DNS provider info and the domain to update in the Web UI!')"

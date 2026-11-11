@@ -28,26 +28,26 @@ preflight() {
 
 install_bun() {
     preflight
-    info "🚀 安装 Bun（JavaScript/TypeScript 运行时与工具链）"
+    info "$(_t '🚀 Installing Bun (the JavaScript/TypeScript runtime and toolchain)')"
 
     if command_exists bun; then
         local cur
-        cur=$(bun --version 2>/dev/null || echo "已安装")
-        warn "检测到已安装 Bun（${cur}）"
-        if ! yes_no "是否继续并重新安装/更新？"; then
-            info "已取消"; return 0
+        cur=$(bun --version 2>/dev/null || printf '%s\n' "$(_t 'Installed')")
+        warn "$(_tf 'Detected that Bun is already installed (%s)' "${cur}")"
+        if ! yes_no "$(_t 'Continue and reinstall/update it?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
     fi
 
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
-        info "通过 Homebrew 安装 bun..."
+        info "$(_t 'Installing bun via Homebrew...')"
         brew install bun
     else
-        info "通过官方脚本安装（${OFFICIAL_INSTALLER}）..."
+        info "$(_tf 'Installing via the official script (%s)...' "${OFFICIAL_INSTALLER}")"
         # 信任模型：bun.sh/install 官方脚本会校验下载二进制的 SHA256（oven-sh/bun 发布
         # SHASUMS256.txt 且安装器内置校验），故二进制完整性已自校验。
         if ! bash -c "$(curl -fsSL "$OFFICIAL_INSTALLER")"; then
-            error "官方安装脚本执行失败，请检查网络或参考 https://bun.sh/docs/installation"
+            error "$(_t 'The official installation script failed, check the network or see https://bun.sh/docs/installation')"
             exit 1
         fi
     fi
@@ -55,29 +55,30 @@ install_bun() {
     # 官方脚本装到 ~/.bun/bin/bun，可能不在当前 PATH
     if ! command_exists bun; then
         if [[ -x "$BUN_DIR/bin/bun" ]]; then
-            warn "bun 已装到 $BUN_DIR/bin/bun，但不在当前 PATH"
-            info "请添加到 shell 配置：export PATH=\"$BUN_DIR/bin:\$PATH\""
+            warn "bun $(_tf 'Installed to %s/bin/bun, but it is not in the current PATH' "$BUN_DIR")"
+            # shellcheck disable=SC2016  # 译文里的 $PATH 是要原样打印的字面量，不能展开
+            info "$(_tf 'Add it to your shell configuration: export PATH="%s/bin:$PATH"' "$BUN_DIR")"
         else
-            error "安装后仍找不到 bun，请重新打开终端或检查 PATH"
+            error "$(_t 'bun is still not found after the installation, reopen the terminal or check PATH')"
             exit 1
         fi
     fi
 
     # 阶段 D：apply profile 透传镜像源（UXS_CONFIG_REGISTRY 由 lib/profile.sh 注入）
     if [[ -n "${UXS_CONFIG_REGISTRY:-}" ]]; then
-        info "应用配置：registry = ${UXS_CONFIG_REGISTRY}"
+        info "$(_tf 'Applying the configuration: registry = %s' "${UXS_CONFIG_REGISTRY}")"
         _set_registry "$UXS_CONFIG_REGISTRY"
     fi
 
-    success "🎉 Bun 安装完成！"
-    info "快速开始："
-    echo "  bun --version           # 查看版本"
-    echo "  bun run dev             # 运行脚本（替代 npm run）"
-    echo "  bun install             # 安装依赖（比 npm 快）"
-    echo "  bun build ./index.ts    # 打包"
-    echo "  bun test                # 运行测试"
+    success "$(_t '🎉 Bun installation complete!')"
+    info "$(_t 'Quick start:')"
+    echo "  bun --version           # $(_t 'View the version')"
+    echo "  bun run dev             # $(_t 'Run a script (replaces npm run)')"
+    echo "  bun install             # $(_t 'Install the dependencies (faster than npm)')"
+    echo "  bun build ./index.ts    # $(_t 'Bundle')"
+    echo "  bun test                # $(_t 'Run the tests')"
     echo
-    info "文档：https://bun.sh/docs"
+    info "$(_t 'Docs: https://bun.sh/docs')"
 }
 
 uninstall_bun() {
@@ -89,17 +90,17 @@ uninstall_bun() {
     fi
     # 官方脚本安装的（~/.bun）
     if [[ -d "$BUN_DIR" ]]; then
-        if yes_no "确认删除 ${BUN_DIR}（含 bun 二进制与全局缓存）？"; then
+        if yes_no "$(_tf 'Confirm deleting %s (including the bun binary and the global cache)?' "${BUN_DIR}")"; then
             rm -rf "$BUN_DIR"
             removed=true
-            success "已删除 $BUN_DIR"
+            success "$(_tf 'Deleted %s' "$BUN_DIR")"
         fi
     fi
     if $removed; then
-        success "Bun 已卸载"
-        info "若 shell 配置中有 BUN 相关的 PATH 行，请手动删除"
+        success "Bun $(_t 'Uninstalled')"
+        info "$(_t 'If the shell configuration has a BUN related PATH line, delete it manually')"
     else
-        warn "未找到 Bun 安装（可能已卸载或通过其他方式安装）"
+        warn "$(_t 'No Bun installation found (it may have been uninstalled or installed in another way)')"
     fi
 }
 
@@ -111,7 +112,8 @@ status_bun() {
         installed=true
         ver=$(bun --version 2>/dev/null || "$BUN_DIR/bin/bun" --version 2>/dev/null || echo "")
     fi
-    local cur_reg="(默认官方源)"
+    local cur_reg
+    cur_reg="$(_t '(the default official registry)')"
     if [[ -f "$BUNFIG" ]] && grep -q "registry" "$BUNFIG" 2>/dev/null; then
         # 从 "registry = \"url\"" 提取 url（用 Parameter Expansion 避免 sed 跨平台问题）
         local reg_line
@@ -126,10 +128,10 @@ status_bun() {
     fi
 
     if $installed; then
-        emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+(v$ver)}"
+        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+(v$ver)}"
         emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
     emit_extra "registry=$cur_reg"
     if ! uxs_is_machine_mode; then
@@ -170,26 +172,26 @@ _set_registry() {
 # 换国内镜像源（写入 ~/.bunfig.toml）
 mirror_bun() {
     detect_os
-    info "🌐 为 Bun 配置国内镜像源（${MIRROR_REGISTRY}）"
+    info "$(_tf '🌐 Configuring a domestic mirror for Bun (%s)' "${MIRROR_REGISTRY}")"
     _set_registry "$MIRROR_REGISTRY"
-    success "已配置 registry = ${MIRROR_REGISTRY}（写入 ${BUNFIG}）"
+    success "$(_tf 'The registry = %s has been configured (written to %s)' "${MIRROR_REGISTRY}" "${BUNFIG}")"
     # 清理 bun 缓存使新源生效
     if command_exists bun; then
-        info "清理 Bun 安装缓存..."
+        info "$(_t 'Cleaning the Bun installation cache...')"
         bun pm cache rm >/dev/null 2>&1 || true
     fi
-    info "验证：bun install 时将从国内镜像拉取"
+    info "$(_t 'Verification: bun install will pull from the domestic mirror')"
 }
 
 # 还原官方源
 unmirror_bun() {
     detect_os
     if [[ ! -f "$BUNFIG" ]]; then
-        info "无 ${BUNFIG}，已是官方源"; return 0
+        info "$(_tf 'No %s, it is already the official registry' "${BUNFIG}")"; return 0
     fi
-    info "还原 Bun 官方源（${OFFICIAL_REGISTRY}）"
+    info "$(_tf 'Restoring the official Bun registry (%s)' "${OFFICIAL_REGISTRY}")"
     _set_registry "$OFFICIAL_REGISTRY"
-    success "已还原 registry = $OFFICIAL_REGISTRY"
+    success "$(_tf 'The registry = %s has been restored' "$OFFICIAL_REGISTRY")"
     if command_exists bun; then
         bun pm cache rm >/dev/null 2>&1 || true
     fi
@@ -199,11 +201,11 @@ usage() {
     cat <<EOF
 用法: $0 {install|mirror|unmirror|uninstall|status|help}
 
-  install     安装 Bun（JavaScript/TypeScript 运行时，默认动作）
-  mirror      配置国内镜像源（淘宝 npmmirror，加速 bun install）
-  unmirror    还原官方源
-  uninstall   卸载
-  status      查看状态（含当前 registry）
+  install     $(_t 'Install Bun (the JavaScript/TypeScript runtime, default action)')
+  mirror      $(_t 'Configure a domestic mirror (Taobao npmmirror, speeds up bun install)')
+  unmirror    $(_t 'Restore the official registry')
+  uninstall   $(_t 'Uninstall')
+  status      $(_t 'View the status (including the current registry)')
 EOF
 }
 
@@ -217,7 +219,7 @@ main() {
         uninstall) uninstall_bun ;;
         status)    status_bun ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

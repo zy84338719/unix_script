@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 17:13+0800\n"
+"POT-Creation-Date: 2026-11-11 19:00+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1018,6 +1018,9 @@ msgstr ""
 msgid "Official installer failed, check the network or install manually:"
 msgstr ""
 
+msgid "install manually"
+msgstr ""
+
 msgid "Enabling and starting docker service..."
 msgstr ""
 
@@ -1126,6 +1129,9 @@ msgstr ""
 msgid ""
 "Registry mirror configuration failed, check the network or configure "
 "manually:"
+msgstr ""
+
+msgid "configure manually"
 msgstr ""
 
 msgid "Registry mirror configuration complete."
@@ -3472,6 +3478,1019 @@ msgstr ""
 msgid "Examples:"
 msgstr ""
 
+#, sh-printf-format
+msgid "Only supports Linux / macOS. Current: %s"
+msgstr ""
+
+msgid "🚀 Starting Deskflow installation (Flatpak)"
+msgstr ""
+
+msgid "Install flatpak and curl ===="
+msgstr ""
+
+msgid "Add Flathub repository (skip if already present) ===="
+msgstr ""
+
+msgid "Already exists, skipping"
+msgstr ""
+
+msgid "Added successfully"
+msgstr ""
+
+msgid "Online add failed, trying offline add..."
+msgstr ""
+
+msgid "Install Deskflow ===="
+msgstr ""
+
+msgid "Configure desktop integration (XDG_DATA_DIRS) ===="
+msgstr ""
+
+msgid "already contains XDG_DATA_DIRS configuration, skipping"
+msgstr ""
+
+#, sh-printf-format
+msgid "Appended XDG_DATA_DIRS to %s"
+msgstr ""
+
+msgid "🎉 Deskflow installation complete!"
+msgstr ""
+
+msgid "Please run:"
+msgstr ""
+
+msgid ""
+"Or after logging out or restarting the session, you can find Deskflow in the "
+"application menu, or run:"
+msgstr ""
+
+msgid "Start Deskflow."
+msgstr ""
+
+msgid ""
+"Homebrew not detected. Please install it first: ./install.sh brew  or see "
+"https://brew.sh"
+msgstr ""
+
+msgid "🚀 Starting Deskflow installation (Homebrew)"
+msgstr ""
+
+msgid "Add deskflow/tap (skip if already present) ===="
+msgstr ""
+
+msgid "Install Deskflow cask ===="
+msgstr ""
+
+msgid "Remove the quarantine attribute (if any) ===="
+msgstr ""
+
+msgid "quarantine attribute cleared"
+msgstr ""
+
+msgid "No quarantine attribute or already cleared"
+msgstr ""
+
+msgid "Find Deskflow in Applications, or run:"
+msgstr ""
+
+msgid ""
+"If macOS blocks the launch (unsigned app warning), go to System Settings → "
+"Privacy & Security and click Open Anyway."
+msgstr ""
+
+msgid "✅ Installed (Flatpak)"
+msgstr ""
+
+msgid "✅ Installed (Homebrew)"
+msgstr ""
+
+msgid "⚠️  Not applicable (Linux / macOS only)"
+msgstr ""
+
+msgid "may not be installed"
+msgstr ""
+
+msgid ""
+"Homebrew not detected, cannot uninstall. Please remove /Applications/"
+"Deskflow.app manually"
+msgstr ""
+
+msgid "Uninstall Deskflow?"
+msgstr ""
+
+msgid "Install Deskflow (Linux: Flatpak / macOS: Homebrew)"
+msgstr ""
+
+msgid "Uninstall Deskflow"
+msgstr ""
+
+msgid "View installation status"
+msgstr ""
+
+msgid "✅ Disk dashboard available"
+msgstr ""
+
+msgid "(pure command wrapper)"
+msgstr ""
+
+msgid "💾 Disk space overview"
+msgstr ""
+
+msgid "📁 Mount point usage:"
+msgstr ""
+
+msgid "File system"
+msgstr ""
+
+msgid "Capacity"
+msgstr ""
+
+msgid "Used"
+msgstr ""
+
+msgid "Available"
+msgstr ""
+
+msgid "Usage"
+msgstr ""
+
+msgid "Mount point"
+msgstr ""
+
+msgid "🧠 Memory usage:"
+msgstr ""
+
+#, sh-printf-format
+msgid "Total memory: %dGB | Used: %dGB | Available: %dGB"
+msgstr ""
+
+msgid "Total"
+msgstr ""
+
+msgid "Shared"
+msgstr ""
+
+msgid "Cache"
+msgstr ""
+
+msgid ""
+"free command unavailable, install procps/procps-ng to view memory details"
+msgstr ""
+
+msgid "🔄 Swap status:"
+msgstr ""
+
+#, sh-printf-format
+msgid "Total: %s | Used: %s | Available: %s"
+msgstr ""
+
+msgid "Cannot get swap information"
+msgstr ""
+
+msgid "Swap is not enabled"
+msgstr ""
+
+msgid "⚠️  The following mount points exceed 90% usage:"
+msgstr ""
+
+#, sh-printf-format
+msgid "Run \"%s clean\" to free up space"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Number=drill down into this directory  u=up one level  c=change count "
+"(current %s, e.g. 10/20/30/50)  q=quit"
+msgstr ""
+
+msgid "Already at the top level"
+msgstr ""
+
+#, sh-printf-format
+msgid "Enter the count (positive integer, press Enter to keep %s):"
+msgstr ""
+
+#, sh-printf-format
+msgid "Invalid count, keeping %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Invalid input: %s"
+msgstr ""
+
+msgid "The current list is empty, there is no directory to drill into"
+msgstr ""
+
+#, sh-printf-format
+msgid "Index out of range (1-%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Must be a positive integer: %s"
+msgstr ""
+
+msgid "Must carry a K/M/G unit, e.g. 100M"
+msgstr ""
+
+#, sh-printf-format
+msgid "Path does not exist: %s"
+msgstr ""
+
+msgid ""
+"The current du does not support depth scanning, fell back to single level "
+"mode"
+msgstr ""
+
+msgid ""
+"The current find does not support M/G size filtering (BusyBox?), the file "
+"list is skipped (install findutils to restore)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Scanning (depth %s, large directories may take a while)..."
+msgstr ""
+
+#, sh-printf-format
+msgid "📊 Largest directories under %s (Top %s · depth %s)"
+msgstr ""
+
+msgid "(no matching subdirectories)"
+msgstr ""
+
+#, sh-printf-format
+msgid "📄 Largest files (Top %s, only >50M listed)"
+msgstr ""
+
+msgid "(no file path to scan)"
+msgstr ""
+
+msgid "(no files larger than 50M found)"
+msgstr ""
+
+#, sh-printf-format
+msgid "🔍 Disk space monitoring (threshold: %s%%)"
+msgstr ""
+
+#, sh-printf-format
+msgid "🔴 %s (%s): %s%% — exceeds threshold %s%%"
+msgstr ""
+
+#, sh-printf-format
+msgid "🟡 %s (%s): %s%% — close to threshold %s%%"
+msgstr ""
+
+#, sh-printf-format
+msgid "Out of disk space on some mount points! Run \"%s clean\" to free space"
+msgstr ""
+
+msgid "All mount points have enough space ✅"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Installing the disk space monitoring cron job (checks daily at 08:00, "
+"threshold: %s%%)"
+msgstr ""
+
+msgid "The disk monitoring cron job already exists, it will be updated"
+msgstr ""
+
+msgid "Cron job installed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Log file: %s"
+msgstr ""
+
+msgid "View the job: crontab -l | grep disk-usage"
+msgstr ""
+
+#, sh-printf-format
+msgid "Uninstall the job: %s monitor --uninstall"
+msgstr ""
+
+msgid "No disk monitoring cron job found"
+msgstr ""
+
+msgid "Cron job removed"
+msgstr ""
+
+msgid "🧹 Disk space cleanup"
+msgstr ""
+
+msgid "Please specify the cleanup type:"
+msgstr ""
+
+msgid "Clean up system logs"
+msgstr ""
+
+msgid "Clean up the package manager cache"
+msgstr ""
+
+msgid "Clean up Docker junk (Docker must be installed)"
+msgstr ""
+
+msgid "Clean up everything"
+msgstr ""
+
+#, sh-printf-format
+msgid "Example: %s clean --all"
+msgstr ""
+
+msgid "── Clean up system logs ──"
+msgstr ""
+
+#, sh-printf-format
+msgid "Current journal log size: %s"
+msgstr ""
+
+msgid "Will run: journalctl --vacuum-time=3d"
+msgstr ""
+
+msgid "Clean up journal logs older than 3 days?"
+msgstr ""
+
+msgid "Journal logs cleaned"
+msgstr ""
+
+msgid "Found the following log files larger than 100M:"
+msgstr ""
+
+msgid "Will truncate the large log files above"
+msgstr ""
+
+msgid "Truncate the large log files above (keep the empty files)?"
+msgstr ""
+
+msgid "Large log files truncated"
+msgstr ""
+
+msgid "No log files larger than 100M found"
+msgstr ""
+
+msgid "── Clean up the package manager cache ──"
+msgstr ""
+
+#, sh-printf-format
+msgid "Cache size: %s"
+msgstr ""
+
+msgid "Will run: apt-get clean"
+msgstr ""
+
+msgid "Clean up the APT cache?"
+msgstr ""
+
+msgid "Cache cleaned"
+msgstr ""
+
+msgid "Will run: dnf clean all"
+msgstr ""
+
+msgid "Clean up the DNF cache?"
+msgstr ""
+
+msgid "Will run: yum clean all"
+msgstr ""
+
+msgid "Clean up the YUM cache?"
+msgstr ""
+
+msgid "Will run: brew cleanup --prune=all"
+msgstr ""
+
+msgid "Clean up the Homebrew cache?"
+msgstr ""
+
+msgid "No known package manager detected, skipping the cache cleanup"
+msgstr ""
+
+#, sh-printf-format
+msgid "Cache size: %s (%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Will run: %s cache purge"
+msgstr ""
+
+msgid "Clean up the pip cache?"
+msgstr ""
+
+msgid "Will run: npm cache clean --force"
+msgstr ""
+
+msgid "Clean up the npm cache?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Will clean %s"
+msgstr ""
+
+msgid "Clean up the bun cache?"
+msgstr ""
+
+msgid "── Clean up Docker ──"
+msgstr ""
+
+msgid "not installed, skipping"
+msgstr ""
+
+msgid "the service is not running, skipping"
+msgstr ""
+
+msgid "Disk usage:"
+msgstr ""
+
+msgid "Will run: docker system prune -af --volumes"
+msgstr ""
+
+msgid "Clean up unused Docker images, containers, networks and volumes?"
+msgstr ""
+
+msgid "Docker junk cleaned"
+msgstr ""
+
+msgid "🎉 Cleanup finished"
+msgstr ""
+
+msgid ""
+"Disk space management tool — view the storage overview, the large file "
+"ranking, monitoring alerts, one-click cleanup."
+msgstr ""
+
+msgid "Subcommands:"
+msgstr ""
+
+msgid "View the storage overview (default action)"
+msgstr ""
+
+msgid "Show the usage of each mount point, memory and Swap status"
+msgstr ""
+
+msgid "path argument"
+msgstr ""
+
+msgid "Large file/directory ranking (path defaults to /, count defaults to 10)"
+msgstr ""
+
+msgid ""
+"Directory scan depth (defaults to 1); 2 shows the second level subdirectories"
+msgstr ""
+
+msgid ""
+"Only show the entries not smaller than the given size (must carry a K/M/G "
+"unit, e.g. 100M)"
+msgstr ""
+
+msgid "Disable the interactive mode (disabled automatically under a pipe/CI)"
+msgstr ""
+
+msgid ""
+"Interactive keys: number=drill down  u=up one level  c=change count  q=quit"
+msgstr ""
+
+msgid "Check whether the usage exceeds the threshold (defaults to 90%)"
+msgstr ""
+
+msgid "Write to crontab (checks daily at 08:00)"
+msgstr ""
+
+msgid "Remove the crontab cron job"
+msgstr ""
+
+msgid "One-click disk space cleanup"
+msgstr ""
+
+msgid "Clean up system logs (journal + large log files)"
+msgstr ""
+
+msgid "Clean up the package manager cache (apt/dnf/yum/brew/pip/npm/bun)"
+msgstr ""
+
+msgid "Preview only, do not execute"
+msgstr ""
+
+msgid "# View the storage overview"
+msgstr ""
+
+msgid "# View the large directories under /home"
+msgstr ""
+
+msgid "# View the Top 20 large directories"
+msgstr ""
+
+msgid "# Two level drill down: /var and /var/lib/docker in one screen"
+msgstr ""
+
+msgid "# Only show the big ones above 100M"
+msgstr ""
+
+msgid "# Check whether it exceeds 90%"
+msgstr ""
+
+msgid "# Install the scheduled monitoring with an 80% threshold"
+msgstr ""
+
+msgid "# Clean up everything"
+msgstr ""
+
+msgid "# Preview the log cleanup"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unknown option: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Linux-only (current: %s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Missing command: %s (run ./install.sh disk install)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing %s tools: %s"
+msgstr ""
+
+msgid "No device specified"
+msgstr ""
+
+#, sh-printf-format
+msgid "Block device does not exist: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "⛔ %s is mounted at %s (umount it first)"
+msgstr ""
+
+#, sh-printf-format
+msgid "⛔ %s is held by kernel device %s (LVM LV/RAID; deactivate it)"
+msgstr ""
+
+#, sh-printf-format
+msgid "⛔ %s is an LVM PV (VG %s, not activated)"
+msgstr ""
+
+#, sh-printf-format
+msgid "⛔ %s holds an LVM PV signature (old VG leftover)"
+msgstr ""
+
+#, sh-printf-format
+msgid "⛔ %s holds a %s signature"
+msgstr ""
+
+msgid "Target device details:"
+msgstr ""
+
+#, sh-printf-format
+msgid "Refused: %s is destructive, interactive terminal only (no --yes bypass)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Refused: %s is the system/boot/swap disk or a partition of it"
+msgstr ""
+
+msgid "Not mounted, no holder, only old signatures (wipefs clears):"
+msgstr ""
+
+#, sh-printf-format
+msgid "Refused: %s is in use:"
+msgstr ""
+
+msgid "Hint: only old signatures left? clear them with wipe and retry"
+msgstr ""
+
+#, sh-printf-format
+msgid "⚠️  %s will erase all data on %s. Type the full device name:"
+msgstr ""
+
+#, sh-printf-format
+msgid "Input mismatch (expected: %s), cancelled"
+msgstr ""
+
+msgid "overall verdict FAILED"
+msgstr ""
+
+msgid "Cannot read SMART data (USB bridge/RAID unsupported, or no rights)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Media errors(Media Errors)=%s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Available spare %s%% below threshold %s%%"
+msgstr ""
+
+#, sh-printf-format
+msgid "Lifetime used up %s%%"
+msgstr ""
+
+#, sh-printf-format
+msgid "Pending sectors(Current_Pending)=%s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Uncorrectable sectors(Offline_Uncorrectable)=%s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Uncorrectable errors(Reported_Uncorrect)=%s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Reallocated sectors(Reallocated_Sector)=%s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Reallocation events(Reallocation_Event)=%s"
+msgstr ""
+
+msgid "Healthy"
+msgstr ""
+
+msgid "Warning"
+msgstr ""
+
+msgid "Dangerous"
+msgstr ""
+
+msgid "Block device overview (⚠️ see the protected list below):"
+msgstr ""
+
+msgid "Protected devices (system/boot/swap: no destructive ops):"
+msgstr ""
+
+msgid "(none)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Formatting %s -> %s ..."
+msgstr ""
+
+msgid "Usage: format <device> [ext4|xfs|vfat|exfat|ntfs] (default ext4)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unsupported file system: %s (supported: %s)"
+msgstr ""
+
+msgid "format"
+msgstr ""
+
+#, sh-printf-format
+msgid "Format complete: %s (%s),"
+msgstr ""
+
+#, sh-printf-format
+msgid "Next step: ./install.sh disk fstab add %s /mnt/point"
+msgstr ""
+
+msgid "Usage: partition <whole disk> (GPT single partition of the whole disk)"
+msgstr ""
+
+msgid "Not a whole disk (wizard/partition need a whole disk; use format)"
+msgstr ""
+
+msgid "partition (clear signatures + GPT single partition)"
+msgstr ""
+
+msgid "Partition creation failed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Partition complete: %s (GPT). Next: ./install.sh disk format %s ext4"
+msgstr ""
+
+msgid "Usage: mount <device> <mount point> [--fstab]"
+msgstr ""
+
+msgid "No file system signature, please run format first"
+msgstr ""
+
+#, sh-printf-format
+msgid "Mounted: %s -> %s (use --fstab or fstab add to persist)"
+msgstr ""
+
+msgid "Usage: umount <mount point|device>"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unmounted: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Still in fstab, mounted again after reboot; remove: fstab remove %s"
+msgstr ""
+
+msgid "Non-comment entries:"
+msgstr ""
+
+msgid "Usage: fstab {list|add <dev> <mount point> [opts]|remove <mount point>}"
+msgstr ""
+
+msgid "Usage: fstab add <dev> <mount point> [opts] (default defaults,nofail)"
+msgstr ""
+
+msgid "No mount point specified"
+msgstr ""
+
+#, sh-printf-format
+msgid "Cannot get the UUID of %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Mounting %s -> %s failed, fstab was not written"
+msgstr ""
+
+#, sh-printf-format
+msgid "validation failed, fstab rolled back (backup: /etc/fstab.bak.%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Written to fstab: UUID=%s -> %s (%s, %s), backup: /etc/fstab.bak.%s"
+msgstr ""
+
+msgid "Usage: fstab remove <mount point>"
+msgstr ""
+
+#, sh-printf-format
+msgid "No entry for %s in fstab"
+msgstr ""
+
+#, sh-printf-format
+msgid "fstab entry removed: %s (backup: /etc/fstab.bak.%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "SMART reason detail: (%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "═══ SMART health check: %s ═══"
+msgstr ""
+
+msgid "—— Device information ——"
+msgstr ""
+
+msgid "—— SMART overall verdict ——"
+msgstr ""
+
+msgid "—— Key metrics ——"
+msgstr ""
+
+#, sh-printf-format
+msgid "Temperature: %s°C"
+msgstr ""
+
+#, sh-printf-format
+msgid "Power on time: %s hours"
+msgstr ""
+
+msgid "—— Attribute table ——"
+msgstr ""
+
+msgid "Conclusion: healthy — no abnormal metrics found"
+msgstr ""
+
+#, sh-printf-format
+msgid "Conclusion: warning — %s (disk self-healing, watch trend, keep backups)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Conclusion: dangerous — %s (back up data now, consider a new disk)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Conclusion: unknown — %s"
+msgstr ""
+
+msgid "smartmontools is not installed, installing it now..."
+msgstr ""
+
+msgid "Health overview (all whole disks):"
+msgstr ""
+
+msgid "No whole disk device found"
+msgstr ""
+
+msgid "Usage: scan <whole disk|partition> (e.g. sdb or sdb1)"
+msgstr ""
+
+msgid "badblocks (e2fsprogs) is not installed, installing it now..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Scan is read-only, but %s is in use or a system disk: it will be slow"
+msgstr ""
+
+#, sh-printf-format
+msgid "Estimated time: %s h %s min (at ~150MB/s, SSD is usually faster)"
+msgstr ""
+
+msgid "Starting a read-only disk scan (badblocks). Ctrl-C stops it, rerun."
+msgstr ""
+
+#, sh-printf-format
+msgid "🔴 Found %s bad blocks! Back up data; check disk smart %s for trends"
+msgstr ""
+
+#, sh-printf-format
+msgid "Bad block LBA list (first 20 lines; full list: %s):"
+msgstr ""
+
+#, sh-printf-format
+msgid "The scan exited abnormally (rc=%s; bit2 = interrupted). Just rerun it"
+msgstr ""
+
+#, sh-printf-format
+msgid "✅ Disk surface is healthy: a full scan of %s found no bad blocks"
+msgstr ""
+
+msgid "Usage: wipe <device> (clear file system/partition table signatures)"
+msgstr ""
+
+msgid "erase signatures (wipefs)"
+msgstr ""
+
+#, sh-printf-format
+msgid "All signatures of %s have been cleared"
+msgstr ""
+
+msgid "The wizard needs an interactive terminal (safety guard)"
+msgstr ""
+
+msgid "🧙 New disk one-click wizard: partition -> format -> mount -> fstab"
+msgstr ""
+
+msgid "Select the whole disk to bring online (e.g. sdb):"
+msgstr ""
+
+msgid "Not a whole disk, the wizard needs a whole disk (use format)"
+msgstr ""
+
+msgid "new disk wizard (partition+format)"
+msgstr ""
+
+#, sh-printf-format
+msgid "File system [%s] (press Enter for ext4):"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unsupported file system: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Mount point (press Enter for /mnt/%s):"
+msgstr ""
+
+#, sh-printf-format
+msgid "The mount point must be an absolute path: %s"
+msgstr ""
+
+msgid "① Partition (GPT single partition of the whole disk)..."
+msgstr ""
+
+msgid "Partition creation failed, the wizard aborts"
+msgstr ""
+
+#, sh-printf-format
+msgid "② Format %s -> %s ..."
+msgstr ""
+
+msgid "③ Mount + write fstab + verify ..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Done, but fstab not written. Add manually: disk fstab add %s %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "🎉 New disk is online: %s (%s) -> %s (persisted, auto-mounted)"
+msgstr ""
+
+msgid "Cannot detect the package manager"
+msgstr ""
+
+msgid "🚀 Installing the disk toolbox dependencies (parted/xfsprogs/...)..."
+msgstr ""
+
+msgid "Install by package name failed, trying the exfat-utils fallback..."
+msgstr ""
+
+msgid "Disk toolbox dependencies installed"
+msgstr ""
+
+msgid "Available: ./install.sh disk list | wizard | format | fstab | smart ..."
+msgstr ""
+
+msgid "Only removes the helper tools this module installed"
+msgstr ""
+
+msgid "It will not touch any disk data, mounts or fstab"
+msgstr ""
+
+msgid "Confirm uninstalling these tool packages?"
+msgstr ""
+
+msgid "Some packages could not be removed (not installed or needed); system OK"
+msgstr ""
+
+msgid "Disk toolbox helper tools uninstalled"
+msgstr ""
+
+#, sh-printf-format
+msgid "⚠️  Disk toolbox dependencies missing: %s (run disk install)"
+msgstr ""
+
+#, sh-printf-format
+msgid "✅ Disk toolbox is ready (%s whole disks)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Optional tools not installed: %s (auto-installed on first use)"
+msgstr ""
+
+msgid "Disk toolbox (Linux only): partition/format/mount/fstab/SMART/erase"
+msgstr ""
+
+msgid "List block devices and protected devices (default action)"
+msgstr ""
+
+msgid "New disk wizard: partition -> format -> mount -> fstab (interactive)"
+msgstr ""
+
+msgid "whole disk"
+msgstr ""
+
+msgid "GPT single partition of the whole disk (signatures cleared first)"
+msgstr ""
+
+msgid "disk device"
+msgstr ""
+
+msgid "file system type"
+msgstr ""
+
+msgid "Format: ext4 (default)/xfs/vfat/exfat/ntfs"
+msgstr ""
+
+msgid "mount point"
+msgstr ""
+
+msgid "Mount (--fstab also persists it)"
+msgstr ""
+
+msgid "mount point or device"
+msgstr ""
+
+msgid "Unmount"
+msgstr ""
+
+msgid "management (UUID based, backs up before writing and verifies after)"
+msgstr ""
+
+msgid "health check (no arg = all disks overview; one disk = details)"
+msgstr ""
+
+msgid "whole disk or partition"
+msgstr ""
+
+msgid "Read-only bad block scan (badblocks does not write, may take hours)"
+msgstr ""
+
+msgid "Clear file system/partition table signatures (wipefs)"
+msgstr ""
+
+msgid "Install the missing dependency tools"
+msgstr ""
+
+msgid "Remove the helper tools (does not touch disk data)"
+msgstr ""
+
+msgid "View status (machine readable: UXS_STATUS_MODE=machine)"
+msgstr ""
+
+msgid "⚠️  Safety guard (strict, no --yes bypass):"
+msgstr ""
+
+msgid "Root/boot/EFI/swap disks and devices in use are hard-rejected"
+msgstr ""
+
+msgid "Destructive ops need an interactive terminal and the typed device name"
+msgstr ""
+
+msgid "fstab is backed up before writing; a failed mount -a rolls back"
+msgstr ""
+
+msgid "smart/scan are read-only checks: no disk writes, scan only warns"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unknown disk subcommand: %s"
+msgstr ""
+
 msgid ""
 "The docker command was not found. Install Docker first: ./install.sh docker"
 msgstr ""
@@ -3828,9 +4847,6 @@ msgstr ""
 msgid "Table MARK rules (iptables) ==="
 msgstr ""
 
-msgid "(none)"
-msgstr ""
-
 msgid "Confirm clearing all the multi-net policy routing rules and marks?"
 msgstr ""
 
@@ -3891,6 +4907,1324 @@ msgid "# www-data The user traffic goes through eth1"
 msgstr ""
 
 msgid "# The traffic to port 443 goes through eth1"
+msgstr ""
+
+#, sh-printf-format
+msgid "The nat module is Linux-only. Current: %s"
+msgstr ""
+
+msgid "The iptables command was not found, please install it first:"
+msgstr ""
+
+msgid "Enabling IP forwarding..."
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "Disabling IP forwarding..."
+msgstr ""
+
+msgid "Disabled"
+msgstr ""
+
+msgid ""
+"Invalid target format, it should be IP:port, for example 192.168.1.100:443"
+msgstr ""
+
+#, sh-printf-format
+msgid "Invalid external port: %s (expected 1-65535)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Invalid target port: %s (expected 1-65535)"
+msgstr ""
+
+#, sh-printf-format
+msgid "The port %s/%s already has a forwarding rule, it will be overwritten"
+msgstr ""
+
+#, sh-printf-format
+msgid "Forwarding added: %s/%s -> %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Forwarding removed: %s/%s"
+msgstr ""
+
+msgid "Forwarding rules ==="
+msgstr ""
+
+msgid "(no rules)"
+msgstr ""
+
+msgid "Port"
+msgstr ""
+
+msgid "Protocol"
+msgstr ""
+
+msgid "Target"
+msgstr ""
+
+#, sh-printf-format
+msgid "The interface %s does not exist. Available network interfaces:"
+msgstr ""
+
+#, sh-printf-format
+msgid "The interface %s already has a MASQUERADE rule, it will be overwritten"
+msgstr ""
+
+#, sh-printf-format
+msgid "MASQUERADE enabled: interface %s%s"
+msgstr ""
+
+msgid "source"
+msgstr ""
+
+#, sh-printf-format
+msgid "MASQUERADE disabled: interface %s"
+msgstr ""
+
+msgid "Gateway ==="
+msgstr ""
+
+msgid "(not configured)"
+msgstr ""
+
+msgid "Interface"
+msgstr ""
+
+msgid "Source CIDR"
+msgstr ""
+
+msgid "all"
+msgstr ""
+
+msgid "Clearing all the nat-manager iptables rules..."
+msgstr ""
+
+msgid "Configuring the systemd persistence service..."
+msgstr ""
+
+msgid "Load the port forwarding and MASQUERADE rules"
+msgstr ""
+
+msgid "Enabled (the rules are loaded automatically at boot)"
+msgstr ""
+
+msgid "Removing the systemd persistence service..."
+msgstr ""
+
+msgid "Removed"
+msgstr ""
+
+msgid "NAT management tool installation complete!"
+msgstr ""
+
+msgid "Port forwarding"
+msgstr ""
+
+msgid "Shared internet access"
+msgstr ""
+
+msgid "Show the rules"
+msgstr ""
+
+msgid ""
+"Confirm uninstalling the NAT management tool? All forwarding rules and "
+"gateway settings will be cleared."
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Delete the configuration directory %s? (the rule files will be deleted too)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Configuration directory %s deleted"
+msgstr ""
+
+msgid "NAT management tool uninstalled"
+msgstr ""
+
+msgid "Not enabled"
+msgstr ""
+
+msgid "Enabled and running"
+msgstr ""
+
+msgid "Enabled but not running"
+msgstr ""
+
+msgid "✅ NAT configured"
+msgstr ""
+
+#, sh-printf-format
+msgid "(%s forwarding rules)"
+msgstr ""
+
+msgid "⚠️  NAT not configured"
+msgstr ""
+
+msgid "(no forwarding rules)"
+msgstr ""
+
+msgid "Off"
+msgstr ""
+
+#, sh-printf-format
+msgid "Forwarding rules: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Gateway settings: %s"
+msgstr ""
+
+msgid "Persistence service:"
+msgstr ""
+
+msgid ""
+"NAT port forwarding and shared internet access management tool (Linux only)."
+msgstr ""
+
+msgid "Install the dependencies, enable IP forwarding and set up persistence"
+msgstr ""
+
+msgid "Clear the rules, disable IP forwarding and remove the persistence"
+msgstr ""
+
+msgid ""
+"port> <target:port> [--proto P]   Add a DNAT forwarding rule (tcp by default)"
+msgstr ""
+
+msgid "port> [--proto P]               Delete a DNAT forwarding rule"
+msgstr ""
+
+msgid "List all the forwarding rules"
+msgstr ""
+
+msgid ""
+"interface> [--source CIDR]        Enable MASQUERADE (shared internet access)"
+msgstr ""
+
+msgid "interface>                       Disable MASQUERADE"
+msgstr ""
+
+msgid "Internal commands (called by systemd, not used directly):"
+msgstr ""
+
+msgid "Load all the rules from the configuration files"
+msgstr ""
+
+msgid "Clear all the iptables rules"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unknown forward subcommand: %s"
+msgstr ""
+
+msgid "Available: add, del, list"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unknown parameter: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Usage: %s forward add <port> <targetIP:port> [--proto tcp|udp]"
+msgstr ""
+
+#, sh-printf-format
+msgid "Usage: %s forward del <port> [--proto tcp|udp]"
+msgstr ""
+
+#, sh-printf-format
+msgid "No forwarding rule found for the port %s/%s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Usage: %s gateway enable <interface> [--source CIDR]"
+msgstr ""
+
+#, sh-printf-format
+msgid "Usage: %s gateway disable <interface>"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unknown gateway subcommand: %s"
+msgstr ""
+
+msgid "Available: enable, disable, list"
+msgstr ""
+
+msgid "Only supports Linux (depends on systemd); not applicable on macOS"
+msgstr ""
+
+#, sh-printf-format
+msgid ": %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Disk space %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Used %s%%"
+msgstr ""
+
+msgid "Disk space"
+msgstr ""
+
+#, sh-printf-format
+msgid "Max usage %s%% (%s)"
+msgstr ""
+
+msgid "No real filesystem to report"
+msgstr ""
+
+msgid "unavailable"
+msgstr ""
+
+msgid "Cannot read (permissions / USB bridge / RAID backplane)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Overall result is not PASSED — details: sudo smartctl -H %s"
+msgstr ""
+
+msgid "No sd/nvme whole disk found"
+msgstr ""
+
+msgid "smartmontools is not installed"
+msgstr ""
+
+msgid "unavailable (container / no systemd)"
+msgstr ""
+
+msgid "No failed units"
+msgstr ""
+
+msgid "failed units"
+msgstr ""
+
+msgid "Troubleshoot: ./install.sh ops-kit svc failed"
+msgstr ""
+
+msgid "usage"
+msgstr ""
+
+msgid "Cleanup: ./install.sh ops-kit log vacuum 200M"
+msgstr ""
+
+msgid "baseline"
+msgstr ""
+
+msgid "Summary: see ./install.sh ops-kit audit ssh"
+msgstr ""
+
+msgid "Cannot read sshd config"
+msgstr ""
+
+msgid "public listeners"
+msgstr ""
+
+msgid "No 0.0.0.0/[::] listener"
+msgstr ""
+
+msgid "items — list: ./install.sh ops-kit audit ports"
+msgstr ""
+
+msgid "pending updates"
+msgstr ""
+
+msgid "Unrecognized package manager"
+msgstr ""
+
+#, sh-printf-format
+msgid "Pending updates (%s)"
+msgstr ""
+
+msgid "items"
+msgstr ""
+
+msgid "failed logins"
+msgstr ""
+
+#, sh-printf-format
+msgid "Recent %s+ entries (lastb, signs of a failed-login brute force)"
+msgstr ""
+
+msgid "No records"
+msgstr ""
+
+#, sh-printf-format
+msgid "🩺 ops-kit inspection report (%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Inspection summary: %s critical, %s warnings — prioritize 🔴 items"
+msgstr ""
+
+#, sh-printf-format
+msgid "Inspection summary: %s warnings, no critical items"
+msgstr ""
+
+msgid "Inspection summary: all passed"
+msgstr ""
+
+msgid "📜 Log usage"
+msgstr ""
+
+msgid "Failed to read"
+msgstr ""
+
+#, sh-printf-format
+msgid "journal: %s"
+msgstr ""
+
+msgid "top 5 consumers:"
+msgstr ""
+
+msgid "Cleanup pointer: ./install.sh ops-kit log vacuum 200M"
+msgstr ""
+
+msgid "Usage: ops-kit log vacuum <200M|2weeks> (size or duration, required)"
+msgstr ""
+
+msgid "Cleaning journal is a write op; needs a TTY (or --dry-run to preview)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Will run: journalctl --vacuum-size=%s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Will run: journalctl --vacuum-time=%s"
+msgstr ""
+
+msgid "Confirm cleaning journal? Type yes to continue:"
+msgstr ""
+
+msgid "✅ journal cleanup done"
+msgstr ""
+
+#, sh-printf-format
+msgid "📋 %s existing entries"
+msgstr ""
+
+msgid "(directory does not exist)"
+msgstr ""
+
+msgid "Usage: ops-kit log rotate show <app>"
+msgstr ""
+
+#, sh-printf-format
+msgid "No %s entry (use list to see existing ones)"
+msgstr ""
+
+msgid "Usage: ops-kit log rotate apply <app> (templates: nginx|redis|journal)"
+msgstr ""
+
+#, sh-printf-format
+msgid "No built-in template: %s (available: nginx|redis|journal)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Write %s/%s"
+msgstr ""
+
+msgid "Writing logrotate is a write op; needs a TTY (or --dry-run to preview)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Write %s/%s? Type yes to continue:"
+msgstr ""
+
+#, sh-printf-format
+msgid "✅ Written; verify: sudo logrotate -d %s/%s"
+msgstr ""
+
+msgid "Usage: ops-kit log rotate list|show <app>|apply <app>"
+msgstr ""
+
+msgid "Usage: ops-kit log status|vacuum <arg>|rotate list|show|apply <app>"
+msgstr ""
+
+msgid "Usage: ops-kit svc failed|logs|status|start|stop|restart|enable|disable"
+msgstr ""
+
+#, sh-printf-format
+msgid "Usage: ops-kit svc %s <unit>"
+msgstr ""
+
+msgid "No systemd in this environment; the svc subcommand is unavailable"
+msgstr ""
+
+msgid "🚨 systemd failed units"
+msgstr ""
+
+msgid "View full logs: ./install.sh ops-kit svc logs <unit> 100"
+msgstr ""
+
+#, sh-printf-format
+msgid "Confirm %s on %s? Type yes to continue:"
+msgstr ""
+
+#, sh-printf-format
+msgid "✅ systemctl %s %s done"
+msgstr ""
+
+msgid "🔐 SSH baseline self-check"
+msgstr ""
+
+msgid "Cannot read sshd config (no OpenSSH server or no permission), skipped"
+msgstr ""
+
+msgid "Hardening pointer: ./install.sh sys-setup ssh"
+msgstr ""
+
+msgid "🌐 Public listening ports"
+msgstr ""
+
+msgid "unavailable, skipped"
+msgstr ""
+
+#, sh-printf-format
+msgid "process: %s"
+msgstr ""
+
+msgid "No 0.0.0.0/[::] public listener"
+msgstr ""
+
+msgid "Closure pointer: ./install.sh ufw"
+msgstr ""
+
+msgid "📦 Pending updates"
+msgstr ""
+
+msgid "Unrecognized package manager, skipped"
+msgstr ""
+
+#, sh-printf-format
+msgid "Pending updates %s; auto-install: ./install.sh sys-setup unattended"
+msgstr ""
+
+msgid "Usage: ops-kit audit ssh|ports|updates|all"
+msgstr ""
+
+msgid "⏭️  ops-kit toolbox (Linux only, not applicable on this machine)"
+msgstr ""
+
+msgid "✅ ops-kit toolbox ready (inspect checks / log / svc / audit baseline)"
+msgstr ""
+
+msgid "🧰 ops-kit dependency check"
+msgstr ""
+
+#, sh-printf-format
+msgid "✔ %s available"
+msgstr ""
+
+#, sh-printf-format
+msgid "✘ %s missing (related subcommands will degrade)"
+msgstr ""
+
+msgid "🎉 All dependencies present. Try: ./install.sh ops-kit inspect"
+msgstr ""
+
+#, sh-printf-format
+msgid "Missing %s item(s) — no auto-install; other subcommands unaffected"
+msgstr ""
+
+msgid "A read-only wrapper; it installs no components, no uninstall needed"
+msgstr ""
+
+msgid "Ops toolbox (Linux only) — one-stop inspection and daily ops"
+msgstr ""
+
+msgid "Aggregate check: disk/SMART/units/journal/SSH/ports/updates/logins"
+msgstr ""
+
+msgid "usage + /var/log top 5 consumers"
+msgstr ""
+
+msgid "Clean up journald (write op, interactive confirm, --dry-run)"
+msgstr ""
+
+msgid "View/generate /etc/logrotate.d entries (templates: nginx|redis|journal)"
+msgstr ""
+
+msgid "Failed unit summary (unit/status/journal tail lines)"
+msgstr ""
+
+msgid "View unit logs (50 lines by default)"
+msgstr ""
+
+msgid "Pass through (stop/restart/disable require interactive confirmation)"
+msgstr ""
+
+msgid "Security baseline self-check (read-only, with repair pointers)"
+msgstr ""
+
+msgid "Dependency readiness (machine readable with UXS_STATUS_MODE=machine)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unknown ops-kit subcommand: %s"
+msgstr ""
+
+msgid "Info]"
+msgstr ""
+
+msgid "Success]"
+msgstr ""
+
+msgid "Error]"
+msgstr ""
+
+msgid "Warning]"
+msgstr ""
+
+msgid "Unknown distribution"
+msgstr ""
+
+msgid "Other"
+msgstr ""
+
+#, sh-printf-format
+msgid "Operating system: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Version: %s"
+msgstr ""
+
+msgid "Kernel"
+msgstr ""
+
+msgid "Architecture"
+msgstr ""
+
+msgid "🐚 Shell environment detection"
+msgstr ""
+
+#, sh-printf-format
+msgid "Current shell: %s"
+msgstr ""
+
+msgid "Cannot get the version"
+msgstr ""
+
+#, sh-printf-format
+msgid "Shell version: %s"
+msgstr ""
+
+msgid "Installed shells:"
+msgstr ""
+
+msgid "Version unknown"
+msgstr ""
+
+#, sh-printf-format
+msgid "❌ %s - not installed"
+msgstr ""
+
+msgid "🔧 Basic command detection"
+msgstr ""
+
+msgid "All the basic commands are available"
+msgstr ""
+
+#, sh-printf-format
+msgid "The following commands are missing: %s"
+msgstr ""
+
+msgid "🌐 Network tool detection"
+msgstr ""
+
+msgid "✅ lsof (macOS network port detection)"
+msgstr ""
+
+msgid "❌ lsof - required on macOS"
+msgstr ""
+
+msgid "✅ ss (modern network statistics tool)"
+msgstr ""
+
+msgid "❌ ss - recommended"
+msgstr ""
+
+msgid "✅ netstat (traditional network statistics tool)"
+msgstr ""
+
+msgid "❌ netstat - fallback tool"
+msgstr ""
+
+msgid "✅ lsof (files and network connections)"
+msgstr ""
+
+msgid "❌ lsof - optional tool"
+msgstr ""
+
+msgid "At least one of ss, netstat or lsof must be installed"
+msgstr ""
+
+msgid "✅ netstat (Windows network tool)"
+msgstr ""
+
+msgid "❌ netstat - required on Windows"
+msgstr ""
+
+msgid "🔒 Permission detection"
+msgstr ""
+
+msgid "✅ The process information can be read"
+msgstr ""
+
+msgid "❌ The process information cannot be read"
+msgstr ""
+
+msgid "✅ The process signals can be sent"
+msgstr ""
+
+msgid "❌ The process signals cannot be sent"
+msgstr ""
+
+msgid "✅ The user directory can be written"
+msgstr ""
+
+msgid "❌ The user directory cannot be written"
+msgstr ""
+
+msgid "✅ The ~/.tools directory is writable"
+msgstr ""
+
+msgid "⚠️  The ~/.tools directory exists but is not writable"
+msgstr ""
+
+msgid ""
+"ℹ️  The ~/.tools directory does not exist (it will be created at install time)"
+msgstr ""
+
+msgid "🌍 Environment variable detection"
+msgstr ""
+
+msgid "✅ ~/.tools/bin is already in PATH"
+msgstr ""
+
+msgid "ℹ️  ~/.tools/bin is not in PATH (it will be added at install time)"
+msgstr ""
+
+msgid "✅ ~/.local/bin is already in PATH"
+msgstr ""
+
+msgid "ℹ️  ~/.local/bin is not in PATH"
+msgstr ""
+
+msgid "✅ /usr/local/bin is already in PATH"
+msgstr ""
+
+msgid "⚠️  /usr/local/bin is not in PATH"
+msgstr ""
+
+msgid "⚡ Performance test"
+msgstr ""
+
+msgid "Testing the process list performance..."
+msgstr ""
+
+msgid "Cannot compute"
+msgstr ""
+
+#, sh-printf-format
+msgid "✅ ps aux execution time: %ss"
+msgstr ""
+
+msgid "ℹ️  The performance of the ps command cannot be measured"
+msgstr ""
+
+msgid "Testing the port scan performance..."
+msgstr ""
+
+#, sh-printf-format
+msgid "✅ lsof -i execution time: %ss"
+msgstr ""
+
+#, sh-printf-format
+msgid "✅ ss -tulnp execution time: %ss"
+msgstr ""
+
+msgid "💡 Installation suggestions"
+msgstr ""
+
+msgid "System suggestions:"
+msgstr ""
+
+msgid "• Make sure the Xcode Command Line Tools are installed"
+msgstr ""
+
+msgid "• Use Homebrew to install the extra tools (optional)"
+msgstr ""
+
+msgid "• iTerm2 or Terminal.app is recommended"
+msgstr ""
+
+msgid "• A modern terminal emulator is recommended"
+msgstr ""
+
+msgid "• Use WSL2 or Git Bash"
+msgstr ""
+
+msgid "• Install Windows Terminal"
+msgstr ""
+
+msgid "• Consider using PowerShell Core"
+msgstr ""
+
+msgid "Configuration suggestions:"
+msgstr ""
+
+msgid "• Use Zsh + Oh My Zsh (recommended)"
+msgstr ""
+
+msgid "• Or use the Fish shell"
+msgstr ""
+
+msgid "• Configure a suitable terminal theme"
+msgstr ""
+
+msgid "Configuration after the installation:"
+msgstr ""
+
+msgid "• Reload the shell configuration or restart the terminal"
+msgstr ""
+
+msgid "• Test whether the pm command works"
+msgstr ""
+
+msgid "• See the documentation: ~/.tools/docs/process_manager_README.md"
+msgstr ""
+
+msgid "🔍 Process manager dependency detection"
+msgstr ""
+
+msgid "💻 System information"
+msgstr ""
+
+msgid "📋 Detection results"
+msgstr ""
+
+msgid "🎉 All the dependency checks passed!"
+msgstr ""
+
+msgid "Your system is compatible with the process manager."
+msgstr ""
+
+msgid "Next step: run the installation script"
+msgstr ""
+
+#, sh-printf-format
+msgid "❌ %s problem(s) found"
+msgstr ""
+
+msgid "Please fix the problems above and try installing again."
+msgstr ""
+
+msgid "Creating the project shortcut scripts..."
+msgstr ""
+
+msgid "The shortcut scripts have been created:"
+msgstr ""
+
+msgid "Quick access to the process manager"
+msgstr ""
+
+msgid "Quick access to the main install menu"
+msgstr ""
+
+msgid "How to use:"
+msgstr ""
+
+msgid "Search the node processes directly"
+msgstr ""
+
+msgid "View the help"
+msgstr ""
+
+msgid "View the configuration"
+msgstr ""
+
+msgid "Open the main install menu"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unrecognized shell: %s, using the default configuration"
+msgstr ""
+
+#, sh-printf-format
+msgid "Detected shell: %s, configuration file: %s"
+msgstr ""
+
+msgid "Checking the ~/.tools directory..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Created %s"
+msgstr ""
+
+msgid "Installing the process manager scripts..."
+msgstr ""
+
+msgid "The process_manager.sh file was not found"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installed %s to %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installed the pm wrapper script to %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installed the configuration file to %s"
+msgstr ""
+
+msgid "Configuring the environment variables..."
+msgstr ""
+
+msgid "already contains ~/.tools/bin"
+msgstr ""
+
+msgid "Adding ~/.tools/bin to PATH (added by unix_script process_manager)"
+msgstr ""
+
+msgid "Updated the Fish configuration file"
+msgstr ""
+
+#, sh-printf-format
+msgid "Updated the %s configuration file"
+msgstr ""
+
+msgid "Verifying the process manager installation..."
+msgstr ""
+
+msgid "The main script file was installed successfully"
+msgstr ""
+
+msgid "The main script file failed to install"
+msgstr ""
+
+msgid "The wrapper script was installed successfully"
+msgstr ""
+
+msgid "The wrapper script is not installed (optional)"
+msgstr ""
+
+msgid "🎉 Installation complete!"
+msgstr ""
+
+#, sh-printf-format
+msgid "The process manager has been installed to: %s/%s"
+msgstr ""
+
+msgid "Reload the shell configuration"
+msgstr ""
+
+msgid "search term>               # search the processes"
+msgstr ""
+
+msgid "Interactive mode"
+msgstr ""
+
+msgid "search term>  # use the main script directly"
+msgstr ""
+
+msgid ""
+"Please reload the shell configuration or restart the terminal for the "
+"environment variables to take effect"
+msgstr ""
+
+msgid "The installation verification failed"
+msgstr ""
+
+msgid "🗑️  Uninstalling the process manager"
+msgstr ""
+
+msgid "The following will be removed:"
+msgstr ""
+
+msgid "• The documentation files"
+msgstr ""
+
+msgid "• The related configuration in the shell configuration files"
+msgstr ""
+
+msgid "Confirm the uninstall?"
+msgstr ""
+
+msgid "The uninstall has been cancelled"
+msgstr ""
+
+msgid "Uninstall complete"
+msgstr ""
+
+#, sh-printf-format
+msgid "The configuration file has been backed up to: %s.backup.*"
+msgstr ""
+
+msgid ""
+"Please restart the terminal or reload the shell configuration for the "
+"changes to take effect"
+msgstr ""
+
+msgid "✅ Installed and configured"
+msgstr ""
+
+msgid "⚠️  Installed but PATH is not configured"
+msgstr ""
+
+msgid "Install the process manager into ~/.tools (default action)"
+msgstr ""
+
+msgid "Uninstall the process manager"
+msgstr ""
+
+msgid "Show this help information"
+msgstr ""
+
+msgid "or netstat"
+msgstr ""
+
+#, sh-printf-format
+msgid "The following dependency commands are missing: %s"
+msgstr ""
+
+msgid "Please install the missing dependencies:"
+msgstr ""
+
+msgid "The required tools are usually pre-installed"
+msgstr ""
+
+msgid "Process Manager"
+msgstr ""
+
+msgid "Usage:"
+msgstr ""
+
+msgid "search term]           # search and manage processes"
+msgstr ""
+
+msgid "Show the version information"
+msgstr ""
+
+msgid "Run the installer"
+msgstr ""
+
+msgid "Show the configuration information"
+msgstr ""
+
+msgid "Search the Node.js processes"
+msgstr ""
+
+msgid "Search the processes using port 3000"
+msgstr ""
+
+msgid "Search the Chrome browser"
+msgstr ""
+
+msgid "Interactive mode:"
+msgstr ""
+
+msgid "Start the interactive interface without arguments"
+msgstr ""
+
+msgid "Process Manager v1.0.0"
+msgstr ""
+
+msgid "Supported platforms: macOS, Linux"
+msgstr ""
+
+msgid "Supported shells: Bash, Zsh, Fish"
+msgstr ""
+
+msgid "Configuration information:"
+msgstr ""
+
+msgid "Operating system"
+msgstr ""
+
+#, sh-printf-format
+msgid "User: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Home directory: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Process manager location: %s"
+msgstr ""
+
+msgid "Process manager location: not found"
+msgstr ""
+
+msgid "Tool directory structure:"
+msgstr ""
+
+msgid "✅ The ~/.tools directory has been created"
+msgstr ""
+
+msgid "✅ The ~/.tools/bin directory has been created"
+msgstr ""
+
+msgid "✅ process_manager has been installed"
+msgstr ""
+
+msgid "❌ process_manager is not installed"
+msgstr ""
+
+msgid "❌ The ~/.tools/bin directory does not exist"
+msgstr ""
+
+msgid "❌ The ~/.tools directory does not exist"
+msgstr ""
+
+msgid "Environment variables:"
+msgstr ""
+
+msgid "✅ PATH contains ~/.tools/bin"
+msgstr ""
+
+msgid "❌ PATH does not contain ~/.tools/bin"
+msgstr ""
+
+#, sh-printf-format
+msgid "Run the installer: %s"
+msgstr ""
+
+msgid "The installer install_process_manager.sh was not found"
+msgstr ""
+
+msgid "Make sure this command is run in the project directory"
+msgstr ""
+
+msgid "The process manager was not found"
+msgstr ""
+
+msgid "Possible solutions:"
+msgstr ""
+
+#, sh-printf-format
+msgid "Run the installer: %s --install"
+msgstr ""
+
+msgid "Manual installation: ./install_process_manager.sh"
+msgstr ""
+
+msgid "Make sure you run it in the project directory"
+msgstr ""
+
+msgid "Unsupported operating system"
+msgstr ""
+
+#, sh-printf-format
+msgid "Searching the processes that contain %s..."
+msgstr ""
+
+msgid "Search by process name ==="
+msgstr ""
+
+msgid "Search by port ==="
+msgstr ""
+
+#, sh-printf-format
+msgid "The port %s is not in use"
+msgstr ""
+
+msgid "The search term is not a number, skipping the port search"
+msgstr ""
+
+msgid "The ss or netstat command was not found"
+msgstr ""
+
+msgid "No matching process was found"
+msgstr ""
+
+#, sh-printf-format
+msgid "The process %s does not exist or cannot be accessed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Process details (PID: %s)"
+msgstr ""
+
+msgid "Listening ports:"
+msgstr ""
+
+msgid "No listening ports"
+msgstr ""
+
+msgid "Number of open files:"
+msgstr ""
+
+msgid "file descriptors"
+msgstr ""
+
+msgid "Process state:"
+msgstr ""
+
+msgid "Cannot read the state"
+msgstr ""
+
+#, sh-printf-format
+msgid "The process %s does not exist or has already exited"
+msgstr ""
+
+#, sh-printf-format
+msgid "Force killing the process %s (SIGKILL)"
+msgstr ""
+
+#, sh-printf-format
+msgid "The process %s has been force killed"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Cannot kill the process %s (insufficient permissions or the process is "
+"protected)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Trying to terminate the process %s gracefully (SIGTERM)"
+msgstr ""
+
+#, sh-printf-format
+msgid "The process %s did not respond to SIGTERM within 10 seconds"
+msgstr ""
+
+msgid "Force kill the process? [y/N]:"
+msgstr ""
+
+msgid "The force kill operation has been cancelled"
+msgstr ""
+
+#, sh-printf-format
+msgid "The process %s has exited gracefully"
+msgstr ""
+
+#, sh-printf-format
+msgid "Cannot send SIGTERM to the process %s (insufficient permissions)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Found a single matching process, PID: %s"
+msgstr ""
+
+msgid "Do you want to terminate this process? [y/N]:"
+msgstr ""
+
+msgid "The operation has been cancelled"
+msgstr ""
+
+#, sh-printf-format
+msgid "Found %s matching processes:"
+msgstr ""
+
+msgid "Show the details of all the processes"
+msgstr ""
+
+msgid "Cancel the operation"
+msgstr ""
+
+msgid "Please choose the process to operate on"
+msgstr ""
+
+#, sh-printf-format
+msgid "Do you want to terminate the process %s? [y/N]:"
+msgstr ""
+
+#, sh-printf-format
+msgid "Invalid choice, please enter a number between 1 and %s"
+msgstr ""
+
+msgid "🔧 Smart process manager"
+msgstr ""
+
+msgid "Supported search methods:"
+msgstr ""
+
+msgid "• Process name (fuzzy match)"
+msgstr ""
+
+msgid "• Port number (exact match)"
+msgstr ""
+
+msgid "• Process ID (exact match)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Search mode: %s"
+msgstr ""
+
+msgid ""
+"Please enter the search term (process name / port number / PID, or q to "
+"quit):"
+msgstr ""
+
+msgid "Goodbye!"
+msgstr ""
+
+msgid "The search term must not be empty"
+msgstr ""
+
+msgid "Press Enter to continue..."
+msgstr ""
+
+msgid "Press Enter to return to the main menu..."
+msgstr ""
+
+msgid "Error: the process_manager command was not found"
+msgstr ""
+
+msgid "Make sure it is installed correctly or run it in a project directory"
+msgstr ""
+
+#, sh-printf-format
+msgid "Search the port: %s (%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Search the process: %s (%s)"
+msgstr ""
+
+msgid "Examples of using the process manager:"
+msgstr ""
+
+msgid "Direct mode (command line arguments):"
+msgstr ""
+
+msgid "Search the processes that contain node"
+msgstr ""
+
+msgid "Search the process with PID 1234"
+msgstr ""
+
+#, sh-printf-format
+msgid "2. Interactive mode:"
+msgstr ""
+
+msgid "Start the interactive interface"
+msgstr ""
+
+msgid "Quick search with the configuration file:"
+msgstr ""
+
+msgid "Search the processes using an HTTP port"
+msgstr ""
+
+msgid "Common shortcuts:"
 msgstr ""
 
 #, sh-printf-format
@@ -3962,6 +6296,563 @@ msgid "Install or update Restic (default action)"
 msgstr ""
 
 msgid "Uninstall Restic"
+msgstr ""
+
+#, sh-printf-format
+msgid "rm: detected a delete on a critical path: %s"
+msgstr ""
+
+msgid "Really delete (this cannot be undone)? [y/N]:"
+msgstr ""
+
+msgid "Cancelled."
+msgstr ""
+
+msgid "trash configuration has been added to"
+msgstr ""
+
+msgid "by the safe-rm installer"
+msgstr ""
+
+msgid "trash configuration has been removed from"
+msgstr ""
+
+msgid "by the safe-rm uninstaller"
+msgstr ""
+
+msgid "🗑️  Installing the safe delete (trash) feature"
+msgstr ""
+
+#, sh-printf-format
+msgid "Trash function library installed to %s"
+msgstr ""
+
+msgid "🎉 Installation complete! Reload your shell to take effect:"
+msgstr ""
+
+msgid "Available commands:"
+msgstr ""
+
+msgid "file>            # Safe delete (move to trash)"
+msgstr ""
+
+msgid "View the trash"
+msgstr ""
+
+msgid "index>      # Restore (the index comes from tls)"
+msgstr ""
+
+msgid "Empty the trash"
+msgstr ""
+
+msgid "Show the trash disk usage"
+msgstr ""
+
+msgid ""
+"stays unchanged (so scripts that rely on rm really deleting keep working)."
+msgstr ""
+
+msgid ""
+"Enable the rm dangerous-path protection (ask again before rm -rf hits a "
+"dangerous path)?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Failed to write the rm dangerous-path protection: %s"
+msgstr ""
+
+msgid "rm dangerous-path protection enabled (reload the shell to take effect)"
+msgstr ""
+
+msgid "To turn it off run: safe-rm off"
+msgstr ""
+
+msgid "rm dangerous-path protection disabled"
+msgstr ""
+
+msgid "not enabled)"
+msgstr ""
+
+msgid "rm protection enabled)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Trash disk usage: %s"
+msgstr ""
+
+msgid "safe-rm is not installed"
+msgstr ""
+
+msgid "Confirm uninstalling safe-rm?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Current trash disk usage: %s (path %s)"
+msgstr ""
+
+msgid "Empty the trash data as well (it cannot be recovered)?"
+msgstr ""
+
+msgid "Trash emptied"
+msgstr ""
+
+#, sh-printf-format
+msgid "Trash data kept (delete %s manually)"
+msgstr ""
+
+msgid "The trash is already empty, nothing to clean up"
+msgstr ""
+
+msgid "Install the trash functions and configure the shell rc (default action)"
+msgstr ""
+
+msgid ""
+"Enable the rm dangerous-path protection (ask again before rm -rf hits a "
+"critical path)"
+msgstr ""
+
+msgid "Disable the rm dangerous-path protection"
+msgstr ""
+
+msgid "Show the install status and the trash disk usage"
+msgstr ""
+
+msgid "Uninstall (the deleted trash data is kept)"
+msgstr ""
+
+msgid ""
+"Usage: t <file...>   Safe delete (move to trash; -r/-f accepted for rm "
+"compatibility)"
+msgstr ""
+
+#, sh-printf-format
+msgid "cannot delete %s: file does not exist"
+msgstr ""
+
+#, sh-printf-format
+msgid "failed to delete %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Trash: %s"
+msgstr ""
+
+msgid "unknown)"
+msgstr ""
+
+msgid "(the trash is empty)"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s item(s) in total. To restore, run: trash-restore <index>"
+msgstr ""
+
+msgid "Usage: trash-restore <index>   (the index comes from tls)"
+msgstr ""
+
+#, sh-printf-format
+msgid "invalid index %s"
+msgstr ""
+
+msgid "original path information not found, cannot restore"
+msgstr ""
+
+#, sh-printf-format
+msgid "Note: a file already exists at the original path, restoring to: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Restored: %s"
+msgstr ""
+
+msgid "restore failed"
+msgstr ""
+
+msgid "The trash is already empty."
+msgstr ""
+
+#, sh-printf-format
+msgid "%s item(s) in the trash. To empty it, run: trash-empty --force"
+msgstr ""
+
+msgid "The trash has been emptied."
+msgstr ""
+
+msgid "Trash disk usage:"
+msgstr ""
+
+msgid ""
+"Invalid time format. Please enter the HH:MM format (for example, 23:00)."
+msgstr ""
+
+msgid "Please enter the shutdown time for today (HH:MM):"
+msgstr ""
+
+msgid "The given time has already passed. Please enter a time in the future."
+msgstr ""
+
+#, sh-printf-format
+msgid "The system will shut down in %s minutes."
+msgstr ""
+
+msgid "The system will ask you for the password to run the shutdown command."
+msgstr ""
+
+#, sh-printf-format
+msgid "The system is scheduled to shut down in %s minutes."
+msgstr ""
+
+msgid ""
+"To cancel it, choose the cancel temporary shutdown option in the main menu."
+msgstr ""
+
+msgid "Failed to schedule the temporary shutdown. Please check the error."
+msgstr ""
+
+#, sh-printf-format
+msgid "The system will shut down today at %s."
+msgstr ""
+
+#, sh-printf-format
+msgid "The system is scheduled to shut down today at %s."
+msgstr ""
+
+msgid "Trying to cancel the scheduled temporary shutdown."
+msgstr ""
+
+msgid "The system will ask you for the password."
+msgstr ""
+
+msgid "The scheduled temporary shutdown has been cancelled."
+msgstr ""
+
+msgid "No temporary shutdown to cancel was found."
+msgstr ""
+
+msgid "An error occurred while cancelling the temporary shutdown."
+msgstr ""
+
+#, sh-printf-format
+msgid "Details: %s"
+msgstr ""
+
+msgid "Shutdown status check ---"
+msgstr ""
+
+msgid "A scheduled temporary shutdown was detected."
+msgstr ""
+
+msgid "A scheduled temporary shutdown was detected (systemd)."
+msgstr ""
+
+msgid "No scheduled temporary shutdown was found."
+msgstr ""
+
+msgid "A daily scheduled shutdown task was detected (launchd)."
+msgstr ""
+
+msgid "A daily scheduled shutdown task was detected (cron)."
+msgstr ""
+
+msgid "No daily scheduled shutdown task was found."
+msgstr ""
+
+msgid "No shutdown task is currently set."
+msgstr ""
+
+msgid "Please enter the daily shutdown time (HH:MM):"
+msgstr ""
+
+msgid "Cancelling the daily scheduled shutdown task..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Setting up the daily %s scheduled shutdown task for macOS."
+msgstr ""
+
+msgid ""
+"This creates a system-wide launchd task. Administrator privileges are "
+"required."
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"The daily scheduled shutdown task has been set successfully for every day at "
+"%s."
+msgstr ""
+
+msgid "Failed to load the launchd task. Please check the system log."
+msgstr ""
+
+msgid ""
+"The configuration file of the daily scheduled shutdown task was not found "
+"(launchd)."
+msgstr ""
+
+msgid ""
+"This removes the system-wide launchd task. Administrator privileges are "
+"required."
+msgstr ""
+
+msgid "The daily scheduled shutdown task has been cancelled successfully."
+msgstr ""
+
+#, sh-printf-format
+msgid "Setting up the daily %s scheduled shutdown task for Linux."
+msgstr ""
+
+msgid "This adds an entry to your crontab."
+msgstr ""
+
+msgid ""
+"Failed to set up the cron task. Please check that the cron service is "
+"running and that you have the required permissions."
+msgstr ""
+
+msgid "The daily scheduled shutdown task was not found (cron)."
+msgstr ""
+
+msgid ""
+"This removes the task from your crontab. Administrator privileges are "
+"required."
+msgstr ""
+
+msgid "✅ The daily scheduled shutdown is configured"
+msgstr ""
+
+msgid ""
+"The shutdown time must be configured interactively. Please run the "
+"interactive menu:"
+msgstr ""
+
+msgid "(Main menu → System tools → shutdown_timer)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Usage: %s [install|uninstall|status|help]"
+msgstr ""
+
+msgid "Go to the interactive menu to configure the shutdown time"
+msgstr ""
+
+msgid "Cancel the daily scheduled shutdown (≈ cancel_daily_shutdown)"
+msgstr ""
+
+msgid "View the current shutdown configuration"
+msgstr ""
+
+msgid "Cancel the daily shutdown (legacy interface)"
+msgstr ""
+
+msgid "no arguments)                      enter the interactive menu"
+msgstr ""
+
+msgid "Automatic shutdown management script"
+msgstr ""
+
+msgid "Set a temporary shutdown (today)"
+msgstr ""
+
+msgid "Cancel the temporary shutdown"
+msgstr ""
+
+msgid "Set the daily scheduled shutdown"
+msgstr ""
+
+msgid "Cancel the daily scheduled shutdown"
+msgstr ""
+
+msgid "Check the shutdown status"
+msgstr ""
+
+msgid "Exit"
+msgstr ""
+
+msgid "Please choose an option [1-6]:"
+msgstr ""
+
+msgid "Invalid option, please enter a number between 1 and 6."
+msgstr ""
+
+msgid "🔥 CPU usage TOP10"
+msgstr ""
+
+msgid "💾 Memory usage TOP10"
+msgstr ""
+
+#, sh-printf-format
+msgid "Usage: %s port <port>, for example: %s port 8080"
+msgstr ""
+
+#, sh-printf-format
+msgid "🔌 Processes using port %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "No process is using port %s, or sudo is required"
+msgstr ""
+
+msgid "No ss/netstat command found"
+msgstr ""
+
+msgid "🌐 All listening ports"
+msgstr ""
+
+msgid "💽 Disk space (df -h)"
+msgstr ""
+
+msgid "📦 Directory usage TOP10 (current directory)"
+msgstr ""
+
+msgid "🌍 Network connection statistics"
+msgstr ""
+
+#, sh-printf-format
+msgid "Total connections: %s"
+msgstr ""
+
+msgid "Active connections TOP10:"
+msgstr ""
+
+msgid "Connection state statistics:"
+msgstr ""
+
+msgid "📊 System overview snapshot"
+msgstr ""
+
+#, sh-printf-format
+msgid "CPU cores: %s"
+msgstr ""
+
+msgid "📋 System log entry points"
+msgstr ""
+
+msgid "View systemd service logs:"
+msgstr ""
+
+msgid "service name"
+msgstr ""
+
+msgid "real-time follow"
+msgstr ""
+
+msgid "errors since this boot"
+msgstr ""
+
+msgid "Common service log files:"
+msgstr ""
+
+msgid "or"
+msgstr ""
+
+msgid "system log"
+msgstr ""
+
+msgid "auth log"
+msgstr ""
+
+msgid "macOS logs:"
+msgstr ""
+
+msgid "keyword"
+msgstr ""
+
+msgid "real-time stream"
+msgstr ""
+
+msgid "graphical interface"
+msgstr ""
+
+msgid "Common log files:"
+msgstr ""
+
+msgid "✅ Available"
+msgstr ""
+
+msgid "(pure command wrapper, nothing to install)"
+msgstr ""
+
+msgid "🔍 System diagnostic commands"
+msgstr ""
+
+msgid "System overview        - load/memory/CPU cores"
+msgstr ""
+
+msgid "CPU usage TOP10"
+msgstr ""
+
+msgid "Memory usage TOP10"
+msgstr ""
+
+msgid "Disk space        - df -h"
+msgstr ""
+
+msgid "Directory usage TOP10  - du (current directory)"
+msgstr ""
+
+msgid "Network connection statistics"
+msgstr ""
+
+msgid "Listening ports at a glance"
+msgstr ""
+
+msgid "Check port usage      - port number required"
+msgstr ""
+
+msgid "System log entry point tips"
+msgstr ""
+
+msgid "Show everything"
+msgstr ""
+
+msgid "Back to the main menu"
+msgstr ""
+
+msgid "Select [0-9/a]:"
+msgstr ""
+
+msgid "Enter the port number:"
+msgstr ""
+
+msgid "Invalid option"
+msgstr ""
+
+msgid "System diagnostic command set (Linux + macOS):"
+msgstr ""
+
+msgid "Interactive menu (default action)"
+msgstr ""
+
+msgid "CPU usage TOP10 processes"
+msgstr ""
+
+msgid "Memory usage TOP10 processes"
+msgstr ""
+
+msgid "port> processes using the given port (e.g. port 8080)"
+msgstr ""
+
+msgid "Overview of all listening ports"
+msgstr ""
+
+msgid "Disk space (df -h)"
+msgstr ""
+
+msgid "TOP10 usage of the current directory"
+msgstr ""
+
+msgid "Network connection state statistics"
+msgstr ""
+
+msgid "System overview snapshot (load/memory/CPU cores)"
+msgstr ""
+
+msgid "Show top/cpu/mem/disk/net/ports in sequence"
+msgstr ""
+
+msgid ""
+"sys-cmd is a read-only command wrapper, installs no components, nothing to "
+"uninstall"
 msgstr ""
 
 msgid "macOS ships with an application firewall, so UFW does not apply."
@@ -4142,4 +7033,3818 @@ msgid "Open http://<your IP>:8080 in a browser to reach the web interface"
 msgstr ""
 
 msgid "Install upftp (the FTP file sharing tool, default action)"
+msgstr ""
+
+msgid "Homebrew is required"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"The repository has no atuin package, using the official script (target "
+"version: %s)..."
+msgstr ""
+
+msgid "Still not available"
+msgstr ""
+
+msgid ""
+"Configured with UXS_CONFIG_SYNC=1: run atuin register to register an account "
+"(interactive, you have to do it yourself)"
+msgstr ""
+
+msgid ""
+"On other machines, run atuin login <username> && atuin sync to sync the "
+"history"
+msgstr ""
+
+#, sh-printf-format
+msgid "🎉 Atuin installation complete (sync=%s)"
+msgstr ""
+
+msgid ""
+"Open a new terminal or run exec zsh to take effect; Ctrl+R becomes the full "
+"fuzzy search of Atuin"
+msgstr ""
+
+#, sh-printf-format
+msgid "Added the atuin integration for %s"
+msgstr ""
+
+msgid "The old shell history has been imported into atuin"
+msgstr ""
+
+msgid ""
+"Importing the old history failed (you can run it manually later: atuin "
+"import auto)"
+msgstr ""
+
+msgid ""
+"Currently in pure local mode (UXS_CONFIG_SYNC is not enabled), no sync needed"
+msgstr ""
+
+msgid "Uninstall instructions:"
+msgstr ""
+
+msgid "Program: brew uninstall atuin or sudo <pkgmgr> remove atuin"
+msgstr ""
+
+#, sh-format
+msgid ""
+"Installed by script: rm -rf ~/.atuin (and remove $HOME/.atuin/bin from the "
+"PATH line in rc)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Delete the %s marker block in rc"
+msgstr ""
+
+msgid "Data: rm -rf ~/.local/share/atuin ~/.config/atuin"
+msgstr ""
+
+msgid "(clean it up manually as needed)"
+msgstr ""
+
+#, sh-printf-format
+msgid "✅ atuin is installed (shell integration: %s)"
+msgstr ""
+
+msgid ""
+"Install atuin + rc integration + import the old history (UXS_CONFIG_SYNC=1 "
+"turns on the sync hint)"
+msgstr ""
+
+msgid "Sync manually (sync must be enabled and the account registered)"
+msgstr ""
+
+msgid "Show the uninstall instructions"
+msgstr ""
+
+msgid "🚀 Installing Bun (the JavaScript/TypeScript runtime and toolchain)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Detected that Bun is already installed (%s)"
+msgstr ""
+
+msgid "Continue and reinstall/update it?"
+msgstr ""
+
+msgid "Installing bun via Homebrew..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing via the official script (%s)..."
+msgstr ""
+
+msgid ""
+"The official installation script failed, check the network or see https://"
+"bun.sh/docs/installation"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installed to %s/bin/bun, but it is not in the current PATH"
+msgstr ""
+
+#, sh-format, sh-printf-format
+msgid "Add it to your shell configuration: export PATH=\"%s/bin:$PATH\""
+msgstr ""
+
+msgid ""
+"bun is still not found after the installation, reopen the terminal or check "
+"PATH"
+msgstr ""
+
+#, sh-printf-format
+msgid "Applying the configuration: registry = %s"
+msgstr ""
+
+msgid "🎉 Bun installation complete!"
+msgstr ""
+
+msgid "View the version"
+msgstr ""
+
+msgid "Run a script (replaces npm run)"
+msgstr ""
+
+msgid "Install the dependencies (faster than npm)"
+msgstr ""
+
+msgid "Bundle"
+msgstr ""
+
+msgid "Run the tests"
+msgstr ""
+
+msgid "Docs: https://bun.sh/docs"
+msgstr ""
+
+#, sh-printf-format
+msgid "Confirm deleting %s (including the bun binary and the global cache)?"
+msgstr ""
+
+msgid ""
+"If the shell configuration has a BUN related PATH line, delete it manually"
+msgstr ""
+
+msgid ""
+"No Bun installation found (it may have been uninstalled or installed in "
+"another way)"
+msgstr ""
+
+msgid "(the default official registry)"
+msgstr ""
+
+#, sh-printf-format
+msgid "🌐 Configuring a domestic mirror for Bun (%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "The registry = %s has been configured (written to %s)"
+msgstr ""
+
+msgid "Cleaning the Bun installation cache..."
+msgstr ""
+
+msgid "Verification: bun install will pull from the domestic mirror"
+msgstr ""
+
+#, sh-printf-format
+msgid "No %s, it is already the official registry"
+msgstr ""
+
+#, sh-printf-format
+msgid "Restoring the official Bun registry (%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "The registry = %s has been restored"
+msgstr ""
+
+msgid "Install Bun (the JavaScript/TypeScript runtime, default action)"
+msgstr ""
+
+msgid "Configure a domestic mirror (Taobao npmmirror, speeds up bun install)"
+msgstr ""
+
+msgid "Restore the official registry"
+msgstr ""
+
+msgid "View the status (including the current registry)"
+msgstr ""
+
+msgid "Install Go analysis tools (golangci-lint + gosec)"
+msgstr ""
+
+msgid "go command not detected, skipping Go tool installation"
+msgstr ""
+
+msgid "golangci-lint already installed, skipping"
+msgstr ""
+
+msgid "Installing golangci-lint via the official script..."
+msgstr ""
+
+msgid "golangci-lint installation failed"
+msgstr ""
+
+msgid "gosec already installed, skipping"
+msgstr ""
+
+msgid "Installing gosec via go install..."
+msgstr ""
+
+msgid "gosec installation failed (you may need to add GOPATH/bin to PATH)"
+msgstr ""
+
+msgid "Install Rust analysis tools (clippy + cargo-audit)"
+msgstr ""
+
+msgid "cargo command not detected, skipping Rust tool installation"
+msgstr ""
+
+msgid "clippy already installed, skipping"
+msgstr ""
+
+msgid "Installing the clippy component..."
+msgstr ""
+
+msgid "clippy installation failed (rustup is required)"
+msgstr ""
+
+msgid "cargo-audit already installed, skipping"
+msgstr ""
+
+msgid "Installing cargo-audit via cargo install..."
+msgstr ""
+
+msgid "cargo-audit installation failed"
+msgstr ""
+
+msgid "Install Java analysis tools (spotbugs + pmd + checkstyle)"
+msgstr ""
+
+msgid "java command not detected, skipping Java tool installation"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s already installed, skipping"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s installation failed"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s (package manager)"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s is not available in the repository"
+msgstr ""
+
+msgid ""
+"Tip: Java tools can be installed via sdkman.io or by downloading them "
+"manually"
+msgstr ""
+
+msgid "Install Python analysis tools (ruff + mypy + bandit)"
+msgstr ""
+
+msgid "python3 command not detected, skipping Python tool installation"
+msgstr ""
+
+#, sh-printf-format
+msgid "Falling back to %s to install %s..."
+msgstr ""
+
+#, sh-printf-format
+msgid "%s (pip)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing via %s..."
+msgstr ""
+
+msgid "Install semgrep (cross-language security scanning)"
+msgstr ""
+
+msgid "semgrep already installed, skipping"
+msgstr ""
+
+msgid "semgrep installation failed"
+msgstr ""
+
+msgid "Install the code analysis toolset"
+msgstr ""
+
+msgid "Code analysis toolset installation completed!"
+msgstr ""
+
+msgid ""
+"Run analysis: ./install.sh go-lint | rust-lint | java-lint | py-lint | "
+"security-scan | lint-all"
+msgstr ""
+
+msgid "Tools:"
+msgstr ""
+
+msgid "Remove"
+msgstr ""
+
+msgid "Cross-language:"
+msgstr ""
+
+msgid "(clean up manually as needed)"
+msgstr ""
+
+#, sh-printf-format
+msgid "All installed (%s/%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Partially installed (%s/%s)"
+msgstr ""
+
+msgid "No tools installed"
+msgstr ""
+
+msgid "Code analysis tool status"
+msgstr ""
+
+#, sh-printf-format
+msgid "Full-language code analysis: %s"
+msgstr ""
+
+msgid "Analysis completed with errors"
+msgstr ""
+
+msgid "All analyses passed"
+msgstr ""
+
+msgid "Install commands:"
+msgstr ""
+
+msgid "Install all code analysis tools (default action)"
+msgstr ""
+
+msgid "Install only Go tools (golangci-lint + gosec)"
+msgstr ""
+
+msgid "Install only Rust tools (clippy + cargo-audit)"
+msgstr ""
+
+msgid "Install only Java tools (spotbugs + pmd + checkstyle)"
+msgstr ""
+
+msgid "Install only Python tools (ruff + mypy + bandit)"
+msgstr ""
+
+msgid "Install only semgrep"
+msgstr ""
+
+msgid "Run commands:"
+msgstr ""
+
+msgid "Run Go code analysis"
+msgstr ""
+
+msgid "Run Rust code analysis"
+msgstr ""
+
+msgid "Run Java code analysis"
+msgstr ""
+
+msgid "Run Python code analysis"
+msgstr ""
+
+msgid "Run cross-language security scanning (semgrep)"
+msgstr ""
+
+msgid "Auto-detect the language and run all applicable analyses"
+msgstr ""
+
+msgid "Management commands:"
+msgstr ""
+
+msgid "Show the installation status of each tool"
+msgstr ""
+
+msgid "Show this help message"
+msgstr ""
+
+#, sh-printf-format
+msgid "Go code analysis: %s"
+msgstr ""
+
+msgid "Running golangci-lint..."
+msgstr ""
+
+msgid "golangci-lint: passed"
+msgstr ""
+
+msgid "golangci-lint: problems found"
+msgstr ""
+
+msgid "golangci-lint not installed, skipping"
+msgstr ""
+
+msgid "Running gosec (security scan)..."
+msgstr ""
+
+msgid "gosec: passed"
+msgstr ""
+
+msgid "gosec: security issues found"
+msgstr ""
+
+msgid "gosec not installed, skipping"
+msgstr ""
+
+#, sh-printf-format
+msgid "Go analysis complete: %s tools reported problems"
+msgstr ""
+
+msgid "Go analysis all passed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Java code analysis: %s"
+msgstr ""
+
+msgid "No Java source files found, skipping Java analysis"
+msgstr ""
+
+msgid "Running spotbugs (bytecode analysis)..."
+msgstr ""
+
+msgid "Tip: spotbugs needs .class files, run mvn compile or gradle build first"
+msgstr ""
+
+msgid "spotbugs: passed"
+msgstr ""
+
+msgid "spotbugs: problems found"
+msgstr ""
+
+msgid "No .class files found, compile the project first"
+msgstr ""
+
+msgid "spotbugs not installed, skipping"
+msgstr ""
+
+msgid "Running pmd (source analysis)..."
+msgstr ""
+
+msgid "pmd: passed"
+msgstr ""
+
+msgid "pmd: problems found"
+msgstr ""
+
+msgid "pmd not installed, skipping"
+msgstr ""
+
+msgid "Running checkstyle (code style check)..."
+msgstr ""
+
+msgid "checkstyle: passed"
+msgstr ""
+
+msgid "checkstyle: style issues found"
+msgstr ""
+
+msgid "checkstyle not installed, skipping"
+msgstr ""
+
+#, sh-printf-format
+msgid "Java analysis complete: %s tools reported problems"
+msgstr ""
+
+msgid "Java analysis all passed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Python code analysis: %s"
+msgstr ""
+
+msgid "No Python source files found, skipping Python analysis"
+msgstr ""
+
+msgid "Running ruff check..."
+msgstr ""
+
+msgid "ruff check: passed"
+msgstr ""
+
+msgid "ruff check: problems found"
+msgstr ""
+
+msgid "Running ruff format --check..."
+msgstr ""
+
+msgid "ruff format: passed"
+msgstr ""
+
+msgid "ruff format: format mismatch (run ruff format to fix)"
+msgstr ""
+
+msgid "ruff not installed, skipping"
+msgstr ""
+
+msgid "Running mypy (type check)..."
+msgstr ""
+
+msgid "mypy: passed"
+msgstr ""
+
+msgid "mypy: type issues found"
+msgstr ""
+
+msgid "mypy not installed, skipping"
+msgstr ""
+
+msgid "Running bandit (security scan)..."
+msgstr ""
+
+msgid "bandit: passed"
+msgstr ""
+
+msgid "bandit: security issues found"
+msgstr ""
+
+msgid "bandit not installed, skipping"
+msgstr ""
+
+#, sh-printf-format
+msgid "Python analysis complete: %s tools reported problems"
+msgstr ""
+
+msgid "Python analysis all passed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Rust code analysis: %s"
+msgstr ""
+
+msgid "Cargo.toml not found, skipping Rust analysis"
+msgstr ""
+
+msgid "Running cargo clippy..."
+msgstr ""
+
+msgid "clippy: passed"
+msgstr ""
+
+msgid "clippy: problems found"
+msgstr ""
+
+msgid "cargo not installed, skipping"
+msgstr ""
+
+msgid "Running cargo-audit (dependency vulnerability scan)..."
+msgstr ""
+
+msgid "cargo-audit: passed"
+msgstr ""
+
+msgid "cargo-audit: vulnerabilities found"
+msgstr ""
+
+msgid "cargo-audit not installed, skipping (run ./install.sh install-rust)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Rust analysis complete: %s tools reported problems"
+msgstr ""
+
+msgid "Rust analysis all passed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Cross-language security scan (semgrep): %s"
+msgstr ""
+
+msgid "semgrep is not installed"
+msgstr ""
+
+msgid "Install: ./install.sh install-semgrep"
+msgstr ""
+
+msgid "Running semgrep (automatic rule detection)..."
+msgstr ""
+
+msgid "semgrep scan passed"
+msgstr ""
+
+msgid "semgrep found security issues"
+msgstr ""
+
+msgid "🦕 Installing Deno (the JavaScript/TypeScript runtime)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Detected that Deno is already installed (%s)"
+msgstr ""
+
+msgid "Installing deno via Homebrew..."
+msgstr ""
+
+msgid "The official installation script failed, see https://deno.land"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installed to %s, but it is not in the current PATH"
+msgstr ""
+
+msgid "🎉 Deno installation complete!"
+msgstr ""
+
+msgid "start the server"
+msgstr ""
+
+msgid "run the tests"
+msgstr ""
+
+msgid "compile to a single executable file"
+msgstr ""
+
+#, sh-printf-format
+msgid "Delete %s (including the cache)?"
+msgstr ""
+
+msgid "No Deno installation found"
+msgstr ""
+
+msgid "Install Deno (default action)"
+msgstr ""
+
+msgid "📝 Installing Neovim..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Neovim is installed (%s)"
+msgstr ""
+
+msgid "The package manager did not install neovim, trying AppImage..."
+msgstr ""
+
+msgid "The installation may have failed"
+msgstr ""
+
+msgid "Installing the LazyVim configuration template..."
+msgstr ""
+
+msgid ""
+"The template is installed to ~/.config/nvim (nvim installs the plugins on "
+"the first start)"
+msgstr ""
+
+msgid "🔧 Configuring git enhancements..."
+msgstr ""
+
+msgid "Not installed, skipping the git enhancements"
+msgstr ""
+
+msgid "The global configuration is enhanced (aliases/colors/editor)"
+msgstr ""
+
+msgid "Installing delta (diff highlighting)..."
+msgstr ""
+
+msgid ""
+"The automatic installation failed, you can install it manually from https://"
+"github.com/dandavison/delta"
+msgstr ""
+
+msgid "Highlighting is integrated into git"
+msgstr ""
+
+msgid "🖥️  Configuring tmux..."
+msgstr ""
+
+msgid "Installing tmux..."
+msgstr ""
+
+msgid "Not installed, skipping the configuration"
+msgstr ""
+
+msgid "Installing tpm (the tmux plugin manager)..."
+msgstr ""
+
+msgid ""
+"The configuration is written to ~/.tmux.conf (prefix Ctrl+a, mouse, vim "
+"switching, tpm plugins)"
+msgstr ""
+
+msgid ""
+"After entering tmux for the first time, press prefix + I (Ctrl+a then "
+"uppercase I) to install the plugins"
+msgstr ""
+
+msgid "🚀 Development tool enhancements (Neovim + git + tmux)"
+msgstr ""
+
+msgid "🎉 Development tool enhancements complete!"
+msgstr ""
+
+msgid "(the LazyVim plugins are installed automatically on the first start)"
+msgstr ""
+
+msgid "(colored log tree) / git st (status)"
+msgstr ""
+
+msgid "(Ctrl+a prefix, | split, vim pane switching)"
+msgstr ""
+
+msgid "Config: rm -rf ~/.config/nvim ~/.local/share/nvim"
+msgstr ""
+
+msgid ""
+"Enhancement:    git config --global --unset core.pager; git config --global "
+"--remove-section delta 2>/dev/null"
+msgstr ""
+
+msgid "Config:   rm ~/.tmux.conf; rm -rf ~/.tmux"
+msgstr ""
+
+msgid "(all are user configurations, clean them up manually as needed)"
+msgstr ""
+
+msgid "none"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid ""
+"Install Neovim(+LazyVim) + git enhancements(delta+aliases) + tmux "
+"configuration(tpm)"
+msgstr ""
+
+msgid "Taobao npmmirror"
+msgstr ""
+
+msgid "Tencent Cloud"
+msgstr ""
+
+msgid "Huawei Cloud"
+msgstr ""
+
+msgid "Official npm"
+msgstr ""
+
+msgid "Qiniu)"
+msgstr ""
+
+msgid "Alibaba Cloud"
+msgstr ""
+
+msgid "Official proxy.golang.org"
+msgstr ""
+
+msgid "Tsinghua TUNA"
+msgstr ""
+
+msgid "USTC"
+msgstr ""
+
+msgid "Shanghai Jiao Tong SJTU"
+msgstr ""
+
+msgid "ByteDance rsproxy"
+msgstr ""
+
+msgid "Official crates.io"
+msgstr ""
+
+msgid "Official PyPI"
+msgstr ""
+
+msgid "Custom"
+msgstr ""
+
+msgid "No target toolchain detected (npm/go/cargo/pip)."
+msgstr ""
+
+msgid "Please install the corresponding runtime before running this module."
+msgstr ""
+
+msgid "Toolchain not installed, skipping."
+msgstr ""
+
+msgid ""
+"nrm (NPM registry manager) detected, it may override the registry written by "
+"this module."
+msgstr ""
+
+msgid ""
+"Recommendation: either use only nrm, or uninstall nrm and then use this "
+"module."
+msgstr ""
+
+msgid ""
+"cnpm detected (ships with the Taobao mirror), usually no need to switch the "
+"npm mirror."
+msgstr ""
+
+msgid ""
+"version is too old or go env -w is unavailable, falling back to writing the "
+"~/.bashrc environment variable"
+msgstr ""
+
+#, sh-printf-format
+msgid "→ %s (written to ~/.bashrc / ~/.zshrc, run source to take effect)"
+msgstr ""
+
+msgid "→ restored to official crates.io"
+msgstr ""
+
+msgid ""
+"pip config command unavailable, falling back to writing the config file by "
+"hand"
+msgstr ""
+
+#, sh-printf-format
+msgid "→ %s (written to %s)"
+msgstr ""
+
+msgid "Please select the ecosystem to configure:"
+msgstr ""
+
+msgid "Not installed, will skip)"
+msgstr ""
+
+msgid "All (one by one for each installed ecosystem)"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+#, sh-printf-format
+msgid "Enter option [0-%s]:"
+msgstr ""
+
+msgid "Please select"
+msgstr ""
+
+msgid "the source:"
+msgstr ""
+
+msgid ""
+"Taobao npmmirror   https://registry.npmmirror.com        [Default/"
+"Recommended]"
+msgstr ""
+
+msgid "Tencent Cloud           https://mirrors.cloud.tencent.com/npm/"
+msgstr ""
+
+msgid "Huawei Cloud           https://mirrors.huaweicloud.com/repository/npm/"
+msgstr ""
+
+msgid "Official npm         https://registry.npmjs.org/          (restore)"
+msgstr ""
+
+msgid "Qiniu) https://goproxy.cn,direct          [Default/Recommended]"
+msgstr ""
+
+msgid "Alibaba Cloud            https://mirrors.aliyun.com/goproxy/,direct"
+msgstr ""
+
+msgid "Official              https://proxy.golang.org,direct     (restore)"
+msgstr ""
+
+msgid ""
+"Tsinghua TUNA   https://mirrors.tuna.tsinghua.edu.cn/crates.io-index/  "
+"[Default/Recommended]"
+msgstr ""
+
+msgid "USTC https://mirrors.ustc.edu.cn/crates.io-index/"
+msgstr ""
+
+msgid "SJTU   https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index/"
+msgstr ""
+
+msgid "ByteDance rsproxy https://rsproxy.cn/index/"
+msgstr ""
+
+msgid "Official crates.io                                       (restore)"
+msgstr ""
+
+msgid ""
+"Tsinghua TUNA   https://pypi.tuna.tsinghua.edu.cn/simple  [Default/"
+"Recommended]"
+msgstr ""
+
+msgid "Alibaba Cloud      https://mirrors.aliyun.com/pypi/simple/"
+msgstr ""
+
+msgid "USTC https://pypi.mirrors.ustc.edu.cn/simple/"
+msgstr ""
+
+msgid "Tencent Cloud      https://mirrors.cloud.tencent.com/pypi/simple"
+msgstr ""
+
+msgid "Official PyPI   https://pypi.org/simple                  (restore)"
+msgstr ""
+
+msgid "Custom URL input"
+msgstr ""
+
+#, sh-printf-format
+msgid "Enter option [0-%s], default 1:"
+msgstr ""
+
+msgid "Enter URL (http(s)://):"
+msgstr ""
+
+msgid "is invalid, must start with http:// or https://"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unknown ecosystem: %s (available: %s | all)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unrecognized source identifier: %s (ecosystem: %s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Target: %s"
+msgstr ""
+
+msgid "Mirror switch completed!"
+msgstr ""
+
+msgid ""
+"All installed ecosystems will be restored to the official mirror (npm/Go/"
+"Rust/Python)"
+msgstr ""
+
+msgid "The following ecosystems will be restored to the official mirror:"
+msgstr ""
+
+msgid "Confirm restore?"
+msgstr ""
+
+msgid "Restored to the official mirror"
+msgstr ""
+
+msgid "No installed language toolchain"
+msgstr ""
+
+#, sh-printf-format
+msgid "All installed languages have switched mirrors (%s/%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Some languages have switched mirrors (%s/%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "No language has switched mirrors (0/%s)"
+msgstr ""
+
+msgid ""
+"Development language ecosystem mirror acceleration (npm / Go / Rust / "
+"Python)."
+msgstr ""
+
+msgid "Switch mirror"
+msgstr ""
+
+msgid "(default = interactive selection)"
+msgstr ""
+
+msgid ""
+"Built-in source key for each ecosystem (see below) or a full URL (default = "
+"interactive selection)"
+msgstr ""
+
+msgid "Restore the official mirror"
+msgstr ""
+
+msgid "Show the current mirror of each ecosystem"
+msgstr ""
+
+msgid "Built-in source keys:"
+msgstr ""
+
+msgid "Default) | tencent | huawei | npm/official"
+msgstr ""
+
+msgid "Default) | aliyun | goproxy-io | official"
+msgstr ""
+
+msgid "Default) | ustc | sjtu | rsproxy | official"
+msgstr ""
+
+msgid "Default) | aliyun | ustc | tencent | official"
+msgstr ""
+
+msgid "# Interactive: first choose the ecosystem, then the source"
+msgstr ""
+
+msgid "# Configure goproxy.cn for Go directly"
+msgstr ""
+
+msgid "# Interactively choose a source for each ecosystem"
+msgstr ""
+
+msgid "# Custom URL"
+msgstr ""
+
+msgid "# Restore the official cargo mirror"
+msgstr ""
+
+#, sh-printf-format
+msgid "unsupported architecture: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Cannot get the latest version of %s (check the network or set GH_TOKEN)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Downloading %s v%s ..."
+msgstr ""
+
+msgid "Extraction failed"
+msgstr ""
+
+msgid "The binary was not found in the archive"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installed to %s/%s"
+msgstr ""
+
+msgid ""
+"🚀 Starting the installation of the terminal TUI tools (lazydocker + lazygit)"
+msgstr ""
+
+msgid "Installation complete (managed by brew)"
+msgstr ""
+
+msgid "Usage: lazydocker / lazygit"
+msgstr ""
+
+msgid "is not in PATH. Please add it to your shell configuration:"
+msgstr ""
+
+msgid "terminal UI"
+msgstr ""
+
+msgid "Confirm uninstalling lazydocker and lazygit?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Deleted %s/%s"
+msgstr ""
+
+msgid "The tools have been uninstalled."
+msgstr ""
+
+msgid "✅ lazydocker + lazygit are installed"
+msgstr ""
+
+#, sh-printf-format
+msgid "⚠️  partially installed (%s/%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Install lazydocker + lazygit to %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "unsupported architecture: %s/%s"
+msgstr ""
+
+msgid "🐹 Installing Go (Golang)"
+msgstr ""
+
+msgid "Installing Go via Homebrew..."
+msgstr ""
+
+msgid "Installation complete (the version is managed by brew)"
+msgstr ""
+
+msgid "View GOPATH"
+msgstr ""
+
+#, sh-printf-format
+msgid "Go %s detected (already installed)"
+msgstr ""
+
+msgid "Cannot get the latest Go version (check the network or set GH_TOKEN)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Latest version: Go %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Extracting to %s..."
+msgstr ""
+
+msgid "Environment (added by unix_script)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Added the Go PATH configuration for %s"
+msgstr ""
+
+msgid "The configuration already exists (or there is no rc file)"
+msgstr ""
+
+#, sh-printf-format
+msgid "🎉 Go %s installation complete!"
+msgstr ""
+
+msgid "Take effect after reloading the shell: source ~/.bashrc (or ~/.zshrc)"
+msgstr ""
+
+msgid "Run"
+msgstr ""
+
+#, sh-printf-format
+msgid "Go is not installed (%s does not exist)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Confirm uninstalling Go (deleting %s)?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Uninstalled (%s deleted)"
+msgstr ""
+
+msgid "The data stays in ~/go, you can delete it manually"
+msgstr ""
+
+msgid "Install Go (the official binary, into /usr/local/go, default action)"
+msgstr ""
+
+#, sh-printf-format
+msgid "unsupported architecture: %s (only x86_64/arm64 are supported)"
+msgstr ""
+
+msgid "helm detected, overwrite it with the latest version?"
+msgstr ""
+
+msgid "Installing helm via Homebrew..."
+msgstr ""
+
+msgid "Fetching the latest helm version (GitHub API)..."
+msgstr ""
+
+msgid ""
+"Cannot fetch the version number (GitHub is unreachable or rate limited), you "
+"can set GH_TOKEN and retry"
+msgstr ""
+
+msgid "Download failed (is get.helm.sh unreachable?)"
+msgstr ""
+
+msgid "Next step: for a local cluster use minikube —— ./install.sh minikube"
+msgstr ""
+
+msgid "helm has been uninstalled"
+msgstr ""
+
+msgid "helm was not detected via brew"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s was not detected"
+msgstr ""
+
+msgid "❌ helm is not installed"
+msgstr ""
+
+msgid "✅ helm is installed"
+msgstr ""
+
+msgid "— Kubernetes package manager"
+msgstr ""
+
+msgid ""
+"Install the latest version (Linux: the official get.helm.sh tarball; macOS: "
+"brew)"
+msgstr ""
+
+msgid "View the installation status (UXS_STATUS_MODE=machine is supported)"
+msgstr ""
+
+msgid "this help"
+msgstr ""
+
+msgid "k9s detected, overwrite it with the latest version?"
+msgstr ""
+
+msgid "Installing k9s via Homebrew..."
+msgstr ""
+
+msgid "Fetching the latest k9s version (GitHub API)..."
+msgstr ""
+
+#, sh-printf-format
+msgid "asset k9s_Linux_%s.tar.gz not found"
+msgstr ""
+
+msgid "k9s has been uninstalled"
+msgstr ""
+
+msgid "k9s was not detected via brew"
+msgstr ""
+
+msgid "kubeconfig is left untouched, there is no cluster config to clean up"
+msgstr ""
+
+msgid "❌ k9s is not installed"
+msgstr ""
+
+msgid "✅ k9s is installed"
+msgstr ""
+
+msgid "— Kubernetes terminal dashboard (TUI)"
+msgstr ""
+
+msgid ""
+"Install the latest version (Linux: the GitHub release binary; macOS: brew)"
+msgstr ""
+
+msgid "Uninstall the binary (kubeconfig is left untouched)"
+msgstr ""
+
+msgid "kind detected, overwrite it with the latest version?"
+msgstr ""
+
+msgid "Installing kind via Homebrew..."
+msgstr ""
+
+msgid "Fetching the latest kind version (GitHub API)..."
+msgstr ""
+
+#, sh-printf-format
+msgid "asset kind-linux-%s not found"
+msgstr ""
+
+msgid ""
+"docker was not detected — kind needs it to create a cluster: ./install.sh "
+"docker"
+msgstr ""
+
+msgid "Try it: kind create cluster --name demo"
+msgstr ""
+
+msgid ""
+"Note: uninstalling kind does not affect the clusters already created, delete "
+"them with: kind delete clusters --all"
+msgstr ""
+
+msgid "kind has been uninstalled"
+msgstr ""
+
+msgid "kind was not detected via brew"
+msgstr ""
+
+msgid "❌ kind is not installed"
+msgstr ""
+
+msgid "✅ kind is installed"
+msgstr ""
+
+msgid "— spin up a local Kubernetes cluster with Docker"
+msgstr ""
+
+msgid "Uninstall the binary (the clusters already created are left untouched)"
+msgstr ""
+
+msgid ""
+"Note: it depends on docker (the framework installs it first when this module "
+"is installed). For a local dev cluster you can also choose"
+msgstr ""
+
+msgid " (more features) —— ./install.sh minikube"
+msgstr ""
+
+#, sh-printf-format
+msgid "kubectl %s detected, overwrite it with the latest stable version?"
+msgstr ""
+
+msgid "Installing kubectl via Homebrew..."
+msgstr ""
+
+msgid "Fetching the latest stable kubectl version (dl.k8s.io)..."
+msgstr ""
+
+msgid ""
+"Cannot fetch the version number (dl.k8s.io is unreachable). Download it "
+"manually: https://kubernetes.io/zh-cn/docs/tasks/tools/"
+msgstr ""
+
+msgid "kubectl has been uninstalled"
+msgstr ""
+
+msgid "kubectl was not detected via brew"
+msgstr ""
+
+msgid ""
+"Also delete the cluster config ~/.kube (it contains the cluster credentials, "
+"kept by default)?"
+msgstr ""
+
+msgid "Deleted ~/.kube"
+msgstr ""
+
+msgid "Kept ~/.kube"
+msgstr ""
+
+msgid "❌ kubectl is not installed"
+msgstr ""
+
+msgid "✅ kubectl is installed"
+msgstr ""
+
+msgid "— Kubernetes command line client"
+msgstr ""
+
+msgid ""
+"Install the latest stable version (Linux: the official dl.k8s.io binary; "
+"macOS: brew)"
+msgstr ""
+
+msgid "Uninstall (the ~/.kube cluster config is kept by default)"
+msgstr ""
+
+msgid "Installation check"
+msgstr ""
+
+#, sh-printf-format
+msgid "Install directory exists: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Install directory does not exist: %s"
+msgstr ""
+
+msgid "unknown"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installed: %s"
+msgstr ""
+
+msgid "Not installed or not executable"
+msgstr ""
+
+msgid "Configured correctly"
+msgstr ""
+
+msgid "does not contain the minikube directory"
+msgstr ""
+
+msgid "Please add the following line to your shell configuration file:"
+msgstr ""
+
+msgid "System command check:"
+msgstr ""
+
+#, sh-printf-format
+msgid "System kubectl: %s"
+msgstr ""
+
+msgid "System kubectl is not available"
+msgstr ""
+
+#, sh-printf-format
+msgid "System minikube: %s"
+msgstr ""
+
+msgid "System minikube is not available"
+msgstr ""
+
+msgid "Cluster status check"
+msgstr ""
+
+msgid "Command not available"
+msgstr ""
+
+msgid "The cluster is running"
+msgstr ""
+
+msgid "Detailed cluster status:"
+msgstr ""
+
+msgid "Cluster nodes:"
+msgstr ""
+
+msgid "Cannot get the node information"
+msgstr ""
+
+msgid "System pods:"
+msgstr ""
+
+msgid "Cannot get the pod information"
+msgstr ""
+
+msgid "The cluster is not running"
+msgstr ""
+
+msgid "Start the cluster with the following command:"
+msgstr ""
+
+#, sh-printf-format
+msgid "Or use: %s/start-minikube.sh"
+msgstr ""
+
+msgid "Dependency check"
+msgstr ""
+
+msgid "Installed and running (dependency check)"
+msgstr ""
+
+msgid "Install the missing dependencies:"
+msgstr ""
+
+msgid "Common commands"
+msgstr ""
+
+msgid "Cluster management:"
+msgstr ""
+
+msgid "Start the cluster"
+msgstr ""
+
+msgid "Stop the cluster"
+msgstr ""
+
+msgid "Delete the cluster"
+msgstr ""
+
+msgid "Check the status"
+msgstr ""
+
+msgid "Open the dashboard"
+msgstr ""
+
+msgid "Switch to a node"
+msgstr ""
+
+msgid "Commands:"
+msgstr ""
+
+msgid "List the nodes"
+msgstr ""
+
+msgid "List the pods"
+msgstr ""
+
+msgid "List the services"
+msgstr ""
+
+msgid "List the namespaces"
+msgstr ""
+
+msgid "Convenience scripts:"
+msgstr ""
+
+msgid "Start script"
+msgstr ""
+
+msgid "Status check"
+msgstr ""
+
+msgid "Uninstall script"
+msgstr ""
+
+msgid "Environment status check ==="
+msgstr ""
+
+msgid "Check time"
+msgstr ""
+
+msgid "Check complete"
+msgstr ""
+
+msgid "Detecting system information..."
+msgstr ""
+
+msgid "macOS detected"
+msgstr ""
+
+msgid "Linux detected"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unsupported operating system: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unsupported architecture: %s (uname -m)"
+msgstr ""
+
+#, sh-printf-format
+msgid "System: %s-%s"
+msgstr ""
+
+msgid "Checking dependencies..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Missing dependencies: %s"
+msgstr ""
+
+msgid "Please install these tools first"
+msgstr ""
+
+msgid "On macOS you can install them with Homebrew:"
+msgstr ""
+
+msgid "On Linux you can install them with the package manager:"
+msgstr ""
+
+#, sh-printf-format
+msgid "Or: sudo yum install -y %s"
+msgstr ""
+
+msgid "All dependencies are installed"
+msgstr ""
+
+msgid "Fetching the latest version information..."
+msgstr ""
+
+msgid "Cannot get the latest kubectl version, using the default v1.28.0"
+msgstr ""
+
+msgid "Cannot get the latest minikube version, using the default v1.32.0"
+msgstr ""
+
+#, sh-printf-format
+msgid "kubectl version: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "minikube version: %s"
+msgstr ""
+
+msgid "Creating the install directory..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Install directory created: %s"
+msgstr ""
+
+msgid "Installing kubectl"
+msgstr ""
+
+#, sh-printf-format
+msgid "Downloading kubectl %s..."
+msgstr ""
+
+msgid "Installed successfully"
+msgstr ""
+
+msgid "Installing minikube"
+msgstr ""
+
+#, sh-printf-format
+msgid "Downloading minikube %s..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Suggested driver: %s (override it with the --driver option)"
+msgstr ""
+
+msgid "Configuring environment variables"
+msgstr ""
+
+#, sh-printf-format
+msgid "Adding %s/bin to PATH..."
+msgstr ""
+
+msgid "and the kubectl path"
+msgstr ""
+
+#, sh-printf-format
+msgid "Environment variables added to %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Run source %s or reopen the terminal to apply"
+msgstr ""
+
+msgid "already contains the minikube install directory"
+msgstr ""
+
+msgid "Creating the start script"
+msgstr ""
+
+msgid "minikube is already running"
+msgstr ""
+
+msgid "Starting minikube..."
+msgstr ""
+
+msgid "minikube started successfully!"
+msgstr ""
+
+msgid "Cluster status:"
+msgstr ""
+
+msgid "Open the Kubernetes dashboard"
+msgstr ""
+
+msgid "Failed to start minikube"
+msgstr ""
+
+#, sh-printf-format
+msgid "Start script created: %s/start-minikube.sh"
+msgstr ""
+
+msgid "Creating the status check script"
+msgstr ""
+
+msgid "development environment status"
+msgstr ""
+
+msgid "Checking kubectl..."
+msgstr ""
+
+msgid "Checking minikube..."
+msgstr ""
+
+msgid "Cannot connect to the cluster"
+msgstr ""
+
+msgid "Use minikube start to launch the cluster"
+msgstr ""
+
+msgid "Checking Docker..."
+msgstr ""
+
+msgid "(running)"
+msgstr ""
+
+msgid "Not installed (minikube may need another driver)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Status check script created: %s/check-status.sh"
+msgstr ""
+
+msgid "Creating the uninstall script"
+msgstr ""
+
+msgid "uninstall tool"
+msgstr ""
+
+msgid "This will completely remove the minikube and kubectl installation"
+msgstr ""
+
+msgid "Are you sure you want to continue? (y/N):"
+msgstr ""
+
+msgid "Uninstall cancelled"
+msgstr ""
+
+msgid "Stopping and deleting the minikube cluster..."
+msgstr ""
+
+msgid "cluster deleted"
+msgstr ""
+
+msgid "Deleting the install directory..."
+msgstr ""
+
+msgid "Install directory deleted"
+msgstr ""
+
+msgid "Please remove the PATH configuration from the following files manually:"
+msgstr ""
+
+msgid "Remove this line:"
+msgstr ""
+
+msgid "uninstall complete"
+msgstr ""
+
+#, sh-printf-format
+msgid "Uninstall script created: %s/uninstall.sh"
+msgstr ""
+
+msgid "Verifying the installation"
+msgstr ""
+
+msgid "Verification failed"
+msgstr ""
+
+msgid "All components verified"
+msgstr ""
+
+#, sh-printf-format
+msgid "and kubectl have been installed to: %s"
+msgstr ""
+
+msgid "What to do next:"
+msgstr ""
+
+msgid "Reload the environment variables:"
+msgstr ""
+
+msgid "Start minikube:"
+msgstr ""
+
+msgid "Or: minikube start"
+msgstr ""
+
+msgid "Check the status:"
+msgstr ""
+
+msgid "Check the cluster status"
+msgstr ""
+
+msgid "Uninstall (if needed):"
+msgstr ""
+
+msgid "install tool"
+msgstr ""
+
+msgid "This tool installs a Kubernetes development environment for you"
+msgstr ""
+
+msgid "Installed and configured"
+msgstr ""
+
+msgid "Installed but PATH is not configured"
+msgstr ""
+
+#, sh-printf-format
+msgid "Uninstall script not found (%s), it may not be installed yet."
+msgstr ""
+
+#, sh-printf-format
+msgid "Removed %s/.tools/minikube"
+msgstr ""
+
+msgid "Install minikube + kubectl (default action)"
+msgstr ""
+
+msgid "Uninstall minikube"
+msgstr ""
+
+msgid "Show the installation and running status"
+msgstr ""
+
+msgid "Options (install only):"
+msgstr ""
+
+msgid "Non-interactive mode"
+msgstr ""
+
+msgid "Driver>       minikube driver (docker/hyperkit/kvm2, default auto)"
+msgstr ""
+
+msgid "Starting the minikube smoke test..."
+msgstr ""
+
+msgid "Checking minikube status..."
+msgstr ""
+
+msgid "Running"
+msgstr ""
+
+msgid "Trying to start minikube with a temporary config (timeout 60s)..."
+msgstr ""
+
+msgid "Started successfully and responding"
+msgstr ""
+
+msgid "Failed to start within 60s, see /tmp/minikube_smoke.log for the log"
+msgstr ""
+
+#, sh-printf-format
+msgid "Architecture %s has no prebuilt package"
+msgstr ""
+
+msgid ""
+"⚡ Install the modern CLI toolset (bat/eza/rg/fd/fzf/zoxide/starship/tldr/"
+"direnv)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing via the official script (target version: %s)..."
+msgstr ""
+
+#, sh-printf-format
+msgid "✅ starship (script, %s)"
+msgstr ""
+
+msgid "⚠️ starship installation failed"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"⚠️ %s is not available in the repository (install it manually from https://"
+"github.com/eza-community/eza)"
+msgstr ""
+
+msgid "✅ tealdeer (official binary)"
+msgstr ""
+
+msgid "⚠️ tealdeer installation failed (try cargo install tealdeer)"
+msgstr ""
+
+#, sh-printf-format
+msgid "⚠️ %s installation failed"
+msgstr ""
+
+msgid "Cache updated"
+msgstr ""
+
+msgid "Cache update failed (run tldr --update later)"
+msgstr ""
+
+msgid "🎉 Modern CLI toolset installation complete!"
+msgstr ""
+
+msgid "Reload your shell to apply: source ~/.bashrc (or ~/.zshrc)"
+msgstr ""
+
+msgid "replaces cat (syntax highlighting)"
+msgstr ""
+
+msgid "replaces ls (colors + icons + git)"
+msgstr ""
+
+msgid "replaces grep (much faster)"
+msgstr ""
+
+msgid "replaces find"
+msgstr ""
+
+msgid "search command history"
+msgstr ""
+
+msgid "jump to a directory"
+msgstr ""
+
+msgid "Configuring shell integration (aliases + fzf + zoxide + starship)..."
+msgstr ""
+
+msgid "modern CLI tool aliases"
+msgstr ""
+
+msgid "fzf integration"
+msgstr ""
+
+msgid "starship prompt"
+msgstr ""
+
+#, sh-printf-format
+msgid "Added the modern CLI integration for %s"
+msgstr ""
+
+msgid "(loads .envrc automatically when entering a directory)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Added the direnv integration for %s"
+msgstr ""
+
+msgid "Generated the default starship config ~/.config/starship.toml"
+msgstr ""
+
+msgid ""
+"Tools:    brew uninstall bat eza ripgrep fd fzf zoxide starship tealdeer "
+"direnv"
+msgstr ""
+
+msgid ""
+"or sudo <pkgmgr> remove bat eza ripgrep fd fzf zoxide starship tealdeer "
+"direnv"
+msgstr ""
+
+msgid ""
+"delete from the rc file the lines between the # >>> unix_script modern-cli "
+">>> marker block and"
+msgstr ""
+
+msgid "the # >>> unix_script modern-cli extras >>> marker block"
+msgstr ""
+
+msgid "Cache:    rm -rf ~/.cache/tealdeer"
+msgstr ""
+
+msgid "Config:    rm ~/.config/starship.toml"
+msgstr ""
+
+#, sh-printf-format
+msgid "✅ All installed (%s/%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "⚠️ Partially installed (%s/%s)"
+msgstr ""
+
+msgid ""
+"Install the modern CLI toolset (bat/eza/rg/fd/fzf/zoxide/starship/tldr/"
+"direnv)"
+msgstr ""
+
+msgid "Show the status"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unregistered font: %s (available: %s)"
+msgstr ""
+
+msgid ""
+"This machine is a remote/headless environment — the font is rendered by your "
+"local terminal machine, there is no need to install it here"
+msgstr ""
+
+msgid "Run it on your local terminal machine: ./install.sh nerd-font"
+msgstr ""
+
+msgid "Cannot get the nerd-fonts version"
+msgstr ""
+
+#, sh-printf-format
+msgid "⚠️ %s download failed"
+msgstr ""
+
+msgid ""
+"🎉 Nerd Font installation complete (remember to select a Nerd Font in your "
+"terminal emulator settings)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Uninstalled: %s"
+msgstr ""
+
+msgid "✅ Installed:"
+msgstr ""
+
+#, sh-printf-format
+msgid "⚠️ Partially installed: %s"
+msgstr ""
+
+msgid ""
+"Install Nerd Font (default JetBrainsMono; "
+"UXS_CONFIG_FONTS=\"JetBrainsMono,FiraCode\" can be specified)"
+msgstr ""
+
+msgid "List the installable fonts"
+msgstr ""
+
+msgid "📦 Installing pnpm (the Node.js package manager)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Detected that pnpm is already installed (%s)"
+msgstr ""
+
+msgid "Installing pnpm via Homebrew..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing via the official standalone script (%s)..."
+msgstr ""
+
+msgid ""
+"The official installation script failed, see https://pnpm.io/installation"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installed to %s/pnpm, but it is not in the current PATH"
+msgstr ""
+
+#, sh-format, sh-printf-format
+msgid "Add it to your shell configuration: export PATH=\"%s:$PATH\""
+msgstr ""
+
+msgid "🎉 pnpm installation complete!"
+msgstr ""
+
+msgid "Install dependencies"
+msgstr ""
+
+msgid "Run a script"
+msgstr ""
+
+msgid "package name>       # Add a dependency"
+msgstr ""
+
+msgid "No pnpm installation found"
+msgstr ""
+
+msgid "Install pnpm (default action)"
+msgstr ""
+
+msgid "🦀 Installing Rust (via rustup)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Detected that Rust is already installed (%s)"
+msgstr ""
+
+msgid "Continue and update it?"
+msgstr ""
+
+msgid "Updating via rustup..."
+msgstr ""
+
+msgid "Updated"
+msgstr ""
+
+msgid "Installing rustup via Homebrew..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing via the official rustup script (%s)..."
+msgstr ""
+
+msgid "The installation failed, check the network or see https://rustup.rs"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installed to %s/bin, but it is not in the current PATH"
+msgstr ""
+
+msgid "Or reload the shell: source ~/.cargo/env"
+msgstr ""
+
+msgid "🎉 Rust installation complete!"
+msgstr ""
+
+msgid "Create a new project"
+msgstr ""
+
+msgid "Compile"
+msgstr ""
+
+msgid "Test"
+msgstr ""
+
+msgid "Add the LSP"
+msgstr ""
+
+msgid ""
+"Take effect after reloading the shell: source ~/.cargo/env (or source "
+"~/.bashrc / ~/.zshrc)"
+msgstr ""
+
+msgid "Docs: https://rustup.rs / https://doc.rust-lang.org"
+msgstr ""
+
+msgid "Rust is not installed (rustup)"
+msgstr ""
+
+msgid "Confirm uninstalling Rust (deleting ~/.rustup + ~/.cargo)?"
+msgstr ""
+
+msgid "Uninstalled via rustup"
+msgstr ""
+
+msgid "Uninstalled (~/.rustup + ~/.cargo deleted)"
+msgstr ""
+
+msgid "Install Rust (via rustup, default action)"
+msgstr ""
+
+msgid "Uninstall (deleting ~/.rustup + ~/.cargo)"
+msgstr ""
+
+msgid "the core"
+msgstr ""
+
+msgid "modern CLI toolset"
+msgstr ""
+
+msgid "the font"
+msgstr ""
+
+msgid "the history"
+msgstr ""
+
+#, sh-printf-format
+msgid "⏭ skipped (UXS_CONFIG_EXCLUDE): %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "✅ ready: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "🔧 installing: %s ..."
+msgstr ""
+
+msgid "the core installation failed"
+msgstr ""
+
+#, sh-printf-format
+msgid "⚠️ %s installation failed (continue with the remaining steps)"
+msgstr ""
+
+msgid ""
+"🎉 the terminal suite is complete! Open a new terminal or run exec zsh to "
+"take effect"
+msgstr ""
+
+msgid "step status:"
+msgstr ""
+
+msgid "⏭ skipped"
+msgstr ""
+
+#, sh-printf-format
+msgid "✅ the whole terminal suite is ready (%s/%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "⚠️ partially ready (%s/%s)"
+msgstr ""
+
+msgid "❌ not configured"
+msgstr ""
+
+msgid ""
+"This is an orchestration module and has no standalone uninstall; please "
+"uninstall the sub-modules one by one:"
+msgstr ""
+
+msgid ""
+"cleanup: delete the marker blocks marked with # >>> unix_script <module> >>>"
+msgstr ""
+
+msgid ""
+"one-click terminal suite (zsh → zsh_setup → modern-cli → nerd-font → atuin)"
+msgstr ""
+
+msgid "framework choice (passed through to zsh_setup)"
+msgstr ""
+
+msgid "theme (passed through to zsh_setup)"
+msgstr ""
+
+msgid "font list (passed through to nerd-font)"
+msgstr ""
+
+msgid "sync switch (passed through to atuin)"
+msgstr ""
+
+msgid "exclude steps"
+msgstr ""
+
+msgid "view the ready status of each step"
+msgstr ""
+
+msgid "Oh My Zsh is already installed"
+msgstr ""
+
+msgid "Installing Oh My Zsh..."
+msgstr ""
+
+msgid "Failed to install Oh My Zsh"
+msgstr ""
+
+msgid "Oh My Zsh installed successfully"
+msgstr ""
+
+msgid "Oh My Zsh is not installed"
+msgstr ""
+
+msgid "Uninstall Oh My Zsh?"
+msgstr ""
+
+msgid "Uninstalling Oh My Zsh..."
+msgstr ""
+
+msgid "Oh My Zsh uninstalled"
+msgstr ""
+
+msgid "Oh My Zsh: not installed"
+msgstr ""
+
+msgid "Oh My Zsh: installed"
+msgstr ""
+
+msgid "Theme:"
+msgstr ""
+
+msgid "not set"
+msgstr ""
+
+msgid "Plugins:"
+msgstr ""
+
+msgid "Built-in plugins:"
+msgstr ""
+
+msgid "Custom plugins:"
+msgstr ""
+
+msgid "Please specify a plugin name"
+msgstr ""
+
+#, sh-printf-format
+msgid "Plugin %s is already installed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing plugin %s..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Plugin %s installed successfully"
+msgstr ""
+
+#, sh-printf-format
+msgid "Add %s to the plugins array in .zshrc"
+msgstr ""
+
+#, sh-printf-format
+msgid "Failed to install plugin %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Plugin %s is not installed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Uninstall plugin %s?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Plugin %s uninstalled"
+msgstr ""
+
+#, sh-printf-format
+msgid "Remove %s from the plugins array in .zshrc"
+msgstr ""
+
+msgid "Prezto is already installed"
+msgstr ""
+
+msgid "Installing Prezto..."
+msgstr ""
+
+msgid "Failed to install Prezto"
+msgstr ""
+
+msgid "Prezto installed successfully"
+msgstr ""
+
+msgid "Prezto is not installed"
+msgstr ""
+
+msgid "Uninstall Prezto?"
+msgstr ""
+
+msgid "Uninstalling Prezto..."
+msgstr ""
+
+msgid "Prezto uninstalled"
+msgstr ""
+
+msgid "Prezto: not installed"
+msgstr ""
+
+msgid "Prezto: installed"
+msgstr ""
+
+msgid "Modules:"
+msgstr ""
+
+msgid "Built-in modules:"
+msgstr ""
+
+msgid "External modules:"
+msgstr ""
+
+msgid "Please specify a module name"
+msgstr ""
+
+msgid ".zpreztorc file not found"
+msgstr ""
+
+#, sh-printf-format
+msgid "Module %s is already enabled"
+msgstr ""
+
+#, sh-printf-format
+msgid "Module %s enabled"
+msgstr ""
+
+#, sh-printf-format
+msgid "Module %s disabled"
+msgstr ""
+
+msgid "sheldon is already installed"
+msgstr ""
+
+msgid "Installing sheldon..."
+msgstr ""
+
+msgid "Failed to install sheldon"
+msgstr ""
+
+msgid "sheldon installed successfully"
+msgstr ""
+
+msgid "sheldon is not installed"
+msgstr ""
+
+msgid "Uninstall sheldon?"
+msgstr ""
+
+msgid "Uninstalling sheldon..."
+msgstr ""
+
+msgid "sheldon uninstalled"
+msgstr ""
+
+msgid "sheldon: not installed"
+msgstr ""
+
+msgid "sheldon: installed"
+msgstr ""
+
+msgid "sheldon config file not found"
+msgstr ""
+
+msgid "Please specify the plugin repo (format: user/repo)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Plugin %s already exists"
+msgstr ""
+
+#, sh-printf-format
+msgid "Plugin %s added"
+msgstr ""
+
+#, sh-printf-format
+msgid "Plugin %s removed"
+msgstr ""
+
+msgid "Zinit is already installed"
+msgstr ""
+
+msgid "Installing Zinit..."
+msgstr ""
+
+msgid "Failed to install Zinit"
+msgstr ""
+
+msgid "Zinit installed successfully"
+msgstr ""
+
+msgid "Zinit is not installed"
+msgstr ""
+
+msgid "Uninstall Zinit?"
+msgstr ""
+
+msgid "Uninstalling Zinit..."
+msgstr ""
+
+msgid "Zinit uninstalled"
+msgstr ""
+
+msgid "Zinit: not installed"
+msgstr ""
+
+msgid "Zinit: installed"
+msgstr ""
+
+msgid ".zshrc file not found"
+msgstr ""
+
+msgid "Run source ~/.zshrc or restart the terminal to load plugins"
+msgstr ""
+
+msgid "Zsh environment configuration tool"
+msgstr ""
+
+msgid "Commands (zsh setup):"
+msgstr ""
+
+msgid "framework management"
+msgstr ""
+
+msgid "install a given framework (oh-my-zsh, prezto, zinit, sheldon)"
+msgstr ""
+
+msgid "interactively select a framework"
+msgstr ""
+
+msgid "plugin management"
+msgstr ""
+
+msgid "list installed plugins"
+msgstr ""
+
+msgid "add a plugin"
+msgstr ""
+
+msgid "remove a plugin"
+msgstr ""
+
+msgid "sync plugin updates"
+msgstr ""
+
+msgid "theme management"
+msgstr ""
+
+msgid "list available themes"
+msgstr ""
+
+msgid "set the theme"
+msgstr ""
+
+msgid "install Powerlevel10k"
+msgstr ""
+
+msgid "config management"
+msgstr ""
+
+msgid "back up the config"
+msgstr ""
+
+msgid "restore the config"
+msgstr ""
+
+msgid "export the config"
+msgstr ""
+
+msgid "import the config"
+msgstr ""
+
+msgid "view status (--json prints JSON)"
+msgstr ""
+
+msgid "show help information"
+msgstr ""
+
+msgid "show the version"
+msgstr ""
+
+msgid "# install Oh My Zsh"
+msgstr ""
+
+msgid "# install Powerlevel10k"
+msgstr ""
+
+msgid "# back up the config"
+msgstr ""
+
+msgid "# view status"
+msgstr ""
+
+msgid "# view status (JSON format)"
+msgstr ""
+
+msgid "Zsh environment status:"
+msgstr ""
+
+msgid "Zsh: installed"
+msgstr ""
+
+msgid "Zsh: not installed"
+msgstr ""
+
+msgid "Current theme:"
+msgstr ""
+
+#, sh-printf-format
+msgid "Config backups: %s"
+msgstr ""
+
+msgid "Config backups: none"
+msgstr ""
+
+msgid "Uninstalling zsh_setup..."
+msgstr ""
+
+msgid "Framework uninstall did not fully succeed (see the output above)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Removed config directory: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Config directory not found: %s (nothing to clean up)"
+msgstr ""
+
+msgid "To fully restore zsh, check ~/.zshrc for leftover config lines"
+msgstr ""
+
+msgid "Installing zsh..."
+msgstr ""
+
+msgid "Failed to install zsh (install zsh manually and retry)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Plugin already exists: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Plugin install failed: %s (retry later with plugin add %s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "For framework %s, add basic plugins with: %s plugin add <name>"
+msgstr ""
+
+#, sh-printf-format
+msgid "🎉 zsh_setup default install complete (framework: %s)"
+msgstr ""
+
+msgid "New terminal or exec zsh to apply"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unknown command: plugin %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unknown command: theme %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unknown command: config %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unknown command: %s"
+msgstr ""
+
+msgid "Backing up the config..."
+msgstr ""
+
+msgid "No config files found to back up"
+msgstr ""
+
+#, sh-printf-format
+msgid "Config backed up to: %s"
+msgstr ""
+
+msgid "Backup failed"
+msgstr ""
+
+msgid "No backup files found"
+msgstr ""
+
+msgid "Available backups:"
+msgstr ""
+
+#, sh-printf-format
+msgid "Select a backup (1-%s): "
+msgstr ""
+
+msgid "Invalid selection"
+msgstr ""
+
+#, sh-printf-format
+msgid "Restore the config from %s?"
+msgstr ""
+
+msgid "Restore cancelled"
+msgstr ""
+
+msgid "Restoring the config..."
+msgstr ""
+
+msgid "Config restored"
+msgstr ""
+
+msgid "Restore failed"
+msgstr ""
+
+msgid "Exporting the config..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Config exported to: %s"
+msgstr ""
+
+msgid "Please specify a file to import"
+msgstr ""
+
+#, sh-printf-format
+msgid "File does not exist: %s"
+msgstr ""
+
+msgid "Importing the config..."
+msgstr ""
+
+msgid "jq is not installed, skipping JSON validation"
+msgstr ""
+
+msgid "Invalid JSON format"
+msgstr ""
+
+msgid "Import is a placeholder: file validated and config backed up"
+msgstr ""
+
+msgid "Import is a placeholder implementation"
+msgstr ""
+
+msgid "Adjust the config manually as needed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Framework adapter not found: %s"
+msgstr ""
+
+msgid "Please specify a framework name"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing %s..."
+msgstr ""
+
+#, sh-printf-format
+msgid "%s installed successfully"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s failed to install"
+msgstr ""
+
+msgid "No installed framework detected"
+msgstr ""
+
+#, sh-printf-format
+msgid "Uninstalling %s..."
+msgstr ""
+
+#, sh-printf-format
+msgid "%s uninstalled successfully"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s failed to uninstall"
+msgstr ""
+
+msgid "No framework installed"
+msgstr ""
+
+msgid "Available commands (framework):"
+msgstr ""
+
+msgid "uninstall the current framework"
+msgstr ""
+
+msgid "show the current framework status"
+msgstr ""
+
+msgid "list the plugins of the current framework"
+msgstr ""
+
+msgid "interactively select and install a framework"
+msgstr ""
+
+msgid "show this help information"
+msgstr ""
+
+msgid "Available Zsh frameworks:"
+msgstr ""
+
+msgid "most popular, rich plugin ecosystem"
+msgstr ""
+
+msgid "lightweight and modular"
+msgstr ""
+
+msgid "top performance, async loading"
+msgstr ""
+
+msgid "modern, written in Rust"
+msgstr ""
+
+msgid "Select a framework (1-4): "
+msgstr ""
+
+#, sh-printf-format
+msgid "Current framework: %s"
+msgstr ""
+
+msgid "Common plugins:"
+msgstr ""
+
+msgid "No framework installed, please install a framework first"
+msgstr ""
+
+#, sh-printf-format
+msgid "Syncing %s plugins..."
+msgstr ""
+
+msgid "sheldon plugins will be updated on the next load"
+msgstr ""
+
+msgid "Plugin sync finished, but some repositories failed to update"
+msgstr ""
+
+msgid "Plugin sync complete"
+msgstr ""
+
+msgid "Available themes:"
+msgstr ""
+
+msgid "Custom themes:"
+msgstr ""
+
+msgid "Common themes:"
+msgstr ""
+
+msgid "Please specify a theme name"
+msgstr ""
+
+#, sh-printf-format
+msgid "Theme set to %s"
+msgstr ""
+
+msgid "Add the theme configuration in .zshrc"
+msgstr ""
+
+msgid "Example:"
+msgstr ""
+
+msgid "Add the theme config in ~/.config/sheldon/plugins.toml"
+msgstr ""
+
+msgid "Installing Powerlevel10k..."
+msgstr ""
+
+msgid "Powerlevel10k is already installed"
+msgstr ""
+
+msgid "Failed to clone Powerlevel10k"
+msgstr ""
+
+msgid "Powerlevel10k added to .zshrc"
+msgstr ""
+
+msgid "Powerlevel10k installation complete"
+msgstr ""
+
+msgid "Run p10k configure to set it up"
+msgstr ""
+
+#, sh-printf-format
+msgid "Linux only (kernel feature). Current: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "The kernel version %s is too old, BBR needs a kernel >= 4.9"
+msgstr ""
+
+msgid "🚀 Enabling the TCP BBR congestion control"
+msgstr ""
+
+msgid ""
+"The module failed to load, the kernel may not have been built with BBR "
+"support. It will try to write the configuration and reload."
+msgstr ""
+
+msgid "It has been enabled (the current congestion control algorithm: bbr)"
+msgstr ""
+
+#, sh-printf-format
+msgid "The enabling failed, the current algorithm is still: %s"
+msgstr ""
+
+msgid "Queue rule:"
+msgstr ""
+
+msgid "The BBR configuration file was not found, BBR may not be enabled"
+msgstr ""
+
+msgid "It has been disabled (the default congestion control is restored)"
+msgstr ""
+
+msgid "✅ BBR is enabled"
+msgstr ""
+
+#, sh-printf-format
+msgid "(qdisc=%s)"
+msgstr ""
+
+msgid "⚠️  BBR is not enabled"
+msgstr ""
+
+#, sh-printf-format
+msgid "(the current algorithm: %s)"
+msgstr ""
+
+msgid "Enable the TCP BBR"
+msgstr ""
+
+msgid "Disable BBR (restore the default)"
+msgstr ""
+
+msgid "View the current congestion control algorithm"
+msgstr ""
+
+msgid "Homebrew mainly targets macOS"
+msgstr ""
+
+msgid "Linuxbrew on Linux (some formulae are unsupported). Continue?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Writing brew shellenv to %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Written to %s (reopen the terminal or source %s to apply)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Removed the brew shellenv configuration from %s"
+msgstr ""
+
+msgid "🍺 Installing the Homebrew package manager"
+msgstr ""
+
+msgid "Homebrew is already installed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Homebrew is already installed (%s)"
+msgstr ""
+
+msgid "Continue with the reinstall/update?"
+msgstr ""
+
+msgid "brew is still not found, reopen the terminal or run:"
+msgstr ""
+
+msgid "🎉 Homebrew installation complete!"
+msgstr ""
+
+msgid "brew install <package>      # Install a package"
+msgstr ""
+
+msgid "brew search <keyword>     # Search for packages"
+msgstr ""
+
+msgid "brew list               # List the installed packages"
+msgstr ""
+
+msgid "brew update             # Update the index"
+msgstr ""
+
+msgid "brew upgrade            # Upgrade all the installed packages"
+msgstr ""
+
+msgid "brew info <package>        # Show the package information"
+msgstr ""
+
+msgid "Documentation: https://docs.brew.sh"
+msgstr ""
+
+msgid "Homebrew was not detected, it may already be uninstalled"
+msgstr ""
+
+#, sh-printf-format
+msgid "Uninstall Homebrew? This deletes all brew packages under %s"
+msgstr ""
+
+msgid "Uninstalling Homebrew..."
+msgstr ""
+
+msgid "The official uninstall script did not clean up fully, manual delete..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Delete the directory %s?"
+msgstr ""
+
+msgid "Homebrew has been uninstalled"
+msgstr ""
+
+msgid "Please reopen the terminal for the PATH change to take effect"
+msgstr ""
+
+#, sh-printf-format
+msgid "Homebrew is not installed, please run first: %s install"
+msgstr ""
+
+msgid "🌐 Configuring a domestic mirror source for Homebrew (Tsinghua TUNA)"
+msgstr ""
+
+#, sh-printf-format
+msgid "The Tsinghua mirror source is configured (written to %s)"
+msgstr ""
+
+msgid "Mirror addresses:"
+msgstr ""
+
+#, sh-printf-format
+msgid "Reopen the terminal or source %s to make the configuration persistent"
+msgstr ""
+
+msgid "Run brew update to verify whether the mirror is in effect"
+msgstr ""
+
+msgid "No brew mirror configuration detected, already on the official source"
+msgstr ""
+
+msgid "Restored the official Homebrew source"
+msgstr ""
+
+#, sh-printf-format
+msgid "Reopen the terminal or source %s to apply the configuration"
+msgstr ""
+
+msgid "⚠️  Not applicable (macOS only)"
+msgstr ""
+
+msgid "(official source)"
+msgstr ""
+
+msgid "(Tsinghua mirror)"
+msgstr ""
+
+msgid "(USTC mirror)"
+msgstr ""
+
+msgid "(Aliyun mirror)"
+msgstr ""
+
+#, sh-printf-format
+msgid "(custom mirror: %s)"
+msgstr ""
+
+msgid "(mirror configured, not loaded in the current shell)"
+msgstr ""
+
+msgid "Install Homebrew (the default action)"
+msgstr ""
+
+msgid "Uninstall Homebrew (with a confirmation)"
+msgstr ""
+
+msgid "Configure a domestic mirror (Tsinghua TUNA, faster downloads)"
+msgstr ""
+
+msgid "Restore the official source"
+msgstr ""
+
+msgid "View the installation status and the current source"
+msgstr ""
+
+msgid "Show this brew help"
+msgstr ""
+
+msgid "📦 Installing the essential tools"
+msgstr ""
+
+msgid "Homebrew is required. Install it first: https://brew.sh/"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing via Homebrew: %s"
+msgstr ""
+
+msgid "The essential tools installation is complete"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing the essential tools (package manager: %s)..."
+msgstr ""
+
+#, sh-printf-format
+msgid "The following packages could not be installed: %s"
+msgstr ""
+
+msgid "The essential tools have been installed"
+msgstr ""
+
+#, sh-printf-format
+msgid "The installed tools: %s"
+msgstr ""
+
+msgid ""
+"Uninstalling the essential tools is usually not recommended (other programs "
+"may depend on them)."
+msgstr ""
+
+msgid ""
+"If you really need to uninstall a specific package, remove it manually with "
+"the system package manager, for example:"
+msgstr ""
+
+msgid "package name>"
+msgstr ""
+
+msgid "✅ All the essential tools are installed"
+msgstr ""
+
+#, sh-printf-format
+msgid "⚠️  Missing: %s"
+msgstr ""
+
+msgid ""
+"Install the essential tool packages (curl/wget/git/vim/htop/tmux/jq/"
+"development tools etc.)"
+msgstr ""
+
+msgid "Check whether all the essential tools are installed"
+msgstr ""
+
+msgid ""
+"Description (uninstalling is not recommended, the manual command is given)"
+msgstr ""
+
+msgid "🚀 Installing nvm (the Node version manager)"
+msgstr ""
+
+#, sh-printf-format
+msgid "nvm detected (%s)"
+msgstr ""
+
+msgid "Reinstall/update it?"
+msgstr ""
+
+msgid "To update nvm, run this after the installation: nvm install-latest-nvm"
+msgstr ""
+
+msgid "Cannot fetch the latest nvm version (check the network or set GH_TOKEN)"
+msgstr ""
+
+msgid "Downloading the installation script..."
+msgstr ""
+
+#, sh-printf-format
+msgid "The installation is complete in %s"
+msgstr ""
+
+msgid "Activate nvm (run one of them):"
+msgstr ""
+
+msgid "Install the latest LTS version of Node"
+msgstr ""
+
+msgid "Install a specific version"
+msgstr ""
+
+msgid "the configuration (added by unix_script)"
+msgstr ""
+
+msgid "nvm configuration has been added to"
+msgstr ""
+
+msgid "by unix_script"
+msgstr ""
+
+msgid "nvm is not installed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Confirm uninstalling nvm (it will delete %s)?"
+msgstr ""
+
+msgid ""
+"It has been uninstalled (the related lines in the shell configuration have "
+"been removed)"
+msgstr ""
+
+#, sh-printf-format
+msgid "✅ nvm v%s is installed"
+msgstr ""
+
+msgid "Install nvm into ~/.nvm and configure bash/zsh/profile"
+msgstr ""
+
+msgid "Uninstall nvm"
+msgstr ""
+
+#, sh-printf-format
+msgid "The configuration is Linux only. Current: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "No size specified, based on the memory the suggestion is: %sGB"
+msgstr ""
+
+msgid "There is already a swap:"
+msgstr ""
+
+msgid "Disable it and rebuild the swap?"
+msgstr ""
+
+#, sh-printf-format
+msgid "💾 Creating a %sGB swap file (%s)"
+msgstr ""
+
+msgid "Not supported, using dd (slower)..."
+msgstr ""
+
+msgid "Written to /etc/fstab (mounted automatically at boot)"
+msgstr ""
+
+msgid "Verifying:"
+msgstr ""
+
+msgid "🎉 The swap has been created"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s was not found"
+msgstr ""
+
+#, sh-printf-format
+msgid "Confirm disabling and deleting %s?"
+msgstr ""
+
+msgid "It has been disabled and deleted"
+msgstr ""
+
+msgid "✅ The swap is enabled"
+msgstr ""
+
+msgid "❌ The swap is not enabled"
+msgstr ""
+
+msgid ""
+"Create a swap (the size is computed from the memory by default, --size sets "
+"the GB)"
+msgstr ""
+
+msgid "Disable and delete the swap file"
+msgstr ""
+
+msgid "View the swap status"
+msgstr ""
+
+#, sh-printf-format
+msgid "sys-setup only supports Linux. Current: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "The platform file is missing (framework error): %s"
+msgstr ""
+
+msgid "Unsupported distribution (unknown family), skipping the mirror switch"
+msgstr ""
+
+msgid "The mirror switch needs a confirmation, skipped (non-interactive)"
+msgstr ""
+
+msgid "🌐 Switching the package sources to domestic mirrors"
+msgstr ""
+
+msgid "Mirror switch preview"
+msgstr ""
+
+#, sh-printf-format
+msgid "Detected: %s"
+msgstr ""
+
+msgid "Actions to be performed:"
+msgstr ""
+
+msgid "Confirm the mirror switch?"
+msgstr ""
+
+msgid "The mirror switch has been cancelled"
+msgstr ""
+
+msgid "The chrony configuration file was not found"
+msgstr ""
+
+msgid "ntp.conf was not found"
+msgstr ""
+
+#, sh-printf-format
+msgid "systemd-timesyncd is configured: %s"
+msgstr ""
+
+msgid "Configuring systemd-timesyncd failed"
+msgstr ""
+
+#, sh-printf-format
+msgid "chrony is configured: %s"
+msgstr ""
+
+msgid "Configuring chrony failed"
+msgstr ""
+
+#, sh-printf-format
+msgid "ntpd is configured: %s"
+msgstr ""
+
+msgid "Configuring ntpd failed"
+msgstr ""
+
+msgid "No NTP service detected, trying to install chrony..."
+msgstr ""
+
+#, sh-printf-format
+msgid "chrony is installed and configured: %s"
+msgstr ""
+
+msgid "Enabling the chrony service failed"
+msgstr ""
+
+msgid "Installing chrony failed, please install it manually"
+msgstr ""
+
+msgid "Current NTP status:"
+msgstr ""
+
+msgid "Backend: systemd-timesyncd"
+msgstr ""
+
+msgid "Config"
+msgstr ""
+
+msgid "Config: (default)"
+msgstr ""
+
+msgid "Backend: chrony"
+msgstr ""
+
+msgid "Backend: ntpd"
+msgstr ""
+
+msgid "(No NTP service detected)"
+msgstr ""
+
+msgid "🕐 Configuring the NTP time synchronization servers"
+msgstr ""
+
+msgid "Please choose an NTP server option:"
+msgstr ""
+
+msgid "Aliyun"
+msgstr ""
+
+msgid "China NTP"
+msgstr ""
+
+msgid "Custom (enter the NTP server address manually)"
+msgstr ""
+
+msgid "Please enter an option [0-7]: "
+msgstr ""
+
+msgid "Please enter the NTP server addresses (separate them with spaces):"
+msgstr ""
+
+msgid "Example: ntp.aliyun.com ntp1.aliyun.com"
+msgstr ""
+
+msgid "No server entered, cancelled"
+msgstr ""
+
+#, sh-printf-format
+msgid "Invalid server address: %s"
+msgstr ""
+
+msgid "Only letters, digits, dots and hyphens are allowed, e.g. ntp.aliyun.com"
+msgstr ""
+
+#, sh-printf-format
+msgid "About to configure the NTP servers: %s"
+msgstr ""
+
+msgid "Continue?"
+msgstr ""
+
+#, sh-printf-format
+msgid "🕐 Setting the timezone to %s and enabling time synchronization"
+msgstr ""
+
+#, sh-printf-format
+msgid "The timezone has been set to %s"
+msgstr ""
+
+msgid "systemd-timesyncd (NTP) has been enabled"
+msgstr ""
+
+#, sh-printf-format
+msgid "The timezone has been set to %s (symlink)"
+msgstr ""
+
+msgid "chrony time synchronization has been installed and enabled"
+msgstr ""
+
+msgid "Installing chrony failed, skipping the time synchronization setup"
+msgstr ""
+
+msgid "⚙️  Optimizing the system parameters (file descriptors, kernel)"
+msgstr ""
+
+#, sh-printf-format
+msgid "The file descriptor limit has been raised to 65536 (%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "The kernel optimization parameters have been written (%s)"
+msgstr ""
+
+msgid "🔐 SSH hardening (disable password login and root login)"
+msgstr ""
+
+msgid "SSH hardening is sensitive: password and root login will be disabled."
+msgstr ""
+
+msgid "Set up SSH key login first, otherwise you may not be able to log in!"
+msgstr ""
+
+msgid "Continue (only if the key login is already set up)?"
+msgstr ""
+
+msgid "SSH hardening has been skipped"
+msgstr ""
+
+#, sh-printf-format
+msgid "The SSH hardening configuration has been written (%s)"
+msgstr ""
+
+msgid "sshd has been reloaded (the configuration applies to new connections)"
+msgstr ""
+
+msgid "🛡️  Enabling the automatic security updates"
+msgstr ""
+
+msgid "Unsupported distribution (unknown family), skipping the auto update"
+msgstr ""
+
+msgid "🚀 Running all the essential system setups"
+msgstr ""
+
+msgid "🎉 All the essential system setups are complete"
+msgstr ""
+
+msgid "Default source"
+msgstr ""
+
+msgid "Domestic mirror source in use"
+msgstr ""
+
+msgid "(system default)"
+msgstr ""
+
+msgid "(chrony, view with chronyc sources)"
+msgstr ""
+
+msgid "(ntpd, view with ntpq -p)"
+msgstr ""
+
+msgid "Default"
+msgstr ""
+
+msgid "✅ Optimized"
+msgstr ""
+
+msgid "✅ Hardened"
+msgstr ""
+
+msgid "✅ The system configuration is complete"
+msgstr ""
+
+msgid "⚠️  The system configuration is not complete"
+msgstr ""
+
+msgid "Package source mirror:"
+msgstr ""
+
+msgid "✅ Domestic mirror source in use"
+msgstr ""
+
+msgid "⚠️  Default source"
+msgstr ""
+
+#, sh-printf-format
+msgid "Timezone: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "NTP sync: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "NTP servers: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "File descriptor limit: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "SSH hardening: %s"
+msgstr ""
+
+msgid "Switch to domestic mirrors (Alma/Rocky/Fedora/openEuler/Anolis/deepin)"
+msgstr ""
+
+msgid "Set the timezone and enable NTP sync (default Asia/Shanghai)"
+msgstr ""
+
+msgid "Configure custom NTP servers (Aliyun/TUNA/Huawei/Google/custom)"
+msgstr ""
+
+msgid "Optimize system parameters (file descriptors, TCP, kernel)"
+msgstr ""
+
+msgid "SSH hardening (disable password and root login, set up keys first)"
+msgstr ""
+
+msgid "Enable the automatic security updates"
+msgstr ""
+
+msgid "Run all of the above"
+msgstr ""
+
+msgid "View the status of each configuration"
+msgstr ""
+
+msgid "The sys-setup uninstall only applies to Linux, nothing to do here"
+msgstr ""
+
+msgid "Removing the incremental drop-in configs written by sys-setup..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Removed: %s"
+msgstr ""
+
+msgid "No sys-setup drop-in config found (optimize/ssh may not have run)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Removed %s drop-in configurations, the system defaults are restored"
+msgstr ""
+
+msgid "The mirror/NTP changes have .bak.* backups, find them to restore:"
+msgstr ""
+
+#, sh-printf-format
+msgid "The SSH service policy is restored, review it if you changed sshd: %s"
+msgstr ""
+
+msgid "Back up /etc/apk/repositories"
+msgstr ""
+
+#, sh-printf-format
+msgid "Rewrite to Tsinghua TUNA (v%s main + community)"
+msgstr ""
+
+msgid "The Alpine source has been replaced by the Tsinghua mirror"
+msgstr ""
+
+msgid "No native automatic security updates in Alpine, run sudo apk upgrade"
+msgstr ""
+
+msgid "Back up /etc/pacman.d/mirrorlist"
+msgstr ""
+
+#, sh-printf-format
+msgid "Rewrite to Tsinghua TUNA (%s · %s path)"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s: no known mirror path, guidance only (no system change)"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s · %s: no known mirror path, mirrorlist is left unchanged"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s mirrorlist has been replaced by the Tsinghua mirror (%s path)"
+msgstr ""
+
+msgid "Arch is rolling release, run sudo pacman -Syu to stay updated"
+msgstr ""
+
+#, sh-printf-format
+msgid "Failed to disable it (permissions?): %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Disabled the duplicate source file: %s (restore: sudo mv %s.bak.%s %s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Back up and rewrite %s to Tsinghua TUNA (%s/%s)"
+msgstr ""
+
+msgid "Disable the other distro archive apt sources (rename to *.bak.<ts>)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Rewrite sources.list to Tsinghua TUNA (%s/%s, main community)"
+msgstr ""
+
+msgid "Disable the remaining distribution archive apt sources"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s: no public mirror repository, guidance only (no system change)"
+msgstr ""
+
+msgid "Unable to identify the distribution codename (VERSION_CODENAME)"
+msgstr ""
+
+#, sh-printf-format
+msgid "apt source switched to Tsinghua mirror (%s/%s), original file backed up"
+msgstr ""
+
+#, sh-printf-format
+msgid "apt source switched to the Tsinghua mirror (%s/%s)"
+msgstr ""
+
+msgid "Kylin/openKylin has no public mirror, the system sources are kept"
+msgstr ""
+
+msgid "To switch the mirrors, use the built-in source tool or the server docs"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s automatic security updates are handled by the system updater"
+msgstr ""
+
+msgid "Enabled Debian/Ubuntu/Mint auto security updates (unattended-upgrades)"
+msgstr ""
+
+msgid "Back up /etc/yum.repos.d"
+msgstr ""
+
+msgid "Rewrite centos.repo to Tsinghua TUNA (CentOS Stream)"
+msgstr ""
+
+msgid "Rewrite almalinux.repo to point to the Aliyun mirror"
+msgstr ""
+
+msgid "Rewrite rocky.repo to point to the USTC mirror (major version path)"
+msgstr ""
+
+msgid "Rewrite fedora.repo and fedora-updates.repo to point to Tsinghua TUNA"
+msgstr ""
+
+msgid "sed: replace the openEuler sources with Tsinghua TUNA"
+msgstr ""
+
+msgid "sed: replace the openAnolis sources with the Aliyun mirror"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s: no public mirror, guidance only (no system change)"
+msgstr ""
+
+msgid "CentOS Stream source switched to the Tsinghua mirror (repos backed up)"
+msgstr ""
+
+#, sh-printf-format
+msgid "CentOS 7/8 (EOL) refer to the vault: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Original /etc/yum.repos.d backed up to .bak.%s, replace baseurl"
+msgstr ""
+
+msgid "AlmaLinux source switched to the Aliyun mirror (repos.d backed up)"
+msgstr ""
+
+msgid "Rocky Linux source switched to the USTC mirror (repos.d backed up)"
+msgstr ""
+
+msgid "Fedora source switched to the Tsinghua mirror (repos.d backed up)"
+msgstr ""
+
+msgid "openEuler source replaced by the Tsinghua mirror (repos backed *.bak)"
+msgstr ""
+
+msgid "Anolis OS source replaced by the Aliyun mirror (repos backed up *.bak)"
+msgstr ""
+
+msgid "RHEL/Kylin (server) has no public mirror, the system sources are kept"
+msgstr ""
+
+msgid "RHEL: use subscription-manager; Kylin: use the built-in update source"
+msgstr ""
+
+msgid "dnf-automatic has been enabled"
+msgstr ""
+
+msgid "yum-cron has been enabled"
+msgstr ""
+
+msgid "Back up /etc/zypp/repos.d"
+msgstr ""
+
+msgid "sed: replace download.opensuse.org with Tsinghua TUNA"
+msgstr ""
+
+msgid "openSUSE source replaced by the Tsinghua mirror (repos.d backed up)"
+msgstr ""
+
+msgid "openSUSE: use yast2 online_update, or run sudo zypper patch regularly"
+msgstr ""
+
+msgid "🧠 Installing Ollama (the local large model runtime)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Ollama detected (%s)"
+msgstr ""
+
+msgid "Installing ollama via Homebrew..."
+msgstr ""
+
+msgid ""
+"Homebrew is required, or download the app from https://ollama.com/download"
+msgstr ""
+
+msgid "Installing with the official script (including the systemd service)..."
+msgstr ""
+
+msgid ""
+"The official installation script failed, see https://github.com/ollama/ollama"
+msgstr ""
+
+msgid ""
+"ollama was not found after the installation, reopen the terminal or check "
+"PATH"
+msgstr ""
+
+msgid "🎉 Ollama installation complete!"
+msgstr ""
+
+msgid "Download and run a model (the first pull is slow)"
+msgstr ""
+
+msgid "Download the model only"
+msgstr ""
+
+msgid "The model has been downloaded"
+msgstr ""
+
+msgid "Start the API service (port 11434 by default)"
+msgstr ""
+
+msgid "Common models: qwen3:8b / llama3.2 / deepseek-r1 / gemma3"
+msgstr ""
+
+msgid "Model library: https://ollama.com/library"
+msgstr ""
+
+#, sh-printf-format
+msgid "Pulling the model: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "The model %s is ready, run it with ollama run %s"
+msgstr ""
+
+msgid "ollama has been uninstalled (macOS)"
+msgstr ""
+
+msgid "Uninstall Ollama?"
+msgstr ""
+
+msgid "Delete all the downloaded models (~/.ollama, it may be large)?"
+msgstr ""
+
+msgid "The model data has been deleted"
+msgstr ""
+
+msgid "Install Ollama (the local large model runtime)"
+msgstr ""
+
+msgid "model>     pull a model (qwen3:8b by default)"
+msgstr ""
+
+msgid "Uninstall (optionally delete the downloaded models)"
+msgstr ""
+
+msgid "🤖 Installing OpenCode (the terminal AI coding assistant)"
+msgstr ""
+
+#, sh-printf-format
+msgid "OpenCode detected (%s)"
+msgstr ""
+
+msgid "Installing opencode via Homebrew..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing with the official script (%s)..."
+msgstr ""
+
+msgid ""
+"The official installation script failed, check the network or see https://"
+"opencode.ai/docs/"
+msgstr ""
+
+msgid ""
+"It has been installed to ~/.local/bin/opencode, but it is not in the current "
+"PATH"
+msgstr ""
+
+#, sh-format, sh-printf-format
+msgid ""
+"Please add it to your shell configuration: export PATH=\"%s/.local/bin:"
+"$PATH\""
+msgstr ""
+
+msgid ""
+"opencode was not found after the installation, reopen the terminal or check "
+"PATH"
+msgstr ""
+
+msgid "🎉 OpenCode installation complete!"
+msgstr ""
+
+msgid "Start an AI coding session in the project directory"
+msgstr ""
+
+msgid "Configure the model / API key: see https://opencode.ai/docs/"
+msgstr ""
+
+msgid "opencode has been uninstalled via brew"
+msgstr ""
+
+msgid "The opencode binary has been deleted"
+msgstr ""
+
+msgid ""
+"The opencode binary was not found (it may have been installed in another "
+"way, uninstall it manually)"
+msgstr ""
+
+msgid ""
+"The configuration directory is kept: ~/.config/opencode (you can delete it "
+"manually)"
+msgstr ""
+
+msgid "Install OpenCode (the terminal AI coding assistant, default action)"
+msgstr ""
+
+msgid "🤖 Installing Pi (the AI coding agent framework, pi.dev)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Pi detected (%s)"
+msgstr ""
+
+msgid ""
+"The official installation script failed, check the network or see https://"
+"pi.dev"
+msgstr ""
+
+#, sh-printf-format
+msgid "It has been installed to %s, but it is not in the current PATH"
+msgstr ""
+
+msgid "Please add it to your shell configuration:"
+msgstr ""
+
+msgid ""
+"The pi command was not found right after the installation, reopen the "
+"terminal or check PATH"
+msgstr ""
+
+msgid ""
+"It can also be installed via npm/pnpm/bun: npm install -g @earendil-works/pi-"
+"coding-agent"
+msgstr ""
+
+msgid "🎉 Pi installation complete!"
+msgstr ""
+
+msgid "Start an interactive TUI session"
+msgstr ""
+
+msgid "fix this bug           # give the prompt directly"
+msgstr ""
+
+msgid "Configure the model / API key and the extensions: see https://pi.dev"
+msgstr ""
+
+#, sh-printf-format
+msgid "Delete %s/.pi (with the configuration and the extensions)?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Deleted %s/.pi"
+msgstr ""
+
+msgid ""
+"The Pi binary was not found (it may have been installed globally with npm, "
+"uninstall it with npm uninstall -g @earendil-works/pi-coding-agent)"
+msgstr ""
+
+msgid "Install Pi (the AI coding agent framework, default action)"
 msgstr ""

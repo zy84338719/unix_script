@@ -24,8 +24,8 @@ _apt_disable_distro_sources() {
         [[ -f "$f" ]] || continue
         [[ "$f" == "$primary" ]] && continue
         if sudo grep -Eq "$pattern" "$f" 2>/dev/null; then
-            sudo mv "$f" "${f}.bak.$ts" 2>/dev/null || { warn "停用失败（权限？）：$f"; continue; }
-            warn "已停用重复/残留源文件：${f}（恢复：sudo mv ${f}.bak.$ts ${f}）"
+            sudo mv "$f" "${f}.bak.$ts" 2>/dev/null || { warn "$(_tf 'Failed to disable it (permissions?): %s' "$f")"; continue; }
+            warn "$(_tf 'Disabled the duplicate source file: %s (restore: sudo mv %s.bak.%s %s)' "${f}" "${f}" "$ts" "${f}")"
         fi
     done
 }
@@ -55,18 +55,18 @@ plat_mirror_preview() {
         ubuntu|linuxmint|debian)
             codename=$(uxs_os_release VERSION_CODENAME)
             primary=$(_deb_primary_target)
-            echo "  1. 备份并重写 ${primary} 为清华 TUNA（${DISTRO_ID}/${codename:-?}）"
-            echo "  2. 停用其余发行版归档 apt 源（重命名 *.bak.<ts>，可随时恢复）"
+            echo "  1. $(_tf 'Back up and rewrite %s to Tsinghua TUNA (%s/%s)' "${primary}" "${DISTRO_ID}" "${codename:-?}")"
+            echo "  2. $(_t 'Disable the other distro archive apt sources (rename to *.bak.<ts>)')"
             echo "  3. sudo apt-get update"
             ;;
         deepin|uos)
             codename=$(uxs_os_release VERSION_CODENAME)
-            echo "  1. 备份并重写 /etc/apt/sources.list 为清华 TUNA（${DISTRO_ID}/${codename:-?}，main community）"
-            echo "  2. 停用其余发行版归档 apt 源"
+            echo "  1. $(_tf 'Rewrite sources.list to Tsinghua TUNA (%s/%s, main community)' "${DISTRO_ID}" "${codename:-?}")"
+            echo "  2. $(_t 'Disable the remaining distribution archive apt sources')"
             echo "  3. sudo apt-get update"
             ;;
         *)
-            echo "  1. ${DISTRO_ID} 暂无公开镜像仓库，仅打印指引（不改动系统）"
+            echo "  1. $(_tf '%s: no public mirror repository, guidance only (no system change)' "${DISTRO_ID}")"
             ;;
     esac
 }
@@ -78,7 +78,7 @@ plat_mirror_apply() {
     case "$DISTRO_ID" in
         ubuntu|linuxmint|debian)
             if [[ -z "$codename" ]]; then
-                error "无法识别发行版代号（VERSION_CODENAME）"
+                error "$(_t 'Unable to identify the distribution codename (VERSION_CODENAME)')"
                 return 1
             fi
             primary=$(_deb_primary_target)
@@ -127,13 +127,13 @@ deb ${MIRROR_BASE}/ubuntu/ ${codename}-security main restricted universe multive
 EOF
             fi
             _apt_disable_distro_sources "$primary" "$ts"
-            success "apt 源已更换为清华镜像（${DISTRO_ID}/${codename}），原文件已备份"
+            success "$(_tf 'apt source switched to Tsinghua mirror (%s/%s), original file backed up' "${DISTRO_ID}" "${codename}")"
             sudo apt-get update
             ;;
         deepin|uos)
             # TUNA /deepin/ 仓库实测可用；components 与 Ubuntu 不同（main community）
             if [[ -z "$codename" ]]; then
-                error "无法识别发行版代号（VERSION_CODENAME）"
+                error "$(_t 'Unable to identify the distribution codename (VERSION_CODENAME)')"
                 return 1
             fi
             primary=/etc/apt/sources.list
@@ -143,12 +143,12 @@ EOF
 deb ${MIRROR_BASE}/deepin/ ${codename} main community
 EOF
             _apt_disable_distro_sources "$primary" "$ts"
-            success "apt 源已更换为清华镜像（${DISTRO_ID}/${codename}）"
+            success "$(_tf 'apt source switched to the Tsinghua mirror (%s/%s)' "${DISTRO_ID}" "${codename}")"
             sudo apt-get update
             ;;
         *)
-            warn "银河麒麟/openKylin 暂无公开镜像仓库，保持系统源不变"
-            warn "如需换源请使用系统自带「软件源」工具或参考服务器版官方文档"
+            warn "$(_t 'Kylin/openKylin has no public mirror, the system sources are kept')"
+            warn "$(_t 'To switch the mirrors, use the built-in source tool or the server docs')"
             ;;
     esac
 }
@@ -156,12 +156,12 @@ EOF
 plat_autoupdate() {
     case "$DISTRO_ID" in
         deepin|uos)
-            warn "${DISTRO_ID} 的自动安全更新由系统更新器管理，跳过"
+            warn "$(_tf '%s automatic security updates are handled by the system updater' "${DISTRO_ID}")"
             ;;
         *)
             pkg_install unattended-upgrades apt-listchanges
             sudo dpkg-reconfigure -fnoninteractive -plow unattended-upgrades 2>/dev/null || true
-            success "已启用 Debian/Ubuntu/Mint 自动安全更新（unattended-upgrades）"
+            success "$(_t 'Enabled Debian/Ubuntu/Mint auto security updates (unattended-upgrades)')"
             ;;
     esac
 }

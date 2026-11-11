@@ -3,8 +3,8 @@
 # essentials/sys-setup/platform/suse.sh — SUSE 族（opensuse-leap/tumbleweed/sles）
 
 plat_mirror_preview() {
-    echo "  1. 备份 /etc/zypp/repos.d"
-    echo "  2. sed 将 download.opensuse.org 替换为清华 TUNA（保留原 repo 结构）"
+    echo "  1. $(_t 'Back up /etc/zypp/repos.d')"
+    echo "  2. $(_t 'sed: replace download.opensuse.org with Tsinghua TUNA')"
     echo "  3. sudo zypper --non-interactive refresh"
 }
 
@@ -17,10 +17,10 @@ plat_mirror_apply() {
         -e 's|download.tumbleweed|mirrors.tuna.tsinghua.edu.cn/opensuse/tumbleweed|g' \
         /etc/zypp/repos.d/*.repo 2>/dev/null || true
     sudo zypper --non-interactive refresh 2>/dev/null || true
-    success "openSUSE 源已替换为清华镜像（原 /etc/zypp/repos.d 已备份）"
+    success "$(_t 'openSUSE source replaced by the Tsinghua mirror (repos.d backed up)')"
 }
 
 plat_autoupdate() {
     pkg_install yast2-online-update-configuration 2>/dev/null || true
-    info "openSUSE 建议用 yast2 online_update 配置自动补丁；或定期执行 sudo zypper patch"
+    info "$(_t 'openSUSE: use yast2 online_update, or run sudo zypper patch regularly')"
 }

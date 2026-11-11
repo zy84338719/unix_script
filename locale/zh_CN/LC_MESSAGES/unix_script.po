@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 17:13+0800\n"
+"POT-Creation-Date: 2026-11-11 19:00+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
@@ -224,7 +224,7 @@ msgid "Confirm uninstall of buildah?"
 msgstr "确认卸载 buildah？"
 
 msgid "Uninstall failed"
-msgstr "安装失败"
+msgstr "卸载失败"
 
 msgid "buildah uninstalled"
 msgstr "buildah 已卸载"
@@ -243,7 +243,7 @@ msgid "buildah installed"
 msgstr "buildah 已安装"
 
 msgid "(unknown version)"
-msgstr "未知版本"
+msgstr "(版本未知)"
 
 msgid "buildah - OCI image build tool (Linux only)"
 msgstr "buildah —— OCI 镜像构建工具（仅 Linux）"
@@ -350,7 +350,7 @@ msgid "Reload config"
 msgstr "重载配置"
 
 msgid "Common commands:"
-msgstr "常用命令:"
+msgstr "常用命令："
 
 msgid "Service status:"
 msgstr "服务状态："
@@ -1018,7 +1018,10 @@ msgid "Installing Docker Engine via official script (get.docker.com)..."
 msgstr "使用官方一键脚本安装 Docker Engine（get.docker.com）..."
 
 msgid "Official installer failed, check the network or install manually:"
-msgstr "官方安装脚本执行失败，请检查网络或参考以下链接手动安装:"
+msgstr "官方安装脚本执行失败，请检查网络或参考"
+
+msgid "install manually"
+msgstr "手动安装"
 
 msgid "Enabling and starting docker service..."
 msgstr "启用并启动 docker 服务..."
@@ -1027,7 +1030,7 @@ msgid "Current user is already in the docker group"
 msgstr "当前用户已在 docker 组中"
 
 msgid "Add user"
-msgstr "是否将当前用户"
+msgstr "是否将当前用户 "
 
 msgid "to the docker group (passwordless docker, requires re-login)?"
 msgstr "加入 docker 组（免 sudo 使用 docker，需重新登录生效）？"
@@ -1042,7 +1045,7 @@ msgid ""
 msgstr "未检测到 docker compose 子命令。新版 Docker 已内置 compose 插件；"
 
 msgid "For standalone docker-compose, see:"
-msgstr "如需独立 docker-compose，请参考:"
+msgstr "如需独立 docker-compose，请参考"
 
 msgid "Docker installed: "
 msgstr "Docker 已安装："
@@ -1057,7 +1060,7 @@ msgid "Installation complete. Please launch Docker Desktop to finish setup."
 msgstr "安装完成，请启动 Docker Desktop 应用以完成初始化。"
 
 msgid "Please download and install manually:"
-msgstr "请手动下载安装:"
+msgstr "请手动下载安装："
 
 msgid "Starting Docker installation"
 msgstr "🚀 开始安装 Docker"
@@ -1132,13 +1135,16 @@ msgstr "（脚本会备份现有 daemon.json 并写入国内加速地址）"
 msgid ""
 "Registry mirror configuration failed, check the network or configure "
 "manually:"
-msgstr "镜像加速器换源失败，请检查网络或参考以下链接手动配置："
+msgstr "镜像加速器换源失败，请检查网络或参考"
+
+msgid "configure manually"
+msgstr "手动配置"
 
 msgid "Registry mirror configuration complete."
 msgstr "镜像加速器换源完成。"
 
 msgid "If Docker is already running, restart it to apply:"
-msgstr "如已运行 Docker，可重启使配置生效:"
+msgstr "如已运行 Docker，可重启使配置生效："
 
 msgid "Domestic mirror installation (linuxmirrors) is Linux-only. Current: "
 msgstr "国内镜像源安装（linuxmirrors）仅支持 Linux。当前："
@@ -3075,7 +3081,7 @@ msgstr "查看安装与运行状态"
 
 #, sh-printf-format
 msgid "Detected skopeo %s installed, reinstall?"
-msgstr "检测到已安装 skopeo %s，是否重新安装？"
+msgstr "已检测到 skopeo %s，是否重新安装？"
 
 msgid "Installing skopeo via Homebrew..."
 msgstr "通过 Homebrew 安装 skopeo..."
@@ -3501,6 +3507,1040 @@ msgstr "代理端口: HTTP/SOCKS 混合 %s ｜ 管理 API %s"
 msgid "Examples:"
 msgstr "示例:"
 
+#, sh-printf-format
+msgid "Only supports Linux / macOS. Current: %s"
+msgstr "仅支持 Linux / macOS。当前：%s"
+
+msgid "🚀 Starting Deskflow installation (Flatpak)"
+msgstr "🚀 开始安装 Deskflow（Flatpak）"
+
+msgid "Install flatpak and curl ===="
+msgstr "安装 flatpak 与 curl ===="
+
+msgid "Add Flathub repository (skip if already present) ===="
+msgstr "添加 Flathub 仓库（如已存在则跳过） ===="
+
+msgid "Already exists, skipping"
+msgstr "已存在，跳过"
+
+msgid "Added successfully"
+msgstr "添加成功"
+
+msgid "Online add failed, trying offline add..."
+msgstr "在线添加失败，尝试离线添加…"
+
+msgid "Install Deskflow ===="
+msgstr "安装 Deskflow ===="
+
+msgid "Configure desktop integration (XDG_DATA_DIRS) ===="
+msgstr "配置桌面集成（XDG_DATA_DIRS） ===="
+
+msgid "already contains XDG_DATA_DIRS configuration, skipping"
+msgstr "中已包含 XDG_DATA_DIRS 配置，跳过"
+
+#, sh-printf-format
+msgid "Appended XDG_DATA_DIRS to %s"
+msgstr "已追加 XDG_DATA_DIRS 到 %s"
+
+msgid "🎉 Deskflow installation complete!"
+msgstr "🎉 Deskflow 安装完成！"
+
+msgid "Please run:"
+msgstr "请执行："
+
+msgid ""
+"Or after logging out or restarting the session, you can find Deskflow in the "
+"application menu, or run:"
+msgstr "或注销/重启会话后，即可在应用菜单中找到 Deskflow，或通过："
+
+msgid "Start Deskflow."
+msgstr "启动 Deskflow。"
+
+msgid ""
+"Homebrew not detected. Please install it first: ./install.sh brew  or see "
+"https://brew.sh"
+msgstr "未检测到 Homebrew。请先安装：./install.sh brew  或参考 https://brew.sh"
+
+msgid "🚀 Starting Deskflow installation (Homebrew)"
+msgstr "🚀 开始安装 Deskflow（Homebrew）"
+
+msgid "Add deskflow/tap (skip if already present) ===="
+msgstr "添加 deskflow/tap（如已存在则跳过） ===="
+
+msgid "Install Deskflow cask ===="
+msgstr "安装 Deskflow cask ===="
+
+msgid "Remove the quarantine attribute (if any) ===="
+msgstr "解除 quarantine 属性（如有） ===="
+
+msgid "quarantine attribute cleared"
+msgstr "已清除 quarantine 属性"
+
+msgid "No quarantine attribute or already cleared"
+msgstr "无 quarantine 属性或已清除"
+
+msgid "Find Deskflow in Applications, or run:"
+msgstr "在「应用程序」中找到 Deskflow，或通过："
+
+msgid ""
+"If macOS blocks the launch (unsigned app warning), go to System Settings → "
+"Privacy & Security and click Open Anyway."
+msgstr ""
+"若启动被 macOS 阻止（未签名提示），到「系统设置 → 隐私与安全性」点击「仍要打"
+"开」。"
+
+msgid "✅ Installed (Flatpak)"
+msgstr "✅ 已安装（Flatpak）"
+
+msgid "✅ Installed (Homebrew)"
+msgstr "✅ 已安装（Homebrew）"
+
+msgid "⚠️  Not applicable (Linux / macOS only)"
+msgstr "⚠️  不适用（仅 Linux / macOS）"
+
+msgid "may not be installed"
+msgstr "可能未安装"
+
+msgid ""
+"Homebrew not detected, cannot uninstall. Please remove /Applications/"
+"Deskflow.app manually"
+msgstr "未检测到 Homebrew，无法卸载。请手动删除 /Applications/Deskflow.app"
+
+msgid "Uninstall Deskflow?"
+msgstr "确认卸载 Deskflow？"
+
+msgid "Install Deskflow (Linux: Flatpak / macOS: Homebrew)"
+msgstr "安装 Deskflow（Linux: Flatpak / macOS: Homebrew）"
+
+msgid "Uninstall Deskflow"
+msgstr "卸载 Deskflow"
+
+msgid "View installation status"
+msgstr "查看安装状态"
+
+msgid "✅ Disk dashboard available"
+msgstr "✅ 磁盘仪表盘可用"
+
+msgid "(pure command wrapper)"
+msgstr "（纯命令封装）"
+
+msgid "💾 Disk space overview"
+msgstr "💾 磁盘空间概况"
+
+msgid "📁 Mount point usage:"
+msgstr "📁 挂载点使用率："
+
+msgid "File system"
+msgstr "文件系统"
+
+msgid "Capacity"
+msgstr "容量"
+
+msgid "Used"
+msgstr "已用"
+
+msgid "Available"
+msgstr "可用"
+
+msgid "Usage"
+msgstr "使用率"
+
+msgid "Mount point"
+msgstr "挂载点"
+
+msgid "🧠 Memory usage:"
+msgstr "🧠 内存使用："
+
+#, sh-printf-format
+msgid "Total memory: %dGB | Used: %dGB | Available: %dGB"
+msgstr "总内存: %dGB | 已用: %dGB | 可用: %dGB"
+
+msgid "Total"
+msgstr "总量"
+
+msgid "Shared"
+msgstr "共享"
+
+msgid "Cache"
+msgstr "缓存"
+
+msgid ""
+"free command unavailable, install procps/procps-ng to view memory details"
+msgstr "命令不可用，安装 procps/procps-ng 后可查看内存详情"
+
+msgid "🔄 Swap status:"
+msgstr "🔄 Swap 状态："
+
+#, sh-printf-format
+msgid "Total: %s | Used: %s | Available: %s"
+msgstr "总量: %s | 已用: %s | 可用: %s"
+
+msgid "Cannot get swap information"
+msgstr "无法获取 swap 信息"
+
+msgid "Swap is not enabled"
+msgstr "未启用 swap"
+
+msgid "⚠️  The following mount points exceed 90% usage:"
+msgstr "⚠️  以下挂载点使用率超过 90%："
+
+#, sh-printf-format
+msgid "Run \"%s clean\" to free up space"
+msgstr "建议运行 '%s clean' 清理空间"
+
+#, sh-printf-format
+msgid ""
+"Number=drill down into this directory  u=up one level  c=change count "
+"(current %s, e.g. 10/20/30/50)  q=quit"
+msgstr "序号=下钻该目录  u=上一层  c=改数量(当前 %s, 如 10/20/30/50)  q=退出"
+
+msgid "Already at the top level"
+msgstr "已在顶层"
+
+#, sh-printf-format
+msgid "Enter the count (positive integer, press Enter to keep %s):"
+msgstr "输入数量（正整数，回车保留 %s）:"
+
+#, sh-printf-format
+msgid "Invalid count, keeping %s"
+msgstr "非法数量，保留 %s"
+
+#, sh-printf-format
+msgid "Invalid input: %s"
+msgstr "无效输入: %s"
+
+msgid "The current list is empty, there is no directory to drill into"
+msgstr "当前榜单为空，无目录可下钻"
+
+#, sh-printf-format
+msgid "Index out of range (1-%s)"
+msgstr "序号超出范围（1-%s）"
+
+#, sh-printf-format
+msgid "Must be a positive integer: %s"
+msgstr "需为正整数: %s"
+
+msgid "Must carry a K/M/G unit, e.g. 100M"
+msgstr "需带 K/M/G 单位，如 100M"
+
+#, sh-printf-format
+msgid "Path does not exist: %s"
+msgstr "路径不存在: %s"
+
+msgid ""
+"The current du does not support depth scanning, fell back to single level "
+"mode"
+msgstr "当前 du 不支持深度扫描，已回退单层模式"
+
+msgid ""
+"The current find does not support M/G size filtering (BusyBox?), the file "
+"list is skipped (install findutils to restore)"
+msgstr ""
+"当前 find 不支持按 M/G 过滤（BusyBox？），文件榜已跳过（可装 findutils 恢复）"
+
+#, sh-printf-format
+msgid "Scanning (depth %s, large directories may take a while)..."
+msgstr "正在扫描（深度 %s，大目录可能需要一些时间）..."
+
+#, sh-printf-format
+msgid "📊 Largest directories under %s (Top %s · depth %s)"
+msgstr "📊 %s 下最大的目录（Top %s · 深度 %s）"
+
+msgid "(no matching subdirectories)"
+msgstr "（无匹配的子目录）"
+
+#, sh-printf-format
+msgid "📄 Largest files (Top %s, only >50M listed)"
+msgstr "📄 最大的文件（Top %s，仅列 >50M）"
+
+msgid "(no file path to scan)"
+msgstr "（无可扫描的文件路径）"
+
+msgid "(no files larger than 50M found)"
+msgstr "（未发现大于 50M 的文件）"
+
+#, sh-printf-format
+msgid "🔍 Disk space monitoring (threshold: %s%%)"
+msgstr "🔍 磁盘空间监控（阈值: %s%%）"
+
+#, sh-printf-format
+msgid "🔴 %s (%s): %s%% — exceeds threshold %s%%"
+msgstr "🔴 %s (%s): %s%% — 超过阈值 %s%%"
+
+#, sh-printf-format
+msgid "🟡 %s (%s): %s%% — close to threshold %s%%"
+msgstr "🟡 %s (%s): %s%% — 接近阈值 %s%%"
+
+#, sh-printf-format
+msgid "Out of disk space on some mount points! Run \"%s clean\" to free space"
+msgstr "存在空间不足的挂载点！建议运行 '%s clean' 清理"
+
+msgid "All mount points have enough space ✅"
+msgstr "所有挂载点空间充足 ✅"
+
+#, sh-printf-format
+msgid ""
+"Installing the disk space monitoring cron job (checks daily at 08:00, "
+"threshold: %s%%)"
+msgstr "安装磁盘空间监控定时任务（每天 08:00 检查，阈值: %s%%）"
+
+msgid "The disk monitoring cron job already exists, it will be updated"
+msgstr "已存在磁盘监控定时任务，将更新"
+
+msgid "Cron job installed"
+msgstr "定时任务已安装"
+
+#, sh-printf-format
+msgid "Log file: %s"
+msgstr "日志文件: %s"
+
+msgid "View the job: crontab -l | grep disk-usage"
+msgstr "查看任务: crontab -l | grep disk-usage"
+
+#, sh-printf-format
+msgid "Uninstall the job: %s monitor --uninstall"
+msgstr "卸载任务: %s monitor --uninstall"
+
+msgid "No disk monitoring cron job found"
+msgstr "未找到磁盘监控定时任务"
+
+msgid "Cron job removed"
+msgstr "定时任务已移除"
+
+msgid "🧹 Disk space cleanup"
+msgstr "🧹 磁盘空间清理"
+
+msgid "Please specify the cleanup type:"
+msgstr "请指定清理类型："
+
+msgid "Clean up system logs"
+msgstr "清理系统日志"
+
+msgid "Clean up the package manager cache"
+msgstr "清理包管理器缓存"
+
+msgid "Clean up Docker junk (Docker must be installed)"
+msgstr "清理 Docker 垃圾（需已安装 Docker）"
+
+msgid "Clean up everything"
+msgstr "全部清理"
+
+#, sh-printf-format
+msgid "Example: %s clean --all"
+msgstr "示例: %s clean --all"
+
+msgid "── Clean up system logs ──"
+msgstr "── 清理系统日志 ──"
+
+#, sh-printf-format
+msgid "Current journal log size: %s"
+msgstr "当前 journal 日志大小: %s"
+
+msgid "Will run: journalctl --vacuum-time=3d"
+msgstr "将执行: journalctl --vacuum-time=3d"
+
+msgid "Clean up journal logs older than 3 days?"
+msgstr "清理 3 天前的 journal 日志？"
+
+msgid "Journal logs cleaned"
+msgstr "日志已清理"
+
+msgid "Found the following log files larger than 100M:"
+msgstr "发现以下大于 100M 的日志文件："
+
+msgid "Will truncate the large log files above"
+msgstr "将截断以上大日志文件"
+
+msgid "Truncate the large log files above (keep the empty files)?"
+msgstr "截断以上大日志文件（保留空文件）？"
+
+msgid "Large log files truncated"
+msgstr "大日志文件已截断"
+
+msgid "No log files larger than 100M found"
+msgstr "未发现大于 100M 的日志文件"
+
+msgid "── Clean up the package manager cache ──"
+msgstr "── 清理包管理器缓存 ──"
+
+#, sh-printf-format
+msgid "Cache size: %s"
+msgstr "缓存大小: %s"
+
+msgid "Will run: apt-get clean"
+msgstr "将执行: apt-get clean"
+
+msgid "Clean up the APT cache?"
+msgstr "清理 APT 缓存？"
+
+msgid "Cache cleaned"
+msgstr "缓存已清理"
+
+msgid "Will run: dnf clean all"
+msgstr "将执行: dnf clean all"
+
+msgid "Clean up the DNF cache?"
+msgstr "清理 DNF 缓存？"
+
+msgid "Will run: yum clean all"
+msgstr "将执行: yum clean all"
+
+msgid "Clean up the YUM cache?"
+msgstr "清理 YUM 缓存？"
+
+msgid "Will run: brew cleanup --prune=all"
+msgstr "将执行: brew cleanup --prune=all"
+
+msgid "Clean up the Homebrew cache?"
+msgstr "清理 Homebrew 缓存？"
+
+msgid "No known package manager detected, skipping the cache cleanup"
+msgstr "未检测到已知包管理器，跳过缓存清理"
+
+#, sh-printf-format
+msgid "Cache size: %s (%s)"
+msgstr "缓存大小: %s (%s)"
+
+#, sh-printf-format
+msgid "Will run: %s cache purge"
+msgstr "将执行: %s cache purge"
+
+msgid "Clean up the pip cache?"
+msgstr "清理 pip 缓存？"
+
+msgid "Will run: npm cache clean --force"
+msgstr "将执行: npm cache clean --force"
+
+msgid "Clean up the npm cache?"
+msgstr "清理 npm 缓存？"
+
+#, sh-printf-format
+msgid "Will clean %s"
+msgstr "将清理 %s"
+
+msgid "Clean up the bun cache?"
+msgstr "清理 bun 缓存？"
+
+msgid "── Clean up Docker ──"
+msgstr "── 清理 Docker ──"
+
+msgid "not installed, skipping"
+msgstr "未安装，跳过"
+
+msgid "the service is not running, skipping"
+msgstr "服务未运行，跳过"
+
+msgid "Disk usage:"
+msgstr "磁盘使用情况："
+
+msgid "Will run: docker system prune -af --volumes"
+msgstr "将执行: docker system prune -af --volumes"
+
+msgid "Clean up unused Docker images, containers, networks and volumes?"
+msgstr "清理 Docker 未使用的镜像、容器、网络和卷？"
+
+msgid "Docker junk cleaned"
+msgstr "Docker 垃圾已清理"
+
+msgid "🎉 Cleanup finished"
+msgstr "🎉 清理操作完成"
+
+msgid ""
+"Disk space management tool — view the storage overview, the large file "
+"ranking, monitoring alerts, one-click cleanup."
+msgstr "磁盘空间管理工具 — 查看存储概况、大文件排行、监控告警、一键清理。"
+
+msgid "Subcommands:"
+msgstr "子命令:"
+
+msgid "View the storage overview (default action)"
+msgstr "查看存储概况（默认动作）"
+
+msgid "Show the usage of each mount point, memory and Swap status"
+msgstr "显示各挂载点使用率、内存、Swap 状态"
+
+msgid "path argument"
+msgstr "路径"
+
+msgid "Large file/directory ranking (path defaults to /, count defaults to 10)"
+msgstr "大文件/目录排行（路径默认 /，数量默认 10）"
+
+msgid ""
+"Directory scan depth (defaults to 1); 2 shows the second level subdirectories"
+msgstr "目录扫描深度（默认 1）；2 可看第二层子目录"
+
+msgid ""
+"Only show the entries not smaller than the given size (must carry a K/M/G "
+"unit, e.g. 100M)"
+msgstr "只显示不小于该大小的条目（需带 K/M/G 单位，如 100M）"
+
+msgid "Disable the interactive mode (disabled automatically under a pipe/CI)"
+msgstr "禁用交互（管道/CI 下自动禁用）"
+
+msgid ""
+"Interactive keys: number=drill down  u=up one level  c=change count  q=quit"
+msgstr "交互键位：序号=下钻  u=上一层  c=改数量  q=退出"
+
+msgid "Check whether the usage exceeds the threshold (defaults to 90%)"
+msgstr "检查使用率是否超阈值（默认 90%）"
+
+msgid "Write to crontab (checks daily at 08:00)"
+msgstr "写入 crontab（每天 08:00 检查）"
+
+msgid "Remove the crontab cron job"
+msgstr "移除 crontab 定时任务"
+
+msgid "One-click disk space cleanup"
+msgstr "一键清理磁盘空间"
+
+msgid "Clean up system logs (journal + large log files)"
+msgstr "清理系统日志（journal + 大日志文件）"
+
+msgid "Clean up the package manager cache (apt/dnf/yum/brew/pip/npm/bun)"
+msgstr "清理包管理器缓存（apt/dnf/yum/brew/pip/npm/bun）"
+
+msgid "Preview only, do not execute"
+msgstr "仅预览，不执行"
+
+msgid "# View the storage overview"
+msgstr "# 查看存储概况"
+
+msgid "# View the large directories under /home"
+msgstr "# 查看 /home 下大目录"
+
+msgid "# View the Top 20 large directories"
+msgstr "# 查看 Top 20 大目录"
+
+msgid "# Two level drill down: /var and /var/lib/docker in one screen"
+msgstr "# 二层下钻：/var 与 /var/lib/docker 一屏可见"
+
+msgid "# Only show the big ones above 100M"
+msgstr "# 只看 100M 以上的大家伙"
+
+msgid "# Check whether it exceeds 90%"
+msgstr "# 检查是否超过 90%"
+
+msgid "# Install the scheduled monitoring with an 80% threshold"
+msgstr "# 安装 80% 阈值的定时监控"
+
+msgid "# Clean up everything"
+msgstr "# 全部清理"
+
+msgid "# Preview the log cleanup"
+msgstr "# 预览日志清理"
+
+#, sh-printf-format
+msgid "Unknown option: %s"
+msgstr "未知选项: %s"
+
+#, sh-printf-format
+msgid "Linux-only (current: %s)"
+msgstr "仅支持 Linux（当前：%s）"
+
+#, sh-printf-format
+msgid "Missing command: %s (run ./install.sh disk install)"
+msgstr "缺少命令: %s（可运行: ./install.sh disk install 补装依赖）"
+
+#, sh-printf-format
+msgid "Installing %s tools: %s"
+msgstr "补装 %s 工具: %s"
+
+msgid "No device specified"
+msgstr "未指定设备"
+
+#, sh-printf-format
+msgid "Block device does not exist: %s"
+msgstr "块设备不存在: %s"
+
+#, sh-printf-format
+msgid "⛔ %s is mounted at %s (umount it first)"
+msgstr "⛔ %s 已挂载到 %s（请先 umount）"
+
+#, sh-printf-format
+msgid "⛔ %s is held by kernel device %s (LVM LV/RAID; deactivate it)"
+msgstr ""
+"⛔ %s 被激活的内核设备 %s 占用（多为激活中的 LVM LV/RAID；LVM 可 sudo "
+"vgchange -an <VG名> 停用）"
+
+#, sh-printf-format
+msgid "⛔ %s is an LVM PV (VG %s, not activated)"
+msgstr "⛔ %s 是 LVM PV（VG %s，未激活）"
+
+#, sh-printf-format
+msgid "⛔ %s holds an LVM PV signature (old VG leftover)"
+msgstr "⛔ %s 含 LVM PV 签名（旧 VG 残留）"
+
+#, sh-printf-format
+msgid "⛔ %s holds a %s signature"
+msgstr "⛔ %s 含 %s 签名"
+
+msgid "Target device details:"
+msgstr "目标设备详情："
+
+#, sh-printf-format
+msgid "Refused: %s is destructive, interactive terminal only (no --yes bypass)"
+msgstr "拒绝：%s 属破坏性操作，仅允许在交互终端执行（安全护栏，无 --yes 跳过）"
+
+#, sh-printf-format
+msgid "Refused: %s is the system/boot/swap disk or a partition of it"
+msgstr "拒绝：%s 是系统/启动/swap 所在盘或其分区，禁止破坏性操作"
+
+msgid "Not mounted, no holder, only old signatures (wipefs clears):"
+msgstr "无挂载、无激活占用，仅存旧签名（wipefs 可解除）："
+
+#, sh-printf-format
+msgid "Refused: %s is in use:"
+msgstr "拒绝：%s 正在使用中："
+
+msgid "Hint: only old signatures left? clear them with wipe and retry"
+msgstr ""
+"提示：若仅剩旧签名残留（无挂载/无激活占用），可用 wipe 解除后重试（如：wipe "
+"sdb3）"
+
+#, sh-printf-format
+msgid "⚠️  %s will erase all data on %s. Type the full device name:"
+msgstr "⚠️  %s 将清除 %s 上的全部数据。请输入完整设备名（如 sdb 或 sdb1）确认:"
+
+#, sh-printf-format
+msgid "Input mismatch (expected: %s), cancelled"
+msgstr "输入不一致（期望: %s），已取消"
+
+msgid "overall verdict FAILED"
+msgstr "总评 FAILED"
+
+msgid "Cannot read SMART data (USB bridge/RAID unsupported, or no rights)"
+msgstr "读不到 SMART 数据（USB 桥/RAID 背板不支持或权限不足）"
+
+#, sh-printf-format
+msgid "Media errors(Media Errors)=%s"
+msgstr "介质错误(Media Errors)=%s"
+
+#, sh-printf-format
+msgid "Available spare %s%% below threshold %s%%"
+msgstr "备用空间 %s%% 低于阈值 %s%%"
+
+#, sh-printf-format
+msgid "Lifetime used up %s%%"
+msgstr "寿命已耗 %s%%"
+
+#, sh-printf-format
+msgid "Pending sectors(Current_Pending)=%s"
+msgstr "待定扇区(Current_Pending)=%s"
+
+#, sh-printf-format
+msgid "Uncorrectable sectors(Offline_Uncorrectable)=%s"
+msgstr "不可修复扇区(Offline_Uncorrectable)=%s"
+
+#, sh-printf-format
+msgid "Uncorrectable errors(Reported_Uncorrect)=%s"
+msgstr "不可纠正(Reported_Uncorrect)=%s"
+
+#, sh-printf-format
+msgid "Reallocated sectors(Reallocated_Sector)=%s"
+msgstr "重映射扇区(Reallocated_Sector)=%s"
+
+#, sh-printf-format
+msgid "Reallocation events(Reallocation_Event)=%s"
+msgstr "重映射事件(Reallocation_Event)=%s"
+
+msgid "Healthy"
+msgstr "健康"
+
+msgid "Warning"
+msgstr "注意"
+
+msgid "Dangerous"
+msgstr "危险"
+
+msgid "Block device overview (⚠️ see the protected list below):"
+msgstr "块设备一览（⚠️ 行见下方受保护清单）："
+
+msgid "Protected devices (system/boot/swap: no destructive ops):"
+msgstr "受保护设备（系统/启动/swap 相关，禁止破坏性操作）："
+
+msgid "(none)"
+msgstr "（无）"
+
+#, sh-printf-format
+msgid "Formatting %s -> %s ..."
+msgstr "格式化 %s → %s ..."
+
+msgid "Usage: format <device> [ext4|xfs|vfat|exfat|ntfs] (default ext4)"
+msgstr "用法: format <设备> [ext4|xfs|vfat|exfat|ntfs]（默认 ext4）"
+
+#, sh-printf-format
+msgid "Unsupported file system: %s (supported: %s)"
+msgstr "不支持的文件系统: %s（支持: %s）"
+
+msgid "format"
+msgstr "格式化"
+
+#, sh-printf-format
+msgid "Format complete: %s (%s),"
+msgstr "格式化完成: %s (%s)，"
+
+#, sh-printf-format
+msgid "Next step: ./install.sh disk fstab add %s /mnt/point"
+msgstr "下一步: ./install.sh disk fstab add %s /mnt/point"
+
+msgid "Usage: partition <whole disk> (GPT single partition of the whole disk)"
+msgstr "用法: partition <整盘>（GPT 单分区全盘）"
+
+msgid "Not a whole disk (wizard/partition need a whole disk; use format)"
+msgstr "不是整盘（向导/分区只接受整盘，分区请直接 format）"
+
+msgid "partition (clear signatures + GPT single partition)"
+msgstr "分区（清签名 + GPT 单分区）"
+
+msgid "Partition creation failed"
+msgstr "分区创建失败"
+
+#, sh-printf-format
+msgid "Partition complete: %s (GPT). Next: ./install.sh disk format %s ext4"
+msgstr "分区完成: %s（GPT）。下一步: ./install.sh disk format %s ext4"
+
+msgid "Usage: mount <device> <mount point> [--fstab]"
+msgstr "用法: mount <设备> <挂载点> [--fstab]"
+
+msgid "No file system signature, please run format first"
+msgstr "无文件系统签名，请先 format"
+
+#, sh-printf-format
+msgid "Mounted: %s -> %s (use --fstab or fstab add to persist)"
+msgstr "已挂载: %s → %s（持久化请用 --fstab 或 fstab add）"
+
+msgid "Usage: umount <mount point|device>"
+msgstr "用法: umount <挂载点|设备>"
+
+#, sh-printf-format
+msgid "Unmounted: %s"
+msgstr "已卸载: %s"
+
+#, sh-printf-format
+msgid "Still in fstab, mounted again after reboot; remove: fstab remove %s"
+msgstr ""
+"仍在 fstab 中，重启后会重新挂载；如需移除: ./install.sh disk fstab remove %s"
+
+msgid "Non-comment entries:"
+msgstr "非注释条目："
+
+msgid "Usage: fstab {list|add <dev> <mount point> [opts]|remove <mount point>}"
+msgstr "用法: fstab {list|add <设备> <挂载点> [选项]|remove <挂载点>}"
+
+msgid "Usage: fstab add <dev> <mount point> [opts] (default defaults,nofail)"
+msgstr "用法: fstab add <设备> <挂载点> [选项]（默认 defaults,nofail）"
+
+msgid "No mount point specified"
+msgstr "未指定挂载点"
+
+#, sh-printf-format
+msgid "Cannot get the UUID of %s"
+msgstr "无法获取 %s 的 UUID"
+
+#, sh-printf-format
+msgid "Mounting %s -> %s failed, fstab was not written"
+msgstr "挂载 %s → %s 失败，fstab 未写入"
+
+#, sh-printf-format
+msgid "validation failed, fstab rolled back (backup: /etc/fstab.bak.%s)"
+msgstr "验证失败，已回滚 fstab（备份: /etc/fstab.bak.%s）"
+
+#, sh-printf-format
+msgid "Written to fstab: UUID=%s -> %s (%s, %s), backup: /etc/fstab.bak.%s"
+msgstr "已写入 fstab: UUID=%s → %s（%s, %s），备份: /etc/fstab.bak.%s"
+
+msgid "Usage: fstab remove <mount point>"
+msgstr "用法: fstab remove <挂载点>"
+
+#, sh-printf-format
+msgid "No entry for %s in fstab"
+msgstr "中没有 %s 的条目"
+
+#, sh-printf-format
+msgid "fstab entry removed: %s (backup: /etc/fstab.bak.%s)"
+msgstr "已移除 fstab 条目: %s（备份: /etc/fstab.bak.%s）"
+
+#, sh-printf-format
+msgid "SMART reason detail: (%s)"
+msgstr "（%s）"
+
+#, sh-printf-format
+msgid "═══ SMART health check: %s ═══"
+msgstr "═══ SMART 健康体检：%s ═══"
+
+msgid "—— Device information ——"
+msgstr "—— 设备信息 ——"
+
+msgid "—— SMART overall verdict ——"
+msgstr "—— SMART 总评 ——"
+
+msgid "—— Key metrics ——"
+msgstr "—— 关键指标 ——"
+
+#, sh-printf-format
+msgid "Temperature: %s°C"
+msgstr "温度: %s°C"
+
+#, sh-printf-format
+msgid "Power on time: %s hours"
+msgstr "通电时长: %s 小时"
+
+msgid "—— Attribute table ——"
+msgstr "—— 属性表 ——"
+
+msgid "Conclusion: healthy — no abnormal metrics found"
+msgstr "结论：健康——未发现异常指标"
+
+#, sh-printf-format
+msgid "Conclusion: warning — %s (disk self-healing, watch trend, keep backups)"
+msgstr "结论：注意——%s（盘正在自愈，关注趋势，保持备份）"
+
+#, sh-printf-format
+msgid "Conclusion: dangerous — %s (back up data now, consider a new disk)"
+msgstr "结论：危险——%s（建议立即备份数据，评估换盘）"
+
+#, sh-printf-format
+msgid "Conclusion: unknown — %s"
+msgstr "结论：未知——%s"
+
+msgid "smartmontools is not installed, installing it now..."
+msgstr "未安装 smartmontools，正在补装..."
+
+msgid "Health overview (all whole disks):"
+msgstr "健康概览（全部整盘）："
+
+msgid "No whole disk device found"
+msgstr "未发现整盘设备"
+
+msgid "Usage: scan <whole disk|partition> (e.g. sdb or sdb1)"
+msgstr "用法: scan <整盘|分区>（如 sdb 或 sdb1）"
+
+msgid "badblocks (e2fsprogs) is not installed, installing it now..."
+msgstr "未安装 badblocks（e2fsprogs），正在补装..."
+
+#, sh-printf-format
+msgid "Scan is read-only, but %s is in use or a system disk: it will be slow"
+msgstr ""
+"扫描为只读（不写盘），但 %s 正在使用中/属系统盘：扫描会显著变慢且拖累系统 IO"
+
+#, sh-printf-format
+msgid "Estimated time: %s h %s min (at ~150MB/s, SSD is usually faster)"
+msgstr "预计耗时约 %s 小时 %s 分钟（按 ~150MB/s 估算，SSD 通常更快）"
+
+msgid "Starting a read-only disk scan (badblocks). Ctrl-C stops it, rerun."
+msgstr ""
+"开始只读盘面扫描（badblocks，不写盘）。长时间扫描建议放 tmux/screen；Ctrl-C "
+"可中断，已扫部分无结论可直接重跑。"
+
+#, sh-printf-format
+msgid "🔴 Found %s bad blocks! Back up data; check disk smart %s for trends"
+msgstr ""
+"🔴 发现 %s 个坏块！建议：① 立即备份重要数据 ② ./install.sh disk smart %s 查看"
+"重映射趋势 ③ 评估更换硬盘"
+
+#, sh-printf-format
+msgid "Bad block LBA list (first 20 lines; full list: %s):"
+msgstr "坏块 LBA 清单（前 20 行；完整清单: %s）:"
+
+#, sh-printf-format
+msgid "The scan exited abnormally (rc=%s; bit2 = interrupted). Just rerun it"
+msgstr ""
+"扫描异常退出（rc=%s；退出码 bit2=被中断）。已扫描部分无结论，可直接重跑"
+
+#, sh-printf-format
+msgid "✅ Disk surface is healthy: a full scan of %s found no bad blocks"
+msgstr "✅ 盘面完好：%s 全盘只读扫描未发现坏块"
+
+msgid "Usage: wipe <device> (clear file system/partition table signatures)"
+msgstr "用法: wipe <设备>（清文件系统/分区表签名）"
+
+msgid "erase signatures (wipefs)"
+msgstr "擦除签名（wipefs）"
+
+#, sh-printf-format
+msgid "All signatures of %s have been cleared"
+msgstr "已清除 %s 的所有签名"
+
+msgid "The wizard needs an interactive terminal (safety guard)"
+msgstr "向导需要交互终端（安全护栏）"
+
+msgid "🧙 New disk one-click wizard: partition -> format -> mount -> fstab"
+msgstr "🧙 新盘一键上线向导：分区 → 格式化 → 挂载 → fstab"
+
+msgid "Select the whole disk to bring online (e.g. sdb):"
+msgstr "选择要上线的整盘（如 sdb）:"
+
+msgid "Not a whole disk, the wizard needs a whole disk (use format)"
+msgstr "不是整盘，向导只接受整盘（分区请直接用 format）"
+
+msgid "new disk wizard (partition+format)"
+msgstr "新盘向导（分区+格式化）"
+
+#, sh-printf-format
+msgid "File system [%s] (press Enter for ext4):"
+msgstr "文件系统 [%s]（回车=ext4）:"
+
+#, sh-printf-format
+msgid "Unsupported file system: %s"
+msgstr "不支持的文件系统: %s"
+
+#, sh-printf-format
+msgid "Mount point (press Enter for /mnt/%s):"
+msgstr "挂载点（回车=/mnt/%s）:"
+
+#, sh-printf-format
+msgid "The mount point must be an absolute path: %s"
+msgstr "挂载点必须是绝对路径: %s"
+
+msgid "① Partition (GPT single partition of the whole disk)..."
+msgstr "① 分区（GPT 单分区全盘）..."
+
+msgid "Partition creation failed, the wizard aborts"
+msgstr "分区创建失败，向导中止"
+
+#, sh-printf-format
+msgid "② Format %s -> %s ..."
+msgstr "② 格式化 %s → %s ..."
+
+msgid "③ Mount + write fstab + verify ..."
+msgstr "③ 挂载 + 写 fstab + 验证 ..."
+
+#, sh-printf-format
+msgid "Done, but fstab not written. Add manually: disk fstab add %s %s"
+msgstr ""
+"分区与格式化已完成，但 fstab 未写入。可手动补: ./install.sh disk fstab add "
+"%s %s"
+
+#, sh-printf-format
+msgid "🎉 New disk is online: %s (%s) -> %s (persisted, auto-mounted)"
+msgstr "🎉 新盘上线完成: %s (%s) → %s（已持久化，重启自动挂载）"
+
+msgid "Cannot detect the package manager"
+msgstr "无法识别包管理器"
+
+msgid "🚀 Installing the disk toolbox dependencies (parted/xfsprogs/...)..."
+msgstr ""
+"🚀 安装磁盘管理工具箱依赖（parted/xfsprogs/dosfstools/exfatprogs/ntfs-3g/"
+"smartmontools）..."
+
+msgid "Install by package name failed, trying the exfat-utils fallback..."
+msgstr "按包名安装失败（老发行版 exfat 包名不同），尝试兜底 exfat-utils..."
+
+msgid "Disk toolbox dependencies installed"
+msgstr "磁盘管理工具箱依赖安装完成"
+
+msgid "Available: ./install.sh disk list | wizard | format | fstab | smart ..."
+msgstr "可用: ./install.sh disk list | wizard | format | fstab | smart ..."
+
+msgid "Only removes the helper tools this module installed"
+msgstr ""
+"仅移除本模块安装的辅助工具（parted xfsprogs dosfstools exfatprogs ntfs-3g "
+"smartmontools）"
+
+msgid "It will not touch any disk data, mounts or fstab"
+msgstr "不会触碰任何磁盘数据、挂载与 fstab"
+
+msgid "Confirm uninstalling these tool packages?"
+msgstr "确认卸载这些工具包？"
+
+msgid "Some packages could not be removed (not installed or needed); system OK"
+msgstr "部分包未能移除（可能未安装或被其他软件依赖），不影响系统"
+
+msgid "Disk toolbox helper tools uninstalled"
+msgstr "磁盘管理工具箱辅助工具已卸载"
+
+#, sh-printf-format
+msgid "⚠️  Disk toolbox dependencies missing: %s (run disk install)"
+msgstr "⚠️  磁盘工具箱依赖缺失:%s（运行 ./install.sh disk install 补齐）"
+
+#, sh-printf-format
+msgid "✅ Disk toolbox is ready (%s whole disks)"
+msgstr "✅ 磁盘管理工具箱就绪（%s 块整盘）"
+
+#, sh-printf-format
+msgid "Optional tools not installed: %s (auto-installed on first use)"
+msgstr "可选工具未安装:%s（对应功能首次使用时会自动补装）"
+
+msgid "Disk toolbox (Linux only): partition/format/mount/fstab/SMART/erase"
+msgstr ""
+"磁盘管理工具箱（仅 Linux）：分区 / 格式化 / 挂载 / fstab / SMART / 擦除签名"
+
+msgid "List block devices and protected devices (default action)"
+msgstr "列出块设备与受保护设备（默认动作）"
+
+msgid "New disk wizard: partition -> format -> mount -> fstab (interactive)"
+msgstr "新盘一键上线：分区→格式化→挂载→fstab（交互）"
+
+msgid "whole disk"
+msgstr "整盘"
+
+msgid "GPT single partition of the whole disk (signatures cleared first)"
+msgstr "GPT 单分区全盘（先清签名）"
+
+msgid "disk device"
+msgstr "设备"
+
+msgid "file system type"
+msgstr "类型"
+
+msgid "Format: ext4 (default)/xfs/vfat/exfat/ntfs"
+msgstr "格式化：ext4(默认)/xfs/vfat/exfat/ntfs"
+
+msgid "mount point"
+msgstr "挂载点"
+
+msgid "Mount (--fstab also persists it)"
+msgstr "挂载（--fstab 同时持久化）"
+
+msgid "mount point or device"
+msgstr "挂载点|设备"
+
+msgid "Unmount"
+msgstr "卸载"
+
+msgid "management (UUID based, backs up before writing and verifies after)"
+msgstr "管理（UUID 方式，写前备份写后验证）"
+
+msgid "health check (no arg = all disks overview; one disk = details)"
+msgstr "健康体检（无参=全部整盘概览；单盘=详情+判读）"
+
+msgid "whole disk or partition"
+msgstr "整盘|分区"
+
+msgid "Read-only bad block scan (badblocks does not write, may take hours)"
+msgstr "盘面坏块只读扫描（badblocks 不写盘，耗时可能数小时）"
+
+msgid "Clear file system/partition table signatures (wipefs)"
+msgstr "清除文件系统/分区表签名（wipefs）"
+
+msgid "Install the missing dependency tools"
+msgstr "补装依赖工具"
+
+msgid "Remove the helper tools (does not touch disk data)"
+msgstr "移除辅助工具（不碰磁盘数据）"
+
+msgid "View status (machine readable: UXS_STATUS_MODE=machine)"
+msgstr "查看状态（机器可读: UXS_STATUS_MODE=machine）"
+
+msgid "⚠️  Safety guard (strict, no --yes bypass):"
+msgstr "⚠️  安全护栏（严格，无 --yes 绕过）："
+
+msgid "Root/boot/EFI/swap disks and devices in use are hard-rejected"
+msgstr "根盘/启动盘/EFI/swap 及其所在整盘硬拒绝，使用中设备硬拒绝"
+
+msgid "Destructive ops need an interactive terminal and the typed device name"
+msgstr "破坏性操作仅限交互终端，且需手动输入完整设备名确认"
+
+msgid "fstab is backed up before writing; a failed mount -a rolls back"
+msgstr "fstab 写入前自动备份，mount -a 验证失败自动回滚"
+
+msgid "smart/scan are read-only checks: no disk writes, scan only warns"
+msgstr "smart/scan 为只读体检：不写盘，scan 对使用中设备仅警告不拒绝"
+
+#, sh-printf-format
+msgid "Unknown disk subcommand: %s"
+msgstr "未知子命令: %s"
+
 msgid ""
 "The docker command was not found. Install Docker first: ./install.sh docker"
 msgstr "未检测到 docker 命令。请先安装 Docker：./install.sh docker"
@@ -3857,9 +4897,6 @@ msgstr "策略路由规则 (ip rule) ==="
 msgid "Table MARK rules (iptables) ==="
 msgstr "表 MARK 规则 (iptables) ==="
 
-msgid "(none)"
-msgstr "（无）"
-
 msgid "Confirm clearing all the multi-net policy routing rules and marks?"
 msgstr "确认清除所有 multi-net 策略路由规则与标记？"
 
@@ -3921,6 +4958,1329 @@ msgstr "# www-data 用户的流量走 eth1"
 
 msgid "# The traffic to port 443 goes through eth1"
 msgstr "# 访问 443 端口的流量走 eth1"
+
+#, sh-printf-format
+msgid "The nat module is Linux-only. Current: %s"
+msgstr "模块仅支持 Linux。当前：%s"
+
+msgid "The iptables command was not found, please install it first:"
+msgstr "未找到 iptables 命令，请先安装："
+
+msgid "Enabling IP forwarding..."
+msgstr "开启 IP forwarding..."
+
+msgid "Enabled"
+msgstr "已开启"
+
+msgid "Disabling IP forwarding..."
+msgstr "关闭 IP forwarding..."
+
+msgid "Disabled"
+msgstr "已关闭"
+
+msgid ""
+"Invalid target format, it should be IP:port, for example 192.168.1.100:443"
+msgstr "目标格式错误，应为 IP:端口，如 192.168.1.100:443"
+
+#, sh-printf-format
+msgid "Invalid external port: %s (expected 1-65535)"
+msgstr "外部端口无效：%s（应为 1-65535）"
+
+#, sh-printf-format
+msgid "Invalid target port: %s (expected 1-65535)"
+msgstr "目标端口无效：%s（应为 1-65535）"
+
+#, sh-printf-format
+msgid "The port %s/%s already has a forwarding rule, it will be overwritten"
+msgstr "端口 %s/%s 已有转发规则，将覆盖"
+
+#, sh-printf-format
+msgid "Forwarding added: %s/%s -> %s"
+msgstr "已添加转发：%s/%s → %s"
+
+#, sh-printf-format
+msgid "Forwarding removed: %s/%s"
+msgstr "已删除转发：%s/%s"
+
+msgid "Forwarding rules ==="
+msgstr "转发规则 ==="
+
+msgid "(no rules)"
+msgstr "（无规则）"
+
+msgid "Port"
+msgstr "端口"
+
+msgid "Protocol"
+msgstr "协议"
+
+msgid "Target"
+msgstr "目标"
+
+#, sh-printf-format
+msgid "The interface %s does not exist. Available network interfaces:"
+msgstr "网卡 %s 不存在。可用网卡："
+
+#, sh-printf-format
+msgid "The interface %s already has a MASQUERADE rule, it will be overwritten"
+msgstr "网卡 %s 已配置 MASQUERADE，将覆盖"
+
+#, sh-printf-format
+msgid "MASQUERADE enabled: interface %s%s"
+msgstr "已开启 MASQUERADE：网卡 %s%s"
+
+msgid "source"
+msgstr "源"
+
+#, sh-printf-format
+msgid "MASQUERADE disabled: interface %s"
+msgstr "已关闭 MASQUERADE：网卡 %s"
+
+msgid "Gateway ==="
+msgstr "网关 ==="
+
+msgid "(not configured)"
+msgstr "（未配置）"
+
+msgid "Interface"
+msgstr "网卡"
+
+msgid "Source CIDR"
+msgstr "源 CIDR"
+
+msgid "all"
+msgstr "（全部）"
+
+msgid "Clearing all the nat-manager iptables rules..."
+msgstr "清除所有 nat-manager iptables 规则..."
+
+msgid "Configuring the systemd persistence service..."
+msgstr "配置 systemd 持久化服务..."
+
+msgid "Load the port forwarding and MASQUERADE rules"
+msgstr "加载端口转发与 MASQUERADE 规则"
+
+msgid "Enabled (the rules are loaded automatically at boot)"
+msgstr "已启用（开机自动加载规则）"
+
+msgid "Removing the systemd persistence service..."
+msgstr "移除 systemd 持久化服务..."
+
+msgid "Removed"
+msgstr "已移除"
+
+msgid "NAT management tool installation complete!"
+msgstr "管理工具安装完成！"
+
+msgid "Port forwarding"
+msgstr "端口转发"
+
+msgid "Shared internet access"
+msgstr "共享上网"
+
+msgid "Show the rules"
+msgstr "查看规则"
+
+msgid ""
+"Confirm uninstalling the NAT management tool? All forwarding rules and "
+"gateway settings will be cleared."
+msgstr "确认卸载 NAT 管理工具？所有转发规则和网关配置将被清除。"
+
+#, sh-printf-format
+msgid ""
+"Delete the configuration directory %s? (the rule files will be deleted too)"
+msgstr "是否删除配置目录 %s？（规则文件也会被删除）"
+
+#, sh-printf-format
+msgid "Configuration directory %s deleted"
+msgstr "配置目录 %s 已删除"
+
+msgid "NAT management tool uninstalled"
+msgstr "管理工具已卸载"
+
+msgid "Not enabled"
+msgstr "未启用"
+
+msgid "Enabled and running"
+msgstr "已启用并运行"
+
+msgid "Enabled but not running"
+msgstr "已启用但未运行"
+
+msgid "✅ NAT configured"
+msgstr "✅ NAT 已配置"
+
+#, sh-printf-format
+msgid "(%s forwarding rules)"
+msgstr "（转发规则 %s 条）"
+
+msgid "⚠️  NAT not configured"
+msgstr "⚠️  NAT 未配置"
+
+msgid "(no forwarding rules)"
+msgstr "（无转发规则）"
+
+msgid "Off"
+msgstr "未开启"
+
+#, sh-printf-format
+msgid "Forwarding rules: %s"
+msgstr "转发规则: %s 条"
+
+#, sh-printf-format
+msgid "Gateway settings: %s"
+msgstr "网关配置: %s 个"
+
+msgid "Persistence service:"
+msgstr "持久化服务:"
+
+msgid ""
+"NAT port forwarding and shared internet access management tool (Linux only)."
+msgstr "端口转发与共享上网管理工具（仅 Linux）。"
+
+msgid "Install the dependencies, enable IP forwarding and set up persistence"
+msgstr "安装依赖、开启 IP forwarding、配置持久化"
+
+msgid "Clear the rules, disable IP forwarding and remove the persistence"
+msgstr "清除规则、关闭 IP forwarding、移除持久化"
+
+msgid ""
+"port> <target:port> [--proto P]   Add a DNAT forwarding rule (tcp by default)"
+msgstr "端口> <目标:端口> [--proto P]   添加 DNAT 转发（默认 tcp）"
+
+msgid "port> [--proto P]               Delete a DNAT forwarding rule"
+msgstr "端口> [--proto P]               删除 DNAT 转发"
+
+msgid "List all the forwarding rules"
+msgstr "列出所有转发规则"
+
+msgid ""
+"interface> [--source CIDR]        Enable MASQUERADE (shared internet access)"
+msgstr "网卡> [--source CIDR]        开启 MASQUERADE（共享上网）"
+
+msgid "interface>                       Disable MASQUERADE"
+msgstr "网卡>                       关闭 MASQUERADE"
+
+msgid "Internal commands (called by systemd, not used directly):"
+msgstr "内部命令（systemd 调用，不直接使用）:"
+
+msgid "Load all the rules from the configuration files"
+msgstr "从配置文件加载所有规则"
+
+msgid "Clear all the iptables rules"
+msgstr "清除所有 iptables 规则"
+
+#, sh-printf-format
+msgid "Unknown forward subcommand: %s"
+msgstr "未知 forward 子命令: %s"
+
+msgid "Available: add, del, list"
+msgstr "可用: add, del, list"
+
+#, sh-printf-format
+msgid "Unknown parameter: %s"
+msgstr "未知参数: %s"
+
+#, sh-printf-format
+msgid "Usage: %s forward add <port> <targetIP:port> [--proto tcp|udp]"
+msgstr "用法: %s forward add <端口> <目标IP:端口> [--proto tcp|udp]"
+
+#, sh-printf-format
+msgid "Usage: %s forward del <port> [--proto tcp|udp]"
+msgstr "用法: %s forward del <端口> [--proto tcp|udp]"
+
+#, sh-printf-format
+msgid "No forwarding rule found for the port %s/%s"
+msgstr "未找到端口 %s/%s 的转发规则"
+
+#, sh-printf-format
+msgid "Usage: %s gateway enable <interface> [--source CIDR]"
+msgstr "用法: %s gateway enable <网卡> [--source CIDR]"
+
+#, sh-printf-format
+msgid "Usage: %s gateway disable <interface>"
+msgstr "用法: %s gateway disable <网卡>"
+
+#, sh-printf-format
+msgid "Unknown gateway subcommand: %s"
+msgstr "未知 gateway 子命令: %s"
+
+msgid "Available: enable, disable, list"
+msgstr "可用: enable, disable, list"
+
+msgid "Only supports Linux (depends on systemd); not applicable on macOS"
+msgstr "运维工具箱仅支持 Linux（依赖 systemd），macOS 不适用。"
+
+#, sh-printf-format
+msgid ": %s"
+msgstr "：%s"
+
+#, sh-printf-format
+msgid "Disk space %s"
+msgstr "磁盘空间 %s"
+
+#, sh-printf-format
+msgid "Used %s%%"
+msgstr "已用 %s%%"
+
+msgid "Disk space"
+msgstr "磁盘空间"
+
+#, sh-printf-format
+msgid "Max usage %s%% (%s)"
+msgstr "最大使用率 %s%%（%s）"
+
+msgid "No real filesystem to report"
+msgstr "无真实文件系统可报"
+
+msgid "unavailable"
+msgstr "不可用"
+
+msgid "Cannot read (permissions / USB bridge / RAID backplane)"
+msgstr "读不到（权限/USB 桥/RAID 背板）"
+
+#, sh-printf-format
+msgid "Overall result is not PASSED — details: sudo smartctl -H %s"
+msgstr "总评非 PASSED——详情: sudo smartctl -H %s"
+
+msgid "No sd/nvme whole disk found"
+msgstr "未发现 sd/nvme 整盘"
+
+msgid "smartmontools is not installed"
+msgstr "未安装 smartmontools"
+
+msgid "unavailable (container / no systemd)"
+msgstr "不可用（容器/无 systemd）"
+
+msgid "No failed units"
+msgstr "无失败单元"
+
+msgid "failed units"
+msgstr "失败单元"
+
+msgid "Troubleshoot: ./install.sh ops-kit svc failed"
+msgstr "——排查: ./install.sh ops-kit svc failed"
+
+msgid "usage"
+msgstr "占用"
+
+msgid "Cleanup: ./install.sh ops-kit log vacuum 200M"
+msgstr "——清理: ./install.sh ops-kit log vacuum 200M"
+
+msgid "baseline"
+msgstr "基线"
+
+msgid "Summary: see ./install.sh ops-kit audit ssh"
+msgstr "摘要见 ./install.sh ops-kit audit ssh"
+
+msgid "Cannot read sshd config"
+msgstr "读不到 sshd 配置"
+
+msgid "public listeners"
+msgstr "公网监听"
+
+msgid "No 0.0.0.0/[::] listener"
+msgstr "无 0.0.0.0/[::] 监听"
+
+msgid "items — list: ./install.sh ops-kit audit ports"
+msgstr "个——清单: ./install.sh ops-kit audit ports"
+
+msgid "pending updates"
+msgstr "待更新"
+
+msgid "Unrecognized package manager"
+msgstr "未识别包管理器"
+
+#, sh-printf-format
+msgid "Pending updates (%s)"
+msgstr "待更新(%s)"
+
+msgid "items"
+msgstr "个"
+
+msgid "failed logins"
+msgstr "登录失败"
+
+#, sh-printf-format
+msgid "Recent %s+ entries (lastb, signs of a failed-login brute force)"
+msgstr "近期 %s+ 条（lastb，失败登录爆破迹象）"
+
+msgid "No records"
+msgstr "无记录"
+
+#, sh-printf-format
+msgid "🩺 ops-kit inspection report (%s)"
+msgstr "🩺 ops-kit 系统巡检报告（%s）"
+
+#, sh-printf-format
+msgid "Inspection summary: %s critical, %s warnings — prioritize 🔴 items"
+msgstr "巡检汇总：%s 项危险、%s 项注意——优先处理 🔴 项"
+
+#, sh-printf-format
+msgid "Inspection summary: %s warnings, no critical items"
+msgstr "巡检汇总：%s 项注意，无危险项"
+
+msgid "Inspection summary: all passed"
+msgstr "巡检汇总：全部通过"
+
+msgid "📜 Log usage"
+msgstr "📜 日志占用"
+
+msgid "Failed to read"
+msgstr "读取失败"
+
+#, sh-printf-format
+msgid "journal: %s"
+msgstr "journal：%s"
+
+msgid "top 5 consumers:"
+msgstr "大户 TOP5："
+
+msgid "Cleanup pointer: ./install.sh ops-kit log vacuum 200M"
+msgstr "清理指路: ./install.sh ops-kit log vacuum 200M"
+
+msgid "Usage: ops-kit log vacuum <200M|2weeks> (size or duration, required)"
+msgstr "用法: ops-kit log vacuum <200M|2weeks>（大小或时长，必填）"
+
+msgid "Cleaning journal is a write op; needs a TTY (or --dry-run to preview)"
+msgstr "清理 journal 属写操作，仅允许在交互终端执行（或加 --dry-run 预览）"
+
+#, sh-printf-format
+msgid "Will run: journalctl --vacuum-size=%s"
+msgstr "将执行: journalctl --vacuum-size=%s"
+
+#, sh-printf-format
+msgid "Will run: journalctl --vacuum-time=%s"
+msgstr "将执行: journalctl --vacuum-time=%s"
+
+msgid "Confirm cleaning journal? Type yes to continue:"
+msgstr "确认清理 journal？输入 yes 继续:"
+
+msgid "✅ journal cleanup done"
+msgstr "✅ journal 清理完成"
+
+#, sh-printf-format
+msgid "📋 %s existing entries"
+msgstr "📋 %s 现有条目"
+
+msgid "(directory does not exist)"
+msgstr "（目录不存在）"
+
+msgid "Usage: ops-kit log rotate show <app>"
+msgstr "用法: ops-kit log rotate show <app>"
+
+#, sh-printf-format
+msgid "No %s entry (use list to see existing ones)"
+msgstr "无 %s 条目（list 查看现有）"
+
+msgid "Usage: ops-kit log rotate apply <app> (templates: nginx|redis|journal)"
+msgstr "用法: ops-kit log rotate apply <app>（内置模板: nginx|redis|journal）"
+
+#, sh-printf-format
+msgid "No built-in template: %s (available: nginx|redis|journal)"
+msgstr "无内置模板: %s（可选 nginx|redis|journal）"
+
+#, sh-printf-format
+msgid "Write %s/%s"
+msgstr "写入 %s/%s"
+
+msgid "Writing logrotate is a write op; needs a TTY (or --dry-run to preview)"
+msgstr "写入 logrotate 属写操作，仅允许在交互终端执行（或加 --dry-run 预览）"
+
+#, sh-printf-format
+msgid "Write %s/%s? Type yes to continue:"
+msgstr "写入 %s/%s？输入 yes 继续:"
+
+#, sh-printf-format
+msgid "✅ Written; verify: sudo logrotate -d %s/%s"
+msgstr "✅ 已写入；验证: sudo logrotate -d %s/%s"
+
+msgid "Usage: ops-kit log rotate list|show <app>|apply <app>"
+msgstr "用法: ops-kit log rotate list|show <app>|apply <app>"
+
+msgid "Usage: ops-kit log status|vacuum <arg>|rotate list|show|apply <app>"
+msgstr ""
+"用法: ops-kit log status|vacuum <200M|2weeks>|rotate list|show <app>|apply "
+"<app>"
+
+msgid "Usage: ops-kit svc failed|logs|status|start|stop|restart|enable|disable"
+msgstr ""
+"用法: ops-kit svc failed|logs <unit>|status <unit>|start|stop|restart|enable|"
+"disable <unit>"
+
+#, sh-printf-format
+msgid "Usage: ops-kit svc %s <unit>"
+msgstr "用法: ops-kit svc %s <unit>"
+
+msgid "No systemd in this environment; the svc subcommand is unavailable"
+msgstr "本环境无 systemd，svc 子命令不可用"
+
+msgid "🚨 systemd failed units"
+msgstr "🚨 systemd 失败单元"
+
+msgid "View full logs: ./install.sh ops-kit svc logs <unit> 100"
+msgstr "查看完整日志: ./install.sh ops-kit svc logs <unit> 100"
+
+#, sh-printf-format
+msgid "Confirm %s on %s? Type yes to continue:"
+msgstr "确认对 %s 执行 %s？输入 yes 继续:"
+
+#, sh-printf-format
+msgid "✅ systemctl %s %s done"
+msgstr "✅ systemctl %s %s 完成"
+
+msgid "🔐 SSH baseline self-check"
+msgstr "🔐 SSH 基线自查"
+
+msgid "Cannot read sshd config (no OpenSSH server or no permission), skipped"
+msgstr "读不到 sshd 配置（未安装 OpenSSH server 或无权限），跳过"
+
+msgid "Hardening pointer: ./install.sh sys-setup ssh"
+msgstr "加固指路: ./install.sh sys-setup ssh"
+
+msgid "🌐 Public listening ports"
+msgstr "🌐 公网监听端口"
+
+msgid "unavailable, skipped"
+msgstr "不可用，跳过"
+
+#, sh-printf-format
+msgid "process: %s"
+msgstr "进程: %s"
+
+msgid "No 0.0.0.0/[::] public listener"
+msgstr "无 0.0.0.0/[::] 公网监听"
+
+msgid "Closure pointer: ./install.sh ufw"
+msgstr "收口指路: ./install.sh ufw"
+
+msgid "📦 Pending updates"
+msgstr "📦 待更新"
+
+msgid "Unrecognized package manager, skipped"
+msgstr "未识别包管理器，跳过"
+
+#, sh-printf-format
+msgid "Pending updates %s; auto-install: ./install.sh sys-setup unattended"
+msgstr "待更新 %s 个；自动安装指路: ./install.sh sys-setup unattended"
+
+msgid "Usage: ops-kit audit ssh|ports|updates|all"
+msgstr "用法: ops-kit audit ssh|ports|updates|all"
+
+msgid "⏭️  ops-kit toolbox (Linux only, not applicable on this machine)"
+msgstr "⏭️  ops-kit 运维工具箱（仅 Linux，本机不适用）"
+
+msgid "✅ ops-kit toolbox ready (inspect checks / log / svc / audit baseline)"
+msgstr ""
+"✅ ops-kit 运维工具箱就绪（inspect 巡检 / log 日志 / svc 服务 / audit 基线）"
+
+msgid "🧰 ops-kit dependency check"
+msgstr "🧰 ops-kit 依赖检查"
+
+#, sh-printf-format
+msgid "✔ %s available"
+msgstr "✔ %s 可用"
+
+#, sh-printf-format
+msgid "✘ %s missing (related subcommands will degrade)"
+msgstr "✘ %s 缺失（相关子命令将降级）"
+
+msgid "🎉 All dependencies present. Try: ./install.sh ops-kit inspect"
+msgstr "🎉 依赖齐备。试试: ./install.sh ops-kit inspect"
+
+#, sh-printf-format
+msgid "Missing %s item(s) — no auto-install; other subcommands unaffected"
+msgstr "缺 %s 项——ops-kit 不自动安装系统组件，缺啥用啥，其余子命令不受影响"
+
+msgid "A read-only wrapper; it installs no components, no uninstall needed"
+msgstr "为只读命令封装，不安装任何组件，无需卸载"
+
+msgid "Ops toolbox (Linux only) — one-stop inspection and daily ops"
+msgstr "运维工具箱（仅 Linux）—— 一站式巡检与日常运维"
+
+msgid "Aggregate check: disk/SMART/units/journal/SSH/ports/updates/logins"
+msgstr "聚合巡检：磁盘/SMART/失败服务/journal/SSH 基线/公网端口/更新/登录失败"
+
+msgid "usage + /var/log top 5 consumers"
+msgstr "占用 + /var/log 大户 TOP5"
+
+msgid "Clean up journald (write op, interactive confirm, --dry-run)"
+msgstr "清理 journald（写操作，需交互确认，支持 --dry-run）"
+
+msgid "View/generate /etc/logrotate.d entries (templates: nginx|redis|journal)"
+msgstr "查看/生成 /etc/logrotate.d 条目（内置模板: nginx|redis|journal）"
+
+msgid "Failed unit summary (unit/status/journal tail lines)"
+msgstr "失败单元汇总（unit/状态/journal 尾行）"
+
+msgid "View unit logs (50 lines by default)"
+msgstr "查看单元日志（默认 50 行）"
+
+msgid "Pass through (stop/restart/disable require interactive confirmation)"
+msgstr "透传（stop/restart/disable 交互确认）"
+
+msgid "Security baseline self-check (read-only, with repair pointers)"
+msgstr "安全基线自查（只读，附修复指路）"
+
+msgid "Dependency readiness (machine readable with UXS_STATUS_MODE=machine)"
+msgstr "依赖齐备度（UXS_STATUS_MODE=machine 可读）"
+
+#, sh-printf-format
+msgid "Unknown ops-kit subcommand: %s"
+msgstr "未知子命令: %s"
+
+msgid "Info]"
+msgstr "信息]"
+
+msgid "Success]"
+msgstr "成功]"
+
+msgid "Error]"
+msgstr "错误]"
+
+msgid "Warning]"
+msgstr "警告]"
+
+msgid "Unknown distribution"
+msgstr "未知发行版"
+
+msgid "Other"
+msgstr "其他"
+
+#, sh-printf-format
+msgid "Operating system: %s"
+msgstr "操作系统: %s"
+
+#, sh-printf-format
+msgid "Version: %s"
+msgstr "版本: %s"
+
+msgid "Kernel"
+msgstr "内核"
+
+msgid "Architecture"
+msgstr "架构"
+
+msgid "🐚 Shell environment detection"
+msgstr "🐚 Shell 环境检测"
+
+#, sh-printf-format
+msgid "Current shell: %s"
+msgstr "当前Shell: %s"
+
+msgid "Cannot get the version"
+msgstr "无法获取版本"
+
+#, sh-printf-format
+msgid "Shell version: %s"
+msgstr "Shell版本: %s"
+
+msgid "Installed shells:"
+msgstr "已安装的Shell:"
+
+msgid "Version unknown"
+msgstr "版本未知"
+
+#, sh-printf-format
+msgid "❌ %s - not installed"
+msgstr "❌ %s - 未安装"
+
+msgid "🔧 Basic command detection"
+msgstr "🔧 基本命令检测"
+
+msgid "All the basic commands are available"
+msgstr "所有基本命令都可用"
+
+#, sh-printf-format
+msgid "The following commands are missing: %s"
+msgstr "缺少以下命令: %s"
+
+msgid "🌐 Network tool detection"
+msgstr "🌐 网络工具检测"
+
+msgid "✅ lsof (macOS network port detection)"
+msgstr "✅ lsof (macOS网络端口检测)"
+
+msgid "❌ lsof - required on macOS"
+msgstr "❌ lsof - macOS系统必需"
+
+msgid "✅ ss (modern network statistics tool)"
+msgstr "✅ ss (现代网络统计工具)"
+
+msgid "❌ ss - recommended"
+msgstr "❌ ss - 推荐安装"
+
+msgid "✅ netstat (traditional network statistics tool)"
+msgstr "✅ netstat (传统网络统计工具)"
+
+msgid "❌ netstat - fallback tool"
+msgstr "❌ netstat - 备用工具"
+
+msgid "✅ lsof (files and network connections)"
+msgstr "✅ lsof (文件和网络连接)"
+
+msgid "❌ lsof - optional tool"
+msgstr "❌ lsof - 可选工具"
+
+msgid "At least one of ss, netstat or lsof must be installed"
+msgstr "至少需要安装 ss、netstat 或 lsof 中的一个"
+
+msgid "✅ netstat (Windows network tool)"
+msgstr "✅ netstat (Windows网络工具)"
+
+msgid "❌ netstat - required on Windows"
+msgstr "❌ netstat - Windows系统必需"
+
+msgid "🔒 Permission detection"
+msgstr "🔒 权限检测"
+
+msgid "✅ The process information can be read"
+msgstr "✅ 可以读取进程信息"
+
+msgid "❌ The process information cannot be read"
+msgstr "❌ 无法读取进程信息"
+
+msgid "✅ The process signals can be sent"
+msgstr "✅ 可以发送进程信号"
+
+msgid "❌ The process signals cannot be sent"
+msgstr "❌ 无法发送进程信号"
+
+msgid "✅ The user directory can be written"
+msgstr "✅ 可以写入用户目录"
+
+msgid "❌ The user directory cannot be written"
+msgstr "❌ 无法写入用户目录"
+
+msgid "✅ The ~/.tools directory is writable"
+msgstr "✅ ~/.tools 目录可写"
+
+msgid "⚠️  The ~/.tools directory exists but is not writable"
+msgstr "⚠️  ~/.tools 目录存在但不可写"
+
+msgid ""
+"ℹ️  The ~/.tools directory does not exist (it will be created at install time)"
+msgstr "ℹ️  ~/.tools 目录不存在（将在安装时创建）"
+
+msgid "🌍 Environment variable detection"
+msgstr "🌍 环境变量检测"
+
+msgid "✅ ~/.tools/bin is already in PATH"
+msgstr "✅ ~/.tools/bin 已在 PATH 中"
+
+msgid "ℹ️  ~/.tools/bin is not in PATH (it will be added at install time)"
+msgstr "ℹ️  ~/.tools/bin 不在 PATH 中（将在安装时添加）"
+
+msgid "✅ ~/.local/bin is already in PATH"
+msgstr "✅ ~/.local/bin 已在 PATH 中"
+
+msgid "ℹ️  ~/.local/bin is not in PATH"
+msgstr "ℹ️  ~/.local/bin 不在 PATH 中"
+
+msgid "✅ /usr/local/bin is already in PATH"
+msgstr "✅ /usr/local/bin 已在 PATH 中"
+
+msgid "⚠️  /usr/local/bin is not in PATH"
+msgstr "⚠️  /usr/local/bin 不在 PATH 中"
+
+msgid "⚡ Performance test"
+msgstr "⚡ 性能测试"
+
+msgid "Testing the process list performance..."
+msgstr "测试进程列表性能..."
+
+msgid "Cannot compute"
+msgstr "无法计算"
+
+#, sh-printf-format
+msgid "✅ ps aux execution time: %ss"
+msgstr "✅ ps aux 执行时间: %ss"
+
+msgid "ℹ️  The performance of the ps command cannot be measured"
+msgstr "ℹ️  无法测量 ps 命令性能"
+
+msgid "Testing the port scan performance..."
+msgstr "测试端口扫描性能..."
+
+#, sh-printf-format
+msgid "✅ lsof -i execution time: %ss"
+msgstr "✅ lsof -i 执行时间: %ss"
+
+#, sh-printf-format
+msgid "✅ ss -tulnp execution time: %ss"
+msgstr "✅ ss -tulnp 执行时间: %ss"
+
+msgid "💡 Installation suggestions"
+msgstr "💡 安装建议"
+
+msgid "System suggestions:"
+msgstr "系统建议:"
+
+msgid "• Make sure the Xcode Command Line Tools are installed"
+msgstr "• 确保已安装 Xcode Command Line Tools"
+
+msgid "• Use Homebrew to install the extra tools (optional)"
+msgstr "• 使用 Homebrew 安装额外工具(可选)"
+
+msgid "• iTerm2 or Terminal.app is recommended"
+msgstr "• 建议使用 iTerm2 或 Terminal.app"
+
+msgid "• A modern terminal emulator is recommended"
+msgstr "• 建议使用现代终端模拟器"
+
+msgid "• Use WSL2 or Git Bash"
+msgstr "• 使用 WSL2 或 Git Bash"
+
+msgid "• Install Windows Terminal"
+msgstr "• 安装 Windows Terminal"
+
+msgid "• Consider using PowerShell Core"
+msgstr "• 考虑使用 PowerShell Core"
+
+msgid "Configuration suggestions:"
+msgstr "配置建议:"
+
+msgid "• Use Zsh + Oh My Zsh (recommended)"
+msgstr "• 使用 Zsh + Oh My Zsh (推荐)"
+
+msgid "• Or use the Fish shell"
+msgstr "• 或使用 Fish shell"
+
+msgid "• Configure a suitable terminal theme"
+msgstr "• 配置合适的终端主题"
+
+msgid "Configuration after the installation:"
+msgstr "安装后配置:"
+
+msgid "• Reload the shell configuration or restart the terminal"
+msgstr "• 重新加载 shell 配置或重启终端"
+
+msgid "• Test whether the pm command works"
+msgstr "• 测试 'pm' 命令是否可用"
+
+msgid "• See the documentation: ~/.tools/docs/process_manager_README.md"
+msgstr "• 查看文档: ~/.tools/docs/process_manager_README.md"
+
+msgid "🔍 Process manager dependency detection"
+msgstr "🔍 进程管理工具依赖检测"
+
+msgid "💻 System information"
+msgstr "💻 系统信息"
+
+msgid "📋 Detection results"
+msgstr "📋 检测结果"
+
+msgid "🎉 All the dependency checks passed!"
+msgstr "🎉 所有依赖检测通过！"
+
+msgid "Your system is compatible with the process manager."
+msgstr "您的系统兼容进程管理工具。"
+
+msgid "Next step: run the installation script"
+msgstr "下一步: 运行安装脚本"
+
+#, sh-printf-format
+msgid "❌ %s problem(s) found"
+msgstr "❌ 发现 %s 个问题"
+
+msgid "Please fix the problems above and try installing again."
+msgstr "请解决上述问题后再尝试安装。"
+
+msgid "Creating the project shortcut scripts..."
+msgstr "正在创建项目快捷访问脚本..."
+
+msgid "The shortcut scripts have been created:"
+msgstr "快捷脚本创建完成："
+
+msgid "Quick access to the process manager"
+msgstr "快速访问进程管理工具"
+
+msgid "Quick access to the main install menu"
+msgstr "快速访问主安装菜单"
+
+msgid "How to use:"
+msgstr "使用方法："
+
+msgid "Search the node processes directly"
+msgstr "直接搜索node进程"
+
+msgid "View the help"
+msgstr "查看帮助"
+
+msgid "View the configuration"
+msgstr "查看配置"
+
+msgid "Open the main install menu"
+msgstr "打开主安装菜单"
+
+#, sh-printf-format
+msgid "Unrecognized shell: %s, using the default configuration"
+msgstr "未识别的 Shell: %s，使用默认配置"
+
+#, sh-printf-format
+msgid "Detected shell: %s, configuration file: %s"
+msgstr "检测到 Shell: %s，配置文件: %s"
+
+msgid "Checking the ~/.tools directory..."
+msgstr "检查 ~/.tools 目录..."
+
+#, sh-printf-format
+msgid "Created %s"
+msgstr "已创建 %s"
+
+msgid "Installing the process manager scripts..."
+msgstr "安装进程管理工具脚本..."
+
+msgid "The process_manager.sh file was not found"
+msgstr "未找到 process_manager.sh 文件"
+
+#, sh-printf-format
+msgid "Installed %s to %s"
+msgstr "已安装 %s 到 %s"
+
+#, sh-printf-format
+msgid "Installed the pm wrapper script to %s"
+msgstr "已安装 pm 包装脚本到 %s"
+
+#, sh-printf-format
+msgid "Installed the configuration file to %s"
+msgstr "已安装配置文件到 %s"
+
+msgid "Configuring the environment variables..."
+msgstr "配置环境变量..."
+
+msgid "already contains ~/.tools/bin"
+msgstr "中已包含 ~/.tools/bin"
+
+msgid "Adding ~/.tools/bin to PATH (added by unix_script process_manager)"
+msgstr "添加 ~/.tools/bin 到 PATH（由 unix_script process_manager 添加）"
+
+msgid "Updated the Fish configuration file"
+msgstr "已更新 Fish 配置文件"
+
+#, sh-printf-format
+msgid "Updated the %s configuration file"
+msgstr "已更新 %s 配置文件"
+
+msgid "Verifying the process manager installation..."
+msgstr "验证安装..."
+
+msgid "The main script file was installed successfully"
+msgstr "主脚本文件安装成功"
+
+msgid "The main script file failed to install"
+msgstr "主脚本文件安装失败"
+
+msgid "The wrapper script was installed successfully"
+msgstr "包装脚本安装成功"
+
+msgid "The wrapper script is not installed (optional)"
+msgstr "包装脚本未安装（可选）"
+
+msgid "🎉 Installation complete!"
+msgstr "🎉 安装完成！"
+
+#, sh-printf-format
+msgid "The process manager has been installed to: %s/%s"
+msgstr "进程管理工具已安装到: %s/%s"
+
+msgid "Reload the shell configuration"
+msgstr "重新加载 Shell 配置"
+
+msgid "search term>               # search the processes"
+msgstr "搜索词>               # 搜索进程"
+
+msgid "Interactive mode"
+msgstr "交互式模式"
+
+msgid "search term>  # use the main script directly"
+msgstr "搜索词>  # 直接使用主脚本"
+
+msgid ""
+"Please reload the shell configuration or restart the terminal for the "
+"environment variables to take effect"
+msgstr "请重新加载 Shell 配置或重启终端以使环境变量生效"
+
+msgid "The installation verification failed"
+msgstr "安装验证失败"
+
+msgid "🗑️  Uninstalling the process manager"
+msgstr "🗑️  卸载进程管理工具"
+
+msgid "The following will be removed:"
+msgstr "将删除以下内容:"
+
+msgid "• The documentation files"
+msgstr "• 文档文件"
+
+msgid "• The related configuration in the shell configuration files"
+msgstr "• Shell 配置文件中的相关配置"
+
+msgid "Confirm the uninstall?"
+msgstr "确认卸载？"
+
+msgid "The uninstall has been cancelled"
+msgstr "已取消卸载"
+
+msgid "Uninstall complete"
+msgstr "卸载完成"
+
+#, sh-printf-format
+msgid "The configuration file has been backed up to: %s.backup.*"
+msgstr "配置文件已备份为: %s.backup.*"
+
+msgid ""
+"Please restart the terminal or reload the shell configuration for the "
+"changes to take effect"
+msgstr "请重启终端或重新加载 Shell 配置以使更改生效"
+
+msgid "✅ Installed and configured"
+msgstr "✅ 已安装并配置"
+
+msgid "⚠️  Installed but PATH is not configured"
+msgstr "⚠️  已安装但 PATH 未配置"
+
+msgid "Install the process manager into ~/.tools (default action)"
+msgstr "安装进程管理工具到 ~/.tools（默认动作）"
+
+msgid "Uninstall the process manager"
+msgstr "卸载进程管理工具"
+
+msgid "Show this help information"
+msgstr "显示此帮助信息"
+
+msgid "or netstat"
+msgstr "或 netstat"
+
+#, sh-printf-format
+msgid "The following dependency commands are missing: %s"
+msgstr "缺少以下依赖命令: %s"
+
+msgid "Please install the missing dependencies:"
+msgstr "请安装缺少的依赖:"
+
+msgid "The required tools are usually pre-installed"
+msgstr "通常已预装所需工具"
+
+msgid "Process Manager"
+msgstr "进程管理工具 (Process Manager)"
+
+msgid "Usage:"
+msgstr "用法:"
+
+msgid "search term]           # search and manage processes"
+msgstr "搜索词]           # 搜索并管理进程"
+
+msgid "Show the version information"
+msgstr "显示版本信息"
+
+msgid "Run the installer"
+msgstr "运行安装程序"
+
+msgid "Show the configuration information"
+msgstr "显示配置信息"
+
+msgid "Search the Node.js processes"
+msgstr "搜索 Node.js 进程"
+
+msgid "Search the processes using port 3000"
+msgstr "搜索使用端口 3000 的进程"
+
+msgid "Search the Chrome browser"
+msgstr "搜索 Chrome 浏览器"
+
+msgid "Interactive mode:"
+msgstr "交互式模式:"
+
+msgid "Start the interactive interface without arguments"
+msgstr "不带参数启动交互式界面"
+
+msgid "Process Manager v1.0.0"
+msgstr "进程管理工具 v1.0.0"
+
+msgid "Supported platforms: macOS, Linux"
+msgstr "支持平台: macOS, Linux"
+
+msgid "Supported shells: Bash, Zsh, Fish"
+msgstr "支持: Bash, Zsh, Fish"
+
+msgid "Configuration information:"
+msgstr "配置信息:"
+
+msgid "Operating system"
+msgstr "操作系统"
+
+#, sh-printf-format
+msgid "User: %s"
+msgstr "用户: %s"
+
+#, sh-printf-format
+msgid "Home directory: %s"
+msgstr "主目录: %s"
+
+#, sh-printf-format
+msgid "Process manager location: %s"
+msgstr "进程管理器位置: %s"
+
+msgid "Process manager location: not found"
+msgstr "进程管理器位置: 未找到"
+
+msgid "Tool directory structure:"
+msgstr "工具目录结构:"
+
+msgid "✅ The ~/.tools directory has been created"
+msgstr "✅ ~/.tools 目录已创建"
+
+msgid "✅ The ~/.tools/bin directory has been created"
+msgstr "✅ ~/.tools/bin 目录已创建"
+
+msgid "✅ process_manager has been installed"
+msgstr "✅ process_manager 已安装"
+
+msgid "❌ process_manager is not installed"
+msgstr "❌ process_manager 未安装"
+
+msgid "❌ The ~/.tools/bin directory does not exist"
+msgstr "❌ ~/.tools/bin 目录不存在"
+
+msgid "❌ The ~/.tools directory does not exist"
+msgstr "❌ ~/.tools 目录不存在"
+
+msgid "Environment variables:"
+msgstr "环境变量:"
+
+msgid "✅ PATH contains ~/.tools/bin"
+msgstr "✅ PATH 包含 ~/.tools/bin"
+
+msgid "❌ PATH does not contain ~/.tools/bin"
+msgstr "❌ PATH 不包含 ~/.tools/bin"
+
+#, sh-printf-format
+msgid "Run the installer: %s"
+msgstr "运行安装程序: %s"
+
+msgid "The installer install_process_manager.sh was not found"
+msgstr "未找到安装程序 install_process_manager.sh"
+
+msgid "Make sure this command is run in the project directory"
+msgstr "请确保在项目目录中运行此命令"
+
+msgid "The process manager was not found"
+msgstr "未找到进程管理工具"
+
+msgid "Possible solutions:"
+msgstr "可能的解决方案:"
+
+#, sh-printf-format
+msgid "Run the installer: %s --install"
+msgstr "运行安装程序: %s --install"
+
+msgid "Manual installation: ./install_process_manager.sh"
+msgstr "手动安装: ./install_process_manager.sh"
+
+msgid "Make sure you run it in the project directory"
+msgstr "确保在项目目录中运行"
+
+msgid "Unsupported operating system"
+msgstr "不支持的操作系统"
+
+#, sh-printf-format
+msgid "Searching the processes that contain %s..."
+msgstr "搜索包含 '%s' 的进程..."
+
+msgid "Search by process name ==="
+msgstr "按进程名搜索 ==="
+
+msgid "Search by port ==="
+msgstr "按端口搜索 ==="
+
+#, sh-printf-format
+msgid "The port %s is not in use"
+msgstr "端口 %s 未被占用"
+
+msgid "The search term is not a number, skipping the port search"
+msgstr "搜索词不是数字，跳过端口搜索"
+
+msgid "The ss or netstat command was not found"
+msgstr "未找到 ss 或 netstat 命令"
+
+msgid "No matching process was found"
+msgstr "未找到匹配的进程"
+
+#, sh-printf-format
+msgid "The process %s does not exist or cannot be accessed"
+msgstr "进程 %s 不存在或无权限访问"
+
+#, sh-printf-format
+msgid "Process details (PID: %s)"
+msgstr "进程详细信息 (PID: %s)"
+
+msgid "Listening ports:"
+msgstr "监听的端口:"
+
+msgid "No listening ports"
+msgstr "无监听端口"
+
+msgid "Number of open files:"
+msgstr "打开的文件数:"
+
+msgid "file descriptors"
+msgstr "个文件描述符"
+
+msgid "Process state:"
+msgstr "进程状态:"
+
+msgid "Cannot read the state"
+msgstr "无法读取状态"
+
+#, sh-printf-format
+msgid "The process %s does not exist or has already exited"
+msgstr "进程 %s 不存在或已退出"
+
+#, sh-printf-format
+msgid "Force killing the process %s (SIGKILL)"
+msgstr "强制杀死进程 %s (SIGKILL)"
+
+#, sh-printf-format
+msgid "The process %s has been force killed"
+msgstr "进程 %s 已被强制杀死"
+
+#, sh-printf-format
+msgid ""
+"Cannot kill the process %s (insufficient permissions or the process is "
+"protected)"
+msgstr "无法杀死进程 %s (权限不足或进程保护)"
+
+#, sh-printf-format
+msgid "Trying to terminate the process %s gracefully (SIGTERM)"
+msgstr "尝试优雅地终止进程 %s (SIGTERM)"
+
+#, sh-printf-format
+msgid "The process %s did not respond to SIGTERM within 10 seconds"
+msgstr "进程 %s 在 10 秒内未响应 SIGTERM"
+
+msgid "Force kill the process? [y/N]:"
+msgstr "是否强制杀死进程? [y/N]:"
+
+msgid "The force kill operation has been cancelled"
+msgstr "已取消强制杀死操作"
+
+#, sh-printf-format
+msgid "The process %s has exited gracefully"
+msgstr "进程 %s 已优雅退出"
+
+#, sh-printf-format
+msgid "Cannot send SIGTERM to the process %s (insufficient permissions)"
+msgstr "无法发送 SIGTERM 到进程 %s (权限不足)"
+
+#, sh-printf-format
+msgid "Found a single matching process, PID: %s"
+msgstr "找到唯一匹配进程 PID: %s"
+
+msgid "Do you want to terminate this process? [y/N]:"
+msgstr "确认要终止这个进程吗? [y/N]:"
+
+msgid "The operation has been cancelled"
+msgstr "已取消操作"
+
+#, sh-printf-format
+msgid "Found %s matching processes:"
+msgstr "找到 %s 个匹配的进程:"
+
+msgid "Show the details of all the processes"
+msgstr "显示所有进程的详细信息"
+
+msgid "Cancel the operation"
+msgstr "取消操作"
+
+msgid "Please choose the process to operate on"
+msgstr "请选择要操作的进程"
+
+#, sh-printf-format
+msgid "Do you want to terminate the process %s? [y/N]:"
+msgstr "确认要终止进程 %s 吗? [y/N]:"
+
+#, sh-printf-format
+msgid "Invalid choice, please enter a number between 1 and %s"
+msgstr "无效选择，请输入 1 到 %s 之间的数字"
+
+msgid "🔧 Smart process manager"
+msgstr "🔧 智能进程管理工具"
+
+msgid "Supported search methods:"
+msgstr "支持的搜索方式："
+
+msgid "• Process name (fuzzy match)"
+msgstr "• 进程名称 (模糊匹配)"
+
+msgid "• Port number (exact match)"
+msgstr "• 端口号 (精确匹配)"
+
+msgid "• Process ID (exact match)"
+msgstr "• 进程ID (精确匹配)"
+
+#, sh-printf-format
+msgid "Search mode: %s"
+msgstr "搜索模式: %s"
+
+msgid ""
+"Please enter the search term (process name / port number / PID, or q to "
+"quit):"
+msgstr "请输入搜索词 (进程名/端口号/PID，或输入 'q' 退出):"
+
+msgid "Goodbye!"
+msgstr "再见！"
+
+msgid "The search term must not be empty"
+msgstr "搜索词不能为空"
+
+msgid "Press Enter to continue..."
+msgstr "按回车键继续..."
+
+msgid "Press Enter to return to the main menu..."
+msgstr "按回车键返回主菜单..."
+
+msgid "Error: the process_manager command was not found"
+msgstr "错误: 未找到 process_manager 命令"
+
+msgid "Make sure it is installed correctly or run it in a project directory"
+msgstr "请确保已正确安装或在项目目录中运行"
+
+#, sh-printf-format
+msgid "Search the port: %s (%s)"
+msgstr "搜索端口: %s (%s)"
+
+#, sh-printf-format
+msgid "Search the process: %s (%s)"
+msgstr "搜索进程: %s (%s)"
+
+msgid "Examples of using the process manager:"
+msgstr "进程管理工具使用示例："
+
+msgid "Direct mode (command line arguments):"
+msgstr "直接模式（命令行参数）："
+
+msgid "Search the processes that contain node"
+msgstr "搜索包含 'node' 的进程"
+
+msgid "Search the process with PID 1234"
+msgstr "搜索 PID 为 1234 的进程"
+
+#, sh-printf-format
+msgid "2. Interactive mode:"
+msgstr "2. 交互式模式："
+
+msgid "Start the interactive interface"
+msgstr "启动交互式界面"
+
+msgid "Quick search with the configuration file:"
+msgstr "使用配置文件快捷搜索："
+
+msgid "Search the processes using an HTTP port"
+msgstr "搜索使用 HTTP 端口的进程"
+
+msgid "Common shortcuts:"
+msgstr "常用快捷别名："
 
 #, sh-printf-format
 msgid "Restic detected (%s)"
@@ -3992,6 +6352,563 @@ msgstr "安装或更新 Restic（默认动作）"
 
 msgid "Uninstall Restic"
 msgstr "卸载 Restic"
+
+#, sh-printf-format
+msgid "rm: detected a delete on a critical path: %s"
+msgstr "rm: 检测到删除了关键路径: %s"
+
+msgid "Really delete (this cannot be undone)? [y/N]:"
+msgstr "确定要真的删除吗？(不可撤销) [y/N]:"
+
+msgid "Cancelled."
+msgstr "已取消。"
+
+msgid "trash configuration has been added to"
+msgstr "已为"
+
+msgid "by the safe-rm installer"
+msgstr "添加回收站配置"
+
+msgid "trash configuration has been removed from"
+msgstr "已从"
+
+msgid "by the safe-rm uninstaller"
+msgstr "移除回收站配置"
+
+msgid "🗑️  Installing the safe delete (trash) feature"
+msgstr "🗑️  安装安全删除（回收站）功能"
+
+#, sh-printf-format
+msgid "Trash function library installed to %s"
+msgstr "回收站函数库已安装到 %s"
+
+msgid "🎉 Installation complete! Reload your shell to take effect:"
+msgstr "🎉 安装完成！请重新加载 shell 使其生效："
+
+msgid "Available commands:"
+msgstr "可用命令："
+
+msgid "file>            # Safe delete (move to trash)"
+msgstr "文件>            # 安全删除（移到回收站）"
+
+msgid "View the trash"
+msgstr "查看回收站"
+
+msgid "index>      # Restore (the index comes from tls)"
+msgstr "序号>      # 恢复（序号来自 tls）"
+
+msgid "Empty the trash"
+msgstr "清空回收站"
+
+msgid "Show the trash disk usage"
+msgstr "查看回收站占用"
+
+msgid ""
+"stays unchanged (so scripts that rely on rm really deleting keep working)."
+msgstr "保持原样（不破坏脚本中依赖 rm 真删除的场景）。"
+
+msgid ""
+"Enable the rm dangerous-path protection (ask again before rm -rf hits a "
+"dangerous path)?"
+msgstr "是否启用 rm 危险路径保护（对 rm -rf 危险路径二次确认）？"
+
+#, sh-printf-format
+msgid "Failed to write the rm dangerous-path protection: %s"
+msgstr "写入 rm 危险路径保护失败：%s"
+
+msgid "rm dangerous-path protection enabled (reload the shell to take effect)"
+msgstr "已启用 rm 危险路径保护（重新加载 shell 生效）"
+
+msgid "To turn it off run: safe-rm off"
+msgstr "关闭请运行：safe-rm off"
+
+msgid "rm dangerous-path protection disabled"
+msgstr "已禁用 rm 危险路径保护"
+
+msgid "not enabled)"
+msgstr "未启用)"
+
+msgid "rm protection enabled)"
+msgstr "已启用 rm 保护)"
+
+#, sh-printf-format
+msgid "Trash disk usage: %s"
+msgstr "回收站占用：%s"
+
+msgid "safe-rm is not installed"
+msgstr "未安装 safe-rm"
+
+msgid "Confirm uninstalling safe-rm?"
+msgstr "确认卸载 safe-rm？"
+
+#, sh-printf-format
+msgid "Current trash disk usage: %s (path %s)"
+msgstr "回收站当前占用：%s（路径 %s）"
+
+msgid "Empty the trash data as well (it cannot be recovered)?"
+msgstr "是否同时清空回收站数据（不可恢复）？"
+
+msgid "Trash emptied"
+msgstr "回收站已清空"
+
+#, sh-printf-format
+msgid "Trash data kept (delete %s manually)"
+msgstr "保留回收站数据（可手动删除 %s）"
+
+msgid "The trash is already empty, nothing to clean up"
+msgstr "回收站为空，无需清理"
+
+msgid "Install the trash functions and configure the shell rc (default action)"
+msgstr "安装回收站函数并配置 shell rc（默认动作）"
+
+msgid ""
+"Enable the rm dangerous-path protection (ask again before rm -rf hits a "
+"critical path)"
+msgstr "启用 rm 危险路径保护（对 rm -rf 关键路径二次确认）"
+
+msgid "Disable the rm dangerous-path protection"
+msgstr "禁用 rm 危险路径保护"
+
+msgid "Show the install status and the trash disk usage"
+msgstr "查看安装状态与回收站占用"
+
+msgid "Uninstall (the deleted trash data is kept)"
+msgstr "卸载（保留已删除的回收站数据）"
+
+msgid ""
+"Usage: t <file...>   Safe delete (move to trash; -r/-f accepted for rm "
+"compatibility)"
+msgstr "用法: t <文件...>   安全删除（移到回收站，可用 -r/-f 兼容 rm 习惯）"
+
+#, sh-printf-format
+msgid "cannot delete %s: file does not exist"
+msgstr "无法删除 '%s'：文件不存在"
+
+#, sh-printf-format
+msgid "failed to delete %s"
+msgstr "删除 '%s' 失败"
+
+#, sh-printf-format
+msgid "Trash: %s"
+msgstr "回收站：%s"
+
+msgid "unknown)"
+msgstr "未知)"
+
+msgid "(the trash is empty)"
+msgstr "（回收站为空）"
+
+#, sh-printf-format
+msgid "%s item(s) in total. To restore, run: trash-restore <index>"
+msgstr "共 %s 项。恢复请用：trash-restore <序号>"
+
+msgid "Usage: trash-restore <index>   (the index comes from tls)"
+msgstr "用法: trash-restore <序号>   （序号来自 tls）"
+
+#, sh-printf-format
+msgid "invalid index %s"
+msgstr "序号 %s 无效"
+
+msgid "original path information not found, cannot restore"
+msgstr "找不到原始路径信息，无法恢复"
+
+#, sh-printf-format
+msgid "Note: a file already exists at the original path, restoring to: %s"
+msgstr "注意：原路径已存在文件，恢复到：%s"
+
+#, sh-printf-format
+msgid "Restored: %s"
+msgstr "已恢复：%s"
+
+msgid "restore failed"
+msgstr "恢复失败"
+
+msgid "The trash is already empty."
+msgstr "回收站已是空的。"
+
+#, sh-printf-format
+msgid "%s item(s) in the trash. To empty it, run: trash-empty --force"
+msgstr "回收站有 %s 项。确认清空请用：trash-empty --force"
+
+msgid "The trash has been emptied."
+msgstr "回收站已清空。"
+
+msgid "Trash disk usage:"
+msgstr "回收站占用："
+
+msgid ""
+"Invalid time format. Please enter the HH:MM format (for example, 23:00)."
+msgstr "无效的时间格式。请输入 HH:MM 格式 (例如, 23:00)。"
+
+msgid "Please enter the shutdown time for today (HH:MM):"
+msgstr "请输入今天的关机时间 (HH:MM):"
+
+msgid "The given time has already passed. Please enter a time in the future."
+msgstr "指定时间已过。请输入未来的时间。"
+
+#, sh-printf-format
+msgid "The system will shut down in %s minutes."
+msgstr "计划在 %s 分钟后关闭系统。"
+
+msgid "The system will ask you for the password to run the shutdown command."
+msgstr "系统将提示您输入密码以执行 'shutdown' 命令。"
+
+#, sh-printf-format
+msgid "The system is scheduled to shut down in %s minutes."
+msgstr "系统已计划在 %s 分钟后关机。"
+
+msgid ""
+"To cancel it, choose the cancel temporary shutdown option in the main menu."
+msgstr "要取消，请选择主菜单中的 '取消临时关机' 选项。"
+
+msgid "Failed to schedule the temporary shutdown. Please check the error."
+msgstr "计划临时关机失败。请检查错误。"
+
+#, sh-printf-format
+msgid "The system will shut down today at %s."
+msgstr "计划在今天 %s 关闭系统。"
+
+#, sh-printf-format
+msgid "The system is scheduled to shut down today at %s."
+msgstr "系统已计划在今天 %s 关机。"
+
+msgid "Trying to cancel the scheduled temporary shutdown."
+msgstr "正在尝试取消已计划的临时关机。"
+
+msgid "The system will ask you for the password."
+msgstr "系统将提示您输入密码。"
+
+msgid "The scheduled temporary shutdown has been cancelled."
+msgstr "已计划的临时关机已被取消。"
+
+msgid "No temporary shutdown to cancel was found."
+msgstr "未找到要取消的临时关机。"
+
+msgid "An error occurred while cancelling the temporary shutdown."
+msgstr "尝试取消临时关机时发生错误。"
+
+#, sh-printf-format
+msgid "Details: %s"
+msgstr "详细信息: %s"
+
+msgid "Shutdown status check ---"
+msgstr "关机状态检查 ---"
+
+msgid "A scheduled temporary shutdown was detected."
+msgstr "检测到已计划的临时关机。"
+
+msgid "A scheduled temporary shutdown was detected (systemd)."
+msgstr "检测到已计划的临时关机 (systemd)。"
+
+msgid "No scheduled temporary shutdown was found."
+msgstr "未发现已计划的临时关机。"
+
+msgid "A daily scheduled shutdown task was detected (launchd)."
+msgstr "检测到每日定时关机任务 (launchd)。"
+
+msgid "A daily scheduled shutdown task was detected (cron)."
+msgstr "检测到每日定时关机任务 (cron)。"
+
+msgid "No daily scheduled shutdown task was found."
+msgstr "未发现每日定时关机任务。"
+
+msgid "No shutdown task is currently set."
+msgstr "当前没有设置任何关机任务。"
+
+msgid "Please enter the daily shutdown time (HH:MM):"
+msgstr "请输入每日的关机时间 (HH:MM):"
+
+msgid "Cancelling the daily scheduled shutdown task..."
+msgstr "正在取消每日定时关机任务..."
+
+#, sh-printf-format
+msgid "Setting up the daily %s scheduled shutdown task for macOS."
+msgstr "正在为 macOS 设置每日 %s 的定时关机任务。"
+
+msgid ""
+"This creates a system-wide launchd task. Administrator privileges are "
+"required."
+msgstr "这将创建一个系统级的 launchd 任务。需要管理员权限。"
+
+#, sh-printf-format
+msgid ""
+"The daily scheduled shutdown task has been set successfully for every day at "
+"%s."
+msgstr "每日定时关机任务已成功设置在每天 %s。"
+
+msgid "Failed to load the launchd task. Please check the system log."
+msgstr "加载 launchd 任务失败。请检查系统日志。"
+
+msgid ""
+"The configuration file of the daily scheduled shutdown task was not found "
+"(launchd)."
+msgstr "未找到每日定时关机任务的配置文件 (launchd)。"
+
+msgid ""
+"This removes the system-wide launchd task. Administrator privileges are "
+"required."
+msgstr "这将移除系统级的 launchd 任务。需要管理员权限。"
+
+msgid "The daily scheduled shutdown task has been cancelled successfully."
+msgstr "每日定时关机任务已成功取消。"
+
+#, sh-printf-format
+msgid "Setting up the daily %s scheduled shutdown task for Linux."
+msgstr "正在为 Linux 设置每日 %s 的定时关机任务。"
+
+msgid "This adds an entry to your crontab."
+msgstr "这将在您的 crontab 中添加一个条目。"
+
+msgid ""
+"Failed to set up the cron task. Please check that the cron service is "
+"running and that you have the required permissions."
+msgstr "设置 cron 任务失败。请检查 cron 服务是否运行及您的权限。"
+
+msgid "The daily scheduled shutdown task was not found (cron)."
+msgstr "未找到每日定时关机任务 (cron)。"
+
+msgid ""
+"This removes the task from your crontab. Administrator privileges are "
+"required."
+msgstr "这将从您的 crontab 中移除任务。需要管理员权限。"
+
+msgid "✅ The daily scheduled shutdown is configured"
+msgstr "✅ 已配置每日定时关机"
+
+msgid ""
+"The shutdown time must be configured interactively. Please run the "
+"interactive menu:"
+msgstr "需交互式配置关机时间。请运行交互菜单："
+
+msgid "(Main menu → System tools → shutdown_timer)"
+msgstr "（主菜单 → 系统工具 → shutdown_timer）"
+
+#, sh-printf-format
+msgid "Usage: %s [install|uninstall|status|help]"
+msgstr "用法: %s [install|uninstall|status|help]"
+
+msgid "Go to the interactive menu to configure the shutdown time"
+msgstr "引导至交互菜单配置关机时间"
+
+msgid "Cancel the daily scheduled shutdown (≈ cancel_daily_shutdown)"
+msgstr "取消每日定时关机（≈ cancel_daily_shutdown）"
+
+msgid "View the current shutdown configuration"
+msgstr "查看当前关机配置状态"
+
+msgid "Cancel the daily shutdown (legacy interface)"
+msgstr "取消每日关机（兼容旧接口）"
+
+msgid "no arguments)                      enter the interactive menu"
+msgstr "无参数)                      进入交互式菜单"
+
+msgid "Automatic shutdown management script"
+msgstr "自动关机管理脚本"
+
+msgid "Set a temporary shutdown (today)"
+msgstr "设置临时关机 (今天)"
+
+msgid "Cancel the temporary shutdown"
+msgstr "取消临时关机"
+
+msgid "Set the daily scheduled shutdown"
+msgstr "设置每日定时关机"
+
+msgid "Cancel the daily scheduled shutdown"
+msgstr "取消每日定时关机"
+
+msgid "Check the shutdown status"
+msgstr "检查关机状态"
+
+msgid "Exit"
+msgstr "退出"
+
+msgid "Please choose an option [1-6]:"
+msgstr "请输入选项 [1-6]:"
+
+msgid "Invalid option, please enter a number between 1 and 6."
+msgstr "无效选项，请输入 1 到 6 之间的数字。"
+
+msgid "🔥 CPU usage TOP10"
+msgstr "🔥 CPU 占用 TOP10"
+
+msgid "💾 Memory usage TOP10"
+msgstr "💾 内存占用 TOP10"
+
+#, sh-printf-format
+msgid "Usage: %s port <port>, for example: %s port 8080"
+msgstr "用法: %s port <端口号>，例如: %s port 8080"
+
+#, sh-printf-format
+msgid "🔌 Processes using port %s"
+msgstr "🔌 占用端口 %s 的进程"
+
+#, sh-printf-format
+msgid "No process is using port %s, or sudo is required"
+msgstr "无进程占用端口 %s 或需要 sudo"
+
+msgid "No ss/netstat command found"
+msgstr "无 ss/netstat 命令"
+
+msgid "🌐 All listening ports"
+msgstr "🌐 所有监听端口"
+
+msgid "💽 Disk space (df -h)"
+msgstr "💽 磁盘空间（df -h）"
+
+msgid "📦 Directory usage TOP10 (current directory)"
+msgstr "📦 目录占用 TOP10（当前目录）"
+
+msgid "🌍 Network connection statistics"
+msgstr "🌍 网络连接统计"
+
+#, sh-printf-format
+msgid "Total connections: %s"
+msgstr "总连接: %s"
+
+msgid "Active connections TOP10:"
+msgstr "活跃连接 TOP10:"
+
+msgid "Connection state statistics:"
+msgstr "连接状态统计:"
+
+msgid "📊 System overview snapshot"
+msgstr "📊 系统概览快照"
+
+#, sh-printf-format
+msgid "CPU cores: %s"
+msgstr "CPU 核心: %s"
+
+msgid "📋 System log entry points"
+msgstr "📋 系统日志入口"
+
+msgid "View systemd service logs:"
+msgstr "查看 systemd 服务日志:"
+
+msgid "service name"
+msgstr "服务名"
+
+msgid "real-time follow"
+msgstr "实时跟踪"
+
+msgid "errors since this boot"
+msgstr "本次启动的错误日志"
+
+msgid "Common service log files:"
+msgstr "常见服务日志文件:"
+
+msgid "or"
+msgstr "或"
+
+msgid "system log"
+msgstr "系统日志"
+
+msgid "auth log"
+msgstr "认证日志"
+
+msgid "macOS logs:"
+msgstr "macOS 日志:"
+
+msgid "keyword"
+msgstr "关键字"
+
+msgid "real-time stream"
+msgstr "实时流"
+
+msgid "graphical interface"
+msgstr "图形界面"
+
+msgid "Common log files:"
+msgstr "常见日志文件:"
+
+msgid "✅ Available"
+msgstr "✅ 可用"
+
+msgid "(pure command wrapper, nothing to install)"
+msgstr "（纯命令封装，无需安装）"
+
+msgid "🔍 System diagnostic commands"
+msgstr "🔍 系统诊断命令"
+
+msgid "System overview        - load/memory/CPU cores"
+msgstr "系统概览        - 负载/内存/CPU核心"
+
+msgid "CPU usage TOP10"
+msgstr "CPU 占用 TOP10"
+
+msgid "Memory usage TOP10"
+msgstr "内存占用 TOP10"
+
+msgid "Disk space        - df -h"
+msgstr "磁盘空间        - df -h"
+
+msgid "Directory usage TOP10  - du (current directory)"
+msgstr "目录占用 TOP10  - du（当前目录）"
+
+msgid "Network connection statistics"
+msgstr "网络连接统计"
+
+msgid "Listening ports at a glance"
+msgstr "监听端口一览"
+
+msgid "Check port usage      - port number required"
+msgstr "查端口占用      - 需输入端口号"
+
+msgid "System log entry point tips"
+msgstr "系统日志入口提示"
+
+msgid "Show everything"
+msgstr "全部展示"
+
+msgid "Back to the main menu"
+msgstr "返回主菜单"
+
+msgid "Select [0-9/a]:"
+msgstr "请选择 [0-9/a]:"
+
+msgid "Enter the port number:"
+msgstr "输入端口号:"
+
+msgid "Invalid option"
+msgstr "无效选项"
+
+msgid "System diagnostic command set (Linux + macOS):"
+msgstr "系统诊断命令集（Linux + macOS）:"
+
+msgid "Interactive menu (default action)"
+msgstr "交互式菜单（默认动作）"
+
+msgid "CPU usage TOP10 processes"
+msgstr "CPU 占用 TOP10 进程"
+
+msgid "Memory usage TOP10 processes"
+msgstr "内存占用 TOP10 进程"
+
+msgid "port> processes using the given port (e.g. port 8080)"
+msgstr "端口> 占用指定端口的进程（如 port 8080）"
+
+msgid "Overview of all listening ports"
+msgstr "所有监听端口一览"
+
+msgid "Disk space (df -h)"
+msgstr "磁盘空间（df -h）"
+
+msgid "TOP10 usage of the current directory"
+msgstr "当前目录占用 TOP10"
+
+msgid "Network connection state statistics"
+msgstr "网络连接状态统计"
+
+msgid "System overview snapshot (load/memory/CPU cores)"
+msgstr "系统概览快照（负载/内存/CPU核心）"
+
+msgid "Show top/cpu/mem/disk/net/ports in sequence"
+msgstr "依次展示 top/cpu/mem/disk/net/ports"
+
+msgid ""
+"sys-cmd is a read-only command wrapper, installs no components, nothing to "
+"uninstall"
+msgstr "sys-cmd 为只读命令封装，不安装任何组件，无需卸载"
 
 msgid "macOS ships with an application firewall, so UFW does not apply."
 msgstr "自带应用程序防火墙，UFW 不适用。"
@@ -4173,6 +7090,3853 @@ msgstr "浏览器打开 http://<你的IP>:8080 访问 Web 界面"
 
 msgid "Install upftp (the FTP file sharing tool, default action)"
 msgstr "安装 upftp（FTP 文件分享工具，默认动作）"
+
+msgid "Homebrew is required"
+msgstr "需要 Homebrew"
+
+#, sh-printf-format
+msgid ""
+"The repository has no atuin package, using the official script (target "
+"version: %s)..."
+msgstr "仓库无 atuin 包，走官方脚本（目标版本：%s）..."
+
+msgid "Still not available"
+msgstr "仍未可用"
+
+msgid ""
+"Configured with UXS_CONFIG_SYNC=1: run atuin register to register an account "
+"(interactive, you have to do it yourself)"
+msgstr ""
+"已按 UXS_CONFIG_SYNC=1 配置：请运行  atuin register  注册账号（交互式，需自行"
+"操作）"
+
+msgid ""
+"On other machines, run atuin login <username> && atuin sync to sync the "
+"history"
+msgstr "其他机器  atuin login <用户名> && atuin sync  即可同步历史"
+
+#, sh-printf-format
+msgid "🎉 Atuin installation complete (sync=%s)"
+msgstr "🎉 Atuin 安装完成（sync=%s）"
+
+msgid ""
+"Open a new terminal or run exec zsh to take effect; Ctrl+R becomes the full "
+"fuzzy search of Atuin"
+msgstr "新开终端或 exec zsh 生效；Ctrl+R 改为 atuin 全量模糊搜索"
+
+#, sh-printf-format
+msgid "Added the atuin integration for %s"
+msgstr "已为 %s 添加 atuin 集成"
+
+msgid "The old shell history has been imported into atuin"
+msgstr "旧 shell 历史已导入 atuin"
+
+msgid ""
+"Importing the old history failed (you can run it manually later: atuin "
+"import auto)"
+msgstr "旧历史导入失败（可稍后手动执行: atuin import auto）"
+
+msgid ""
+"Currently in pure local mode (UXS_CONFIG_SYNC is not enabled), no sync needed"
+msgstr "当前为纯本地模式（UXS_CONFIG_SYNC 未开启），无需同步"
+
+msgid "Uninstall instructions:"
+msgstr "卸载说明："
+
+msgid "Program: brew uninstall atuin or sudo <pkgmgr> remove atuin"
+msgstr "程序:   brew uninstall atuin 或 sudo <pkgmgr> remove atuin"
+
+#, sh-format
+msgid ""
+"Installed by script: rm -rf ~/.atuin (and remove $HOME/.atuin/bin from the "
+"PATH line in rc)"
+msgstr "脚本装: rm -rf ~/.atuin（并从 rc 的 PATH 行移除 $HOME/.atuin/bin）"
+
+#, sh-printf-format
+msgid "Delete the %s marker block in rc"
+msgstr "删除 rc 中 '%s' 标记块"
+
+msgid "Data: rm -rf ~/.local/share/atuin ~/.config/atuin"
+msgstr "数据:   rm -rf ~/.local/share/atuin ~/.config/atuin"
+
+msgid "(clean it up manually as needed)"
+msgstr "（按需手动清理）"
+
+#, sh-printf-format
+msgid "✅ atuin is installed (shell integration: %s)"
+msgstr "✅ atuin 已安装（shell 集成: %s）"
+
+msgid ""
+"Install atuin + rc integration + import the old history (UXS_CONFIG_SYNC=1 "
+"turns on the sync hint)"
+msgstr "安装 atuin + rc 集成 + 旧历史导入（UXS_CONFIG_SYNC=1 开启同步提示）"
+
+msgid "Sync manually (sync must be enabled and the account registered)"
+msgstr "手动同步（需已开启同步并注册）"
+
+msgid "Show the uninstall instructions"
+msgstr "显示卸载说明"
+
+msgid "🚀 Installing Bun (the JavaScript/TypeScript runtime and toolchain)"
+msgstr "🚀 安装 Bun（JavaScript/TypeScript 运行时与工具链）"
+
+#, sh-printf-format
+msgid "Detected that Bun is already installed (%s)"
+msgstr "检测到已安装 Bun（%s）"
+
+msgid "Continue and reinstall/update it?"
+msgstr "是否继续并重新安装/更新？"
+
+msgid "Installing bun via Homebrew..."
+msgstr "通过 Homebrew 安装 bun..."
+
+#, sh-printf-format
+msgid "Installing via the official script (%s)..."
+msgstr "通过官方脚本安装（%s）..."
+
+msgid ""
+"The official installation script failed, check the network or see https://"
+"bun.sh/docs/installation"
+msgstr ""
+"官方安装脚本执行失败，请检查网络或参考 https://bun.sh/docs/installation"
+
+#, sh-printf-format
+msgid "Installed to %s/bin/bun, but it is not in the current PATH"
+msgstr "已装到 %s/bin/bun，但不在当前 PATH"
+
+#, sh-format, sh-printf-format
+msgid "Add it to your shell configuration: export PATH=\"%s/bin:$PATH\""
+msgstr "请添加到 shell 配置：export PATH=\"%s/bin:$PATH\""
+
+msgid ""
+"bun is still not found after the installation, reopen the terminal or check "
+"PATH"
+msgstr "安装后仍找不到 bun，请重新打开终端或检查 PATH"
+
+#, sh-printf-format
+msgid "Applying the configuration: registry = %s"
+msgstr "应用配置：registry = %s"
+
+msgid "🎉 Bun installation complete!"
+msgstr "🎉 Bun 安装完成！"
+
+msgid "View the version"
+msgstr "查看版本"
+
+msgid "Run a script (replaces npm run)"
+msgstr "运行脚本（替代 npm run）"
+
+msgid "Install the dependencies (faster than npm)"
+msgstr "安装依赖（比 npm 快）"
+
+msgid "Bundle"
+msgstr "打包"
+
+msgid "Run the tests"
+msgstr "运行测试"
+
+msgid "Docs: https://bun.sh/docs"
+msgstr "文档：https://bun.sh/docs"
+
+#, sh-printf-format
+msgid "Confirm deleting %s (including the bun binary and the global cache)?"
+msgstr "确认删除 %s（含 bun 二进制与全局缓存）？"
+
+msgid ""
+"If the shell configuration has a BUN related PATH line, delete it manually"
+msgstr "若 shell 配置中有 BUN 相关的 PATH 行，请手动删除"
+
+msgid ""
+"No Bun installation found (it may have been uninstalled or installed in "
+"another way)"
+msgstr "未找到 Bun 安装（可能已卸载或通过其他方式安装）"
+
+msgid "(the default official registry)"
+msgstr "(默认官方源)"
+
+#, sh-printf-format
+msgid "🌐 Configuring a domestic mirror for Bun (%s)"
+msgstr "🌐 为 Bun 配置国内镜像源（%s）"
+
+#, sh-printf-format
+msgid "The registry = %s has been configured (written to %s)"
+msgstr "已配置 registry = %s（写入 %s）"
+
+msgid "Cleaning the Bun installation cache..."
+msgstr "清理 Bun 安装缓存..."
+
+msgid "Verification: bun install will pull from the domestic mirror"
+msgstr "验证：bun install 时将从国内镜像拉取"
+
+#, sh-printf-format
+msgid "No %s, it is already the official registry"
+msgstr "无 %s，已是官方源"
+
+#, sh-printf-format
+msgid "Restoring the official Bun registry (%s)"
+msgstr "还原 Bun 官方源（%s）"
+
+#, sh-printf-format
+msgid "The registry = %s has been restored"
+msgstr "已还原 registry = %s"
+
+msgid "Install Bun (the JavaScript/TypeScript runtime, default action)"
+msgstr "安装 Bun（JavaScript/TypeScript 运行时，默认动作）"
+
+msgid "Configure a domestic mirror (Taobao npmmirror, speeds up bun install)"
+msgstr "配置国内镜像源（淘宝 npmmirror，加速 bun install）"
+
+msgid "Restore the official registry"
+msgstr "还原官方源"
+
+msgid "View the status (including the current registry)"
+msgstr "查看状态（含当前 registry）"
+
+msgid "Install Go analysis tools (golangci-lint + gosec)"
+msgstr "📦 安装 Go 分析工具（golangci-lint + gosec）"
+
+msgid "go command not detected, skipping Go tool installation"
+msgstr "⚠️ 未检测到 go 命令，跳过 Go 工具安装"
+
+msgid "golangci-lint already installed, skipping"
+msgstr "✅ golangci-lint 已安装，跳过"
+
+msgid "Installing golangci-lint via the official script..."
+msgstr "通过官方脚本安装 golangci-lint..."
+
+msgid "golangci-lint installation failed"
+msgstr "⚠️ golangci-lint 安装失败"
+
+msgid "gosec already installed, skipping"
+msgstr "✅ gosec 已安装，跳过"
+
+msgid "Installing gosec via go install..."
+msgstr "通过 go install 安装 gosec..."
+
+msgid "gosec installation failed (you may need to add GOPATH/bin to PATH)"
+msgstr "⚠️ gosec 安装失败（可能需要设置 GOPATH/bin 到 PATH）"
+
+msgid "Install Rust analysis tools (clippy + cargo-audit)"
+msgstr "🦀 安装 Rust 分析工具（clippy + cargo-audit）"
+
+msgid "cargo command not detected, skipping Rust tool installation"
+msgstr "⚠️ 未检测到 cargo 命令，跳过 Rust 工具安装"
+
+msgid "clippy already installed, skipping"
+msgstr "✅ clippy 已安装，跳过"
+
+msgid "Installing the clippy component..."
+msgstr "安装 clippy 组件..."
+
+msgid "clippy installation failed (rustup is required)"
+msgstr "⚠️ clippy 安装失败（需要 rustup）"
+
+msgid "cargo-audit already installed, skipping"
+msgstr "✅ cargo-audit 已安装，跳过"
+
+msgid "Installing cargo-audit via cargo install..."
+msgstr "通过 cargo install 安装 cargo-audit..."
+
+msgid "cargo-audit installation failed"
+msgstr "⚠️ cargo-audit 安装失败"
+
+msgid "Install Java analysis tools (spotbugs + pmd + checkstyle)"
+msgstr "☕ 安装 Java 分析工具（spotbugs + pmd + checkstyle）"
+
+msgid "java command not detected, skipping Java tool installation"
+msgstr "⚠️ 未检测到 java 命令，跳过 Java 工具安装"
+
+#, sh-printf-format
+msgid "%s already installed, skipping"
+msgstr "✅ %s 已安装，跳过"
+
+#, sh-printf-format
+msgid "%s installation failed"
+msgstr "⚠️ %s 安装失败"
+
+#, sh-printf-format
+msgid "%s (package manager)"
+msgstr "✅ %s（包管理器）"
+
+#, sh-printf-format
+msgid "%s is not available in the repository"
+msgstr "⚠️ %s 不在仓库中"
+
+msgid ""
+"Tip: Java tools can be installed via sdkman.io or by downloading them "
+"manually"
+msgstr "提示：Java 工具可通过 sdkman.io 或手动下载安装"
+
+msgid "Install Python analysis tools (ruff + mypy + bandit)"
+msgstr "🐍 安装 Python 分析工具（ruff + mypy + bandit）"
+
+msgid "python3 command not detected, skipping Python tool installation"
+msgstr "⚠️ 未检测到 python3 命令，跳过 Python 工具安装"
+
+#, sh-printf-format
+msgid "Falling back to %s to install %s..."
+msgstr "回退到 %s 安装 %s..."
+
+#, sh-printf-format
+msgid "%s (pip)"
+msgstr "✅ %s（pip）"
+
+#, sh-printf-format
+msgid "Installing via %s..."
+msgstr "通过 %s 安装..."
+
+msgid "Install semgrep (cross-language security scanning)"
+msgstr "🔍 安装 semgrep（跨语言安全扫描）"
+
+msgid "semgrep already installed, skipping"
+msgstr "✅ semgrep 已安装，跳过"
+
+msgid "semgrep installation failed"
+msgstr "⚠️ semgrep 安装失败"
+
+msgid "Install the code analysis toolset"
+msgstr "🚀 安装代码分析工具集"
+
+msgid "Code analysis toolset installation completed!"
+msgstr "🎉 代码分析工具集安装完成！"
+
+msgid ""
+"Run analysis: ./install.sh go-lint | rust-lint | java-lint | py-lint | "
+"security-scan | lint-all"
+msgstr ""
+"运行分析：./install.sh go-lint | rust-lint | java-lint | py-lint | security-"
+"scan | lint-all"
+
+msgid "Tools:"
+msgstr "工具:"
+
+msgid "Remove"
+msgstr "移除"
+
+msgid "Cross-language:"
+msgstr "跨语言:"
+
+msgid "(clean up manually as needed)"
+msgstr "（按需手动清理）"
+
+#, sh-printf-format
+msgid "All installed (%s/%s)"
+msgstr "✅ 全部已安装 (%s/%s)"
+
+#, sh-printf-format
+msgid "Partially installed (%s/%s)"
+msgstr "⚠️  部分已安装 (%s/%s)"
+
+msgid "No tools installed"
+msgstr "❌ 未安装任何工具"
+
+msgid "Code analysis tool status"
+msgstr "📊 代码分析工具状态"
+
+#, sh-printf-format
+msgid "Full-language code analysis: %s"
+msgstr "🔍 全语言代码分析：%s"
+
+msgid "Analysis completed with errors"
+msgstr "分析完成，存在错误"
+
+msgid "All analyses passed"
+msgstr "🎉 所有分析通过"
+
+msgid "Install commands:"
+msgstr "安装类:"
+
+msgid "Install all code analysis tools (default action)"
+msgstr "安装全部代码分析工具（默认动作）"
+
+msgid "Install only Go tools (golangci-lint + gosec)"
+msgstr "仅安装 Go 工具（golangci-lint + gosec）"
+
+msgid "Install only Rust tools (clippy + cargo-audit)"
+msgstr "仅安装 Rust 工具（clippy + cargo-audit）"
+
+msgid "Install only Java tools (spotbugs + pmd + checkstyle)"
+msgstr "仅安装 Java 工具（spotbugs + pmd + checkstyle）"
+
+msgid "Install only Python tools (ruff + mypy + bandit)"
+msgstr "仅安装 Python 工具（ruff + mypy + bandit）"
+
+msgid "Install only semgrep"
+msgstr "仅安装 semgrep"
+
+msgid "Run commands:"
+msgstr "运行类:"
+
+msgid "Run Go code analysis"
+msgstr "运行 Go 代码分析"
+
+msgid "Run Rust code analysis"
+msgstr "运行 Rust 代码分析"
+
+msgid "Run Java code analysis"
+msgstr "运行 Java 代码分析"
+
+msgid "Run Python code analysis"
+msgstr "运行 Python 代码分析"
+
+msgid "Run cross-language security scanning (semgrep)"
+msgstr "运行跨语言安全扫描（semgrep）"
+
+msgid "Auto-detect the language and run all applicable analyses"
+msgstr "自动检测语言并运行所有适用的分析"
+
+msgid "Management commands:"
+msgstr "管理类:"
+
+msgid "Show the installation status of each tool"
+msgstr "查看各工具安装状态"
+
+msgid "Show this help message"
+msgstr "显示此帮助"
+
+#, sh-printf-format
+msgid "Go code analysis: %s"
+msgstr "Go 代码分析：%s"
+
+msgid "Running golangci-lint..."
+msgstr "运行 golangci-lint..."
+
+msgid "golangci-lint: passed"
+msgstr "golangci-lint：通过"
+
+msgid "golangci-lint: problems found"
+msgstr "golangci-lint：发现问题"
+
+msgid "golangci-lint not installed, skipping"
+msgstr "golangci-lint 未安装，跳过"
+
+msgid "Running gosec (security scan)..."
+msgstr "运行 gosec（安全扫描）..."
+
+msgid "gosec: passed"
+msgstr "gosec：通过"
+
+msgid "gosec: security issues found"
+msgstr "gosec：发现安全问题"
+
+msgid "gosec not installed, skipping"
+msgstr "gosec 未安装，跳过"
+
+#, sh-printf-format
+msgid "Go analysis complete: %s tools reported problems"
+msgstr "Go 分析完成：%s 个工具报告了问题"
+
+msgid "Go analysis all passed"
+msgstr "Go 分析全部通过"
+
+#, sh-printf-format
+msgid "Java code analysis: %s"
+msgstr "Java 代码分析：%s"
+
+msgid "No Java source files found, skipping Java analysis"
+msgstr "未找到 Java 源文件，跳过 Java 分析"
+
+msgid "Running spotbugs (bytecode analysis)..."
+msgstr "运行 spotbugs（字节码分析）..."
+
+msgid "Tip: spotbugs needs .class files, run mvn compile or gradle build first"
+msgstr ""
+"提示：spotbugs 需要编译后的 .class 文件，请先运行 mvn compile 或 gradle build"
+
+msgid "spotbugs: passed"
+msgstr "spotbugs：通过"
+
+msgid "spotbugs: problems found"
+msgstr "spotbugs：发现问题"
+
+msgid "No .class files found, compile the project first"
+msgstr "未找到 .class 文件，请先编译项目"
+
+msgid "spotbugs not installed, skipping"
+msgstr "spotbugs 未安装，跳过"
+
+msgid "Running pmd (source analysis)..."
+msgstr "运行 pmd（源码分析）..."
+
+msgid "pmd: passed"
+msgstr "pmd：通过"
+
+msgid "pmd: problems found"
+msgstr "pmd：发现问题"
+
+msgid "pmd not installed, skipping"
+msgstr "pmd 未安装，跳过"
+
+msgid "Running checkstyle (code style check)..."
+msgstr "运行 checkstyle（代码风格检查）..."
+
+msgid "checkstyle: passed"
+msgstr "checkstyle：通过"
+
+msgid "checkstyle: style issues found"
+msgstr "checkstyle：发现风格问题"
+
+msgid "checkstyle not installed, skipping"
+msgstr "checkstyle 未安装，跳过"
+
+#, sh-printf-format
+msgid "Java analysis complete: %s tools reported problems"
+msgstr "Java 分析完成：%s 个工具报告了问题"
+
+msgid "Java analysis all passed"
+msgstr "Java 分析全部通过"
+
+#, sh-printf-format
+msgid "Python code analysis: %s"
+msgstr "Python 代码分析：%s"
+
+msgid "No Python source files found, skipping Python analysis"
+msgstr "未找到 Python 源文件，跳过 Python 分析"
+
+msgid "Running ruff check..."
+msgstr "运行 ruff check..."
+
+msgid "ruff check: passed"
+msgstr "ruff check：通过"
+
+msgid "ruff check: problems found"
+msgstr "ruff check：发现问题"
+
+msgid "Running ruff format --check..."
+msgstr "运行 ruff format --check..."
+
+msgid "ruff format: passed"
+msgstr "ruff format：通过"
+
+msgid "ruff format: format mismatch (run ruff format to fix)"
+msgstr "ruff format：格式不一致（运行 ruff format 修复）"
+
+msgid "ruff not installed, skipping"
+msgstr "ruff 未安装，跳过"
+
+msgid "Running mypy (type check)..."
+msgstr "运行 mypy（类型检查）..."
+
+msgid "mypy: passed"
+msgstr "mypy：通过"
+
+msgid "mypy: type issues found"
+msgstr "mypy：发现类型问题"
+
+msgid "mypy not installed, skipping"
+msgstr "mypy 未安装，跳过"
+
+msgid "Running bandit (security scan)..."
+msgstr "运行 bandit（安全扫描）..."
+
+msgid "bandit: passed"
+msgstr "bandit：通过"
+
+msgid "bandit: security issues found"
+msgstr "bandit：发现安全问题"
+
+msgid "bandit not installed, skipping"
+msgstr "bandit 未安装，跳过"
+
+#, sh-printf-format
+msgid "Python analysis complete: %s tools reported problems"
+msgstr "Python 分析完成：%s 个工具报告了问题"
+
+msgid "Python analysis all passed"
+msgstr "Python 分析全部通过"
+
+#, sh-printf-format
+msgid "Rust code analysis: %s"
+msgstr "Rust 代码分析：%s"
+
+msgid "Cargo.toml not found, skipping Rust analysis"
+msgstr "未找到 Cargo.toml，跳过 Rust 分析"
+
+msgid "Running cargo clippy..."
+msgstr "运行 cargo clippy..."
+
+msgid "clippy: passed"
+msgstr "clippy：通过"
+
+msgid "clippy: problems found"
+msgstr "clippy：发现问题"
+
+msgid "cargo not installed, skipping"
+msgstr "cargo 未安装，跳过"
+
+msgid "Running cargo-audit (dependency vulnerability scan)..."
+msgstr "运行 cargo-audit（依赖漏洞扫描）..."
+
+msgid "cargo-audit: passed"
+msgstr "cargo-audit：通过"
+
+msgid "cargo-audit: vulnerabilities found"
+msgstr "cargo-audit：发现漏洞"
+
+msgid "cargo-audit not installed, skipping (run ./install.sh install-rust)"
+msgstr "cargo-audit 未安装，跳过（运行 ./install.sh install-rust 安装）"
+
+#, sh-printf-format
+msgid "Rust analysis complete: %s tools reported problems"
+msgstr "Rust 分析完成：%s 个工具报告了问题"
+
+msgid "Rust analysis all passed"
+msgstr "Rust 分析全部通过"
+
+#, sh-printf-format
+msgid "Cross-language security scan (semgrep): %s"
+msgstr "跨语言安全扫描（semgrep）：%s"
+
+msgid "semgrep is not installed"
+msgstr "semgrep 未安装"
+
+msgid "Install: ./install.sh install-semgrep"
+msgstr "安装：./install.sh install-semgrep"
+
+msgid "Running semgrep (automatic rule detection)..."
+msgstr "运行 semgrep（自动规则检测）..."
+
+msgid "semgrep scan passed"
+msgstr "semgrep 扫描通过"
+
+msgid "semgrep found security issues"
+msgstr "semgrep 发现安全问题"
+
+msgid "🦕 Installing Deno (the JavaScript/TypeScript runtime)"
+msgstr "🦕 安装 Deno（JavaScript/TypeScript 运行时）"
+
+#, sh-printf-format
+msgid "Detected that Deno is already installed (%s)"
+msgstr "检测到已安装 Deno（%s）"
+
+msgid "Installing deno via Homebrew..."
+msgstr "通过 Homebrew 安装 deno..."
+
+msgid "The official installation script failed, see https://deno.land"
+msgstr "官方安装脚本执行失败，请参考 https://deno.land"
+
+#, sh-printf-format
+msgid "Installed to %s, but it is not in the current PATH"
+msgstr "已装到 %s，但不在当前 PATH"
+
+msgid "🎉 Deno installation complete!"
+msgstr "🎉 Deno 安装完成！"
+
+msgid "start the server"
+msgstr "启动服务"
+
+msgid "run the tests"
+msgstr "运行测试"
+
+msgid "compile to a single executable file"
+msgstr "编译为单文件可执行"
+
+#, sh-printf-format
+msgid "Delete %s (including the cache)?"
+msgstr "是否删除 %s（含缓存）？"
+
+msgid "No Deno installation found"
+msgstr "未找到 Deno 安装"
+
+msgid "Install Deno (default action)"
+msgstr "安装 Deno（默认动作）"
+
+msgid "📝 Installing Neovim..."
+msgstr "📝 安装 Neovim..."
+
+#, sh-printf-format
+msgid "Neovim is installed (%s)"
+msgstr "Neovim 已安装（%s）"
+
+msgid "The package manager did not install neovim, trying AppImage..."
+msgstr "包管理器未装到 neovim，尝试 AppImage..."
+
+msgid "The installation may have failed"
+msgstr "安装可能失败"
+
+msgid "Installing the LazyVim configuration template..."
+msgstr "安装 LazyVim 配置模板..."
+
+msgid ""
+"The template is installed to ~/.config/nvim (nvim installs the plugins on "
+"the first start)"
+msgstr "模板已安装到 ~/.config/nvim（首次启动 nvim 会自动装插件）"
+
+msgid "🔧 Configuring git enhancements..."
+msgstr "🔧 配置 git 增强..."
+
+msgid "Not installed, skipping the git enhancements"
+msgstr "未安装，跳过 git 增强"
+
+msgid "The global configuration is enhanced (aliases/colors/editor)"
+msgstr "全局配置已增强（别名/颜色/编辑器）"
+
+msgid "Installing delta (diff highlighting)..."
+msgstr "安装 delta（diff 高亮）..."
+
+msgid ""
+"The automatic installation failed, you can install it manually from https://"
+"github.com/dandavison/delta"
+msgstr "自动安装失败，可从 https://github.com/dandavison/delta 手动安装"
+
+msgid "Highlighting is integrated into git"
+msgstr "高亮已集成到 git"
+
+msgid "🖥️  Configuring tmux..."
+msgstr "🖥️  配置 tmux..."
+
+msgid "Installing tmux..."
+msgstr "安装 tmux..."
+
+msgid "Not installed, skipping the configuration"
+msgstr "未安装，跳过配置"
+
+msgid "Installing tpm (the tmux plugin manager)..."
+msgstr "安装 tpm（tmux 插件管理器）..."
+
+msgid ""
+"The configuration is written to ~/.tmux.conf (prefix Ctrl+a, mouse, vim "
+"switching, tpm plugins)"
+msgstr "配置已写入 ~/.tmux.conf（前缀 Ctrl+a，鼠标，vim 切换，tpm 插件）"
+
+msgid ""
+"After entering tmux for the first time, press prefix + I (Ctrl+a then "
+"uppercase I) to install the plugins"
+msgstr "首次进入 tmux 后按 prefix + I（Ctrl+a 再按大写 I）安装插件"
+
+msgid "🚀 Development tool enhancements (Neovim + git + tmux)"
+msgstr "🚀 开发工具增强（Neovim + git + tmux）"
+
+msgid "🎉 Development tool enhancements complete!"
+msgstr "🎉 开发工具增强完成！"
+
+msgid "(the LazyVim plugins are installed automatically on the first start)"
+msgstr "（首次启动自动装 LazyVim 插件）"
+
+msgid "(colored log tree) / git st (status)"
+msgstr "（彩色日志树）/ git st（状态）"
+
+msgid "(Ctrl+a prefix, | split, vim pane switching)"
+msgstr "（Ctrl+a 前缀，| 分屏，vim 切换窗格）"
+
+msgid "Config: rm -rf ~/.config/nvim ~/.local/share/nvim"
+msgstr "配置: rm -rf ~/.config/nvim ~/.local/share/nvim"
+
+msgid ""
+"Enhancement:    git config --global --unset core.pager; git config --global "
+"--remove-section delta 2>/dev/null"
+msgstr ""
+"增强:    git config --global --unset core.pager; git config --global --"
+"remove-section delta 2>/dev/null"
+
+msgid "Config:   rm ~/.tmux.conf; rm -rf ~/.tmux"
+msgstr "配置:   rm ~/.tmux.conf; rm -rf ~/.tmux"
+
+msgid "(all are user configurations, clean them up manually as needed)"
+msgstr "（均为用户配置，按需手动清理）"
+
+msgid "none"
+msgstr "无"
+
+msgid "None"
+msgstr "无"
+
+msgid ""
+"Install Neovim(+LazyVim) + git enhancements(delta+aliases) + tmux "
+"configuration(tpm)"
+msgstr "安装 Neovim(+LazyVim) + git 增强(delta+别名) + tmux 配置(tpm)"
+
+msgid "Taobao npmmirror"
+msgstr "淘宝 npmmirror"
+
+msgid "Tencent Cloud"
+msgstr "腾讯云"
+
+msgid "Huawei Cloud"
+msgstr "华为云"
+
+msgid "Official npm"
+msgstr "官方 npm"
+
+msgid "Qiniu)"
+msgstr "七牛)"
+
+msgid "Alibaba Cloud"
+msgstr "阿里云"
+
+msgid "Official proxy.golang.org"
+msgstr "官方 proxy.golang.org"
+
+msgid "Tsinghua TUNA"
+msgstr "清华 TUNA"
+
+msgid "USTC"
+msgstr "中科大 USTC"
+
+msgid "Shanghai Jiao Tong SJTU"
+msgstr "上海交大 SJTU"
+
+msgid "ByteDance rsproxy"
+msgstr "字节 rsproxy"
+
+msgid "Official crates.io"
+msgstr "官方 crates.io"
+
+msgid "Official PyPI"
+msgstr "官方 PyPI"
+
+msgid "Custom"
+msgstr "自定义"
+
+msgid "No target toolchain detected (npm/go/cargo/pip)."
+msgstr "未检测到任何目标工具链（npm/go/cargo/pip）。"
+
+msgid "Please install the corresponding runtime before running this module."
+msgstr "请先安装对应运行时再运行本模块。"
+
+msgid "Toolchain not installed, skipping."
+msgstr "工具链未安装，跳过。"
+
+msgid ""
+"nrm (NPM registry manager) detected, it may override the registry written by "
+"this module."
+msgstr "检测到 nrm（NPM registry 管理器），它可能覆盖本模块写入的 registry。"
+
+msgid ""
+"Recommendation: either use only nrm, or uninstall nrm and then use this "
+"module."
+msgstr "建议二选一：要么只用 nrm，要么卸载 nrm 后用本模块。"
+
+msgid ""
+"cnpm detected (ships with the Taobao mirror), usually no need to switch the "
+"npm mirror."
+msgstr "检测到 cnpm（自带淘宝源），通常无需为 npm 换源。"
+
+msgid ""
+"version is too old or go env -w is unavailable, falling back to writing the "
+"~/.bashrc environment variable"
+msgstr "版本较低或 go env -w 不可用，回退到写 ~/.bashrc 环境变量"
+
+#, sh-printf-format
+msgid "→ %s (written to ~/.bashrc / ~/.zshrc, run source to take effect)"
+msgstr "→ %s (写入 ~/.bashrc / ~/.zshrc，需 source 生效)"
+
+msgid "→ restored to official crates.io"
+msgstr "→ 已还原官方 crates.io"
+
+msgid ""
+"pip config command unavailable, falling back to writing the config file by "
+"hand"
+msgstr "命令不可用，回退到手写配置文件"
+
+#, sh-printf-format
+msgid "→ %s (written to %s)"
+msgstr "→ %s (写入 %s)"
+
+msgid "Please select the ecosystem to configure:"
+msgstr "请选择要配置的生态："
+
+msgid "Not installed, will skip)"
+msgstr "未安装，将跳过)"
+
+msgid "All (one by one for each installed ecosystem)"
+msgstr "全部（逐个已安装的生态）"
+
+msgid "Cancel"
+msgstr "取消"
+
+#, sh-printf-format
+msgid "Enter option [0-%s]:"
+msgstr "请输入选项 [0-%s]:"
+
+msgid "Please select"
+msgstr "请选择"
+
+msgid "the source:"
+msgstr "的源："
+
+msgid ""
+"Taobao npmmirror   https://registry.npmmirror.com        [Default/"
+"Recommended]"
+msgstr "淘宝 npmmirror   https://registry.npmmirror.com        [默认/推荐]"
+
+msgid "Tencent Cloud           https://mirrors.cloud.tencent.com/npm/"
+msgstr "腾讯云           https://mirrors.cloud.tencent.com/npm/"
+
+msgid "Huawei Cloud           https://mirrors.huaweicloud.com/repository/npm/"
+msgstr "华为云           https://mirrors.huaweicloud.com/repository/npm/"
+
+msgid "Official npm         https://registry.npmjs.org/          (restore)"
+msgstr "官方 npm         https://registry.npmjs.org/          (还原)"
+
+msgid "Qiniu) https://goproxy.cn,direct          [Default/Recommended]"
+msgstr "七牛) https://goproxy.cn,direct          [默认/推荐]"
+
+msgid "Alibaba Cloud            https://mirrors.aliyun.com/goproxy/,direct"
+msgstr "阿里云            https://mirrors.aliyun.com/goproxy/,direct"
+
+msgid "Official              https://proxy.golang.org,direct     (restore)"
+msgstr "官方              https://proxy.golang.org,direct     (还原)"
+
+msgid ""
+"Tsinghua TUNA   https://mirrors.tuna.tsinghua.edu.cn/crates.io-index/  "
+"[Default/Recommended]"
+msgstr ""
+"清华 TUNA   https://mirrors.tuna.tsinghua.edu.cn/crates.io-index/  [默认/推"
+"荐]"
+
+msgid "USTC https://mirrors.ustc.edu.cn/crates.io-index/"
+msgstr "中科大 USTC https://mirrors.ustc.edu.cn/crates.io-index/"
+
+msgid "SJTU   https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index/"
+msgstr "上交 SJTU   https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index/"
+
+msgid "ByteDance rsproxy https://rsproxy.cn/index/"
+msgstr "字节 rsproxy https://rsproxy.cn/index/"
+
+msgid "Official crates.io                                       (restore)"
+msgstr "官方 crates.io                                       (还原)"
+
+msgid ""
+"Tsinghua TUNA   https://pypi.tuna.tsinghua.edu.cn/simple  [Default/"
+"Recommended]"
+msgstr "清华 TUNA   https://pypi.tuna.tsinghua.edu.cn/simple  [默认/推荐]"
+
+msgid "Alibaba Cloud      https://mirrors.aliyun.com/pypi/simple/"
+msgstr "阿里云      https://mirrors.aliyun.com/pypi/simple/"
+
+msgid "USTC https://pypi.mirrors.ustc.edu.cn/simple/"
+msgstr "中科大 USTC https://pypi.mirrors.ustc.edu.cn/simple/"
+
+msgid "Tencent Cloud      https://mirrors.cloud.tencent.com/pypi/simple"
+msgstr "腾讯云      https://mirrors.cloud.tencent.com/pypi/simple"
+
+msgid "Official PyPI   https://pypi.org/simple                  (restore)"
+msgstr "官方 PyPI   https://pypi.org/simple                  (还原)"
+
+msgid "Custom URL input"
+msgstr "自定义输入 URL"
+
+#, sh-printf-format
+msgid "Enter option [0-%s], default 1:"
+msgstr "请输入选项 [0-%s]，默认 1:"
+
+msgid "Enter URL (http(s)://):"
+msgstr "请输入 URL (http(s)://):"
+
+msgid "is invalid, must start with http:// or https://"
+msgstr "非法，需以 http:// 或 https:// 开头"
+
+#, sh-printf-format
+msgid "Unknown ecosystem: %s (available: %s | all)"
+msgstr "未知生态: %s（可选: %s | all）"
+
+#, sh-printf-format
+msgid "Unrecognized source identifier: %s (ecosystem: %s)"
+msgstr "无法识别的源标识: %s (生态: %s)"
+
+#, sh-printf-format
+msgid "Target: %s"
+msgstr "目标: %s"
+
+msgid "Mirror switch completed!"
+msgstr "换源完成！"
+
+msgid ""
+"All installed ecosystems will be restored to the official mirror (npm/Go/"
+"Rust/Python)"
+msgstr "将把所有已安装的生态还原为官方源（npm/Go/Rust/Python）"
+
+msgid "The following ecosystems will be restored to the official mirror:"
+msgstr "将把以下生态还原为官方源："
+
+msgid "Confirm restore?"
+msgstr "确认还原？"
+
+msgid "Restored to the official mirror"
+msgstr "已还原为官方源"
+
+msgid "No installed language toolchain"
+msgstr "⚠️  无已安装的语言工具链"
+
+#, sh-printf-format
+msgid "All installed languages have switched mirrors (%s/%s)"
+msgstr "✅ 全部已装语言已换源（%s/%s）"
+
+#, sh-printf-format
+msgid "Some languages have switched mirrors (%s/%s)"
+msgstr "⚠️  部分已换源（%s/%s）"
+
+#, sh-printf-format
+msgid "No language has switched mirrors (0/%s)"
+msgstr "❌ 均未换源（0/%s）"
+
+msgid ""
+"Development language ecosystem mirror acceleration (npm / Go / Rust / "
+"Python)."
+msgstr "开发语言生态换源加速（npm / Go / Rust / Python）。"
+
+msgid "Switch mirror"
+msgstr "换源"
+
+msgid "(default = interactive selection)"
+msgstr "（缺省=交互选择）"
+
+msgid ""
+"Built-in source key for each ecosystem (see below) or a full URL (default = "
+"interactive selection)"
+msgstr "各生态内置源 key（见下）或完整 URL（缺省=交互选择）"
+
+msgid "Restore the official mirror"
+msgstr "还原官方源"
+
+msgid "Show the current mirror of each ecosystem"
+msgstr "查看各生态当前镜像"
+
+msgid "Built-in source keys:"
+msgstr "内置源 key："
+
+msgid "Default) | tencent | huawei | npm/official"
+msgstr "默认) | tencent | huawei | npm/official"
+
+msgid "Default) | aliyun | goproxy-io | official"
+msgstr "默认) | aliyun | goproxy-io | official"
+
+msgid "Default) | ustc | sjtu | rsproxy | official"
+msgstr "默认) | ustc | sjtu | rsproxy | official"
+
+msgid "Default) | aliyun | ustc | tencent | official"
+msgstr "默认) | aliyun | ustc | tencent | official"
+
+msgid "# Interactive: first choose the ecosystem, then the source"
+msgstr "# 交互：先选生态，再选源"
+
+msgid "# Configure goproxy.cn for Go directly"
+msgstr "# 直接为 Go 配置 goproxy.cn"
+
+msgid "# Interactively choose a source for each ecosystem"
+msgstr "# 交互逐个生态选源"
+
+msgid "# Custom URL"
+msgstr "# 自定义 URL"
+
+msgid "# Restore the official cargo mirror"
+msgstr "# 还原 cargo 官方源"
+
+#, sh-printf-format
+msgid "unsupported architecture: %s"
+msgstr "不支持的架构：%s"
+
+#, sh-printf-format
+msgid "Cannot get the latest version of %s (check the network or set GH_TOKEN)"
+msgstr "无法获取 %s 最新版本（请检查网络或设置 GH_TOKEN）"
+
+#, sh-printf-format
+msgid "Downloading %s v%s ..."
+msgstr "下载 %s v%s ..."
+
+msgid "Extraction failed"
+msgstr "解压失败"
+
+msgid "The binary was not found in the archive"
+msgstr "二进制未在压缩包中找到"
+
+#, sh-printf-format
+msgid "Installed to %s/%s"
+msgstr "已安装到 %s/%s"
+
+msgid ""
+"🚀 Starting the installation of the terminal TUI tools (lazydocker + lazygit)"
+msgstr "🚀 开始安装终端 TUI 工具（lazydocker + lazygit）"
+
+msgid "Installation complete (managed by brew)"
+msgstr "安装完成（brew 管理）"
+
+msgid "Usage: lazydocker / lazygit"
+msgstr "使用：lazydocker / lazygit"
+
+msgid "is not in PATH. Please add it to your shell configuration:"
+msgstr "不在 PATH 中。请添加到 shell 配置："
+
+msgid "terminal UI"
+msgstr "终端 UI"
+
+msgid "Confirm uninstalling lazydocker and lazygit?"
+msgstr "确认卸载 lazydocker 与 lazygit？"
+
+#, sh-printf-format
+msgid "Deleted %s/%s"
+msgstr "已删除 %s/%s"
+
+msgid "The tools have been uninstalled."
+msgstr "工具已卸载。"
+
+msgid "✅ lazydocker + lazygit are installed"
+msgstr "✅ lazydocker + lazygit 已安装"
+
+#, sh-printf-format
+msgid "⚠️  partially installed (%s/%s)"
+msgstr "⚠️  部分已安装（%s/%s）"
+
+#, sh-printf-format
+msgid "Install lazydocker + lazygit to %s"
+msgstr "安装 lazydocker + lazygit 到 %s"
+
+#, sh-printf-format
+msgid "unsupported architecture: %s/%s"
+msgstr "不支持的架构：%s/%s"
+
+msgid "🐹 Installing Go (Golang)"
+msgstr "🐹 安装 Go（Golang）"
+
+msgid "Installing Go via Homebrew..."
+msgstr "通过 Homebrew 安装 Go..."
+
+msgid "Installation complete (the version is managed by brew)"
+msgstr "安装完成（brew 管理版本）"
+
+msgid "View GOPATH"
+msgstr "查看 GOPATH"
+
+#, sh-printf-format
+msgid "Go %s detected (already installed)"
+msgstr "检测到已安装 Go（%s）"
+
+msgid "Cannot get the latest Go version (check the network or set GH_TOKEN)"
+msgstr "无法获取 Go 最新版本（请检查网络或设置 GH_TOKEN）"
+
+#, sh-printf-format
+msgid "Latest version: Go %s"
+msgstr "最新版本：Go %s"
+
+#, sh-printf-format
+msgid "Extracting to %s..."
+msgstr "解压到 %s..."
+
+msgid "Environment (added by unix_script)"
+msgstr "环境（由 unix_script 添加）"
+
+#, sh-printf-format
+msgid "Added the Go PATH configuration for %s"
+msgstr "已为 %s 添加 Go PATH 配置"
+
+msgid "The configuration already exists (or there is no rc file)"
+msgstr "配置已存在（或无 rc 文件）"
+
+#, sh-printf-format
+msgid "🎉 Go %s installation complete!"
+msgstr "🎉 Go %s 安装完成！"
+
+msgid "Take effect after reloading the shell: source ~/.bashrc (or ~/.zshrc)"
+msgstr "重新加载 shell 后生效：source ~/.bashrc（或 ~/.zshrc）"
+
+msgid "Run"
+msgstr "运行"
+
+#, sh-printf-format
+msgid "Go is not installed (%s does not exist)"
+msgstr "未安装 Go（%s 不存在）"
+
+#, sh-printf-format
+msgid "Confirm uninstalling Go (deleting %s)?"
+msgstr "确认卸载 Go（删除 %s）？"
+
+#, sh-printf-format
+msgid "Uninstalled (%s deleted)"
+msgstr "已卸载（%s 已删除）"
+
+msgid "The data stays in ~/go, you can delete it manually"
+msgstr "数据保留在 ~/go，可手动删除"
+
+msgid "Install Go (the official binary, into /usr/local/go, default action)"
+msgstr "安装 Go（官方二进制，装到 /usr/local/go，默认动作）"
+
+#, sh-printf-format
+msgid "unsupported architecture: %s (only x86_64/arm64 are supported)"
+msgstr "不支持的架构：%s（仅支持 x86_64/arm64）"
+
+msgid "helm detected, overwrite it with the latest version?"
+msgstr "已检测到 helm，是否覆盖安装最新版？"
+
+msgid "Installing helm via Homebrew..."
+msgstr "通过 Homebrew 安装 helm..."
+
+msgid "Fetching the latest helm version (GitHub API)..."
+msgstr "获取 helm 最新版本（GitHub API）..."
+
+msgid ""
+"Cannot fetch the version number (GitHub is unreachable or rate limited), you "
+"can set GH_TOKEN and retry"
+msgstr "无法获取版本号（GitHub 不可达或限流），可设 GH_TOKEN 重试"
+
+msgid "Download failed (is get.helm.sh unreachable?)"
+msgstr "下载失败（get.helm.sh 不可达？）"
+
+msgid "Next step: for a local cluster use minikube —— ./install.sh minikube"
+msgstr "下一步：本地集群用 minikube —— ./install.sh minikube"
+
+msgid "helm has been uninstalled"
+msgstr "已卸载 helm"
+
+msgid "helm was not detected via brew"
+msgstr "未通过 brew 检测到 helm"
+
+#, sh-printf-format
+msgid "%s was not detected"
+msgstr "未检测到 %s"
+
+msgid "❌ helm is not installed"
+msgstr "❌ helm 未安装"
+
+msgid "✅ helm is installed"
+msgstr "✅ helm 已安装"
+
+msgid "— Kubernetes package manager"
+msgstr "—— Kubernetes 包管理器"
+
+msgid ""
+"Install the latest version (Linux: the official get.helm.sh tarball; macOS: "
+"brew)"
+msgstr "安装最新版（Linux: get.helm.sh 官方 tarball；macOS: brew）"
+
+msgid "View the installation status (UXS_STATUS_MODE=machine is supported)"
+msgstr "查看安装状态（支持 UXS_STATUS_MODE=machine）"
+
+msgid "this help"
+msgstr "本帮助"
+
+msgid "k9s detected, overwrite it with the latest version?"
+msgstr "已检测到 k9s，是否覆盖安装最新版？"
+
+msgid "Installing k9s via Homebrew..."
+msgstr "通过 Homebrew 安装 k9s..."
+
+msgid "Fetching the latest k9s version (GitHub API)..."
+msgstr "获取 k9s 最新版本（GitHub API）..."
+
+#, sh-printf-format
+msgid "asset k9s_Linux_%s.tar.gz not found"
+msgstr "未找到资产 k9s_Linux_%s.tar.gz"
+
+msgid "k9s has been uninstalled"
+msgstr "已卸载 k9s"
+
+msgid "k9s was not detected via brew"
+msgstr "未通过 brew 检测到 k9s"
+
+msgid "kubeconfig is left untouched, there is no cluster config to clean up"
+msgstr "不改写 kubeconfig，集群配置无需清理"
+
+msgid "❌ k9s is not installed"
+msgstr "❌ k9s 未安装"
+
+msgid "✅ k9s is installed"
+msgstr "✅ k9s 已安装"
+
+msgid "— Kubernetes terminal dashboard (TUI)"
+msgstr "—— Kubernetes 终端管理面板（TUI）"
+
+msgid ""
+"Install the latest version (Linux: the GitHub release binary; macOS: brew)"
+msgstr "安装最新版（Linux: GitHub release 二进制；macOS: brew）"
+
+msgid "Uninstall the binary (kubeconfig is left untouched)"
+msgstr "卸载二进制（不动 kubeconfig）"
+
+msgid "kind detected, overwrite it with the latest version?"
+msgstr "已检测到 kind，是否覆盖安装最新版？"
+
+msgid "Installing kind via Homebrew..."
+msgstr "通过 Homebrew 安装 kind..."
+
+msgid "Fetching the latest kind version (GitHub API)..."
+msgstr "获取 kind 最新版本（GitHub API）..."
+
+#, sh-printf-format
+msgid "asset kind-linux-%s not found"
+msgstr "未找到资产 kind-linux-%s"
+
+msgid ""
+"docker was not detected — kind needs it to create a cluster: ./install.sh "
+"docker"
+msgstr "未检测到 docker——kind 创建集群需要它：./install.sh docker"
+
+msgid "Try it: kind create cluster --name demo"
+msgstr "试一下：kind create cluster --name demo"
+
+msgid ""
+"Note: uninstalling kind does not affect the clusters already created, delete "
+"them with: kind delete clusters --all"
+msgstr ""
+"注意：kind 卸载不影响已创建的集群，删除集群用：kind delete clusters --all"
+
+msgid "kind has been uninstalled"
+msgstr "已卸载 kind"
+
+msgid "kind was not detected via brew"
+msgstr "未通过 brew 检测到 kind"
+
+msgid "❌ kind is not installed"
+msgstr "❌ kind 未安装"
+
+msgid "✅ kind is installed"
+msgstr "✅ kind 已安装"
+
+msgid "— spin up a local Kubernetes cluster with Docker"
+msgstr "—— 用 Docker 起本地 Kubernetes 集群"
+
+msgid "Uninstall the binary (the clusters already created are left untouched)"
+msgstr "卸载二进制（不动已创建的集群）"
+
+msgid ""
+"Note: it depends on docker (the framework installs it first when this module "
+"is installed). For a local dev cluster you can also choose"
+msgstr "说明：运行依赖 docker（安装本模块时框架自动先装）。本地开发集群也可选"
+
+msgid " (more features) —— ./install.sh minikube"
+msgstr "（功能更全）——./install.sh minikube"
+
+#, sh-printf-format
+msgid "kubectl %s detected, overwrite it with the latest stable version?"
+msgstr "已检测到 kubectl %s，是否覆盖安装最新稳定版？"
+
+msgid "Installing kubectl via Homebrew..."
+msgstr "通过 Homebrew 安装 kubectl..."
+
+msgid "Fetching the latest stable kubectl version (dl.k8s.io)..."
+msgstr "获取 kubectl 最新稳定版本号（dl.k8s.io）..."
+
+msgid ""
+"Cannot fetch the version number (dl.k8s.io is unreachable). Download it "
+"manually: https://kubernetes.io/zh-cn/docs/tasks/tools/"
+msgstr ""
+"无法获取版本号（dl.k8s.io 不可达）。手动下载：https://kubernetes.io/zh-cn/"
+"docs/tasks/tools/"
+
+msgid "kubectl has been uninstalled"
+msgstr "已卸载 kubectl"
+
+msgid "kubectl was not detected via brew"
+msgstr "未通过 brew 检测到 kubectl"
+
+msgid ""
+"Also delete the cluster config ~/.kube (it contains the cluster credentials, "
+"kept by default)?"
+msgstr "是否同时删除集群配置 ~/.kube（含集群凭据，默认保留）？"
+
+msgid "Deleted ~/.kube"
+msgstr "已删除 ~/.kube"
+
+msgid "Kept ~/.kube"
+msgstr "保留 ~/.kube"
+
+msgid "❌ kubectl is not installed"
+msgstr "❌ kubectl 未安装"
+
+msgid "✅ kubectl is installed"
+msgstr "✅ kubectl 已安装"
+
+msgid "— Kubernetes command line client"
+msgstr "—— Kubernetes 命令行客户端"
+
+msgid ""
+"Install the latest stable version (Linux: the official dl.k8s.io binary; "
+"macOS: brew)"
+msgstr "安装最新稳定版（Linux: dl.k8s.io 官方二进制；macOS: brew）"
+
+msgid "Uninstall (the ~/.kube cluster config is kept by default)"
+msgstr "卸载（默认保留 ~/.kube 集群配置）"
+
+msgid "Installation check"
+msgstr "安装检查"
+
+#, sh-printf-format
+msgid "Install directory exists: %s"
+msgstr "安装目录存在: %s"
+
+#, sh-printf-format
+msgid "Install directory does not exist: %s"
+msgstr "安装目录不存在: %s"
+
+msgid "unknown"
+msgstr "未知"
+
+#, sh-printf-format
+msgid "Installed: %s"
+msgstr "已安装: %s"
+
+msgid "Not installed or not executable"
+msgstr "未安装或不可执行"
+
+msgid "Configured correctly"
+msgstr "配置正确"
+
+msgid "does not contain the minikube directory"
+msgstr "中未包含 minikube 目录"
+
+msgid "Please add the following line to your shell configuration file:"
+msgstr "请添加以下行到您的 shell 配置文件："
+
+msgid "System command check:"
+msgstr "系统命令检查："
+
+#, sh-printf-format
+msgid "System kubectl: %s"
+msgstr "系统 kubectl: %s"
+
+msgid "System kubectl is not available"
+msgstr "系统 kubectl 不可用"
+
+#, sh-printf-format
+msgid "System minikube: %s"
+msgstr "系统 minikube: %s"
+
+msgid "System minikube is not available"
+msgstr "系统 minikube 不可用"
+
+msgid "Cluster status check"
+msgstr "集群状态检查"
+
+msgid "Command not available"
+msgstr "命令不可用"
+
+msgid "The cluster is running"
+msgstr "集群正在运行"
+
+msgid "Detailed cluster status:"
+msgstr "集群详细状态："
+
+msgid "Cluster nodes:"
+msgstr "集群节点："
+
+msgid "Cannot get the node information"
+msgstr "无法获取节点信息"
+
+msgid "System pods:"
+msgstr "系统 Pod："
+
+msgid "Cannot get the pod information"
+msgstr "无法获取 Pod 信息"
+
+msgid "The cluster is not running"
+msgstr "集群未运行"
+
+msgid "Start the cluster with the following command:"
+msgstr "使用以下命令启动集群："
+
+#, sh-printf-format
+msgid "Or use: %s/start-minikube.sh"
+msgstr "或使用: %s/start-minikube.sh"
+
+msgid "Dependency check"
+msgstr "依赖检查"
+
+msgid "Installed and running (dependency check)"
+msgstr "已安装且运行中"
+
+msgid "Install the missing dependencies:"
+msgstr "建议安装缺失的依赖项："
+
+msgid "Common commands"
+msgstr "常用命令"
+
+msgid "Cluster management:"
+msgstr "集群管理："
+
+msgid "Start the cluster"
+msgstr "启动集群"
+
+msgid "Stop the cluster"
+msgstr "停止集群"
+
+msgid "Delete the cluster"
+msgstr "删除集群"
+
+msgid "Check the status"
+msgstr "查看状态"
+
+msgid "Open the dashboard"
+msgstr "打开仪表板"
+
+msgid "Switch to a node"
+msgstr "到节点"
+
+msgid "Commands:"
+msgstr "命令："
+
+msgid "List the nodes"
+msgstr "查看节点"
+
+msgid "List the pods"
+msgstr "查看 Pod"
+
+msgid "List the services"
+msgstr "查看服务"
+
+msgid "List the namespaces"
+msgstr "查看命名空间"
+
+msgid "Convenience scripts:"
+msgstr "便捷脚本："
+
+msgid "Start script"
+msgstr "启动脚本"
+
+msgid "Status check"
+msgstr "状态检查"
+
+msgid "Uninstall script"
+msgstr "卸载脚本"
+
+msgid "Environment status check ==="
+msgstr "环境状态检查 ==="
+
+msgid "Check time"
+msgstr "检查时间"
+
+msgid "Check complete"
+msgstr "检查完成"
+
+msgid "Detecting system information..."
+msgstr "检测系统信息..."
+
+msgid "macOS detected"
+msgstr "检测到 macOS 系统"
+
+msgid "Linux detected"
+msgstr "检测到 Linux 系统"
+
+#, sh-printf-format
+msgid "Unsupported operating system: %s"
+msgstr "不支持的操作系统: %s"
+
+#, sh-printf-format
+msgid "Unsupported architecture: %s (uname -m)"
+msgstr "不支持的架构: %s"
+
+#, sh-printf-format
+msgid "System: %s-%s"
+msgstr "系统: %s-%s"
+
+msgid "Checking dependencies..."
+msgstr "检查依赖项..."
+
+#, sh-printf-format
+msgid "Missing dependencies: %s"
+msgstr "缺少依赖项: %s"
+
+msgid "Please install these tools first"
+msgstr "请先安装这些工具"
+
+msgid "On macOS you can install them with Homebrew:"
+msgstr "在 macOS 上，您可以使用 Homebrew 安装："
+
+msgid "On Linux you can install them with the package manager:"
+msgstr "在 Linux 上，您可以使用包管理器安装："
+
+#, sh-printf-format
+msgid "Or: sudo yum install -y %s"
+msgstr "或者: sudo yum install -y %s"
+
+msgid "All dependencies are installed"
+msgstr "所有依赖项都已安装"
+
+msgid "Fetching the latest version information..."
+msgstr "获取最新版本信息..."
+
+msgid "Cannot get the latest kubectl version, using the default v1.28.0"
+msgstr "无法获取 kubectl 最新版本，使用默认版本 v1.28.0"
+
+msgid "Cannot get the latest minikube version, using the default v1.32.0"
+msgstr "无法获取 minikube 最新版本，使用默认版本 v1.32.0"
+
+#, sh-printf-format
+msgid "kubectl version: %s"
+msgstr "版本: %s"
+
+#, sh-printf-format
+msgid "minikube version: %s"
+msgstr "版本: %s"
+
+msgid "Creating the install directory..."
+msgstr "创建安装目录..."
+
+#, sh-printf-format
+msgid "Install directory created: %s"
+msgstr "安装目录已创建: %s"
+
+msgid "Installing kubectl"
+msgstr "安装 kubectl"
+
+#, sh-printf-format
+msgid "Downloading kubectl %s..."
+msgstr "下载 kubectl %s..."
+
+msgid "Installed successfully"
+msgstr "安装成功"
+
+msgid "Installing minikube"
+msgstr "安装 minikube"
+
+#, sh-printf-format
+msgid "Downloading minikube %s..."
+msgstr "下载 minikube %s..."
+
+#, sh-printf-format
+msgid "Suggested driver: %s (override it with the --driver option)"
+msgstr "建议的驱动: %s (可使用 --driver 参数覆盖)"
+
+msgid "Configuring environment variables"
+msgstr "配置环境变量"
+
+#, sh-printf-format
+msgid "Adding %s/bin to PATH..."
+msgstr "添加 %s/bin 到 PATH..."
+
+msgid "and the kubectl path"
+msgstr "和 kubectl 路径"
+
+#, sh-printf-format
+msgid "Environment variables added to %s"
+msgstr "环境变量已添加到 %s"
+
+#, sh-printf-format
+msgid "Run source %s or reopen the terminal to apply"
+msgstr "请运行 'source %s' 或重新打开终端以生效"
+
+msgid "already contains the minikube install directory"
+msgstr "中已包含 minikube 安装目录"
+
+msgid "Creating the start script"
+msgstr "创建启动脚本"
+
+msgid "minikube is already running"
+msgstr "minikube 已在运行中"
+
+msgid "Starting minikube..."
+msgstr "启动 minikube..."
+
+msgid "minikube started successfully!"
+msgstr "minikube 启动成功！"
+
+msgid "Cluster status:"
+msgstr "集群状态："
+
+msgid "Open the Kubernetes dashboard"
+msgstr "打开 Kubernetes 仪表板"
+
+msgid "Failed to start minikube"
+msgstr "minikube 启动失败"
+
+#, sh-printf-format
+msgid "Start script created: %s/start-minikube.sh"
+msgstr "启动脚本已创建: %s/start-minikube.sh"
+
+msgid "Creating the status check script"
+msgstr "创建状态检查脚本"
+
+msgid "development environment status"
+msgstr "开发环境状态"
+
+msgid "Checking kubectl..."
+msgstr "检查 kubectl..."
+
+msgid "Checking minikube..."
+msgstr "检查 minikube..."
+
+msgid "Cannot connect to the cluster"
+msgstr "无法连接到集群"
+
+msgid "Use minikube start to launch the cluster"
+msgstr "使用 'minikube start' 启动集群"
+
+msgid "Checking Docker..."
+msgstr "检查 Docker..."
+
+msgid "(running)"
+msgstr "(运行中)"
+
+msgid "Not installed (minikube may need another driver)"
+msgstr "未安装 (minikube 可能需要其他驱动)"
+
+#, sh-printf-format
+msgid "Status check script created: %s/check-status.sh"
+msgstr "状态检查脚本已创建: %s/check-status.sh"
+
+msgid "Creating the uninstall script"
+msgstr "创建卸载脚本"
+
+msgid "uninstall tool"
+msgstr "卸载工具"
+
+msgid "This will completely remove the minikube and kubectl installation"
+msgstr "这将完全删除 minikube 和 kubectl 安装"
+
+msgid "Are you sure you want to continue? (y/N):"
+msgstr "确定要继续吗？ (y/N):"
+
+msgid "Uninstall cancelled"
+msgstr "取消卸载"
+
+msgid "Stopping and deleting the minikube cluster..."
+msgstr "停止并删除 minikube 集群..."
+
+msgid "cluster deleted"
+msgstr "集群已删除"
+
+msgid "Deleting the install directory..."
+msgstr "删除安装目录..."
+
+msgid "Install directory deleted"
+msgstr "安装目录已删除"
+
+msgid "Please remove the PATH configuration from the following files manually:"
+msgstr "请手动从以下文件中删除 PATH 配置："
+
+msgid "Remove this line:"
+msgstr "删除这一行："
+
+msgid "uninstall complete"
+msgstr "卸载完成"
+
+#, sh-printf-format
+msgid "Uninstall script created: %s/uninstall.sh"
+msgstr "卸载脚本已创建: %s/uninstall.sh"
+
+msgid "Verifying the installation"
+msgstr "验证安装"
+
+msgid "Verification failed"
+msgstr "验证失败"
+
+msgid "All components verified"
+msgstr "所有组件验证通过"
+
+#, sh-printf-format
+msgid "and kubectl have been installed to: %s"
+msgstr "和 kubectl 已成功安装到: %s"
+
+msgid "What to do next:"
+msgstr "接下来的步骤："
+
+msgid "Reload the environment variables:"
+msgstr "重新加载环境变量："
+
+msgid "Start minikube:"
+msgstr "启动 minikube："
+
+msgid "Or: minikube start"
+msgstr "或者: minikube start"
+
+msgid "Check the status:"
+msgstr "检查状态："
+
+msgid "Check the cluster status"
+msgstr "查看集群状态"
+
+msgid "Uninstall (if needed):"
+msgstr "卸载 (如需要):"
+
+msgid "install tool"
+msgstr "安装工具"
+
+msgid "This tool installs a Kubernetes development environment for you"
+msgstr "此工具将为您安装 Kubernetes 开发环境"
+
+msgid "Installed and configured"
+msgstr "已安装并配置"
+
+msgid "Installed but PATH is not configured"
+msgstr "已安装但 PATH 未配置"
+
+#, sh-printf-format
+msgid "Uninstall script not found (%s), it may not be installed yet."
+msgstr "未找到卸载脚本（%s），可能尚未安装。"
+
+#, sh-printf-format
+msgid "Removed %s/.tools/minikube"
+msgstr "已删除 %s/.tools/minikube"
+
+msgid "Install minikube + kubectl (default action)"
+msgstr "安装 minikube + kubectl（默认动作）"
+
+msgid "Uninstall minikube"
+msgstr "卸载 minikube"
+
+msgid "Show the installation and running status"
+msgstr "查看安装与运行状态"
+
+msgid "Options (install only):"
+msgstr "选项（仅 install）:"
+
+msgid "Non-interactive mode"
+msgstr "非交互模式"
+
+msgid "Driver>       minikube driver (docker/hyperkit/kvm2, default auto)"
+msgstr "驱动>       指定 minikube 驱动（docker/hyperkit/kvm2 等，默认 auto）"
+
+msgid "Starting the minikube smoke test..."
+msgstr "开始 minikube smoke test..."
+
+msgid "Checking minikube status..."
+msgstr "检查 minikube status..."
+
+msgid "Running"
+msgstr "正在运行"
+
+msgid "Trying to start minikube with a temporary config (timeout 60s)..."
+msgstr "尝试以临时配置启动 minikube（超时 60s）..."
+
+msgid "Started successfully and responding"
+msgstr "成功启动并响应"
+
+msgid "Failed to start within 60s, see /tmp/minikube_smoke.log for the log"
+msgstr "在 60s 内未能启动，查看 /tmp/minikube_smoke.log 获取日志"
+
+#, sh-printf-format
+msgid "Architecture %s has no prebuilt package"
+msgstr "架构 %s 无预编译包"
+
+msgid ""
+"⚡ Install the modern CLI toolset (bat/eza/rg/fd/fzf/zoxide/starship/tldr/"
+"direnv)"
+msgstr ""
+"⚡ 安装现代 CLI 工具集（bat/eza/rg/fd/fzf/zoxide/starship/tldr/direnv）"
+
+#, sh-printf-format
+msgid "Installing via the official script (target version: %s)..."
+msgstr "通过官方脚本安装（目标版本：%s）..."
+
+#, sh-printf-format
+msgid "✅ starship (script, %s)"
+msgstr "✅ starship (脚本, %s)"
+
+msgid "⚠️ starship installation failed"
+msgstr "⚠️ starship 安装失败"
+
+#, sh-printf-format
+msgid ""
+"⚠️ %s is not available in the repository (install it manually from https://"
+"github.com/eza-community/eza)"
+msgstr "⚠️ %s 不在仓库（可从 https://github.com/eza-community/eza 手动装）"
+
+msgid "✅ tealdeer (official binary)"
+msgstr "✅ tealdeer (官方二进制)"
+
+msgid "⚠️ tealdeer installation failed (try cargo install tealdeer)"
+msgstr "⚠️ tealdeer 安装失败（可 cargo install tealdeer）"
+
+#, sh-printf-format
+msgid "⚠️ %s installation failed"
+msgstr "⚠️ %s 安装失败"
+
+msgid "Cache updated"
+msgstr "缓存已更新"
+
+msgid "Cache update failed (run tldr --update later)"
+msgstr "缓存更新失败（可稍后 tldr --update）"
+
+msgid "🎉 Modern CLI toolset installation complete!"
+msgstr "🎉 现代 CLI 工具集安装完成！"
+
+msgid "Reload your shell to apply: source ~/.bashrc (or ~/.zshrc)"
+msgstr "重新加载 shell 后生效：source ~/.bashrc（或 ~/.zshrc）"
+
+msgid "replaces cat (syntax highlighting)"
+msgstr "替代 cat（语法高亮）"
+
+msgid "replaces ls (colors + icons + git)"
+msgstr "替代 ls（彩色+图标+git）"
+
+msgid "replaces grep (much faster)"
+msgstr "替代 grep（超快）"
+
+msgid "replaces find"
+msgstr "替代 find"
+
+msgid "search command history"
+msgstr "搜历史命令"
+
+msgid "jump to a directory"
+msgstr "跳转目录"
+
+msgid "Configuring shell integration (aliases + fzf + zoxide + starship)..."
+msgstr "配置 shell 集成（别名 + fzf + zoxide + starship）..."
+
+msgid "modern CLI tool aliases"
+msgstr "现代 CLI 工具别名"
+
+msgid "fzf integration"
+msgstr "集成"
+
+msgid "starship prompt"
+msgstr "提示符"
+
+#, sh-printf-format
+msgid "Added the modern CLI integration for %s"
+msgstr "已为 %s 添加现代 CLI 集成"
+
+msgid "(loads .envrc automatically when entering a directory)"
+msgstr "（进目录自动加载 .envrc）"
+
+#, sh-printf-format
+msgid "Added the direnv integration for %s"
+msgstr "已为 %s 添加 direnv 集成"
+
+msgid "Generated the default starship config ~/.config/starship.toml"
+msgstr "已生成 starship 默认配置 ~/.config/starship.toml"
+
+msgid ""
+"Tools:    brew uninstall bat eza ripgrep fd fzf zoxide starship tealdeer "
+"direnv"
+msgstr ""
+"工具:    brew uninstall bat eza ripgrep fd fzf zoxide starship tealdeer "
+"direnv"
+
+msgid ""
+"or sudo <pkgmgr> remove bat eza ripgrep fd fzf zoxide starship tealdeer "
+"direnv"
+msgstr "或 sudo <pkgmgr> remove bat eza ripgrep fd fzf zoxide tealdeer direnv"
+
+msgid ""
+"delete from the rc file the lines between the # >>> unix_script modern-cli "
+">>> marker block and"
+msgstr "删除 rc 文件中 '# >>> unix_script modern-cli >>>' 与"
+
+msgid "the # >>> unix_script modern-cli extras >>> marker block"
+msgstr "标记块之间的行"
+
+msgid "Cache:    rm -rf ~/.cache/tealdeer"
+msgstr "缓存:    rm -rf ~/.cache/tealdeer"
+
+msgid "Config:    rm ~/.config/starship.toml"
+msgstr "配置:    rm ~/.config/starship.toml"
+
+#, sh-printf-format
+msgid "✅ All installed (%s/%s)"
+msgstr "✅ 全部已安装（%s/%s）"
+
+#, sh-printf-format
+msgid "⚠️ Partially installed (%s/%s)"
+msgstr "⚠️  部分已安装（%s/%s）"
+
+msgid ""
+"Install the modern CLI toolset (bat/eza/rg/fd/fzf/zoxide/starship/tldr/"
+"direnv)"
+msgstr "安装现代 CLI 工具集（bat/eza/rg/fd/fzf/zoxide/starship/tldr/direnv）"
+
+msgid "Show the status"
+msgstr "查看状态"
+
+#, sh-printf-format
+msgid "Unregistered font: %s (available: %s)"
+msgstr "未登记的字体: %s（可用: %s）"
+
+msgid ""
+"This machine is a remote/headless environment — the font is rendered by your "
+"local terminal machine, there is no need to install it here"
+msgstr "当前机器是远程/无头环境——字体由你本地终端机渲染，此处无需安装。"
+
+msgid "Run it on your local terminal machine: ./install.sh nerd-font"
+msgstr "请在本地终端机执行: ./install.sh nerd-font"
+
+msgid "Cannot get the nerd-fonts version"
+msgstr "无法获取 nerd-fonts 版本"
+
+#, sh-printf-format
+msgid "⚠️ %s download failed"
+msgstr "⚠️ %s 下载失败"
+
+msgid ""
+"🎉 Nerd Font installation complete (remember to select a Nerd Font in your "
+"terminal emulator settings)"
+msgstr "🎉 Nerd Font 安装完成（记得在终端模拟器设置里选择 Nerd Font 字体）"
+
+#, sh-printf-format
+msgid "Uninstalled: %s"
+msgstr "已卸载: %s"
+
+msgid "✅ Installed:"
+msgstr "✅ 已安装:"
+
+#, sh-printf-format
+msgid "⚠️ Partially installed: %s"
+msgstr "⚠️ 部分已安装: %s"
+
+msgid ""
+"Install Nerd Font (default JetBrainsMono; "
+"UXS_CONFIG_FONTS=\"JetBrainsMono,FiraCode\" can be specified)"
+msgstr ""
+"安装 Nerd Font（默认 JetBrainsMono；"
+"UXS_CONFIG_FONTS=\"JetBrainsMono,FiraCode\" 可指定）"
+
+msgid "List the installable fonts"
+msgstr "列出可安装字体"
+
+msgid "📦 Installing pnpm (the Node.js package manager)"
+msgstr "📦 安装 pnpm（Node.js 包管理器）"
+
+#, sh-printf-format
+msgid "Detected that pnpm is already installed (%s)"
+msgstr "检测到已安装 pnpm（%s）"
+
+msgid "Installing pnpm via Homebrew..."
+msgstr "通过 Homebrew 安装 pnpm..."
+
+#, sh-printf-format
+msgid "Installing via the official standalone script (%s)..."
+msgstr "通过官方独立脚本安装（%s）..."
+
+msgid ""
+"The official installation script failed, see https://pnpm.io/installation"
+msgstr "官方安装脚本执行失败，请参考 https://pnpm.io/installation"
+
+#, sh-printf-format
+msgid "Installed to %s/pnpm, but it is not in the current PATH"
+msgstr "已装到 %s/pnpm，但不在当前 PATH"
+
+#, sh-format, sh-printf-format
+msgid "Add it to your shell configuration: export PATH=\"%s:$PATH\""
+msgstr "请添加到 shell 配置：export PATH=\"%s:$PATH\""
+
+msgid "🎉 pnpm installation complete!"
+msgstr "🎉 pnpm 安装完成！"
+
+msgid "Install dependencies"
+msgstr "安装依赖"
+
+msgid "Run a script"
+msgstr "运行脚本"
+
+msgid "package name>       # Add a dependency"
+msgstr "包名>       # 添加依赖"
+
+msgid "No pnpm installation found"
+msgstr "未找到 pnpm 安装"
+
+msgid "Install pnpm (default action)"
+msgstr "安装 pnpm（默认动作）"
+
+msgid "🦀 Installing Rust (via rustup)"
+msgstr "🦀 安装 Rust（通过 rustup）"
+
+#, sh-printf-format
+msgid "Detected that Rust is already installed (%s)"
+msgstr "检测到已安装 Rust（%s）"
+
+msgid "Continue and update it?"
+msgstr "是否继续并更新？"
+
+msgid "Updating via rustup..."
+msgstr "通过 rustup 更新..."
+
+msgid "Updated"
+msgstr "已更新"
+
+msgid "Installing rustup via Homebrew..."
+msgstr "通过 Homebrew 安装 rustup..."
+
+#, sh-printf-format
+msgid "Installing via the official rustup script (%s)..."
+msgstr "通过官方 rustup 安装（%s）..."
+
+msgid "The installation failed, check the network or see https://rustup.rs"
+msgstr "安装失败，请检查网络或参考 https://rustup.rs"
+
+#, sh-printf-format
+msgid "Installed to %s/bin, but it is not in the current PATH"
+msgstr "已装到 %s/bin，但不在当前 PATH"
+
+msgid "Or reload the shell: source ~/.cargo/env"
+msgstr "或重新加载 shell：source ~/.cargo/env"
+
+msgid "🎉 Rust installation complete!"
+msgstr "🎉 Rust 安装完成！"
+
+msgid "Create a new project"
+msgstr "创建新项目"
+
+msgid "Compile"
+msgstr "编译"
+
+msgid "Test"
+msgstr "测试"
+
+msgid "Add the LSP"
+msgstr "添加 LSP"
+
+msgid ""
+"Take effect after reloading the shell: source ~/.cargo/env (or source "
+"~/.bashrc / ~/.zshrc)"
+msgstr ""
+"重新加载 shell 后生效：source ~/.cargo/env（或 source ~/.bashrc / ~/.zshrc）"
+
+msgid "Docs: https://rustup.rs / https://doc.rust-lang.org"
+msgstr "文档：https://rustup.rs / https://doc.rust-lang.org"
+
+msgid "Rust is not installed (rustup)"
+msgstr "未安装 Rust（rustup）"
+
+msgid "Confirm uninstalling Rust (deleting ~/.rustup + ~/.cargo)?"
+msgstr "确认卸载 Rust（删除 ~/.rustup + ~/.cargo）？"
+
+msgid "Uninstalled via rustup"
+msgstr "已通过 rustup 卸载"
+
+msgid "Uninstalled (~/.rustup + ~/.cargo deleted)"
+msgstr "已卸载（~/.rustup + ~/.cargo 已删除）"
+
+msgid "Install Rust (via rustup, default action)"
+msgstr "安装 Rust（通过 rustup，默认动作）"
+
+msgid "Uninstall (deleting ~/.rustup + ~/.cargo)"
+msgstr "卸载（删除 ~/.rustup + ~/.cargo）"
+
+msgid "the core"
+msgstr "本体"
+
+msgid "modern CLI toolset"
+msgstr "现代 CLI 工具集"
+
+msgid "the font"
+msgstr "字体"
+
+msgid "the history"
+msgstr "历史"
+
+#, sh-printf-format
+msgid "⏭ skipped (UXS_CONFIG_EXCLUDE): %s"
+msgstr "⏭ 跳过（UXS_CONFIG_EXCLUDE）: %s"
+
+#, sh-printf-format
+msgid "✅ ready: %s"
+msgstr "✅ 已就绪: %s"
+
+#, sh-printf-format
+msgid "🔧 installing: %s ..."
+msgstr "🔧 安装: %s ..."
+
+msgid "the core installation failed"
+msgstr "本体安装失败"
+
+#, sh-printf-format
+msgid "⚠️ %s installation failed (continue with the remaining steps)"
+msgstr "⚠️ %s 安装失败（继续后续环节）"
+
+msgid ""
+"🎉 the terminal suite is complete! Open a new terminal or run exec zsh to "
+"take effect"
+msgstr "🎉 终端全家桶完成！新开终端或 exec zsh 生效"
+
+msgid "step status:"
+msgstr "环节状态："
+
+msgid "⏭ skipped"
+msgstr "⏭ 跳过"
+
+#, sh-printf-format
+msgid "✅ the whole terminal suite is ready (%s/%s)"
+msgstr "✅ 终端全家桶全部就绪（%s/%s）"
+
+#, sh-printf-format
+msgid "⚠️ partially ready (%s/%s)"
+msgstr "⚠️ 部分就绪（%s/%s）"
+
+msgid "❌ not configured"
+msgstr "❌ 未配置"
+
+msgid ""
+"This is an orchestration module and has no standalone uninstall; please "
+"uninstall the sub-modules one by one:"
+msgstr "为编排模块，无独立卸载；请逐个子模块 uninstall："
+
+msgid ""
+"cleanup: delete the marker blocks marked with # >>> unix_script <module> >>>"
+msgstr "清理: 删除各 '# >>> unix_script <模块> >>>' 标记块"
+
+msgid ""
+"one-click terminal suite (zsh → zsh_setup → modern-cli → nerd-font → atuin)"
+msgstr "一键终端全家桶（zsh → zsh_setup → modern-cli → nerd-font → atuin）"
+
+msgid "framework choice (passed through to zsh_setup)"
+msgstr "框架选择（透传 zsh_setup）"
+
+msgid "theme (passed through to zsh_setup)"
+msgstr "主题（透传 zsh_setup）"
+
+msgid "font list (passed through to nerd-font)"
+msgstr "字体清单（透传 nerd-font）"
+
+msgid "sync switch (passed through to atuin)"
+msgstr "同步开关（透传 atuin）"
+
+msgid "exclude steps"
+msgstr "裁剪环节"
+
+msgid "view the ready status of each step"
+msgstr "查看各环节就绪状态"
+
+msgid "Oh My Zsh is already installed"
+msgstr "Oh My Zsh 已安装"
+
+msgid "Installing Oh My Zsh..."
+msgstr "正在安装 Oh My Zsh..."
+
+msgid "Failed to install Oh My Zsh"
+msgstr "Oh My Zsh 安装失败"
+
+msgid "Oh My Zsh installed successfully"
+msgstr "Oh My Zsh 安装成功"
+
+msgid "Oh My Zsh is not installed"
+msgstr "Oh My Zsh 未安装"
+
+msgid "Uninstall Oh My Zsh?"
+msgstr "确定要卸载 Oh My Zsh 吗？"
+
+msgid "Uninstalling Oh My Zsh..."
+msgstr "正在卸载 Oh My Zsh..."
+
+msgid "Oh My Zsh uninstalled"
+msgstr "Oh My Zsh 已卸载"
+
+msgid "Oh My Zsh: not installed"
+msgstr "Oh My Zsh: 未安装"
+
+msgid "Oh My Zsh: installed"
+msgstr "Oh My Zsh: 已安装"
+
+msgid "Theme:"
+msgstr "主题:"
+
+msgid "not set"
+msgstr "未设置"
+
+msgid "Plugins:"
+msgstr "插件:"
+
+msgid "Built-in plugins:"
+msgstr "内置插件:"
+
+msgid "Custom plugins:"
+msgstr "自定义插件:"
+
+msgid "Please specify a plugin name"
+msgstr "请指定插件名称"
+
+#, sh-printf-format
+msgid "Plugin %s is already installed"
+msgstr "插件 %s 已安装"
+
+#, sh-printf-format
+msgid "Installing plugin %s..."
+msgstr "正在安装插件 %s..."
+
+#, sh-printf-format
+msgid "Plugin %s installed successfully"
+msgstr "插件 %s 安装成功"
+
+#, sh-printf-format
+msgid "Add %s to the plugins array in .zshrc"
+msgstr "请在 .zshrc 的 plugins 数组中添加 %s"
+
+#, sh-printf-format
+msgid "Failed to install plugin %s"
+msgstr "插件 %s 安装失败"
+
+#, sh-printf-format
+msgid "Plugin %s is not installed"
+msgstr "插件 %s 未安装"
+
+#, sh-printf-format
+msgid "Uninstall plugin %s?"
+msgstr "确定要卸载插件 %s 吗？"
+
+#, sh-printf-format
+msgid "Plugin %s uninstalled"
+msgstr "插件 %s 已卸载"
+
+#, sh-printf-format
+msgid "Remove %s from the plugins array in .zshrc"
+msgstr "请从 .zshrc 的 plugins 数组中移除 %s"
+
+msgid "Prezto is already installed"
+msgstr "Prezto 已安装"
+
+msgid "Installing Prezto..."
+msgstr "正在安装 Prezto..."
+
+msgid "Failed to install Prezto"
+msgstr "Prezto 安装失败"
+
+msgid "Prezto installed successfully"
+msgstr "Prezto 安装成功"
+
+msgid "Prezto is not installed"
+msgstr "Prezto 未安装"
+
+msgid "Uninstall Prezto?"
+msgstr "确定要卸载 Prezto 吗？"
+
+msgid "Uninstalling Prezto..."
+msgstr "正在卸载 Prezto..."
+
+msgid "Prezto uninstalled"
+msgstr "Prezto 已卸载"
+
+msgid "Prezto: not installed"
+msgstr "Prezto: 未安装"
+
+msgid "Prezto: installed"
+msgstr "Prezto: 已安装"
+
+msgid "Modules:"
+msgstr "模块:"
+
+msgid "Built-in modules:"
+msgstr "内置模块:"
+
+msgid "External modules:"
+msgstr "外部模块:"
+
+msgid "Please specify a module name"
+msgstr "请指定模块名称"
+
+msgid ".zpreztorc file not found"
+msgstr "未找到 .zpreztorc 文件"
+
+#, sh-printf-format
+msgid "Module %s is already enabled"
+msgstr "模块 %s 已启用"
+
+#, sh-printf-format
+msgid "Module %s enabled"
+msgstr "模块 %s 已启用"
+
+#, sh-printf-format
+msgid "Module %s disabled"
+msgstr "模块 %s 已禁用"
+
+msgid "sheldon is already installed"
+msgstr "sheldon 已安装"
+
+msgid "Installing sheldon..."
+msgstr "正在安装 sheldon..."
+
+msgid "Failed to install sheldon"
+msgstr "sheldon 安装失败"
+
+msgid "sheldon installed successfully"
+msgstr "sheldon 安装成功"
+
+msgid "sheldon is not installed"
+msgstr "sheldon 未安装"
+
+msgid "Uninstall sheldon?"
+msgstr "确定要卸载 sheldon 吗？"
+
+msgid "Uninstalling sheldon..."
+msgstr "正在卸载 sheldon..."
+
+msgid "sheldon uninstalled"
+msgstr "sheldon 已卸载"
+
+msgid "sheldon: not installed"
+msgstr "sheldon: 未安装"
+
+msgid "sheldon: installed"
+msgstr "sheldon: 已安装"
+
+msgid "sheldon config file not found"
+msgstr "未找到 sheldon 配置文件"
+
+msgid "Please specify the plugin repo (format: user/repo)"
+msgstr "请指定插件仓库 (格式: user/repo)"
+
+#, sh-printf-format
+msgid "Plugin %s already exists"
+msgstr "插件 %s 已存在"
+
+#, sh-printf-format
+msgid "Plugin %s added"
+msgstr "插件 %s 已添加"
+
+#, sh-printf-format
+msgid "Plugin %s removed"
+msgstr "插件 %s 已移除"
+
+msgid "Zinit is already installed"
+msgstr "Zinit 已安装"
+
+msgid "Installing Zinit..."
+msgstr "正在安装 Zinit..."
+
+msgid "Failed to install Zinit"
+msgstr "Zinit 安装失败"
+
+msgid "Zinit installed successfully"
+msgstr "Zinit 安装成功"
+
+msgid "Zinit is not installed"
+msgstr "Zinit 未安装"
+
+msgid "Uninstall Zinit?"
+msgstr "确定要卸载 Zinit 吗？"
+
+msgid "Uninstalling Zinit..."
+msgstr "正在卸载 Zinit..."
+
+msgid "Zinit uninstalled"
+msgstr "Zinit 已卸载"
+
+msgid "Zinit: not installed"
+msgstr "Zinit: 未安装"
+
+msgid "Zinit: installed"
+msgstr "Zinit: 已安装"
+
+msgid ".zshrc file not found"
+msgstr "未找到 .zshrc 文件"
+
+msgid "Run source ~/.zshrc or restart the terminal to load plugins"
+msgstr "请运行 'source ~/.zshrc' 或重启终端以加载插件"
+
+msgid "Zsh environment configuration tool"
+msgstr "Zsh 环境配置管理工具"
+
+msgid "Commands (zsh setup):"
+msgstr "命令:"
+
+msgid "framework management"
+msgstr "框架管理"
+
+msgid "install a given framework (oh-my-zsh, prezto, zinit, sheldon)"
+msgstr "安装指定框架 (oh-my-zsh, prezto, zinit, sheldon)"
+
+msgid "interactively select a framework"
+msgstr "交互式选择框架"
+
+msgid "plugin management"
+msgstr "插件管理"
+
+msgid "list installed plugins"
+msgstr "列出已安装插件"
+
+msgid "add a plugin"
+msgstr "添加插件"
+
+msgid "remove a plugin"
+msgstr "移除插件"
+
+msgid "sync plugin updates"
+msgstr "同步插件更新"
+
+msgid "theme management"
+msgstr "主题管理"
+
+msgid "list available themes"
+msgstr "列出可用主题"
+
+msgid "set the theme"
+msgstr "设置主题"
+
+msgid "install Powerlevel10k"
+msgstr "安装 Powerlevel10k"
+
+msgid "config management"
+msgstr "配置管理"
+
+msgid "back up the config"
+msgstr "备份配置"
+
+msgid "restore the config"
+msgstr "恢复配置"
+
+msgid "export the config"
+msgstr "导出配置"
+
+msgid "import the config"
+msgstr "导入配置"
+
+msgid "view status (--json prints JSON)"
+msgstr "查看状态 (--json 输出 JSON 格式)"
+
+msgid "show help information"
+msgstr "显示帮助信息"
+
+msgid "show the version"
+msgstr "显示版本"
+
+msgid "# install Oh My Zsh"
+msgstr "# 安装 Oh My Zsh"
+
+msgid "# install Powerlevel10k"
+msgstr "# 安装 Powerlevel10k"
+
+msgid "# back up the config"
+msgstr "# 备份配置"
+
+msgid "# view status"
+msgstr "# 查看状态"
+
+msgid "# view status (JSON format)"
+msgstr "# 查看状态 (JSON 格式)"
+
+msgid "Zsh environment status:"
+msgstr "Zsh 环境状态:"
+
+msgid "Zsh: installed"
+msgstr "Zsh: 已安装"
+
+msgid "Zsh: not installed"
+msgstr "Zsh: 未安装"
+
+msgid "Current theme:"
+msgstr "当前主题:"
+
+#, sh-printf-format
+msgid "Config backups: %s"
+msgstr "配置备份: %s 个"
+
+msgid "Config backups: none"
+msgstr "配置备份: 无"
+
+msgid "Uninstalling zsh_setup..."
+msgstr "卸载 zsh_setup..."
+
+msgid "Framework uninstall did not fully succeed (see the output above)"
+msgstr "框架卸载未完全成功（详见上文输出）"
+
+#, sh-printf-format
+msgid "Removed config directory: %s"
+msgstr "已移除配置目录：%s"
+
+#, sh-printf-format
+msgid "Config directory not found: %s (nothing to clean up)"
+msgstr "未发现配置目录：%s（无需清理）"
+
+msgid "To fully restore zsh, check ~/.zshrc for leftover config lines"
+msgstr "如需彻底还原 zsh 环境，请手动检查 ~/.zshrc 是否有残留配置行"
+
+msgid "Installing zsh..."
+msgstr "安装 zsh 本体..."
+
+msgid "Failed to install zsh (install zsh manually and retry)"
+msgstr "zsh 本体安装失败（请手动安装 zsh 后重试）"
+
+#, sh-printf-format
+msgid "Plugin already exists: %s"
+msgstr "插件已存在: %s"
+
+#, sh-printf-format
+msgid "Plugin install failed: %s (retry later with plugin add %s)"
+msgstr "插件安装失败: %s（可稍后 plugin add %s 重试）"
+
+#, sh-printf-format
+msgid "For framework %s, add basic plugins with: %s plugin add <name>"
+msgstr "框架 %s 的基础插件请用: %s plugin add <name> 自行添加"
+
+#, sh-printf-format
+msgid "🎉 zsh_setup default install complete (framework: %s)"
+msgstr "🎉 zsh_setup 默认安装完成（框架: %s）"
+
+msgid "New terminal or exec zsh to apply"
+msgstr "新开终端或执行 exec zsh 生效"
+
+#, sh-printf-format
+msgid "Unknown command: plugin %s"
+msgstr "未知命令: plugin %s"
+
+#, sh-printf-format
+msgid "Unknown command: theme %s"
+msgstr "未知命令: theme %s"
+
+#, sh-printf-format
+msgid "Unknown command: config %s"
+msgstr "未知命令: config %s"
+
+#, sh-printf-format
+msgid "Unknown command: %s"
+msgstr "未知命令: %s"
+
+msgid "Backing up the config..."
+msgstr "正在备份配置..."
+
+msgid "No config files found to back up"
+msgstr "没有找到需要备份的配置文件"
+
+#, sh-printf-format
+msgid "Config backed up to: %s"
+msgstr "配置已备份到: %s"
+
+msgid "Backup failed"
+msgstr "备份失败"
+
+msgid "No backup files found"
+msgstr "没有找到备份文件"
+
+msgid "Available backups:"
+msgstr "可用备份:"
+
+#, sh-printf-format
+msgid "Select a backup (1-%s): "
+msgstr "请选择备份 (1-%s): "
+
+msgid "Invalid selection"
+msgstr "无效选择"
+
+#, sh-printf-format
+msgid "Restore the config from %s?"
+msgstr "确定要从 %s 恢复配置吗？"
+
+msgid "Restore cancelled"
+msgstr "取消恢复"
+
+msgid "Restoring the config..."
+msgstr "正在恢复配置..."
+
+msgid "Config restored"
+msgstr "配置已恢复"
+
+msgid "Restore failed"
+msgstr "恢复失败"
+
+msgid "Exporting the config..."
+msgstr "正在导出配置..."
+
+#, sh-printf-format
+msgid "Config exported to: %s"
+msgstr "配置已导出到: %s"
+
+msgid "Please specify a file to import"
+msgstr "请指定导入文件"
+
+#, sh-printf-format
+msgid "File does not exist: %s"
+msgstr "文件不存在: %s"
+
+msgid "Importing the config..."
+msgstr "正在导入配置..."
+
+msgid "jq is not installed, skipping JSON validation"
+msgstr "未安装 jq，跳过 JSON 验证"
+
+msgid "Invalid JSON format"
+msgstr "无效的 JSON 格式"
+
+msgid "Import is a placeholder: file validated and config backed up"
+msgstr "导入功能暂为占位实现，已完成文件验证和当前配置备份"
+
+msgid "Import is a placeholder implementation"
+msgstr "导入功能暂为占位实现"
+
+msgid "Adjust the config manually as needed"
+msgstr "请根据需要手动调整配置"
+
+#, sh-printf-format
+msgid "Framework adapter not found: %s"
+msgstr "未找到框架适配器: %s"
+
+msgid "Please specify a framework name"
+msgstr "请指定框架名称"
+
+#, sh-printf-format
+msgid "Installing %s..."
+msgstr "正在安装 %s..."
+
+#, sh-printf-format
+msgid "%s installed successfully"
+msgstr "%s 安装成功"
+
+#, sh-printf-format
+msgid "%s failed to install"
+msgstr "%s 安装失败"
+
+msgid "No installed framework detected"
+msgstr "未检测到已安装的框架"
+
+#, sh-printf-format
+msgid "Uninstalling %s..."
+msgstr "正在卸载 %s..."
+
+#, sh-printf-format
+msgid "%s uninstalled successfully"
+msgstr "%s 卸载成功"
+
+#, sh-printf-format
+msgid "%s failed to uninstall"
+msgstr "%s 卸载失败"
+
+msgid "No framework installed"
+msgstr "未安装框架"
+
+msgid "Available commands (framework):"
+msgstr "可用命令:"
+
+msgid "uninstall the current framework"
+msgstr "卸载当前框架"
+
+msgid "show the current framework status"
+msgstr "显示当前框架状态"
+
+msgid "list the plugins of the current framework"
+msgstr "列出当前框架的插件"
+
+msgid "interactively select and install a framework"
+msgstr "交互式选择并安装框架"
+
+msgid "show this help information"
+msgstr "显示此帮助信息"
+
+msgid "Available Zsh frameworks:"
+msgstr "可用的 Zsh 框架:"
+
+msgid "most popular, rich plugin ecosystem"
+msgstr "最流行，插件丰富"
+
+msgid "lightweight and modular"
+msgstr "轻量级，模块化"
+
+msgid "top performance, async loading"
+msgstr "性能极佳，异步加载"
+
+msgid "modern, written in Rust"
+msgstr "现代化，Rust 编写"
+
+msgid "Select a framework (1-4): "
+msgstr "请选择框架 (1-4): "
+
+#, sh-printf-format
+msgid "Current framework: %s"
+msgstr "当前框架: %s"
+
+msgid "Common plugins:"
+msgstr "常用插件:"
+
+msgid "No framework installed, please install a framework first"
+msgstr "未安装框架，请先安装框架"
+
+#, sh-printf-format
+msgid "Syncing %s plugins..."
+msgstr "正在同步 %s 插件..."
+
+msgid "sheldon plugins will be updated on the next load"
+msgstr "sheldon 插件将在下次加载时更新"
+
+msgid "Plugin sync finished, but some repositories failed to update"
+msgstr "插件同步完成，但部分仓库更新失败"
+
+msgid "Plugin sync complete"
+msgstr "插件同步完成"
+
+msgid "Available themes:"
+msgstr "可用主题:"
+
+msgid "Custom themes:"
+msgstr "自定义主题:"
+
+msgid "Common themes:"
+msgstr "常用主题:"
+
+msgid "Please specify a theme name"
+msgstr "请指定主题名称"
+
+#, sh-printf-format
+msgid "Theme set to %s"
+msgstr "主题已设置为 %s"
+
+msgid "Add the theme configuration in .zshrc"
+msgstr "请在 .zshrc 中添加主题配置"
+
+msgid "Example:"
+msgstr "示例:"
+
+msgid "Add the theme config in ~/.config/sheldon/plugins.toml"
+msgstr "请在 ~/.config/sheldon/plugins.toml 中添加主题配置"
+
+msgid "Installing Powerlevel10k..."
+msgstr "正在安装 Powerlevel10k..."
+
+msgid "Powerlevel10k is already installed"
+msgstr "Powerlevel10k 已安装"
+
+msgid "Failed to clone Powerlevel10k"
+msgstr "Powerlevel10k 克隆失败"
+
+msgid "Powerlevel10k added to .zshrc"
+msgstr "Powerlevel10k 已添加到 .zshrc"
+
+msgid "Powerlevel10k installation complete"
+msgstr "Powerlevel10k 安装完成"
+
+msgid "Run p10k configure to set it up"
+msgstr "请运行 'p10k configure' 进行配置"
+
+#, sh-printf-format
+msgid "Linux only (kernel feature). Current: %s"
+msgstr "仅支持 Linux（内核功能）。当前：%s"
+
+#, sh-printf-format
+msgid "The kernel version %s is too old, BBR needs a kernel >= 4.9"
+msgstr "内核版本 %s 过低，BBR 需要内核 >= 4.9"
+
+msgid "🚀 Enabling the TCP BBR congestion control"
+msgstr "🚀 开启 TCP BBR 拥塞控制"
+
+msgid ""
+"The module failed to load, the kernel may not have been built with BBR "
+"support. It will try to write the configuration and reload."
+msgstr "模块加载失败，可能内核未编译 BBR 支持。将尝试写入配置并重载。"
+
+msgid "It has been enabled (the current congestion control algorithm: bbr)"
+msgstr "已开启（当前拥塞控制算法：bbr）"
+
+#, sh-printf-format
+msgid "The enabling failed, the current algorithm is still: %s"
+msgstr "开启失败，当前算法仍为：%s"
+
+msgid "Queue rule:"
+msgstr "队列规则："
+
+msgid "The BBR configuration file was not found, BBR may not be enabled"
+msgstr "未找到 BBR 配置文件，可能未启用 BBR"
+
+msgid "It has been disabled (the default congestion control is restored)"
+msgstr "已关闭（恢复默认拥塞控制）"
+
+msgid "✅ BBR is enabled"
+msgstr "✅ BBR 已开启"
+
+#, sh-printf-format
+msgid "(qdisc=%s)"
+msgstr "（qdisc=%s）"
+
+msgid "⚠️  BBR is not enabled"
+msgstr "⚠️  未开启 BBR"
+
+#, sh-printf-format
+msgid "(the current algorithm: %s)"
+msgstr "（当前算法：%s）"
+
+msgid "Enable the TCP BBR"
+msgstr "开启 TCP BBR"
+
+msgid "Disable BBR (restore the default)"
+msgstr "关闭 BBR（恢复默认）"
+
+msgid "View the current congestion control algorithm"
+msgstr "查看当前拥塞控制算法"
+
+msgid "Homebrew mainly targets macOS"
+msgstr "Homebrew 主要面向 macOS"
+
+msgid "Linuxbrew on Linux (some formulae are unsupported). Continue?"
+msgstr "Linux 上将使用 Linuxbrew（部分 formula 不支持），是否继续？"
+
+#, sh-printf-format
+msgid "Writing brew shellenv to %s"
+msgstr "将 brew shellenv 写入 %s"
+
+#, sh-printf-format
+msgid "Written to %s (reopen the terminal or source %s to apply)"
+msgstr "已写入 %s（重新打开终端或 source %s 生效）"
+
+#, sh-printf-format
+msgid "Removed the brew shellenv configuration from %s"
+msgstr "已从 %s 移除 brew shellenv 配置"
+
+msgid "🍺 Installing the Homebrew package manager"
+msgstr "🍺 安装 Homebrew 包管理器"
+
+msgid "Homebrew is already installed"
+msgstr "已安装"
+
+#, sh-printf-format
+msgid "Homebrew is already installed (%s)"
+msgstr "检测到已安装 Homebrew（%s）"
+
+msgid "Continue with the reinstall/update?"
+msgstr "是否继续并重新安装/更新？"
+
+msgid "brew is still not found, reopen the terminal or run:"
+msgstr "安装后仍找不到 brew，请重新打开终端或执行："
+
+msgid "🎉 Homebrew installation complete!"
+msgstr "🎉 Homebrew 安装完成！"
+
+msgid "brew install <package>      # Install a package"
+msgstr "brew install <包名>      # 安装软件包"
+
+msgid "brew search <keyword>     # Search for packages"
+msgstr "brew search <关键词>     # 搜索软件包"
+
+msgid "brew list               # List the installed packages"
+msgstr "brew list               # 已安装列表"
+
+msgid "brew update             # Update the index"
+msgstr "brew update             # 更新索引"
+
+msgid "brew upgrade            # Upgrade all the installed packages"
+msgstr "brew upgrade            # 升级所有已安装包"
+
+msgid "brew info <package>        # Show the package information"
+msgstr "brew info <包名>        # 查看包信息"
+
+msgid "Documentation: https://docs.brew.sh"
+msgstr "文档：https://docs.brew.sh"
+
+msgid "Homebrew was not detected, it may already be uninstalled"
+msgstr "未检测到 Homebrew，可能已卸载"
+
+#, sh-printf-format
+msgid "Uninstall Homebrew? This deletes all brew packages under %s"
+msgstr "确认卸载 Homebrew？这将删除 %s 下所有通过 brew 安装的包"
+
+msgid "Uninstalling Homebrew..."
+msgstr "卸载 Homebrew..."
+
+msgid "The official uninstall script did not clean up fully, manual delete..."
+msgstr "官方卸载脚本未完全清理，尝试手动删除..."
+
+#, sh-printf-format
+msgid "Delete the directory %s?"
+msgstr "确认删除 %s 目录？"
+
+msgid "Homebrew has been uninstalled"
+msgstr "Homebrew 已卸载"
+
+msgid "Please reopen the terminal for the PATH change to take effect"
+msgstr "请重新打开终端使 PATH 变更生效"
+
+#, sh-printf-format
+msgid "Homebrew is not installed, please run first: %s install"
+msgstr "Homebrew 未安装，请先运行：%s install"
+
+msgid "🌐 Configuring a domestic mirror source for Homebrew (Tsinghua TUNA)"
+msgstr "🌐 配置 Homebrew 国内镜像源（清华 TUNA）"
+
+#, sh-printf-format
+msgid "The Tsinghua mirror source is configured (written to %s)"
+msgstr "已配置清华镜像源（写入 %s）"
+
+msgid "Mirror addresses:"
+msgstr "镜像地址："
+
+#, sh-printf-format
+msgid "Reopen the terminal or source %s to make the configuration persistent"
+msgstr "重新打开终端或 source %s 使配置持久生效"
+
+msgid "Run brew update to verify whether the mirror is in effect"
+msgstr "运行 brew update 验证镜像是否生效"
+
+msgid "No brew mirror configuration detected, already on the official source"
+msgstr "未检测到 brew 镜像配置，已是官方源"
+
+msgid "Restored the official Homebrew source"
+msgstr "已还原 Homebrew 官方源"
+
+#, sh-printf-format
+msgid "Reopen the terminal or source %s to apply the configuration"
+msgstr "重新打开终端或 source %s 使配置生效"
+
+msgid "⚠️  Not applicable (macOS only)"
+msgstr "⚠️  不适用（仅 macOS）"
+
+msgid "(official source)"
+msgstr "(官方源)"
+
+msgid "(Tsinghua mirror)"
+msgstr "(清华镜像)"
+
+msgid "(USTC mirror)"
+msgstr "(中科大镜像)"
+
+msgid "(Aliyun mirror)"
+msgstr "(阿里云镜像)"
+
+#, sh-printf-format
+msgid "(custom mirror: %s)"
+msgstr "(自定义镜像: %s)"
+
+msgid "(mirror configured, not loaded in the current shell)"
+msgstr "(已配置镜像，当前 shell 未加载)"
+
+msgid "Install Homebrew (the default action)"
+msgstr "安装 Homebrew（默认动作）"
+
+msgid "Uninstall Homebrew (with a confirmation)"
+msgstr "卸载 Homebrew（交互确认）"
+
+msgid "Configure a domestic mirror (Tsinghua TUNA, faster downloads)"
+msgstr "配置国内镜像源（清华 TUNA，加速下载）"
+
+msgid "Restore the official source"
+msgstr "还原官方源"
+
+msgid "View the installation status and the current source"
+msgstr "查看安装状态和当前源"
+
+msgid "Show this brew help"
+msgstr "显示此帮助"
+
+msgid "📦 Installing the essential tools"
+msgstr "📦 安装装机必备工具"
+
+msgid "Homebrew is required. Install it first: https://brew.sh/"
+msgstr "需要 Homebrew。请先安装：https://brew.sh/"
+
+#, sh-printf-format
+msgid "Installing via Homebrew: %s"
+msgstr "通过 Homebrew 安装：%s"
+
+msgid "The essential tools installation is complete"
+msgstr "必备工具安装完成"
+
+#, sh-printf-format
+msgid "Installing the essential tools (package manager: %s)..."
+msgstr "安装必备工具（包管理器：%s）..."
+
+#, sh-printf-format
+msgid "The following packages could not be installed: %s"
+msgstr "以下包未能安装：%s"
+
+msgid "The essential tools have been installed"
+msgstr "装机必备工具安装完成"
+
+#, sh-printf-format
+msgid "The installed tools: %s"
+msgstr "已安装工具：%s"
+
+msgid ""
+"Uninstalling the essential tools is usually not recommended (other programs "
+"may depend on them)."
+msgstr "通常不建议卸载装机必备工具（其他程序可能依赖它们）。"
+
+msgid ""
+"If you really need to uninstall a specific package, remove it manually with "
+"the system package manager, for example:"
+msgstr "如确需卸载个别包，请用系统包管理器手动移除，例如："
+
+msgid "package name>"
+msgstr "包名>"
+
+msgid "✅ All the essential tools are installed"
+msgstr "✅ 必备工具已安装齐全"
+
+#, sh-printf-format
+msgid "⚠️  Missing: %s"
+msgstr "⚠️  缺少：%s"
+
+msgid ""
+"Install the essential tool packages (curl/wget/git/vim/htop/tmux/jq/"
+"development tools etc.)"
+msgstr "安装装机必备工具包（curl/wget/git/vim/htop/tmux/jq/开发工具 等）"
+
+msgid "Check whether all the essential tools are installed"
+msgstr "检查必备工具是否齐全"
+
+msgid ""
+"Description (uninstalling is not recommended, the manual command is given)"
+msgstr "说明（不建议卸载，给出手动命令）"
+
+msgid "🚀 Installing nvm (the Node version manager)"
+msgstr "🚀 安装 nvm（Node 版本管理）"
+
+#, sh-printf-format
+msgid "nvm detected (%s)"
+msgstr "检测到已安装 nvm（%s）"
+
+msgid "Reinstall/update it?"
+msgstr "是否重新安装/更新？"
+
+msgid "To update nvm, run this after the installation: nvm install-latest-nvm"
+msgstr "如需更新 nvm，安装后执行：nvm install-latest-nvm"
+
+msgid "Cannot fetch the latest nvm version (check the network or set GH_TOKEN)"
+msgstr "无法获取 nvm 最新版本（请检查网络或设置 GH_TOKEN）"
+
+msgid "Downloading the installation script..."
+msgstr "下载安装脚本..."
+
+#, sh-printf-format
+msgid "The installation is complete in %s"
+msgstr "安装完成到 %s"
+
+msgid "Activate nvm (run one of them):"
+msgstr "激活 nvm（执行其一）："
+
+msgid "Install the latest LTS version of Node"
+msgstr "安装最新 LTS 版 Node"
+
+msgid "Install a specific version"
+msgstr "安装指定版本"
+
+msgid "the configuration (added by unix_script)"
+msgstr "配置（由 unix_script 添加）"
+
+msgid "nvm configuration has been added to"
+msgstr "已为"
+
+msgid "by unix_script"
+msgstr "添加 nvm 配置"
+
+msgid "nvm is not installed"
+msgstr "未安装 nvm"
+
+#, sh-printf-format
+msgid "Confirm uninstalling nvm (it will delete %s)?"
+msgstr "确认卸载 nvm（将删除 %s）？"
+
+msgid ""
+"It has been uninstalled (the related lines in the shell configuration have "
+"been removed)"
+msgstr "已卸载（shell 配置中的相关行已移除）"
+
+#, sh-printf-format
+msgid "✅ nvm v%s is installed"
+msgstr "✅ 已安装 nvm v%s"
+
+msgid "Install nvm into ~/.nvm and configure bash/zsh/profile"
+msgstr "安装 nvm 到 ~/.nvm 并配置 bash/zsh/profile"
+
+msgid "Uninstall nvm"
+msgstr "卸载 nvm"
+
+#, sh-printf-format
+msgid "The configuration is Linux only. Current: %s"
+msgstr "配置仅支持 Linux。当前：%s"
+
+#, sh-printf-format
+msgid "No size specified, based on the memory the suggestion is: %sGB"
+msgstr "未指定大小，根据内存建议：%sGB"
+
+msgid "There is already a swap:"
+msgstr "当前已有 swap："
+
+msgid "Disable it and rebuild the swap?"
+msgstr "是否禁用并重建 swap？"
+
+#, sh-printf-format
+msgid "💾 Creating a %sGB swap file (%s)"
+msgstr "💾 创建 %sGB swap 文件（%s）"
+
+msgid "Not supported, using dd (slower)..."
+msgstr "不支持，使用 dd（较慢）..."
+
+msgid "Written to /etc/fstab (mounted automatically at boot)"
+msgstr "已写入 /etc/fstab（开机自动挂载）"
+
+msgid "Verifying:"
+msgstr "验证："
+
+msgid "🎉 The swap has been created"
+msgstr "🎉 swap 创建完成"
+
+#, sh-printf-format
+msgid "%s was not found"
+msgstr "未发现 %s"
+
+#, sh-printf-format
+msgid "Confirm disabling and deleting %s?"
+msgstr "确认禁用并删除 %s？"
+
+msgid "It has been disabled and deleted"
+msgstr "已禁用并删除"
+
+msgid "✅ The swap is enabled"
+msgstr "✅ 已启用 swap"
+
+msgid "❌ The swap is not enabled"
+msgstr "❌ 未启用 swap"
+
+msgid ""
+"Create a swap (the size is computed from the memory by default, --size sets "
+"the GB)"
+msgstr "创建 swap（默认根据内存自动计算大小，可用 --size 指定 GB）"
+
+msgid "Disable and delete the swap file"
+msgstr "禁用并删除 swap 文件"
+
+msgid "View the swap status"
+msgstr "查看 swap 状态"
+
+#, sh-printf-format
+msgid "sys-setup only supports Linux. Current: %s"
+msgstr "sys-setup 仅支持 Linux。当前：%s"
+
+#, sh-printf-format
+msgid "The platform file is missing (framework error): %s"
+msgstr "platform 文件缺失（框架错误）：%s"
+
+msgid "Unsupported distribution (unknown family), skipping the mirror switch"
+msgstr "暂不支持该发行版（族未知），跳过换源"
+
+msgid "The mirror switch needs a confirmation, skipped (non-interactive)"
+msgstr "换源需交互确认，已跳过（非交互环境）"
+
+msgid "🌐 Switching the package sources to domestic mirrors"
+msgstr "🌐 更换软件源为国内镜像"
+
+msgid "Mirror switch preview"
+msgstr "换源预览"
+
+#, sh-printf-format
+msgid "Detected: %s"
+msgstr "检测到:  %s"
+
+msgid "Actions to be performed:"
+msgstr "执行动作:"
+
+msgid "Confirm the mirror switch?"
+msgstr "确认执行换源？"
+
+msgid "The mirror switch has been cancelled"
+msgstr "已取消换源"
+
+msgid "The chrony configuration file was not found"
+msgstr "未找到 chrony 配置文件"
+
+msgid "ntp.conf was not found"
+msgstr "未找到 ntp.conf"
+
+#, sh-printf-format
+msgid "systemd-timesyncd is configured: %s"
+msgstr "已配置 systemd-timesyncd: %s"
+
+msgid "Configuring systemd-timesyncd failed"
+msgstr "配置 systemd-timesyncd 失败"
+
+#, sh-printf-format
+msgid "chrony is configured: %s"
+msgstr "已配置 chrony: %s"
+
+msgid "Configuring chrony failed"
+msgstr "配置 chrony 失败"
+
+#, sh-printf-format
+msgid "ntpd is configured: %s"
+msgstr "已配置 ntpd: %s"
+
+msgid "Configuring ntpd failed"
+msgstr "配置 ntpd 失败"
+
+msgid "No NTP service detected, trying to install chrony..."
+msgstr "未检测到 NTP 服务，尝试安装 chrony..."
+
+#, sh-printf-format
+msgid "chrony is installed and configured: %s"
+msgstr "已安装 chrony 并配置: %s"
+
+msgid "Enabling the chrony service failed"
+msgstr "chrony 服务启用失败"
+
+msgid "Installing chrony failed, please install it manually"
+msgstr "chrony 安装失败，请手动安装"
+
+msgid "Current NTP status:"
+msgstr "当前 NTP 状态："
+
+msgid "Backend: systemd-timesyncd"
+msgstr "后端: systemd-timesyncd"
+
+msgid "Config"
+msgstr "配置"
+
+msgid "Config: (default)"
+msgstr "配置: (默认)"
+
+msgid "Backend: chrony"
+msgstr "后端: chrony"
+
+msgid "Backend: ntpd"
+msgstr "后端: ntpd"
+
+msgid "(No NTP service detected)"
+msgstr "(未检测到 NTP 服务)"
+
+msgid "🕐 Configuring the NTP time synchronization servers"
+msgstr "🕐 配置 NTP 时间同步服务器"
+
+msgid "Please choose an NTP server option:"
+msgstr "请选择 NTP 服务器方案："
+
+msgid "Aliyun"
+msgstr "阿里云"
+
+msgid "China NTP"
+msgstr "中国 NTP"
+
+msgid "Custom (enter the NTP server address manually)"
+msgstr "自定义（手动输入 NTP 服务器地址）"
+
+msgid "Please enter an option [0-7]: "
+msgstr "请输入选项 [0-7]: "
+
+msgid "Please enter the NTP server addresses (separate them with spaces):"
+msgstr "请输入 NTP 服务器地址（多个用空格分隔）："
+
+msgid "Example: ntp.aliyun.com ntp1.aliyun.com"
+msgstr "示例: ntp.aliyun.com ntp1.aliyun.com"
+
+msgid "No server entered, cancelled"
+msgstr "未输入任何服务器，已取消"
+
+#, sh-printf-format
+msgid "Invalid server address: %s"
+msgstr "无效的服务器地址: %s"
+
+msgid "Only letters, digits, dots and hyphens are allowed, e.g. ntp.aliyun.com"
+msgstr "地址应只包含字母、数字、点、连字符，例如: ntp.aliyun.com"
+
+#, sh-printf-format
+msgid "About to configure the NTP servers: %s"
+msgstr "即将配置 NTP 服务器: %s"
+
+msgid "Continue?"
+msgstr "确认继续？"
+
+#, sh-printf-format
+msgid "🕐 Setting the timezone to %s and enabling time synchronization"
+msgstr "🕐 设置时区为 %s 并启用时间同步"
+
+#, sh-printf-format
+msgid "The timezone has been set to %s"
+msgstr "时区已设置为 %s"
+
+msgid "systemd-timesyncd (NTP) has been enabled"
+msgstr "已启用 systemd-timesyncd (NTP)"
+
+#, sh-printf-format
+msgid "The timezone has been set to %s (symlink)"
+msgstr "时区已设置为 %s（符号链接）"
+
+msgid "chrony time synchronization has been installed and enabled"
+msgstr "已安装并启用 chrony 时间同步"
+
+msgid "Installing chrony failed, skipping the time synchronization setup"
+msgstr "chrony 安装失败，跳过时间同步服务配置"
+
+msgid "⚙️  Optimizing the system parameters (file descriptors, kernel)"
+msgstr "⚙️  优化系统参数（文件描述符、内核）"
+
+#, sh-printf-format
+msgid "The file descriptor limit has been raised to 65536 (%s)"
+msgstr "已提升文件描述符上限到 65536（%s）"
+
+#, sh-printf-format
+msgid "The kernel optimization parameters have been written (%s)"
+msgstr "已写入内核优化参数（%s）"
+
+msgid "🔐 SSH hardening (disable password login and root login)"
+msgstr "🔐 SSH 加固（禁用密码登录、禁用 root 直登）"
+
+msgid "SSH hardening is sensitive: password and root login will be disabled."
+msgstr "SSH 加固是敏感操作：将禁用密码登录与 root 直登。"
+
+msgid "Set up SSH key login first, otherwise you may not be able to log in!"
+msgstr "请确保你已配置好 SSH 密钥登录，否则可能无法登录服务器！"
+
+msgid "Continue (only if the key login is already set up)?"
+msgstr "确认继续（仅当你已配置好密钥登录）？"
+
+msgid "SSH hardening has been skipped"
+msgstr "已跳过 SSH 加固"
+
+#, sh-printf-format
+msgid "The SSH hardening configuration has been written (%s)"
+msgstr "已写入 SSH 加固配置（%s）"
+
+msgid "sshd has been reloaded (the configuration applies to new connections)"
+msgstr "sshd 已 reload（配置在新连接生效）"
+
+msgid "🛡️  Enabling the automatic security updates"
+msgstr "🛡️  启用自动安全更新"
+
+msgid "Unsupported distribution (unknown family), skipping the auto update"
+msgstr "暂不支持该发行版（族未知），跳过自动更新配置"
+
+msgid "🚀 Running all the essential system setups"
+msgstr "🚀 执行全部装机必设置"
+
+msgid "🎉 All the essential system setups are complete"
+msgstr "🎉 全部装机必设置执行完成"
+
+msgid "Default source"
+msgstr "默认源"
+
+msgid "Domestic mirror source in use"
+msgstr "已换国内源"
+
+msgid "(system default)"
+msgstr "(系统默认)"
+
+msgid "(chrony, view with chronyc sources)"
+msgstr "(chrony，用 chronyc sources 查看)"
+
+msgid "(ntpd, view with ntpq -p)"
+msgstr "(ntpd，用 ntpq -p 查看)"
+
+msgid "Default"
+msgstr "默认"
+
+msgid "✅ Optimized"
+msgstr "✅ 已优化"
+
+msgid "✅ Hardened"
+msgstr "✅ 已加固"
+
+msgid "✅ The system configuration is complete"
+msgstr "✅ 系统配置已完成"
+
+msgid "⚠️  The system configuration is not complete"
+msgstr "⚠️  系统配置未完成"
+
+msgid "Package source mirror:"
+msgstr "软件源镜像:"
+
+msgid "✅ Domestic mirror source in use"
+msgstr "✅ 已换国内源"
+
+msgid "⚠️  Default source"
+msgstr "⚠️  默认源"
+
+#, sh-printf-format
+msgid "Timezone: %s"
+msgstr "时区: %s"
+
+#, sh-printf-format
+msgid "NTP sync: %s"
+msgstr "NTP 同步: %s"
+
+#, sh-printf-format
+msgid "NTP servers: %s"
+msgstr "NTP 服务器: %s"
+
+#, sh-printf-format
+msgid "File descriptor limit: %s"
+msgstr "文件描述符上限: %s"
+
+#, sh-printf-format
+msgid "SSH hardening: %s"
+msgstr "SSH 加固: %s"
+
+msgid "Switch to domestic mirrors (Alma/Rocky/Fedora/openEuler/Anolis/deepin)"
+msgstr ""
+"更换软件源为国内镜像（预览确认后执行；Alma/Rocky/Fedora/openEuler/Anolis/"
+"deepin 已支持）"
+
+msgid "Set the timezone and enable NTP sync (default Asia/Shanghai)"
+msgstr "设置时区并启用 NTP 时间同步（默认 Asia/Shanghai）"
+
+msgid "Configure custom NTP servers (Aliyun/TUNA/Huawei/Google/custom)"
+msgstr "配置自定义 NTP 服务器（阿里云/清华/华为/Google/自定义）"
+
+msgid "Optimize system parameters (file descriptors, TCP, kernel)"
+msgstr "优化系统参数（文件描述符、TCP、内核）"
+
+msgid "SSH hardening (disable password and root login, set up keys first)"
+msgstr "SSH 加固（禁用密码登录、禁用 root 直登，需先配好密钥）"
+
+msgid "Enable the automatic security updates"
+msgstr "启用自动安全更新"
+
+msgid "Run all of the above"
+msgstr "依次执行以上全部"
+
+msgid "View the status of each configuration"
+msgstr "查看各项配置状态"
+
+msgid "The sys-setup uninstall only applies to Linux, nothing to do here"
+msgstr ""
+"sys-setup 的卸载仅适用 Linux（drop-in 配置为 Linux 路径），当前平台无需卸载"
+
+msgid "Removing the incremental drop-in configs written by sys-setup..."
+msgstr "卸载 sys-setup 写入的增量配置（drop-in）..."
+
+#, sh-printf-format
+msgid "Removed: %s"
+msgstr "已移除：%s"
+
+msgid "No sys-setup drop-in config found (optimize/ssh may not have run)"
+msgstr "未发现 sys-setup 写入的 drop-in 配置（可能未执行过 optimize/ssh）"
+
+#, sh-printf-format
+msgid "Removed %s drop-in configurations, the system defaults are restored"
+msgstr "已移除 %s 个 drop-in 配置，系统已恢复默认值"
+
+msgid "The mirror/NTP changes have .bak.* backups, find them to restore:"
+msgstr "镜像源/NTP 等修改在安装时已生成 .bak.* 备份，如需还原请手动查找："
+
+#, sh-printf-format
+msgid "The SSH service policy is restored, review it if you changed sshd: %s"
+msgstr "SSH 服务策略已恢复默认，如修改过 sshd 建议复查：%s"
+
+msgid "Back up /etc/apk/repositories"
+msgstr "备份 /etc/apk/repositories"
+
+#, sh-printf-format
+msgid "Rewrite to Tsinghua TUNA (v%s main + community)"
+msgstr "重写为清华 TUNA（v%s main + community）"
+
+msgid "The Alpine source has been replaced by the Tsinghua mirror"
+msgstr "Alpine 源已替换为清华镜像"
+
+msgid "No native automatic security updates in Alpine, run sudo apk upgrade"
+msgstr "Alpine 无原生自动安全更新；建议定期执行 sudo apk upgrade"
+
+msgid "Back up /etc/pacman.d/mirrorlist"
+msgstr "备份 /etc/pacman.d/mirrorlist"
+
+#, sh-printf-format
+msgid "Rewrite to Tsinghua TUNA (%s · %s path)"
+msgstr "重写为清华 TUNA（%s · %s 路径）"
+
+#, sh-printf-format
+msgid "%s: no known mirror path, guidance only (no system change)"
+msgstr "%s 暂无把握的镜像路径，仅打印指引（不改动系统）"
+
+#, sh-printf-format
+msgid "%s · %s: no known mirror path, mirrorlist is left unchanged"
+msgstr "%s · %s 暂无把握的镜像路径，保持 mirrorlist 不变"
+
+#, sh-printf-format
+msgid "%s mirrorlist has been replaced by the Tsinghua mirror (%s path)"
+msgstr "%s mirrorlist 已替换为清华镜像（%s 路径）"
+
+msgid "Arch is rolling release, run sudo pacman -Syu to stay updated"
+msgstr "Arch 为滚动发布，建议定期执行 sudo pacman -Syu 保持更新"
+
+#, sh-printf-format
+msgid "Failed to disable it (permissions?): %s"
+msgstr "停用失败（权限？）：%s"
+
+#, sh-printf-format
+msgid "Disabled the duplicate source file: %s (restore: sudo mv %s.bak.%s %s)"
+msgstr "已停用重复/残留源文件：%s（恢复：sudo mv %s.bak.%s %s）"
+
+#, sh-printf-format
+msgid "Back up and rewrite %s to Tsinghua TUNA (%s/%s)"
+msgstr "备份并重写 %s 为清华 TUNA（%s/%s）"
+
+msgid "Disable the other distro archive apt sources (rename to *.bak.<ts>)"
+msgstr "停用其余发行版归档 apt 源（重命名 *.bak.<ts>，可随时恢复）"
+
+#, sh-printf-format
+msgid "Rewrite sources.list to Tsinghua TUNA (%s/%s, main community)"
+msgstr "备份并重写 /etc/apt/sources.list 为清华 TUNA（%s/%s，main community）"
+
+msgid "Disable the remaining distribution archive apt sources"
+msgstr "停用其余发行版归档 apt 源"
+
+#, sh-printf-format
+msgid "%s: no public mirror repository, guidance only (no system change)"
+msgstr "%s 暂无公开镜像仓库，仅打印指引（不改动系统）"
+
+msgid "Unable to identify the distribution codename (VERSION_CODENAME)"
+msgstr "无法识别发行版代号（VERSION_CODENAME）"
+
+#, sh-printf-format
+msgid "apt source switched to Tsinghua mirror (%s/%s), original file backed up"
+msgstr "apt 源已更换为清华镜像（%s/%s），原文件已备份"
+
+#, sh-printf-format
+msgid "apt source switched to the Tsinghua mirror (%s/%s)"
+msgstr "apt 源已更换为清华镜像（%s/%s）"
+
+msgid "Kylin/openKylin has no public mirror, the system sources are kept"
+msgstr "银河麒麟/openKylin 暂无公开镜像仓库，保持系统源不变"
+
+msgid "To switch the mirrors, use the built-in source tool or the server docs"
+msgstr "如需换源请使用系统自带「软件源」工具或参考服务器版官方文档"
+
+#, sh-printf-format
+msgid "%s automatic security updates are handled by the system updater"
+msgstr "%s 的自动安全更新由系统更新器管理，跳过"
+
+msgid "Enabled Debian/Ubuntu/Mint auto security updates (unattended-upgrades)"
+msgstr "已启用 Debian/Ubuntu/Mint 自动安全更新（unattended-upgrades）"
+
+msgid "Back up /etc/yum.repos.d"
+msgstr "备份 /etc/yum.repos.d"
+
+msgid "Rewrite centos.repo to Tsinghua TUNA (CentOS Stream)"
+msgstr "重写 centos.repo 为清华 TUNA（CentOS Stream）"
+
+msgid "Rewrite almalinux.repo to point to the Aliyun mirror"
+msgstr "整写 almalinux.repo 指向阿里云镜像（BaseOS/AppStream/CRB/extras）"
+
+msgid "Rewrite rocky.repo to point to the USTC mirror (major version path)"
+msgstr ""
+"整写 rocky.repo 指向中科大 USTC 镜像（BaseOS/AppStream/CRB/Extras，主版本路"
+"径）"
+
+msgid "Rewrite fedora.repo and fedora-updates.repo to point to Tsinghua TUNA"
+msgstr "整写 fedora.repo 与 fedora-updates.repo 指向清华 TUNA"
+
+msgid "sed: replace the openEuler sources with Tsinghua TUNA"
+msgstr ""
+"sed 将 mirror.openeuler.org / repo.openeuler.org 替换为清华 TUNA（保留原 "
+"repo 结构）"
+
+msgid "sed: replace the openAnolis sources with the Aliyun mirror"
+msgstr "sed 将 openanolis / anolis 官方源替换为阿里云镜像（保留原 repo 结构）"
+
+#, sh-printf-format
+msgid "%s: no public mirror, guidance only (no system change)"
+msgstr "%s 暂无公开镜像，仅打印指引（不改动系统）"
+
+msgid "CentOS Stream source switched to the Tsinghua mirror (repos backed up)"
+msgstr "CentOS Stream 源已更换为清华镜像（原 /etc/yum.repos.d 已备份）"
+
+#, sh-printf-format
+msgid "CentOS 7/8 (EOL) refer to the vault: %s"
+msgstr "CentOS 7/8（EOL）请参考 vault：%s"
+
+#, sh-printf-format
+msgid "Original /etc/yum.repos.d backed up to .bak.%s, replace baseurl"
+msgstr ""
+"已备份原 /etc/yum.repos.d 到 /etc/yum.repos.d.bak.%s，请按指引手动替换 "
+"baseurl"
+
+msgid "AlmaLinux source switched to the Aliyun mirror (repos.d backed up)"
+msgstr "AlmaLinux 源已更换为阿里云镜像（原 /etc/yum.repos.d 已备份）"
+
+msgid "Rocky Linux source switched to the USTC mirror (repos.d backed up)"
+msgstr "Rocky Linux 源已更换为中科大镜像（原 /etc/yum.repos.d 已备份）"
+
+msgid "Fedora source switched to the Tsinghua mirror (repos.d backed up)"
+msgstr "Fedora 源已更换为清华镜像（原 /etc/yum.repos.d 已备份）"
+
+msgid "openEuler source replaced by the Tsinghua mirror (repos backed *.bak)"
+msgstr "openEuler 源已替换为清华镜像（原 repo 已备份 *.bak）"
+
+msgid "Anolis OS source replaced by the Aliyun mirror (repos backed up *.bak)"
+msgstr "Anolis OS 源已替换为阿里云镜像（原 repo 已备份 *.bak）"
+
+msgid "RHEL/Kylin (server) has no public mirror, the system sources are kept"
+msgstr "RHEL/麒麟(服务器) 无公开镜像（订阅授权），保持系统源不变"
+
+msgid "RHEL: use subscription-manager; Kylin: use the built-in update source"
+msgstr "RHEL 请使用订阅管理（subscription-manager）；麒麟请使用系统自带更新源"
+
+msgid "dnf-automatic has been enabled"
+msgstr "已启用 dnf-automatic"
+
+msgid "yum-cron has been enabled"
+msgstr "已启用 yum-cron"
+
+msgid "Back up /etc/zypp/repos.d"
+msgstr "备份 /etc/zypp/repos.d"
+
+msgid "sed: replace download.opensuse.org with Tsinghua TUNA"
+msgstr "sed 将 download.opensuse.org 替换为清华 TUNA（保留原 repo 结构）"
+
+msgid "openSUSE source replaced by the Tsinghua mirror (repos.d backed up)"
+msgstr "openSUSE 源已替换为清华镜像（原 /etc/zypp/repos.d 已备份）"
+
+msgid "openSUSE: use yast2 online_update, or run sudo zypper patch regularly"
+msgstr ""
+"openSUSE 建议用 yast2 online_update 配置自动补丁；或定期执行 sudo zypper "
+"patch"
+
+msgid "🧠 Installing Ollama (the local large model runtime)"
+msgstr "🧠 安装 Ollama（本地大模型运行时）"
+
+#, sh-printf-format
+msgid "Ollama detected (%s)"
+msgstr "检测到已安装 Ollama（%s）"
+
+msgid "Installing ollama via Homebrew..."
+msgstr "通过 Homebrew 安装 ollama..."
+
+msgid ""
+"Homebrew is required, or download the app from https://ollama.com/download"
+msgstr "需要 Homebrew，或从 https://ollama.com/download 下载 app"
+
+msgid "Installing with the official script (including the systemd service)..."
+msgstr "通过官方脚本安装（含 systemd 服务）..."
+
+msgid ""
+"The official installation script failed, see https://github.com/ollama/ollama"
+msgstr "官方安装脚本执行失败，请参考 https://github.com/ollama/ollama"
+
+msgid ""
+"ollama was not found after the installation, reopen the terminal or check "
+"PATH"
+msgstr "安装后仍找不到 ollama，请重新打开终端或检查 PATH"
+
+msgid "🎉 Ollama installation complete!"
+msgstr "🎉 Ollama 安装完成！"
+
+msgid "Download and run a model (the first pull is slow)"
+msgstr "下载并运行模型（首次拉取较慢）"
+
+msgid "Download the model only"
+msgstr "仅下载模型"
+
+msgid "The model has been downloaded"
+msgstr "已下载模型"
+
+msgid "Start the API service (port 11434 by default)"
+msgstr "启动 API 服务（默认 11434 端口）"
+
+msgid "Common models: qwen3:8b / llama3.2 / deepseek-r1 / gemma3"
+msgstr "常用模型：qwen3:8b / llama3.2 / deepseek-r1 / gemma3"
+
+msgid "Model library: https://ollama.com/library"
+msgstr "模型库：https://ollama.com/library"
+
+#, sh-printf-format
+msgid "Pulling the model: %s"
+msgstr "拉取模型：%s"
+
+#, sh-printf-format
+msgid "The model %s is ready, run it with ollama run %s"
+msgstr "模型 %s 已就绪，用 'ollama run %s' 启动"
+
+msgid "ollama has been uninstalled (macOS)"
+msgstr "已卸载 ollama（macOS）"
+
+msgid "Uninstall Ollama?"
+msgstr "确认卸载 Ollama？"
+
+msgid "Delete all the downloaded models (~/.ollama, it may be large)?"
+msgstr "是否删除所有已下载模型（~/.ollama，可能很大）？"
+
+msgid "The model data has been deleted"
+msgstr "模型数据已删除"
+
+msgid "Install Ollama (the local large model runtime)"
+msgstr "安装 Ollama（本地大模型运行时）"
+
+msgid "model>     pull a model (qwen3:8b by default)"
+msgstr "模型>     拉取模型（默认 qwen3:8b）"
+
+msgid "Uninstall (optionally delete the downloaded models)"
+msgstr "卸载（可选删除已下载模型）"
+
+msgid "🤖 Installing OpenCode (the terminal AI coding assistant)"
+msgstr "🤖 安装 OpenCode（终端 AI 编程助手）"
+
+#, sh-printf-format
+msgid "OpenCode detected (%s)"
+msgstr "检测到已安装 OpenCode（%s）"
+
+msgid "Installing opencode via Homebrew..."
+msgstr "通过 Homebrew 安装 opencode..."
+
+#, sh-printf-format
+msgid "Installing with the official script (%s)..."
+msgstr "通过官方脚本安装（%s）..."
+
+msgid ""
+"The official installation script failed, check the network or see https://"
+"opencode.ai/docs/"
+msgstr "官方安装脚本执行失败，请检查网络或参考 https://opencode.ai/docs/"
+
+msgid ""
+"It has been installed to ~/.local/bin/opencode, but it is not in the current "
+"PATH"
+msgstr "已装到 ~/.local/bin/opencode，但不在当前 PATH"
+
+#, sh-format, sh-printf-format
+msgid ""
+"Please add it to your shell configuration: export PATH=\"%s/.local/bin:"
+"$PATH\""
+msgstr "请添加到 shell 配置：export PATH=\"%s/.local/bin:$PATH\""
+
+msgid ""
+"opencode was not found after the installation, reopen the terminal or check "
+"PATH"
+msgstr "安装后仍找不到 opencode，请重新打开终端或检查 PATH"
+
+msgid "🎉 OpenCode installation complete!"
+msgstr "🎉 OpenCode 安装完成！"
+
+msgid "Start an AI coding session in the project directory"
+msgstr "在项目目录启动 AI 编程会话"
+
+msgid "Configure the model / API key: see https://opencode.ai/docs/"
+msgstr "配置模型/API Key：参考 https://opencode.ai/docs/"
+
+msgid "opencode has been uninstalled via brew"
+msgstr "已通过 brew 卸载 opencode"
+
+msgid "The opencode binary has been deleted"
+msgstr "已删除 opencode 二进制"
+
+msgid ""
+"The opencode binary was not found (it may have been installed in another "
+"way, uninstall it manually)"
+msgstr "未找到 opencode 二进制（可能通过其他方式安装，请手动卸载）"
+
+msgid ""
+"The configuration directory is kept: ~/.config/opencode (you can delete it "
+"manually)"
+msgstr "配置目录保留：~/.config/opencode（可手动删除）"
+
+msgid "Install OpenCode (the terminal AI coding assistant, default action)"
+msgstr "安装 OpenCode（终端 AI 编程助手，默认动作）"
+
+msgid "🤖 Installing Pi (the AI coding agent framework, pi.dev)"
+msgstr "🤖 安装 Pi（AI 编程代理框架，pi.dev）"
+
+#, sh-printf-format
+msgid "Pi detected (%s)"
+msgstr "检测到已安装 Pi（%s）"
+
+msgid ""
+"The official installation script failed, check the network or see https://"
+"pi.dev"
+msgstr "官方安装脚本执行失败，请检查网络或参考 https://pi.dev"
+
+#, sh-printf-format
+msgid "It has been installed to %s, but it is not in the current PATH"
+msgstr "已装到 %s，但不在当前 PATH"
+
+msgid "Please add it to your shell configuration:"
+msgstr "请添加到 shell 配置："
+
+msgid ""
+"The pi command was not found right after the installation, reopen the "
+"terminal or check PATH"
+msgstr "安装后未立即找到 pi 命令，请重新打开终端或检查 PATH"
+
+msgid ""
+"It can also be installed via npm/pnpm/bun: npm install -g @earendil-works/pi-"
+"coding-agent"
+msgstr ""
+"也支持通过 npm/pnpm/bun 安装：npm install -g @earendil-works/pi-coding-agent"
+
+msgid "🎉 Pi installation complete!"
+msgstr "🎉 Pi 安装完成！"
+
+msgid "Start an interactive TUI session"
+msgstr "启动交互式 TUI 会话"
+
+msgid "fix this bug           # give the prompt directly"
+msgstr "修复这个 bug'           # 直接给提示"
+
+msgid "Configure the model / API key and the extensions: see https://pi.dev"
+msgstr "配置模型/API Key 与扩展：参考 https://pi.dev"
+
+#, sh-printf-format
+msgid "Delete %s/.pi (with the configuration and the extensions)?"
+msgstr "是否删除 %s/.pi（含配置与扩展）？"
+
+#, sh-printf-format
+msgid "Deleted %s/.pi"
+msgstr "已删除 %s/.pi"
+
+msgid ""
+"The Pi binary was not found (it may have been installed globally with npm, "
+"uninstall it with npm uninstall -g @earendil-works/pi-coding-agent)"
+msgstr ""
+"未找到 Pi 二进制（可能通过 npm 全局安装，请用 npm uninstall -g @earendil-"
+"works/pi-coding-agent 卸载）"
+
+msgid "Install Pi (the AI coding agent framework, default action)"
+msgstr "安装 Pi（AI 编程代理框架，默认动作）"
 
 #~ msgid "Unknown subcommand: $1"
 #~ msgstr "未知子命令：$1"

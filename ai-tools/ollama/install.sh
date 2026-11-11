@@ -24,65 +24,65 @@ preflight() {
 
 install_ollama() {
     preflight
-    info "🧠 安装 Ollama（本地大模型运行时）"
+    info "$(_t '🧠 Installing Ollama (the local large model runtime)')"
 
     if command_exists ollama; then
         local cur
-        cur=$(ollama --version 2>/dev/null || echo "已安装")
-        warn "检测到已安装 Ollama（${cur}）"
-        if ! yes_no "是否继续并重新安装/更新？"; then
-            info "已取消"; return 0
+        cur=$(ollama --version 2>/dev/null || printf '%s\n' "$(_t 'Installed')")
+        warn "$(_tf 'Ollama detected (%s)' "${cur}")"
+        if ! yes_no "$(_t 'Continue and reinstall/update it?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
     fi
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
         if command_exists brew; then
-            info "通过 Homebrew 安装 ollama..."
+            info "$(_t 'Installing ollama via Homebrew...')"
             brew install ollama
         else
-            error "macOS 需要 Homebrew，或从 https://ollama.com/download 下载 app"
+            error "macOS $(_t 'Homebrew is required, or download the app from https://ollama.com/download')"
             exit 1
         fi
     else
         # Linux：官方脚本（自动装二进制 + systemd 服务）
         require_sudo
-        info "通过官方脚本安装（含 systemd 服务）..."
+        info "$(_t 'Installing with the official script (including the systemd service)...')"
         if ! curl -fsSL "$OFFICIAL_INSTALLER" | sh; then
-            error "官方安装脚本执行失败，请参考 https://github.com/ollama/ollama"
+            error "$(_t 'The official installation script failed, see https://github.com/ollama/ollama')"
             exit 1
         fi
     fi
 
     if ! command_exists ollama; then
-        error "安装后仍找不到 ollama，请重新打开终端或检查 PATH"
+        error "$(_t 'ollama was not found after the installation, reopen the terminal or check PATH')"
         exit 1
     fi
 
-    success "🎉 Ollama 安装完成！"
+    success "$(_t '🎉 Ollama installation complete!')"
     echo
-    info "快速开始："
-    echo "  ollama run qwen3:8b        # 下载并运行模型（首次拉取较慢）"
-    echo "  ollama pull llama3.2       # 仅下载模型"
-    echo "  ollama list                # 已下载模型"
-    echo "  ollama serve               # 启动 API 服务（默认 11434 端口）"
+    info "$(_t 'Quick start:')"
+    echo "  ollama run qwen3:8b        # $(_t 'Download and run a model (the first pull is slow)')"
+    echo "  ollama pull llama3.2       # $(_t 'Download the model only')"
+    echo "  ollama list                # $(_t 'The model has been downloaded')"
+    echo "  ollama serve               # $(_t 'Start the API service (port 11434 by default)')"
     echo
-    info "常用模型：qwen3:8b / llama3.2 / deepseek-r1 / gemma3"
-    info "模型库：https://ollama.com/library"
+    info "$(_t 'Common models: qwen3:8b / llama3.2 / deepseek-r1 / gemma3')"
+    info "$(_t 'Model library: https://ollama.com/library')"
 }
 
 # pull <模型>：拉取模型
 do_pull() {
     preflight
     local model="${1:-qwen3:8b}"
-    info "拉取模型：$model"
+    info "$(_tf 'Pulling the model: %s' "$model")"
     ollama pull "$model"
-    success "模型 $model 已就绪，用 'ollama run $model' 启动"
+    success "$(_tf 'The model %s is ready, run it with ollama run %s' "$model" "$model")"
 }
 
 do_status() {
     detect_os
     if ! command_exists ollama; then
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"; return
     fi
     local running=false
     if [[ "$OS_TYPE" == "linux" ]]; then
@@ -97,9 +97,9 @@ do_status() {
     # 取不到版本号就回落成空值。
     ver=$(ollama --version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | sed -n '1p') || ver=""
     if $running; then
-        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
+        emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC}"
+        emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but the service is not running')${NC}"
     fi
     # 收尾用 if 而不是 `[[ -n "$ver" ]] && ...`：后者在版本号为空时返回 1，
     # 会让 status 子命令整体退出 1（同样是「status 恒 0」契约）。
@@ -113,34 +113,34 @@ uninstall_ollama() {
     preflight
     if [[ "$OS_TYPE" == "darwin" ]]; then
         command_exists brew && brew uninstall ollama 2>/dev/null
-        success "已卸载 ollama（macOS）"
+        success "$(_t 'ollama has been uninstalled (macOS)')"
         return 0
     fi
     require_sudo
-    if ! yes_no "确认卸载 Ollama？"; then
-        info "已取消"; return 0
+    if ! yes_no "$(_t 'Uninstall Ollama?')"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
     uxs_svc stop "$SERVICE_NAME" 2>/dev/null || true
     uxs_svc disable "$SERVICE_NAME" 2>/dev/null || true
     sudo rm -f "/etc/systemd/system/${SERVICE_NAME}.service" /usr/local/bin/ollama
     uxs_svc daemon-reload 2>/dev/null || true
-    if yes_no "是否删除所有已下载模型（~/.ollama，可能很大）？"; then
+    if yes_no "$(_t 'Delete all the downloaded models (~/.ollama, it may be large)?')"; then
         sudo rm -rf ~/.ollama /usr/share/ollama/.ollama 2>/dev/null || true
-        success "模型数据已删除"
+        success "$(_t 'The model data has been deleted')"
     fi
-    success "Ollama 已卸载"
+    success "Ollama $(_t 'Uninstalled')"
 }
 
 usage() {
     cat <<EOF
 用法: $0 {install|pull|status|uninstall|help}
 
-  install         安装 Ollama（本地大模型运行时）
-  pull <模型>     拉取模型（默认 qwen3:8b）
-  status          查看状态
-  uninstall       卸载（可选删除已下载模型）
+  install         $(_t 'Install Ollama (the local large model runtime)')
+  pull <$(_t 'model>     pull a model (qwen3:8b by default)')
+  status          $(_t 'View the status')
+  uninstall       $(_t 'Uninstall (optionally delete the downloaded models)')
 
-示例:
+$(_t 'Examples:')
   $0 install
   $0 pull deepseek-r1
 EOF
@@ -155,7 +155,7 @@ main() {
         status)    do_status ;;
         uninstall) uninstall_ollama ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

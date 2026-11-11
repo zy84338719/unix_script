@@ -49,21 +49,23 @@ install_nerd_font() {
         cask_for "$f" >/dev/null || missing+=("$f")
     done
     if [[ ${#missing[@]} -gt 0 ]]; then
-        error "未登记的字体: ${missing[*]}（可用: $(list_names)）"
+        # 命令替换不能进译文（译文是静态字符串，$(list_names) 会被原样打印）⇒ 先取值再翻译
+        local avail; avail=$(list_names)
+        error "$(_tf 'Unregistered font: %s (available: %s)' "${missing[*]}" "$avail")"
         return 1
     fi
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        command_exists brew || { error "macOS 需要 Homebrew"; return 1; }
+        command_exists brew || { error "macOS $(_t 'Homebrew is required')"; return 1; }
         for f in $fonts; do
             local cask
             cask=$(cask_for "$f")
             if brew list --cask "$cask" >/dev/null 2>&1; then
-                info "已安装: $f"
+                info "$(_tf 'Installed: %s' "$f")"
             elif brew install --cask "$cask"; then
                 success "✅ $f"
             else
-                warn "⚠️ $f 安装失败"
+                warn "$(_tf '⚠️ %s installation failed' "$f")"
             fi
         done
     else
@@ -72,16 +74,16 @@ install_nerd_font() {
             detect_desktop
         fi
         if [[ "${IS_DESKTOP:-0}" != "1" ]] || ! command_exists fc-cache; then
-            info "当前机器是远程/无头环境——字体由你本地终端机渲染，此处无需安装。"
-            info "请在本地终端机执行: ./install.sh nerd-font"
+            info "$(_t 'This machine is a remote/headless environment — the font is rendered by your local terminal machine, there is no need to install it here')"
+            info "$(_t 'Run it on your local terminal machine: ./install.sh nerd-font')"
             return 0
         fi
         local ver
-        ver=$(github_latest_tag "ryanoasis/nerd-fonts" 2>/dev/null) || { error "无法获取 nerd-fonts 版本"; return 1; }
+        ver=$(github_latest_tag "ryanoasis/nerd-fonts" 2>/dev/null) || { error "$(_t 'Cannot get the nerd-fonts version')"; return 1; }
         for f in $fonts; do
             local dest="$HOME/.local/share/fonts/NerdFonts/$f"
             if [[ -d "$dest" ]] && ls "$dest"/*.ttf >/dev/null 2>&1; then
-                info "已安装: $f"
+                info "$(_tf 'Installed: %s' "$f")"
                 continue
             fi
             # v3.x 资产名：<FontName>.tar.xz（JetBrainsMono.tar.xz，tag v3.5.1 实测）
@@ -90,13 +92,13 @@ install_nerd_font() {
             if curl -fsSL "$url" | tar -xJ -C "$dest" 2>/dev/null; then
                 success "✅ $f ($ver)"
             else
-                warn "⚠️ $f 下载失败"
+                warn "$(_tf '⚠️ %s download failed' "$f")"
                 rm -rf "$dest"
             fi
         done
         fc-cache -f >/dev/null 2>&1 || true
     fi
-    success "🎉 Nerd Font 安装完成（记得在终端模拟器设置里选择 Nerd Font 字体）"
+    success "$(_t '🎉 Nerd Font installation complete (remember to select a Nerd Font in your terminal emulator settings)')"
 }
 
 uninstall_nerd_font() {
@@ -110,7 +112,7 @@ uninstall_nerd_font() {
         else
             rm -rf "$HOME/.local/share/fonts/NerdFonts/$f"
         fi
-        info "已卸载: $f"
+        info "$(_tf 'Uninstalled: %s' "$f")"
     done
     if command_exists fc-cache; then
         fc-cache -f >/dev/null 2>&1 || true
@@ -130,11 +132,11 @@ status_nerd_font() {
     local csv
     csv=$(IFS=,; echo "${found[*]:-}")
     if [[ ${#found[@]} -eq $total ]]; then
-        emit_status "installed" "${GREEN}✅ 已安装: ${csv:-无}${NC}"
+        emit_status "installed" "${GREEN}$(_t '✅ Installed:') ${csv:-$(_t 'none')}${NC}"
     elif [[ ${#found[@]} -gt 0 ]]; then
-        emit_status "installed" "${YELLOW}⚠️ 部分已安装: $csv${NC}"
+        emit_status "installed" "${YELLOW}$(_tf '⚠️ Partially installed: %s' "$csv")${NC}"
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
     [[ -n "$csv" ]] && emit_extra "fonts=$csv"
     return 0
@@ -144,10 +146,10 @@ usage() {
     cat <<EOF
 用法: $0 {install|list|uninstall|status|help}
 
-  install     安装 Nerd Font（默认 JetBrainsMono；UXS_CONFIG_FONTS="JetBrainsMono,FiraCode" 可指定）
-  list        列出可安装字体
-  uninstall   卸载
-  status      查看状态
+  install     $(_t 'Install Nerd Font (default JetBrainsMono; UXS_CONFIG_FONTS="JetBrainsMono,FiraCode" can be specified)')
+  list        $(_t 'List the installable fonts')
+  uninstall   $(_t 'Uninstall')
+  status      $(_t 'View the status')
 EOF
 }
 
@@ -160,7 +162,7 @@ main() {
         uninstall) uninstall_nerd_font ;;
         status)    status_nerd_font ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

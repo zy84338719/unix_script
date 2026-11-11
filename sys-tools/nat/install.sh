@@ -39,7 +39,7 @@ COMMENT_PREFIX="nat-manager"
 preflight() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        error "nat 模块仅支持 Linux。当前：$OS_TYPE"
+        error "nat $(_tf 'The nat module is Linux-only. Current: %s' "$OS_TYPE")"
         exit 1
     fi
     require_sudo
@@ -48,7 +48,7 @@ preflight() {
 # 确保 iptables 可用
 ensure_iptables() {
     if ! command_exists iptables; then
-        error "未找到 iptables 命令，请先安装："
+        error "$(_t 'The iptables command was not found, please install it first:')"
         echo "  apt-get install -y iptables    # Debian/Ubuntu"
         echo "  dnf install -y iptables         # CentOS/RHEL"
         exit 1
@@ -65,19 +65,19 @@ ensure_conf_dir() {
 # ---------------- IP Forwarding ----------------
 
 enable_ip_forwarding() {
-    info "开启 IP forwarding..."
+    info "$(_t 'Enabling IP forwarding...')"
     # 立即生效
     sudo sysctl -w net.ipv4.ip_forward=1 >/dev/null 2>&1
     # 持久化
     echo "net.ipv4.ip_forward = 1" | sudo tee "$SYSCTL_FILE" >/dev/null
-    success "IP forwarding 已开启"
+    success "IP forwarding $(_t 'Enabled')"
 }
 
 disable_ip_forwarding() {
-    info "关闭 IP forwarding..."
+    info "$(_t 'Disabling IP forwarding...')"
     sudo sysctl -w net.ipv4.ip_forward=0 >/dev/null 2>&1
     sudo rm -f "$SYSCTL_FILE"
-    success "IP forwarding 已关闭"
+    success "IP forwarding $(_t 'Disabled')"
 }
 
 # ---------------- 规则文件操作 ----------------
@@ -121,23 +121,23 @@ add_dnat_rule() {
         target_ip="${target%%:*}"
         target_port="${target##*:}"
     else
-        error "目标格式错误，应为 IP:端口，如 192.168.1.100:443"
+        error "$(_t 'Invalid target format, it should be IP:port, for example 192.168.1.100:443')"
         exit 1
     fi
 
     # 验证端口号
     if ! [[ "$port" =~ ^[0-9]+$ ]] || ((port < 1 || port > 65535)); then
-        error "外部端口无效：${port}（应为 1-65535）"
+        error "$(_tf 'Invalid external port: %s (expected 1-65535)' "${port}")"
         exit 1
     fi
     if ! [[ "$target_port" =~ ^[0-9]+$ ]] || ((target_port < 1 || target_port > 65535)); then
-        error "目标端口无效：${target_port}（应为 1-65535）"
+        error "$(_tf 'Invalid target port: %s (expected 1-65535)' "${target_port}")"
         exit 1
     fi
 
     # 检查是否已存在
     if rule_exists "$port" "$proto"; then
-        warn "端口 $port/$proto 已有转发规则，将覆盖"
+        warn "$(_tf 'The port %s/%s already has a forwarding rule, it will be overwritten' "$port" "$proto")"
         remove_dnat_rule "$port" "$proto"
     fi
 
@@ -155,7 +155,7 @@ add_dnat_rule() {
     # 保存到配置文件
     add_rule_to_file "$port" "$proto" "$target"
 
-    success "已添加转发：$port/$proto → $target"
+    success "$(_tf 'Forwarding added: %s/%s -> %s' "$port" "$proto" "$target")"
 }
 
 # 删除 DNAT 规则
@@ -171,17 +171,17 @@ remove_dnat_rule() {
     # 从配置文件删除
     remove_rule_from_file "$port" "$proto"
 
-    success "已删除转发：$port/$proto"
+    success "$(_tf 'Forwarding removed: %s/%s' "$port" "$proto")"
 }
 
 # 列出所有 DNAT 规则
 list_dnat_rules() {
-    info "=== DNAT 转发规则 ==="
+    info "=== DNAT $(_t 'Forwarding rules ===')"
     if [[ ! -f "$RULES_FILE" ]] || [[ ! -s "$RULES_FILE" ]]; then
-        echo "  （无规则）"
+        echo "  $(_t '(no rules)')"
         return
     fi
-    printf "  %-8s %-6s %s\n" "端口" "协议" "目标"
+    printf "  %-8s %-6s %s\n" "$(_t 'Port')" "$(_t 'Protocol')" "$(_t 'Target')"
     printf "  %-8s %-6s %s\n" "--------" "------" "--------------------"
     while IFS=' ' read -r port proto target; do
         [[ -z "$port" || "$port" == \#* ]] && continue
@@ -196,7 +196,7 @@ enable_gateway() {
     local iface="$1" source="$2"
 
     if ! ip link show "$iface" >/dev/null 2>&1; then
-        error "网卡 $iface 不存在。可用网卡："
+        error "$(_tf 'The interface %s does not exist. Available network interfaces:' "$iface")"
         ip -br link show | awk '{print "  " $1}' >&2
         exit 1
     fi
@@ -213,7 +213,7 @@ enable_gateway() {
 
     # 检查是否已存在
     if [[ -f "$GATEWAY_FILE" ]] && grep -q "^${iface}" "$GATEWAY_FILE"; then
-        warn "网卡 $iface 已配置 MASQUERADE，将覆盖"
+        warn "$(_tf 'The interface %s already has a MASQUERADE rule, it will be overwritten' "$iface")"
         disable_gateway "$iface"
     fi
 
@@ -229,7 +229,7 @@ enable_gateway() {
     ensure_conf_dir
     echo "$rule_line" | sudo tee -a "$GATEWAY_FILE" >/dev/null
 
-    success "已开启 MASQUERADE：网卡 $iface${source:+ (源 $source)}"
+    success "$(_tf 'MASQUERADE enabled: interface %s%s' "$iface" "${source:+ ($(_t 'source') $source)}")"
 }
 
 # 关闭 MASQUERADE
@@ -248,21 +248,21 @@ disable_gateway() {
         sudo rm -f "$GATEWAY_FILE.bak"
     fi
 
-    success "已关闭 MASQUERADE：网卡 $iface"
+    success "$(_tf 'MASQUERADE disabled: interface %s' "$iface")"
 }
 
 # 列出网关配置
 list_gateways() {
-    info "=== MASQUERADE 网关 ==="
+    info "=== MASQUERADE $(_t 'Gateway ===')"
     if [[ ! -f "$GATEWAY_FILE" ]] || [[ ! -s "$GATEWAY_FILE" ]]; then
-        echo "  （未配置）"
+        echo "  $(_t '(not configured)')"
         return
     fi
-    printf "  %-12s %s\n" "网卡" "源 CIDR"
+    printf "  %-12s %s\n" "$(_t 'Interface')" "$(_t 'Source CIDR')"
     printf "  %-12s %s\n" "------------" "--------------------"
     while IFS=' ' read -r iface source; do
         [[ -z "$iface" || "$iface" == \#* ]] && continue
-        printf "  %-12s %s\n" "$iface" "${source:-（全部）}"
+        printf "  %-12s %s\n" "$iface" "${source:-$(_t 'all')}"
     done < "$GATEWAY_FILE"
 }
 
@@ -309,7 +309,7 @@ load_all_rules() {
 
 # 清除所有 nat-manager 规则（不清配置文件）
 flush_all_rules() {
-    info "清除所有 nat-manager iptables 规则..."
+    info "$(_t 'Clearing all the nat-manager iptables rules...')"
 
     # 清除 DNAT 规则
     if [[ -f "$RULES_FILE" ]]; then
@@ -337,11 +337,11 @@ flush_all_rules() {
 # ---------------- systemd 持久化 ----------------
 
 install_systemd_service() {
-    info "配置 systemd 持久化服务..."
+    info "$(_t 'Configuring the systemd persistence service...')"
 
     install_systemd_unit nat-manager.service <<EOF
 [Unit]
-Description=NAT Manager - 加载端口转发与 MASQUERADE 规则
+Description=NAT Manager - $(_t 'Load the port forwarding and MASQUERADE rules')
 After=network-pre.target
 Before=network.target
 Wants=network.target
@@ -357,16 +357,16 @@ WantedBy=multi-user.target
 EOF
 
     uxs_svc enable nat-manager.service
-    success "nat-manager.service 已启用（开机自动加载规则）"
+    success "nat-manager.service $(_t 'Enabled (the rules are loaded automatically at boot)')"
 }
 
 remove_systemd_service() {
-    info "移除 systemd 持久化服务..."
+    info "$(_t 'Removing the systemd persistence service...')"
     uxs_svc disable nat-manager.service 2>/dev/null || true
     uxs_svc stop nat-manager.service 2>/dev/null || true
     sudo rm -f "$SERVICE_FILE"
     uxs_svc daemon-reload
-    success "nat-manager.service 已移除"
+    success "nat-manager.service $(_t 'Removed')"
 }
 
 # ---------------- 安装 / 卸载 ----------------
@@ -379,20 +379,20 @@ do_install() {
     install_systemd_service
 
     echo
-    success "NAT 管理工具安装完成！"
+    success "NAT $(_t 'NAT management tool installation complete!')"
     echo
-    info "快速开始："
-    echo "  $0 forward add 8443 192.168.1.100:443     # 端口转发"
-    echo "  $0 gateway enable eth1 --source 192.168.1.0/24  # 共享上网"
-    echo "  $0 forward list                            # 查看规则"
-    echo "  $0 status                                  # 总览"
+    info "$(_t 'Quick start:')"
+    echo "  $0 forward add 8443 192.168.1.100:443     # $(_t 'Port forwarding')"
+    echo "  $0 gateway enable eth1 --source 192.168.1.0/24  # $(_t 'Shared internet access')"
+    echo "  $0 forward list                            # $(_t 'Show the rules')"
+    echo "  $0 status                                  # $(_t 'Overview')"
 }
 
 do_uninstall() {
     preflight
 
-    if ! yes_no "确认卸载 NAT 管理工具？所有转发规则和网关配置将被清除。"; then
-        info "已取消"
+    if ! yes_no "$(_t 'Confirm uninstalling the NAT management tool? All forwarding rules and gateway settings will be cleared.')"; then
+        info "$(_t 'Cancelled')"
         return 0
     fi
 
@@ -407,15 +407,15 @@ do_uninstall() {
 
     # 删除配置文件
     if [[ -d "$CONF_DIR" ]]; then
-        if yes_no "是否删除配置目录 ${CONF_DIR}？（规则文件也会被删除）"; then
+        if yes_no "$(_tf 'Delete the configuration directory %s? (the rule files will be deleted too)' "${CONF_DIR}")"; then
             sudo rm -rf "$CONF_DIR"
-            success "配置目录 $CONF_DIR 已删除"
+            success "$(_tf 'Configuration directory %s deleted' "$CONF_DIR")"
         else
-            info "配置目录已保留：$CONF_DIR"
+            info "$(_tf 'Configuration directory kept: %s' "$CONF_DIR")"
         fi
     fi
 
-    success "NAT 管理工具已卸载"
+    success "NAT $(_t 'NAT management tool uninstalled')"
 }
 
 # ---------------- 状态 ----------------
@@ -423,7 +423,7 @@ do_uninstall() {
 do_status() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}不适用（仅 Linux）${NC}"
+        emit_status "n/a" "${YELLOW}$(_t 'Not applicable (Linux only)')${NC}"
         return
     fi
 
@@ -437,20 +437,24 @@ do_status() {
     if [[ -f "$GATEWAY_FILE" ]]; then
         gw_count=$(grep -cvE '^\s*$|^\s*#' "$GATEWAY_FILE" 2>/dev/null || echo 0)
     fi
-    local svc_state="未启用"
+    local svc_state
+    svc_state="$(_t 'Not enabled')"
+    local svc_key="disabled"
     if uxs_svc is-enabled nat-manager.service >/dev/null 2>&1; then
         if uxs_svc is-active nat-manager.service >/dev/null 2>&1; then
-            svc_state="已启用并运行"
+            svc_state="$(_t 'Enabled and running')"
+            svc_key="running"
         else
-            svc_state="已启用但未运行"
+            svc_state="$(_t 'Enabled but not running')"
+            svc_key="stopped"
         fi
     fi
 
     # ---- 聚合主状态：转发规则数>0 → configured；否则 not_configured ----
     if [[ ${rule_count:-0} -gt 0 ]]; then
-        emit_status "configured" "${GREEN}✅ NAT 已配置${NC}（转发规则 $rule_count 条）"
+        emit_status "configured" "${GREEN}$(_t '✅ NAT configured')${NC}$(_tf '(%s forwarding rules)' "$rule_count")"
     else
-        emit_status "not_configured" "${YELLOW}⚠️  NAT 未配置${NC}（无转发规则）"
+        emit_status "not_configured" "${YELLOW}$(_t '⚠️  NAT not configured')${NC}$(_t '(no forwarding rules)')"
     fi
     emit_extra "ip_forward=$fwd"
     emit_extra "rules=$rule_count"
@@ -461,20 +465,20 @@ do_status() {
     if ! uxs_is_machine_mode; then
         # IP forwarding 状态
         if [[ "$fwd" == "1" ]]; then
-            echo -e "IP forwarding: ${GREEN}已开启${NC}"
+            echo -e "IP forwarding: ${GREEN}$(_t 'Enabled')${NC}"
         else
-            echo -e "IP forwarding: ${RED}未开启${NC}"
+            echo -e "IP forwarding: ${RED}$(_t 'Off')${NC}"
         fi
 
         # 规则文件状态
-        echo -e "转发规则: ${rule_count} 条"
-        echo -e "网关配置: ${gw_count} 个"
+        echo -e "$(_tf 'Forwarding rules: %s' "${rule_count}")"
+        echo -e "$(_tf 'Gateway settings: %s' "${gw_count}")"
 
         # systemd 服务状态
-        case "$svc_state" in
-            已启用并运行) echo -e "持久化服务: ${GREEN}已启用并运行${NC}" ;;
-            已启用但未运行) echo -e "持久化服务: ${YELLOW}已启用但未运行${NC}" ;;
-            *) echo -e "持久化服务: ${RED}未启用${NC}" ;;
+        case "$svc_key" in
+            running) echo -e "$(_t 'Persistence service:') ${GREEN}$(_t 'Enabled and running')${NC}" ;;
+            stopped) echo -e "$(_t 'Persistence service:') ${YELLOW}$(_t 'Enabled but not running')${NC}" ;;
+            *) echo -e "$(_t 'Persistence service:') ${RED}$(_t 'Not enabled')${NC}" ;;
         esac
 
         # 详细规则
@@ -491,24 +495,24 @@ usage() {
     cat <<EOF
 用法: $0 <子命令> [参数...]
 
-NAT 端口转发与共享上网管理工具（仅 Linux）。
+NAT $(_t 'NAT port forwarding and shared internet access management tool (Linux only).')
 
-子命令:
-  install                                     安装依赖、开启 IP forwarding、配置持久化
-  uninstall                                   清除规则、关闭 IP forwarding、移除持久化
-  forward add <端口> <目标:端口> [--proto P]   添加 DNAT 转发（默认 tcp）
-  forward del <端口> [--proto P]               删除 DNAT 转发
-  forward list                                列出所有转发规则
-  gateway enable <网卡> [--source CIDR]        开启 MASQUERADE（共享上网）
-  gateway disable <网卡>                       关闭 MASQUERADE
-  status                                      总览
-  help                                        显示本帮助
+$(_t 'Subcommands:')
+  install                                     $(_t 'Install the dependencies, enable IP forwarding and set up persistence')
+  uninstall                                   $(_t 'Clear the rules, disable IP forwarding and remove the persistence')
+  forward add <$(_t 'port> <target:port> [--proto P]   Add a DNAT forwarding rule (tcp by default)')
+  forward del <$(_t 'port> [--proto P]               Delete a DNAT forwarding rule')
+  forward list                                $(_t 'List all the forwarding rules')
+  gateway enable <$(_t 'interface> [--source CIDR]        Enable MASQUERADE (shared internet access)')
+  gateway disable <$(_t 'interface>                       Disable MASQUERADE')
+  status                                      $(_t 'Overview')
+  help                                        $(_t 'Show this help')
 
-内部命令（systemd 调用，不直接使用）:
-  _load                                       从配置文件加载所有规则
-  _flush                                      清除所有 iptables 规则
+$(_t 'Internal commands (called by systemd, not used directly):')
+  _load                                       $(_t 'Load all the rules from the configuration files')
+  _flush                                      $(_t 'Clear all the iptables rules')
 
-示例:
+$(_t 'Examples:')
   $0 install
   $0 forward add 8443 192.168.1.100:443
   $0 forward add 5353 192.168.1.1:53 --proto udp
@@ -537,8 +541,8 @@ parse_forward_args() {
             return
             ;;
         *)
-            error "未知 forward 子命令: $action"
-            echo "  可用: add, del, list"
+            error "$(_tf 'Unknown forward subcommand: %s' "$action")"
+            echo "  $(_t 'Available: add, del, list')"
             exit 1
             ;;
     esac
@@ -550,7 +554,7 @@ parse_forward_args() {
                 proto="$2"; shift 2
                 ;;
             *)
-                error "未知参数: $1"
+                error "$(_tf 'Unknown parameter: %s' "$1")"
                 exit 1
                 ;;
         esac
@@ -559,7 +563,7 @@ parse_forward_args() {
     # 验证必填参数
     if [[ "$action" == "add" ]]; then
         if [[ -z "$port" || -z "$target" ]]; then
-            error "用法: $0 forward add <端口> <目标IP:端口> [--proto tcp|udp]"
+            error "$(_tf 'Usage: %s forward add <port> <targetIP:port> [--proto tcp|udp]' "$0")"
             exit 1
         fi
         preflight
@@ -567,13 +571,13 @@ parse_forward_args() {
         add_dnat_rule "$port" "$proto" "$target"
     elif [[ "$action" == "del" || "$action" == "delete" || "$action" == "remove" || "$action" == "rm" ]]; then
         if [[ -z "$port" ]]; then
-            error "用法: $0 forward del <端口> [--proto tcp|udp]"
+            error "$(_tf 'Usage: %s forward del <port> [--proto tcp|udp]' "$0")"
             exit 1
         fi
         preflight
         ensure_iptables
         if ! rule_exists "$port" "$proto"; then
-            warn "未找到端口 $port/$proto 的转发规则"
+            warn "$(_tf 'No forwarding rule found for the port %s/%s' "$port" "$proto")"
             return 0
         fi
         remove_dnat_rule "$port" "$proto"
@@ -588,13 +592,13 @@ parse_gateway_args() {
             local iface="${1:-}" source=""
             shift 1 2>/dev/null || true
             if [[ -z "$iface" ]]; then
-                error "用法: $0 gateway enable <网卡> [--source CIDR]"
+                error "$(_tf 'Usage: %s gateway enable <interface> [--source CIDR]' "$0")"
                 exit 1
             fi
             while [[ $# -gt 0 ]]; do
                 case "$1" in
                     --source|-s) source="$2"; shift 2 ;;
-                    *) error "未知参数: $1"; exit 1 ;;
+                    *) error "$(_tf 'Unknown parameter: %s' "$1")"; exit 1 ;;
                 esac
             done
             preflight
@@ -605,7 +609,7 @@ parse_gateway_args() {
         disable|off)
             local iface="${1:-}"
             if [[ -z "$iface" ]]; then
-                error "用法: $0 gateway disable <网卡>"
+                error "$(_tf 'Usage: %s gateway disable <interface>' "$0")"
                 exit 1
             fi
             preflight
@@ -616,8 +620,8 @@ parse_gateway_args() {
             list_gateways
             ;;
         *)
-            error "未知 gateway 子命令: $action"
-            echo "  可用: enable, disable, list"
+            error "$(_tf 'Unknown gateway subcommand: %s' "$action")"
+            echo "  $(_t 'Available: enable, disable, list')"
             exit 1
             ;;
     esac
@@ -657,7 +661,7 @@ main() {
             usage
             ;;
         *)
-            error "未知操作: $action"
+            error "$(_tf 'Unknown action: %s' "$action")"
             usage
             exit 1
             ;;

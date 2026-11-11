@@ -19,13 +19,14 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 PURPLE='\033[0;35m'
 BOLD='\033[1m'
-NC='\033[0m' # 无颜色
+# 无颜色
+NC='\033[0m'
 
 # --- 日志函数 ---
-info() { echo -e "${BLUE}[信息]${NC} $1"; }
-success() { echo -e "${GREEN}[成功]${NC} $1"; }
-error() { echo -e "${RED}[错误]${NC} $1"; }
-warn() { echo -e "${YELLOW}[警告]${NC} $1"; }
+info() { echo -e "${BLUE}[$(_t 'Info]')${NC} $1"; }
+success() { echo -e "${GREEN}[$(_t 'Success]')${NC} $1"; }
+error() { echo -e "${RED}[$(_t 'Error]')${NC} $1"; }
+warn() { echo -e "${YELLOW}[$(_t 'Warning]')${NC} $1"; }
 header() { echo -e "${CYAN}${BOLD}$1${NC}"; }
 highlight() { echo -e "${PURPLE}$1${NC}"; }
 
@@ -39,7 +40,7 @@ detect_os() {
             OS="Linux"
             ;;
         *)
-            error "不支持的操作系统: $(uname -s)"
+            error "$(_t 'Unsupported operating system'): $(uname -s)"
             exit 1
             ;;
     esac
@@ -50,42 +51,42 @@ search_processes() {
     local search_term="$1"
     local temp_file="/tmp/process_search_$$"
     
-    info "搜索包含 '$search_term' 的进程..."
+    info "$(_tf 'Searching the processes that contain %s...' "$search_term")"
     
     if [[ "$OS" == "macOS" ]]; then
         # macOS 使用 ps 和 lsof
         {
-            echo "=== 按进程名搜索 ==="
+            echo "=== $(_t 'Search by process name ===')"
             pgrep -f "$search_term" | while read -r pid; do
                 ps -p "$pid" -o pid,user,comm,args 2>/dev/null || true
             done
             echo ""
-            echo "=== 按端口搜索 ==="
+            echo "=== $(_t 'Search by port ===')"
             if [[ "$search_term" =~ ^[0-9]+$ ]]; then
-                lsof -i ":$search_term" 2>/dev/null || echo "端口 $search_term 未被占用"
+                lsof -i ":$search_term" 2>/dev/null || printf '%s\n' "$(_tf 'The port %s is not in use' "$search_term")"
             else
-                echo "搜索词不是数字，跳过端口搜索"
+                printf '%s\n' "$(_t 'The search term is not a number, skipping the port search')"
             fi
         } > "$temp_file"
     else
         # Linux 使用 ps 和 netstat/ss
         {
-            echo "=== 按进程名搜索 ==="
+            echo "=== $(_t 'Search by process name ===')"
             pgrep -f "$search_term" | while read -r pid; do
                 ps -p "$pid" -o pid,user,comm,args 2>/dev/null || true
             done
             echo ""
-            echo "=== 按端口搜索 ==="
+            echo "=== $(_t 'Search by port ===')"
             if [[ "$search_term" =~ ^[0-9]+$ ]]; then
                 if command -v ss >/dev/null 2>&1; then
-                    ss -tulnp | grep ":$search_term " 2>/dev/null || echo "端口 $search_term 未被占用"
+                    ss -tulnp | grep ":$search_term " 2>/dev/null || printf '%s\n' "$(_tf 'The port %s is not in use' "$search_term")"
                 elif command -v netstat >/dev/null 2>&1; then
-                    netstat -tulnp | grep ":$search_term " 2>/dev/null || echo "端口 $search_term 未被占用"
+                    netstat -tulnp | grep ":$search_term " 2>/dev/null || printf '%s\n' "$(_tf 'The port %s is not in use' "$search_term")"
                 else
-                    echo "未找到 ss 或 netstat 命令"
+                    printf '%s\n' "$(_t 'The ss or netstat command was not found')"
                 fi
             else
-                echo "搜索词不是数字，跳过端口搜索"
+                printf '%s\n' "$(_t 'The search term is not a number, skipping the port search')"
             fi
         } > "$temp_file"
     fi
@@ -97,7 +98,7 @@ search_processes() {
         echo ""
         return 0
     else
-        warn "未找到匹配的进程"
+        warn "$(_t 'No matching process was found')"
         rm -f "$temp_file"
         return 1
     fi
@@ -145,32 +146,32 @@ show_process_details() {
     local pid="$1"
     
     if ! kill -0 "$pid" 2>/dev/null; then
-        error "进程 $pid 不存在或无权限访问"
+        error "$(_tf 'The process %s does not exist or cannot be accessed' "$pid")"
         return 1
     fi
     
     echo "----------------------------------------"
-    highlight "进程详细信息 (PID: $pid)"
+    highlight "$(_tf 'Process details (PID: %s)' "$pid")"
     echo "----------------------------------------"
     
     if [[ "$OS" == "macOS" ]]; then
         ps -p "$pid" -o pid,ppid,user,comm,args
         echo ""
-        echo "监听的端口:"
-        lsof -P -i -p "$pid" 2>/dev/null | grep LISTEN || echo "  无监听端口"
+        printf '%s\n' "$(_t 'Listening ports:')"
+        lsof -P -i -p "$pid" 2>/dev/null | grep LISTEN || echo "  $(_t 'No listening ports')"
         echo ""
-        echo "打开的文件数:"
+        printf '%s\n' "$(_t 'Number of open files:')"
         local file_count
         file_count=$(lsof -p "$pid" 2>/dev/null | wc -l)
-        echo "  $file_count 个文件描述符"
+        echo "  $file_count $(_t 'file descriptors')"
     else
         ps -p "$pid" -o pid,ppid,user,comm,args
         echo ""
-        echo "监听的端口:"
-        ss -tulnp | grep "pid=$pid," 2>/dev/null || echo "  无监听端口"
+        printf '%s\n' "$(_t 'Listening ports:')"
+        ss -tulnp | grep "pid=$pid," 2>/dev/null || echo "  $(_t 'No listening ports')"
         echo ""
-        echo "进程状态:"
-        grep -E "^(Name|State|Threads):" "/proc/$pid/status" 2>/dev/null || echo "  无法读取状态"
+        printf '%s\n' "$(_t 'Process state:')"
+        grep -E "^(Name|State|Threads):" "/proc/$pid/status" 2>/dev/null || echo "  $(_t 'Cannot read the state')"
     fi
     echo "----------------------------------------"
 }
@@ -181,21 +182,21 @@ terminate_process() {
     local force="$2"
     
     if ! kill -0 "$pid" 2>/dev/null; then
-        error "进程 $pid 不存在或已退出"
+        error "$(_tf 'The process %s does not exist or has already exited' "$pid")"
         return 1
     fi
     
     if [[ "$force" == "force" ]]; then
-        warn "强制杀死进程 $pid (SIGKILL)"
+        warn "$(_tf 'Force killing the process %s (SIGKILL)' "$pid")"
         if kill -9 "$pid" 2>/dev/null; then
-            success "进程 $pid 已被强制杀死"
+            success "$(_tf 'The process %s has been force killed' "$pid")"
             return 0
         else
-            error "无法杀死进程 $pid (权限不足或进程保护)"
+            error "$(_tf 'Cannot kill the process %s (insufficient permissions or the process is protected)' "$pid")"
             return 1
         fi
     else
-        info "尝试优雅地终止进程 $pid (SIGTERM)"
+        info "$(_tf 'Trying to terminate the process %s gracefully (SIGTERM)' "$pid")"
         if kill -15 "$pid" 2>/dev/null; then
             # 等待进程退出
             local count=0
@@ -207,21 +208,21 @@ terminate_process() {
             echo ""
             
             if kill -0 "$pid" 2>/dev/null; then
-                warn "进程 $pid 在 10 秒内未响应 SIGTERM"
+                warn "$(_tf 'The process %s did not respond to SIGTERM within 10 seconds' "$pid")"
                 echo ""
-                read -r -p "是否强制杀死进程? [y/N]: "
+                read -r -p "$(_t 'Force kill the process? [y/N]:') "
                 if [[ "$REPLY" =~ ^[Yy]$ ]]; then
                     terminate_process "$pid" "force"
                 else
-                    info "已取消强制杀死操作"
+                    info "$(_t 'The force kill operation has been cancelled')"
                     return 1
                 fi
             else
-                success "进程 $pid 已优雅退出"
+                success "$(_tf 'The process %s has exited gracefully' "$pid")"
                 return 0
             fi
         else
-            error "无法发送 SIGTERM 到进程 $pid (权限不足)"
+            error "$(_tf 'Cannot send SIGTERM to the process %s (insufficient permissions)' "$pid")"
             return 1
         fi
     fi
@@ -243,21 +244,21 @@ interactive_process_selection() {
     local pid_count=${#pid_array[@]}
     
     if [[ $pid_count -eq 0 ]]; then
-        warn "未找到匹配的进程"
+        warn "$(_t 'No matching process was found')"
         return 1
     elif [[ $pid_count -eq 1 ]]; then
         local pid=${pid_array[0]}
-        info "找到唯一匹配进程 PID: $pid"
+        info "$(_tf 'Found a single matching process, PID: %s' "$pid")"
         show_process_details "$pid"
         echo ""
-        read -r -p "确认要终止这个进程吗? [y/N]: "
+        read -r -p "$(_t 'Do you want to terminate this process? [y/N]:') "
         if [[ "$REPLY" =~ ^[Yy]$ ]]; then
             terminate_process "$pid"
         else
-            info "已取消操作"
+            info "$(_t 'The operation has been cancelled')"
         fi
     else
-        info "找到 $pid_count 个匹配的进程:"
+        info "$(_tf 'Found %s matching processes:' "$pid_count")"
         echo ""
         
         # 显示进程列表
@@ -267,12 +268,12 @@ interactive_process_selection() {
             ps -p "$pid" -o pid,user,comm,args 2>/dev/null | tail -n 1 | sed 's/^/   /'
             ((i++))
         done
-        echo "$i) 显示所有进程的详细信息"
-        echo "$((i+1))) 取消操作"
+        echo "$i) $(_t 'Show the details of all the processes')"
+        echo "$((i+1))) $(_t 'Cancel the operation')"
         echo ""
         
         while true; do
-            read -r -p "请选择要操作的进程 [1-$((i+1))]: " choice
+            read -r -p "$(_t 'Please choose the process to operate on') [1-$((i+1))]: " choice
             
             if [[ "$choice" =~ ^[0-9]+$ ]] && [[ $choice -ge 1 && $choice -le $((i+1)) ]]; then
                 if [[ $choice -eq $i ]]; then
@@ -283,23 +284,23 @@ interactive_process_selection() {
                     done
                 elif [[ $choice -eq $((i+1)) ]]; then
                     # 取消操作
-                    info "已取消操作"
+                    info "$(_t 'The operation has been cancelled')"
                     return 0
                 else
                     # 选择具体进程
                     local selected_pid=${pid_array[$((choice-1))]}
                     show_process_details "$selected_pid"
                     echo ""
-                    read -r -p "确认要终止进程 $selected_pid 吗? [y/N]: "
+                    read -r -p "$(_tf 'Do you want to terminate the process %s? [y/N]:' "$selected_pid") "
                     if [[ "$REPLY" =~ ^[Yy]$ ]]; then
                         terminate_process "$selected_pid"
                     else
-                        info "已取消操作"
+                        info "$(_t 'The operation has been cancelled')"
                     fi
                     break
                 fi
             else
-                error "无效选择，请输入 1 到 $((i+1)) 之间的数字"
+                error "$(_tf 'Invalid choice, please enter a number between 1 and %s' "$((i+1))")"
             fi
         done
     fi
@@ -308,14 +309,14 @@ interactive_process_selection() {
 # --- 主菜单 ---
 show_main_menu() {
     clear
-    header "🔧 智能进程管理工具"
+    header "$(_t '🔧 Smart process manager')"
     echo "=================================="
-    echo "支持的搜索方式："
-    echo "  • 进程名称 (模糊匹配)"
-    echo "  • 端口号 (精确匹配)"
-    echo "  • 进程ID (精确匹配)"
+    printf '%s\n' "$(_t 'Supported search methods:')"
+    echo "  $(_t '• Process name (fuzzy match)')"
+    echo "  $(_t '• Port number (exact match)')"
+    echo "  $(_t '• Process ID (exact match)')"
     echo ""
-    echo "操作系统: $OS"
+    printf '%s\n' "$(_tf 'Operating system: %s' "$OS")"
     echo "=================================="
 }
 
@@ -327,7 +328,7 @@ main() {
     if [[ $# -eq 1 ]]; then
         # 直接搜索模式
         local search_term="$1"
-        info "搜索模式: $search_term"
+        info "$(_tf 'Search mode: %s' "$search_term")"
         echo ""
         
         if search_processes "$search_term"; then
@@ -341,17 +342,17 @@ main() {
     while true; do
         show_main_menu
         echo ""
-        read -r -p "请输入搜索词 (进程名/端口号/PID，或输入 'q' 退出): " search_input
+        read -r -p "$(_t 'Please enter the search term (process name / port number / PID, or q to quit):') " search_input
         
         if [[ "$search_input" == "q" || "$search_input" == "quit" || "$search_input" == "exit" ]]; then
-            info "再见！"
+            info "$(_t 'Goodbye!')"
             exit 0
         fi
         
         if [[ -z "$search_input" ]]; then
-            error "搜索词不能为空"
+            error "$(_t 'The search term must not be empty')"
             echo ""
-            read -r -p "按回车键继续..."
+            read -r -p "$(_t 'Press Enter to continue...')"
             continue
         fi
         
@@ -362,7 +363,7 @@ main() {
         fi
         
         echo ""
-        read -r -p "按回车键返回主菜单..."
+        read -r -p "$(_t 'Press Enter to return to the main menu...')"
     done
 }
 

@@ -20,43 +20,43 @@ VERSION="2.0.0"
 # 显示帮助
 show_help() {
     cat << EOF
-Zsh 环境配置管理工具 v${VERSION}
+$(_t 'Zsh environment configuration tool') v${VERSION}
 
 用法: $0 <command> [options]
 
-命令:
-  framework              框架管理
-    [name]               安装指定框架 (oh-my-zsh, prezto, zinit, sheldon)
-    select               交互式选择框架
+$(_t 'Commands (zsh setup):')
+  framework              $(_t 'framework management')
+    [name]               $(_t 'install a given framework (oh-my-zsh, prezto, zinit, sheldon)')
+    select               $(_t 'interactively select a framework')
 
-  plugin                 插件管理
-    list                 列出已安装插件
-    add <name> [repo]    添加插件
-    remove <name>        移除插件
-    sync                 同步插件更新
+  plugin                 $(_t 'plugin management')
+    list                 $(_t 'list installed plugins')
+    add <name> [repo]    $(_t 'add a plugin')
+    remove <name>        $(_t 'remove a plugin')
+    sync                 $(_t 'sync plugin updates')
 
-  theme                  主题管理
-    list                 列出可用主题
-    set <name>           设置主题
-    p10k                 安装 Powerlevel10k
+  theme                  $(_t 'theme management')
+    list                 $(_t 'list available themes')
+    set <name>           $(_t 'set the theme')
+    p10k                 $(_t 'install Powerlevel10k')
 
-  config                 配置管理
-    backup               备份配置
-    restore              恢复配置
-    export               导出配置
-    import <file>        导入配置
+  config                 $(_t 'config management')
+    backup               $(_t 'back up the config')
+    restore              $(_t 'restore the config')
+    export               $(_t 'export the config')
+    import <file>        $(_t 'import the config')
 
-  status [--json]          查看状态 (--json 输出 JSON 格式)
-  help                   显示帮助信息
-  version                显示版本
+  status [--json]          $(_t 'view status (--json prints JSON)')
+  help                   $(_t 'show help information')
+  version                $(_t 'show the version')
 
-示例:
-  $0 framework oh-my-zsh   # 安装 Oh My Zsh
+$(_t 'Examples:')
+  $0 framework oh-my-zsh   $(_t '# install Oh My Zsh')
   $0 plugin add zsh-autosuggestions
-  $0 theme p10k            # 安装 Powerlevel10k
-  $0 config backup         # 备份配置
-  $0 status                # 查看状态
-  $0 status --json         # 查看状态 (JSON 格式)
+  $0 theme p10k            $(_t '# install Powerlevel10k')
+  $0 config backup         $(_t '# back up the config')
+  $0 status                $(_t '# view status')
+  $0 status --json         $(_t '# view status (JSON format)')
 EOF
 }
 
@@ -154,14 +154,14 @@ EOF
     fi
 
     # 人类模式：与原实现字节一致
-    info "Zsh 环境状态:"
+    info "$(_t 'Zsh environment status:')"
     echo ""
 
     # Zsh 状态
     if command_exists zsh; then
-        success "Zsh: 已安装 ($(zsh --version | head -1))"
+        success "$(_t 'Zsh: installed') ($(zsh --version | head -1))"
     else
-        warn "Zsh: 未安装"
+        warn "$(_t 'Zsh: not installed')"
     fi
 
     echo ""
@@ -176,12 +176,12 @@ EOF
         case "$fw" in
             oh-my-zsh)
                 if [ -f "$HOME/.zshrc" ]; then
-                    info "当前主题: ${theme:-未设置}"
+                    info "$(_t 'Current theme:') ${theme:-$(_t 'not set')}"
                 fi
                 ;;
             prezto)
                 if [ -f "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
-                    info "当前主题: ${theme:-未设置}"
+                    info "$(_t 'Current theme:') ${theme:-$(_t 'not set')}"
                 fi
                 ;;
         esac
@@ -191,9 +191,9 @@ EOF
 
     # 配置备份状态
     if [ -d "$BACKUP_DIR" ]; then
-        info "配置备份: ${backup_count} 个"
+        info "$(_tf 'Config backups: %s' "${backup_count}")"
     else
-        info "配置备份: 无"
+        info "$(_t 'Config backups: none')"
     fi
 }
 
@@ -201,21 +201,21 @@ EOF
 # 各框架卸载器（uninstall_oh_my_zsh / uninstall_prezto / ...）自行清理其 .zshrc 片段；
 # zsh_setup 未用统一标记写入 .zshrc，故残留行需用户手动复查。
 uninstall_zsh_setup() {
-    info "卸载 zsh_setup..."
+    info "$(_t 'Uninstalling zsh_setup...')"
     # set -e 下 framework_uninstall 失败需捕获，不能直接中止整个卸载流程
     if framework_uninstall; then
         :
     else
-        warn "框架卸载未完全成功（详见上文输出）"
+        warn "$(_t 'Framework uninstall did not fully succeed (see the output above)')"
     fi
     local cfg_dir="$HOME/.config/zsh_setup"
     if [ -d "$cfg_dir" ]; then
         rm -rf "$cfg_dir"
-        success "已移除配置目录：$cfg_dir"
+        success "$(_tf 'Removed config directory: %s' "$cfg_dir")"
     else
-        info "未发现配置目录：${cfg_dir}（无需清理）"
+        info "$(_tf 'Config directory not found: %s (nothing to clean up)' "${cfg_dir}")"
     fi
-    warn "如需彻底还原 zsh 环境，请手动检查 ~/.zshrc 是否有残留配置行"
+    warn "$(_t 'To fully restore zsh, check ~/.zshrc for leftover config lines')"
 }
 
 # 非交互默认安装（DEFAULT_ACTION=install 的实现）：
@@ -226,9 +226,9 @@ install_zsh_setup_default() {
     local theme="${UXS_CONFIG_THEME:-}"
 
     if ! command_exists zsh; then
-        info "安装 zsh 本体..."
+        info "$(_t 'Installing zsh...')"
         if ! pkg_install zsh; then
-            error "zsh 本体安装失败（请手动安装 zsh 后重试）"
+            error "$(_t 'Failed to install zsh (install zsh manually and retry)')"
             return 1
         fi
     fi
@@ -242,23 +242,24 @@ install_zsh_setup_default() {
         local p
         for p in zsh-autosuggestions zsh-syntax-highlighting zsh-completions zsh-history-substring-search; do
             if [ -d "$custom_dir/plugins/$p" ]; then
-                info "插件已存在: $p"
+                info "$(_tf 'Plugin already exists: %s' "$p")"
             else
-                plugin_add "$p" || warn "插件安装失败: ${p}（可稍后 plugin add ${p} 重试）"
+                plugin_add "$p" || warn "$(_tf 'Plugin install failed: %s (retry later with plugin add %s)' "${p}" "${p}")"
             fi
         done
     else
-        info "框架 $framework 的基础插件请用: $0 plugin add <name> 自行添加"
+        info "$(_tf 'For framework %s, add basic plugins with: %s plugin add <name>' "$framework" "$0")"
     fi
 
     case "$theme" in
-        ""|robbyrussell) : ;;                 # 框架默认主题，不动作
+        # 框架默认主题，不动作
+        ""|robbyrussell) : ;;
         p10k|powerlevel10k) theme_install_p10k ;;
         *) theme_set "$theme" ;;
     esac
 
-    success "🎉 zsh_setup 默认安装完成（框架: ${framework}）"
-    info "新开终端或执行 exec zsh 生效"
+    success "$(_tf '🎉 zsh_setup default install complete (framework: %s)' "${framework}")"
+    info "$(_t 'New terminal or exec zsh to apply')"
 }
 
 # 主函数
@@ -285,7 +286,7 @@ main() {
                 add) plugin_add "$1" "$2" ;;
                 remove) plugin_remove "$1" ;;
                 sync) plugin_sync ;;
-                *) error "未知命令: plugin $subcommand"; show_help; exit 1 ;;
+                *) error "$(_tf 'Unknown command: plugin %s' "$subcommand")"; show_help; exit 1 ;;
             esac
             ;;
         theme)
@@ -295,7 +296,7 @@ main() {
                 list) theme_list ;;
                 set) theme_set "$1" ;;
                 p10k) theme_install_p10k ;;
-                *) error "未知命令: theme $subcommand"; show_help; exit 1 ;;
+                *) error "$(_tf 'Unknown command: theme %s' "$subcommand")"; show_help; exit 1 ;;
             esac
             ;;
         config)
@@ -306,7 +307,7 @@ main() {
                 restore) config_restore ;;
                 export) config_export ;;
                 import) config_import "$1" ;;
-                *) error "未知命令: config $subcommand"; show_help; exit 1 ;;
+                *) error "$(_tf 'Unknown command: config %s' "$subcommand")"; show_help; exit 1 ;;
             esac
             ;;
         status)
@@ -322,7 +323,7 @@ main() {
             show_version
             ;;
         *)
-            error "未知命令: $command"
+            error "$(_tf 'Unknown command: %s' "$command")"
             show_help
             exit 1
             ;;

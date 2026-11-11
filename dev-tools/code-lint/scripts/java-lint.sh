@@ -15,72 +15,72 @@ source "$SCRIPT_DIR/../../../lib/common.sh"
 TARGET="${1:-.}"
 ERRORS=0
 
-header "🔍 Java 代码分析：$TARGET"
+header "🔍 $(_tf 'Java code analysis: %s' "$TARGET")"
 echo
 
 # 检查是否有 Java 源码
 if ! find "$TARGET" -maxdepth 5 -name "*.java" -print -quit 2>/dev/null | grep -q .; then
-    warn "未找到 Java 源文件，跳过 Java 分析"
+    warn "$(_t 'No Java source files found, skipping Java analysis')"
     exit 0
 fi
 
 # spotbugs
 if command_exists spotbugs; then
-    info "运行 spotbugs（字节码分析）..."
-    info "  提示：spotbugs 需要编译后的 .class 文件，请先运行 mvn compile 或 gradle build"
+    info "$(_t 'Running spotbugs (bytecode analysis)...')"
+    info "  $(_t 'Tip: spotbugs needs .class files, run mvn compile or gradle build first')"
     # spotbugs 需要编译后的 class 文件，这里给出提示
     if find "$TARGET" -maxdepth 5 -name "*.class" -print -quit 2>/dev/null | grep -q .; then
         if spotbugs -textui -low "$TARGET" 2>&1; then
-            success "  spotbugs：通过"
+            success "  $(_t 'spotbugs: passed')"
         else
-            warn "  spotbugs：发现问题"
+            warn "  $(_t 'spotbugs: problems found')"
             ERRORS=$((ERRORS + 1))
         fi
     else
-        warn "  ⚠️ 未找到 .class 文件，请先编译项目"
+        warn "  ⚠️ $(_t 'No .class files found, compile the project first')"
     fi
 else
-    warn "  ⚠️ spotbugs 未安装，跳过"
+    warn "  ⚠️ $(_t 'spotbugs not installed, skipping')"
 fi
 
 echo
 
 # pmd
 if command_exists pmd; then
-    info "运行 pmd（源码分析）..."
+    info "$(_t 'Running pmd (source analysis)...')"
     if pmd check -d "$TARGET" -R rulesets/java/quickstart.xml -f text 2>&1; then
-        success "  pmd：通过"
+        success "  $(_t 'pmd: passed')"
     else
-        warn "  pmd：发现问题"
+        warn "  $(_t 'pmd: problems found')"
         ERRORS=$((ERRORS + 1))
     fi
 else
-    warn "  ⚠️ pmd 未安装，跳过"
+    warn "  ⚠️ $(_t 'pmd not installed, skipping')"
 fi
 
 echo
 
 # checkstyle
 if command_exists checkstyle; then
-    info "运行 checkstyle（代码风格检查）..."
+    info "$(_t 'Running checkstyle (code style check)...')"
     # 查找 Java 源文件并运行 checkstyle
     java_files=$(find "$TARGET" -maxdepth 5 -name "*.java" 2>/dev/null | head -100)
     if [[ -n "$java_files" ]]; then
         if echo "$java_files" | xargs checkstyle -c /google_checks.xml 2>&1; then
-            success "  checkstyle：通过"
+            success "  $(_t 'checkstyle: passed')"
         else
-            warn "  checkstyle：发现风格问题"
+            warn "  $(_t 'checkstyle: style issues found')"
             ERRORS=$((ERRORS + 1))
         fi
     fi
 else
-    warn "  ⚠️ checkstyle 未安装，跳过"
+    warn "  ⚠️ $(_t 'checkstyle not installed, skipping')"
 fi
 
 echo
 if [[ $ERRORS -gt 0 ]]; then
-    error "Java 分析完成：$ERRORS 个工具报告了问题"
+    error "$(_tf 'Java analysis complete: %s tools reported problems' "$ERRORS")"
     exit 1
 else
-    success "✅ Java 分析全部通过"
+    success "✅ $(_t 'Java analysis all passed')"
 fi

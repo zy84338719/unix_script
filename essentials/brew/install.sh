@@ -29,9 +29,9 @@ MIRROR_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles"
 preflight() {
     detect_os
     if [[ "$OS_TYPE" != "darwin" ]]; then
-        warn "Homebrew 主要面向 macOS"
-        if ! yes_no "Linux 上将使用 Linuxbrew（部分 formula 不支持），是否继续？"; then
-            info "已取消"; exit 0
+        warn "$(_t 'Homebrew mainly targets macOS')"
+        if ! yes_no "$(_t 'Linuxbrew on Linux (some formulae are unsupported). Continue?')"; then
+            info "$(_t 'Cancelled')"; exit 0
         fi
     fi
     check_commands curl git
@@ -76,14 +76,14 @@ _ensure_shellenv() {
         return 0
     fi
 
-    info "将 brew shellenv 写入 $rc"
+    info "$(_tf 'Writing brew shellenv to %s' "$rc")"
     {
         echo ""
         echo "$BREW_ENV_MARKER"
         echo "$shellenv_line"
         echo "# <<< homebrew <<<"
     } >> "$rc"
-    success "已写入 ${rc}（重新打开终端或 source $rc 生效）"
+    success "$(_tf 'Written to %s (reopen the terminal or source %s to apply)' "${rc}" "$rc")"
 }
 
 # 从 shell 配置中移除 brew shellenv 块
@@ -105,23 +105,23 @@ _remove_shellenv() {
         !skip { print }
     ' "$rc" > "$tmp"
     mv "$tmp" "$rc"
-    info "已从 $rc 移除 brew shellenv 配置"
+    info "$(_tf 'Removed the brew shellenv configuration from %s' "$rc")"
 }
 
 install_brew() {
     preflight
-    info "🍺 安装 Homebrew 包管理器"
+    info "$(_t '🍺 Installing the Homebrew package manager')"
 
     if command_exists brew; then
         local cur
-        cur=$(brew --version 2>/dev/null | head -1 || echo "已安装")
-        warn "检测到已安装 Homebrew（${cur}）"
-        if ! yes_no "是否继续并重新安装/更新？"; then
-            info "已取消"; return 0
+        cur=$(brew --version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Homebrew is already installed')")
+        warn "$(_tf 'Homebrew is already installed (%s)' "${cur}")"
+        if ! yes_no "$(_t 'Continue with the reinstall/update?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
     fi
 
-    info "通过官方脚本安装（${BREW_INSTALLER}）..."
+    info "$(_tf 'Installing via the official script (%s)...' "${BREW_INSTALLER}")"
     /bin/bash -c "$(curl -fsSL "$BREW_INSTALLER")"
 
     # 配置 PATH
@@ -133,45 +133,45 @@ install_brew() {
     eval "$("$prefix/bin/brew" shellenv)"
 
     if ! command_exists brew; then
-        error "安装后仍找不到 brew，请重新打开终端或执行："
+        error "$(_t 'brew is still not found, reopen the terminal or run:')"
         echo "  eval \"\$($(_brew_prefix)/bin/brew shellenv)\""
         exit 1
     fi
 
-    success "🎉 Homebrew 安装完成！"
-    info "快速开始："
-    echo "  brew install <包名>      # 安装软件包"
-    echo "  brew search <关键词>     # 搜索软件包"
-    echo "  brew list               # 已安装列表"
-    echo "  brew update             # 更新索引"
-    echo "  brew upgrade            # 升级所有已安装包"
-    echo "  brew info <包名>        # 查看包信息"
+    success "$(_t '🎉 Homebrew installation complete!')"
+    info "$(_t 'Quick start:')"
+    echo "  $(_t 'brew install <package>      # Install a package')"
+    echo "  $(_t 'brew search <keyword>     # Search for packages')"
+    echo "  $(_t 'brew list               # List the installed packages')"
+    echo "  $(_t 'brew update             # Update the index')"
+    echo "  $(_t 'brew upgrade            # Upgrade all the installed packages')"
+    echo "  $(_t 'brew info <package>        # Show the package information')"
     echo
-    info "文档：https://docs.brew.sh"
+    info "$(_t 'Documentation: https://docs.brew.sh')"
 }
 
 uninstall_brew() {
     detect_os
     if ! command_exists brew; then
-        warn "未检测到 Homebrew，可能已卸载"
+        warn "$(_t 'Homebrew was not detected, it may already be uninstalled')"
         return 0
     fi
 
     local prefix
     prefix="$(brew --prefix 2>/dev/null || echo "/opt/homebrew")"
 
-    if ! yes_no "确认卸载 Homebrew？这将删除 $prefix 下所有通过 brew 安装的包"; then
-        info "已取消"; return 0
+    if ! yes_no "$(_tf 'Uninstall Homebrew? This deletes all brew packages under %s' "$prefix")"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
 
-    info "卸载 Homebrew..."
+    info "$(_t 'Uninstalling Homebrew...')"
     # 官方卸载脚本是非交互式的
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)" -- --yes 2>/dev/null || true
 
     # 如果官方卸载脚本不可用，手动清理
     if [[ -d "$prefix" ]]; then
-        warn "官方卸载脚本未完全清理，尝试手动删除..."
-        if yes_no "确认删除 $prefix 目录？"; then
+        warn "$(_t 'The official uninstall script did not clean up fully, manual delete...')"
+        if yes_no "$(_tf 'Delete the directory %s?' "$prefix")"; then
             sudo rm -rf "$prefix"
         fi
     fi
@@ -179,18 +179,18 @@ uninstall_brew() {
     # 清理 shell 配置
     _remove_shellenv
 
-    success "Homebrew 已卸载"
-    info "请重新打开终端使 PATH 变更生效"
+    success "$(_t 'Homebrew has been uninstalled')"
+    info "$(_t 'Please reopen the terminal for the PATH change to take effect')"
 }
 
 mirror_brew() {
     detect_os
     if ! command_exists brew; then
-        error "Homebrew 未安装，请先运行：$0 install"
+        error "$(_tf 'Homebrew is not installed, please run first: %s install' "$0")"
         exit 1
     fi
 
-    info "🌐 配置 Homebrew 国内镜像源（清华 TUNA）"
+    info "$(_t '🌐 Configuring a domestic mirror source for Homebrew (Tsinghua TUNA)')"
     local rc
     rc="$(_shell_rc)"
     local tmp
@@ -226,22 +226,22 @@ mirror_brew() {
     export HOMEBREW_CORE_GIT_REMOTE="$MIRROR_CORE_REMOTE"
     export HOMEBREW_BOTTLE_DOMAIN="$MIRROR_BOTTLE_DOMAIN"
 
-    success "已配置清华镜像源（写入 ${rc}）"
-    info "镜像地址："
+    success "$(_tf 'The Tsinghua mirror source is configured (written to %s)' "${rc}")"
+    info "$(_t 'Mirror addresses:')"
     echo "  API:      $MIRROR_API_DOMAIN"
     echo "  Brew:     $MIRROR_BREW_REMOTE"
     echo "  Core:     $MIRROR_CORE_REMOTE"
     echo "  Bottles:  $MIRROR_BOTTLE_DOMAIN"
     echo
-    info "重新打开终端或 source $rc 使配置持久生效"
-    info "运行 brew update 验证镜像是否生效"
+    info "$(_tf 'Reopen the terminal or source %s to make the configuration persistent' "$rc")"
+    info "$(_t 'Run brew update to verify whether the mirror is in effect')"
 }
 
 unmirror_brew() {
     local rc
     rc="$(_shell_rc)"
     if [[ ! -f "$rc" ]] || ! grep -qF "# >>> brew-mirror >>>" "$rc" 2>/dev/null; then
-        info "未检测到 brew 镜像配置，已是官方源"; return 0
+        info "$(_t 'No brew mirror configuration detected, already on the official source')"; return 0
     fi
 
     local tmp
@@ -256,22 +256,22 @@ unmirror_brew() {
     # 取消当前 shell 中的镜像变量
     unset HOMEBREW_API_DOMAIN HOMEBREW_BREW_GIT_REMOTE HOMEBREW_CORE_GIT_REMOTE HOMEBREW_BOTTLE_DOMAIN 2>/dev/null || true
 
-    success "已还原 Homebrew 官方源"
-    info "重新打开终端或 source $rc 使配置生效"
+    success "$(_t 'Restored the official Homebrew source')"
+    info "$(_tf 'Reopen the terminal or source %s to apply the configuration' "$rc")"
 }
 
 status_brew() {
     detect_os
     if [[ "$OS_TYPE" != "darwin" ]]; then
-        emit_status "n/a" "${YELLOW}⚠️  不适用（仅 macOS）${NC}"
+        emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (macOS only)')${NC}"
         return 0
     fi
     if ! command_exists brew; then
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
         return 0
     fi
 
-    local ver prefix cur_src="(官方源)"
+    local ver prefix cur_src; cur_src="$(_t '(official source)')"
     ver=$(brew --version 2>/dev/null | head -1 || echo "")
     # 显示前缀
     prefix=$(brew --prefix 2>/dev/null || echo "")
@@ -279,19 +279,19 @@ status_brew() {
     # 检测当前源（官方 or 镜像）—— 计算在 emit_status 之前，但 STATE= 必须是首行
     if [[ -n "${HOMEBREW_BOTTLE_DOMAIN:-}" ]]; then
         if [[ "$HOMEBREW_BOTTLE_DOMAIN" == *"tsinghua"* ]]; then
-            cur_src="(清华镜像)"
+            cur_src="$(_t '(Tsinghua mirror)')"
         elif [[ "$HOMEBREW_BOTTLE_DOMAIN" == *"ustc"* ]]; then
-            cur_src="(中科大镜像)"
+            cur_src="$(_t '(USTC mirror)')"
         elif [[ "$HOMEBREW_BOTTLE_DOMAIN" == *"aliyun"* ]]; then
-            cur_src="(阿里云镜像)"
+            cur_src="$(_t '(Aliyun mirror)')"
         else
-            cur_src="(自定义镜像: $HOMEBREW_BOTTLE_DOMAIN)"
+            cur_src="$(_tf '(custom mirror: %s)' "$HOMEBREW_BOTTLE_DOMAIN")"
         fi
     elif [[ -f "$(_shell_rc)" ]] && grep -qF "# >>> brew-mirror >>>" "$(_shell_rc)" 2>/dev/null; then
-        cur_src="(已配置镜像，当前 shell 未加载)"
+        cur_src="$(_t '(mirror configured, not loaded in the current shell)')"
     fi
 
-    emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+    emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
     emit_version "$ver"
     if [[ -n "$prefix" ]]; then
         emit_extra "prefix=$prefix"
@@ -309,12 +309,12 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|mirror|unmirror|status|help}
 
-  install     安装 Homebrew（默认动作）
-  uninstall   卸载 Homebrew（交互确认）
-  mirror      配置国内镜像源（清华 TUNA，加速下载）
-  unmirror    还原官方源
-  status      查看安装状态和当前源
-  help        显示此帮助
+  install     $(_t 'Install Homebrew (the default action)')
+  uninstall   $(_t 'Uninstall Homebrew (with a confirmation)')
+  mirror      $(_t 'Configure a domestic mirror (Tsinghua TUNA, faster downloads)')
+  unmirror    $(_t 'Restore the official source')
+  status      $(_t 'View the installation status and the current source')
+  help        $(_t 'Show this brew help')
 EOF
 }
 
@@ -328,7 +328,7 @@ main() {
         unmirror)  unmirror_brew ;;
         status)    status_brew ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

@@ -16,11 +16,19 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." &>/dev/null && pwd)"
 POT="$ROOT/locale/unix_script.pot"
 PO_TO_SH="$ROOT/po/po_to_sh.awk"
 CHECK_ONLY=0
-BATCH="${1:-all}"
+BATCH="all"
 
-if [ "${2:-}" = "--check" ]; then
-  CHECK_ONLY=1
-fi
+# 参数：bash po/messages.sh [批次] [--check]
+#   --check 可以是**第一个**参数（之前只认第二个 ⇒ "po/messages.sh --check"
+#   会把 "--check" 当成批次名，find 报 illegal option，xgettext 收不到输入文件，
+#   pot 直接被写成空的 —— 一次误用就能把产物清空）。
+for _arg in "$@"; do
+  case "$_arg" in
+    --check) CHECK_ONLY=1 ;;
+    -*) printf 'po: 未知参数: %s\n' "$_arg" >&2; exit 2 ;;
+    *) BATCH="$_arg" ;;
+  esac
+done
 
 # 临时目录：退出时清掉
 TMP_CLEAN=""
@@ -40,11 +48,29 @@ fi
 
 cd "$ROOT"
 
+# 抽取范围：每个模块目录下的所有 .sh —— 不只是 install.sh。
+# 有些模块把**独立脚本**复制到用户环境里跑（safe-rm 的 lib_trash.sh、
+# process_manager_tool 的 pm 脚本），它们的文案也走 _t，必须一起进 po，
+# 否则安装时烘不进译文。
 if [ "$BATCH" = "all" ]; then
-  SOURCES=(services/*/install.sh sys-tools/*/install.sh dev-tools/*/install.sh essentials/*/install.sh ai-tools/*/install.sh)
+  BATCH_DIRS=(services sys-tools dev-tools essentials ai-tools)
 else
-  SOURCES=("$BATCH"/*/install.sh)
+  BATCH_DIRS=("$BATCH")
 fi
+
+# 抽取范围：每个模块目录下**所有层级的** .sh —— 不只是 install.sh。
+# 有些模块把**独立脚本**复制到用户环境里跑（safe-rm 的 lib_trash.sh、
+# process_manager_tool 的 pm 脚本），它们的文案也走 _t，必须一起进 po，
+# 否则安装时烘不进译文。
+# 也要覆盖**子目录**（zsh_setup 的 lib/ 与 frameworks/、sys-setup 的 platform/）：
+# 那些文件里的 _t 是运行时文案，漏抽 ⇒ 运行时静默回落英文。
+# 只扫一层（$_dir/*/*.sh）会让子目录里的文案整个漏掉 —— 2026-11-11 实测。
+SOURCES=()
+for _dir in "${BATCH_DIRS[@]}"; do
+  while IFS= read -r _f; do
+    [ -f "$_f" ] && SOURCES+=("$_f")
+  done < <(find "$_dir" -type f -name '*.sh' | LC_ALL=C sort)
+done
 
 if [ "$HAVE_XGETTEXT" = "1" ]; then
   XGETTEXT_ARGS=(

@@ -136,6 +136,15 @@ phase_static() {
         done <<< "$scripts"
     fi
 
+    # --- i18n 门禁 ---
+    # 文案是 Stage 3 之后的硬约束：硬编码中文、译文串味、译文与原文对不上、
+    # gettext 漏抽（静默回落英文）、占位符个数不一致 —— 五类都要在 CI 里拦。
+    assert "i18n: 漂移（源码里无硬编码中文）" bash "$REPO_DIR/tools/check_i18n_drift.sh"
+    assert "i18n: 串味（译文没串到别的模块）" bash "$REPO_DIR/tools/check_i18n_cross.sh"
+    assert "i18n: 保真（译文与迁移前原文逐字对得上）" bash "$REPO_DIR/tools/check_i18n_equiv.sh"
+    assert "i18n: 抽取完整性（每条 msgid 都进了 pot 且有译文）" bash "$REPO_DIR/tools/check_i18n_extract.sh"
+    assert "i18n: 占位符个数一致" bash "$REPO_DIR/tests/unit_i18n.sh"
+
     report_footer
     [[ $FAIL_COUNT -eq 0 ]]
 }
@@ -396,7 +405,8 @@ phase_routing() {
     # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
     assert "disk: wipe 放宽判定结构（签名占用放行 / 挂载·激活硬阻断）" bash -c '
         grep -q "allow_sig_only" "$1/sys-tools/disk/install.sh" || { echo "缺放宽参数"; exit 1; }
-        grep -qF "擦除签名（wipefs）\" 1 || return" "$1/sys-tools/disk/install.sh" || { echo "wipe 未启用放宽"; exit 1; }
+        # Stage 3 后源码里是英文 msgid（中文在 po 的 msgstr 里），所以这里 grep 英文原文
+        grep -qE "erase signatures \(wipefs\).*1 || return" "$1/sys-tools/disk/install.sh" || { echo "wipe 未启用放宽"; exit 1; }
         grep -qF "(MOUNT\\||HOLD\\|)" "$1/sys-tools/disk/install.sh" || { echo "缺硬阻断判定"; exit 1; }
         grep -q "_disk_in_use_reasons" "$1/sys-tools/disk/install.sh" || { echo "缺原因诊断"; exit 1; }' _ "$REPO_DIR"
 
@@ -452,7 +462,7 @@ phase_routing() {
         grep -q "\-t 0" "$1/sys-tools/disk-usage/install.sh" || exit 1
         grep -q "\-t 1" "$1/sys-tools/disk-usage/install.sh" || exit 1
         grep -q "TOP_NO_INTERACTIVE" "$1/sys-tools/disk-usage/install.sh" || exit 1
-        grep -q "u=上一层" "$1/sys-tools/disk-usage/install.sh" || exit 1' _ "$REPO_DIR"
+        grep -q "u=up one level" "$1/sys-tools/disk-usage/install.sh" || exit 1' _ "$REPO_DIR"
 
     # 9f. 注册表别名卫生：别名不得遮蔽模块正式名（registry_resolve_alias 正式名优先两段解析）
     # shellcheck disable=SC2016 # $1/$() 故意交给内层 bash -c 求值
@@ -481,7 +491,7 @@ phase_routing() {
     ops_path=$(resolve_module_path ops-kit)
     assert "ops-kit: .manifest DEFAULT_ACTION=inspect（只读默认）" bash -c "grep -q '^DEFAULT_ACTION=inspect$' \"$REPO_DIR/$ops_path/.manifest\""
     assert "ops-kit: 子命令枚举完整（供 list --full/补全解析）" bash -c "grep -qF '{inspect|log|svc|audit|install|uninstall|status|help}' \"$REPO_DIR/$ops_path/install.sh\""
-    assert "ops-kit: vacuum 无参数护栏存在" bash -c "grep -qF '用法: ops-kit log vacuum' \"$REPO_DIR/$ops_path/install.sh\""
+    assert "ops-kit: vacuum 无参数护栏存在" bash -c "grep -qF 'Usage: ops-kit log vacuum' \"$REPO_DIR/$ops_path/install.sh\""
     assert "ops-kit: 写操作交互终端护栏存在" bash -c "grep -qE '\[\[ ! -t 0 \]\]' \"$REPO_DIR/$ops_path/install.sh\""
     assert "ops-kit: source 守护存在（单测可复用纯函数）" bash -c "grep -q 'BASH_SOURCE\[0\]' \"$REPO_DIR/$ops_path/install.sh\""
     assert "ops-kit: 纯函数单测全过" bash "$REPO_DIR/tests/unit_ops_kit.sh"

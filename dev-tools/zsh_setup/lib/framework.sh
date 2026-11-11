@@ -13,7 +13,7 @@ load_framework() {
     local adapter="$SCRIPT_DIR/../frameworks/${framework}.sh"
 
     if [ ! -f "$adapter" ]; then
-        error "未找到框架适配器: $framework"
+        error "$(_tf 'Framework adapter not found: %s' "$framework")"
         return 1
     fi
 
@@ -26,17 +26,17 @@ framework_install() {
     local framework="$1"
 
     if [ -z "$framework" ]; then
-        error "请指定框架名称"
+        error "$(_t 'Please specify a framework name')"
         return 1
     fi
 
     load_framework "$framework" || return 1
 
-    info "正在安装 $framework..."
+    info "$(_tf 'Installing %s...' "$framework")"
     if "install_${framework//-/_}"; then
-        success "$framework 安装成功"
+        success "$(_tf '%s installed successfully' "$framework")"
     else
-        error "$framework 安装失败"
+        error "$(_tf '%s failed to install' "$framework")"
         return 1
     fi
 }
@@ -47,17 +47,17 @@ framework_uninstall() {
     framework=$(detect_framework)
 
     if [ "$framework" == "none" ]; then
-        warn "未检测到已安装的框架"
+        warn "$(_t 'No installed framework detected')"
         return 0
     fi
 
     load_framework "$framework" || return 1
 
-    info "正在卸载 $framework..."
+    info "$(_tf 'Uninstalling %s...' "$framework")"
     if "uninstall_${framework//-/_}"; then
-        success "$framework 卸载成功"
+        success "$(_tf '%s uninstalled successfully' "$framework")"
     else
-        error "$framework 卸载失败"
+        error "$(_tf '%s failed to uninstall' "$framework")"
         return 1
     fi
 }
@@ -75,7 +75,7 @@ framework_status() {
         if [ "$format" == "--json" ]; then
             echo '{"framework": "none", "status": "not_installed"}'
         else
-            echo "未安装框架"
+            printf '%s\n' "$(_t 'No framework installed')"
         fi
         return 0
     fi
@@ -95,18 +95,18 @@ framework_status() {
 
 # 帮助信息
 framework_help() {
-    cat <<'EOF'
+    cat <<EOF
 用法: framework <command> [options]
 
-可用命令:
-  install <framework>    安装指定框架 (oh-my-zsh, prezto, zinit, sheldon)
-  uninstall              卸载当前框架
-  status [--json|--text] 显示当前框架状态
-  list-plugins           列出当前框架的插件
-  select                 交互式选择并安装框架
-  help                   显示此帮助信息
+$(_t 'Available commands (framework):')
+  install <framework>    $(_t 'install a given framework (oh-my-zsh, prezto, zinit, sheldon)')
+  uninstall              $(_t 'uninstall the current framework')
+  status [--json|--text] $(_t 'show the current framework status')
+  list-plugins           $(_t 'list the plugins of the current framework')
+  select                 $(_t 'interactively select and install a framework')
+  help                   $(_t 'show this help information')
 
-示例:
+$(_t 'Examples:')
   framework install oh-my-zsh
   framework status --json
   framework help
@@ -119,7 +119,7 @@ framework_list_plugins() {
     framework=$(detect_framework)
 
     if [ "$framework" == "none" ]; then
-        warn "未安装框架"
+        warn "$(_t 'No framework installed')"
         return 0
     fi
 
@@ -130,20 +130,20 @@ framework_list_plugins() {
 
 # 交互式选择框架
 framework_select() {
-    echo "可用的 Zsh 框架:"
-    echo "  1) Oh My Zsh - 最流行，插件丰富"
-    echo "  2) Prezto - 轻量级，模块化"
-    echo "  3) Zinit - 性能极佳，异步加载"
-    echo "  4) sheldon - 现代化，Rust 编写"
+    printf '%s\n' "$(_t 'Available Zsh frameworks:')"
+    echo "  1) Oh My Zsh - $(_t 'most popular, rich plugin ecosystem')"
+    echo "  2) Prezto - $(_t 'lightweight and modular')"
+    echo "  3) Zinit - $(_t 'top performance, async loading')"
+    echo "  4) sheldon - $(_t 'modern, written in Rust')"
     echo ""
 
-    read -r -p "请选择框架 (1-4): " choice
+    read -r -p "$(_t 'Select a framework (1-4): ')" choice
 
     case "$choice" in
         1) framework_install "oh-my-zsh" ;;
         2) framework_install "prezto" ;;
         3) framework_install "zinit" ;;
         4) framework_install "sheldon" ;;
-        *) error "无效选择"; return 1 ;;
+        *) error "$(_t 'Invalid selection')"; return 1 ;;
     esac
 }

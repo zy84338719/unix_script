@@ -15,71 +15,71 @@ source "$SCRIPT_DIR/../../../lib/common.sh"
 TARGET="${1:-.}"
 ERRORS=0
 
-header "🔍 Python 代码分析：$TARGET"
+header "🔍 $(_tf 'Python code analysis: %s' "$TARGET")"
 echo
 
 # 检查是否有 Python 源码
 if ! find "$TARGET" -maxdepth 5 -name "*.py" -print -quit 2>/dev/null | grep -q .; then
-    warn "未找到 Python 源文件，跳过 Python 分析"
+    warn "$(_t 'No Python source files found, skipping Python analysis')"
     exit 0
 fi
 
 # ruff（linter + formatter check）
 if command_exists ruff; then
-    info "运行 ruff check..."
+    info "$(_t 'Running ruff check...')"
     if ruff check "$TARGET" 2>&1; then
-        success "  ruff check：通过"
+        success "  $(_t 'ruff check: passed')"
     else
-        warn "  ruff check：发现问题"
+        warn "  $(_t 'ruff check: problems found')"
         ERRORS=$((ERRORS + 1))
     fi
 
     echo
-    info "运行 ruff format --check..."
+    info "$(_t 'Running ruff format --check...')"
     if ruff format --check "$TARGET" 2>&1; then
-        success "  ruff format：通过"
+        success "  $(_t 'ruff format: passed')"
     else
-        warn "  ruff format：格式不一致（运行 ruff format 修复）"
+        warn "  $(_t 'ruff format: format mismatch (run ruff format to fix)')"
         ERRORS=$((ERRORS + 1))
     fi
 else
-    warn "  ⚠️ ruff 未安装，跳过"
+    warn "  ⚠️ $(_t 'ruff not installed, skipping')"
 fi
 
 echo
 
 # mypy（类型检查）
 if command_exists mypy; then
-    info "运行 mypy（类型检查）..."
+    info "$(_t 'Running mypy (type check)...')"
     if mypy "$TARGET" --ignore-missing-imports 2>&1; then
-        success "  mypy：通过"
+        success "  $(_t 'mypy: passed')"
     else
-        warn "  mypy：发现类型问题"
+        warn "  $(_t 'mypy: type issues found')"
         ERRORS=$((ERRORS + 1))
     fi
 else
-    warn "  ⚠️ mypy 未安装，跳过"
+    warn "  ⚠️ $(_t 'mypy not installed, skipping')"
 fi
 
 echo
 
 # bandit（安全扫描）
 if command_exists bandit; then
-    info "运行 bandit（安全扫描）..."
+    info "$(_t 'Running bandit (security scan)...')"
     if bandit -r "$TARGET" -q 2>&1; then
-        success "  bandit：通过"
+        success "  $(_t 'bandit: passed')"
     else
-        warn "  bandit：发现安全问题"
+        warn "  $(_t 'bandit: security issues found')"
         ERRORS=$((ERRORS + 1))
     fi
 else
-    warn "  ⚠️ bandit 未安装，跳过"
+    warn "  ⚠️ $(_t 'bandit not installed, skipping')"
 fi
 
 echo
 if [[ $ERRORS -gt 0 ]]; then
-    error "Python 分析完成：$ERRORS 个工具报告了问题"
+    error "$(_tf 'Python analysis complete: %s tools reported problems' "$ERRORS")"
     exit 1
 else
-    success "✅ Python 分析全部通过"
+    success "✅ $(_t 'Python analysis all passed')"
 fi

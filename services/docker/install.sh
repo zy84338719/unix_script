@@ -70,7 +70,7 @@ install_linux() {
             *)
                 info "$(_t 'Installing Docker Engine via official script (get.docker.com)...')"
                 if ! curl -fsSL "$DOCKER_INSTALLER" | sudo sh; then
-                    error "$(_t 'Official installer failed, check the network or install manually:') https://docs.docker.com/engine/install/"
+                    error "$(_t 'Official installer failed, check the network or install manually:')https://docs.docker.com/engine/install/ $(_t 'install manually')"
                     exit 1
                 fi
                 ;;
@@ -111,7 +111,7 @@ install_macos() {
             return 0
         fi
     fi
-    warn "$(_t 'Please download and install manually:') https://www.docker.com/products/docker-desktop/"
+    warn "$(_t 'Please download and install manually:')https://www.docker.com/products/docker-desktop/"
 }
 
 install_docker() {
@@ -217,7 +217,7 @@ configure_registry() {
     info "$(_t 'Calling linuxmirrors script to configure registry mirror only (--only-registry)...')"
     info "$(_t '(The script will back up daemon.json and write a domestic mirror address)')"
     if ! bash <(curl -sSL "$MIRROR_INSTALLER") --only-registry; then
-        error "$(_t 'Registry mirror configuration failed, check the network or configure manually:') https://linuxmirrors.cn/other/"
+        error "$(_t 'Registry mirror configuration failed, check the network or configure manually:')https://linuxmirrors.cn/other/ $(_t 'configure manually')"
         exit 1
     fi
     success "$(_t 'Registry mirror configuration complete.')"

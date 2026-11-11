@@ -180,7 +180,7 @@ CLI 一次性切换到分组子命令面，旧扁平写法**全部删除**。命
 | `_t 'msgid'` | `_t 'Cancelled'` | 查译文；查不到就原样输出 msgid（英文） |
 | `_tf 'msgid' ARG...` | `_tf 'Unknown action: %s' "$action"` | **带变量时用这个** —— 译文当 printf 格式串，占位符按参数填 |
 
-### 十条硬规则
+### 十四条硬规则
 
 1. **带变量的文案用 `_tf`，不要写 `printf "$(_t '...%s...')" "$x"`**
    后者会被 shellcheck 判成 SC2059（格式串是变量）。`_tf` 把这件事收口到一处。
@@ -197,6 +197,9 @@ CLI 一次性切换到分组子命令面，旧扁平写法**全部删除**。命
    emoji 是装饰，留在译文里（`msgstr`）或留在 `_t` 外面（`"🚀 $(_t '...')"`）都行，
    但**不要**把它音译成 `Rocket` / `Party popper` 塞进英文 msgid —— 那是重复，
    译文灌错时用户看到的就是「Rocket 开始安装」而不是 🚀。
+   ★ **状态标记（✅ / ⚠️ / ❌）一律留在 `_t` 外面**：同一个 msgid 在两个模块里
+   若一个带 emoji 一个不带（`❌ 未安装` vs `未安装`），po 里只能存一条译文 ⇒
+   后灌的那条被静默丢弃，输出就少个 emoji。留在外面则 msgid/msgstr 都一致。
 6. **heredoc 里 `#` 在 `_t` 之前 ⇒ 这个 msgid 根本抽不出来**
    xgettext 扫 heredoc 正文时按 shell 注释处理，`#` 之后的内容不抽 ——
    msgid 不进 po，运行时静默回落英文（看起来「翻译了但还是英文」）。
@@ -216,6 +219,35 @@ CLI 一次性切换到分组子命令面，旧扁平写法**全部删除**。命
 10. **命令替换（`$(...)`）不能进译文**
     译文在单引号里，`$(pwd)` 会被原样打印出来，输出就变了。
     改用变量：`$(pwd)` → `$PWD`（bash 里同值），变量记 `%s`。
+11. **被复制到用户环境的独立脚本：译文在安装时烘进去**
+    safe-rm 的 trash.sh、process_manager_tool 的 pm 脚本被复制到用户环境里跑，
+    运行时没有 unix_script 的 `_t` —— 源文件里照常写 `_t`/`_tf`，
+    安装时用 `uxs_i18n_localize_file SRC DST` 把译文烘进目标文件。
+    本地化器只认两种形态：`$(_t 'msgid')` 与 `$(_tf 'msgid' "$var")`。
+    这些文件的 msgid 也要进 po —— `po/messages.sh` 的抽取范围是**每个模块目录下
+    的所有 .sh**（不只是 install.sh）。
+    ★ 同理适用于**用 heredoc 写出去的脚本**（minikube 的 start-minikube.sh /
+    check-status.sh）：写成「先落临时文件 → `uxs_i18n_localize_file` 烘译文 →
+    落到目标路径」，别指望运行时有 `_t`。
+12. **写进用户 rc / 配置文件、之后要被 sed 匹配的标记必须语言无关**
+    卸载时常用 `sed '/……/d'` 清理安装时写进 `~/.bashrc` 的那几行。
+    如果模式里匹配的是**中文**，而写进去的那行已经被翻译成英文 ⇒ 卸载删不掉 ⇒ 残留。
+    ⇒ 写进 rc 的一律用语言无关标记（如 `# >>> unix_script go >>>`），
+    sed 也只匹配这种标记；不写标记就只匹配 `NVM_DIR` / `nvm.sh` 这类路径标识。
+13. **msgid 控制在 71 字符以内**
+    GNU gettext 的 Shell scanner 对超长单引号字面量有**整条丢弃**的已知风险
+    （实测某些 150+ 字符的串会被丢掉且不报错、pot 里就没有）。
+    虽然真实英文句子多数能抽到，但不必赌：msgid 超过 71 字符就拆句或改短措辞
+    （改 msgid 不影响输出 —— msgstr 保持原文，输出仍逐字一致）。
+14. **gettext 会整条漏抽而且不报错 ⇒ 必须跑抽取完整性门禁**
+    漏抽的 msgid 不会进 po，运行时静默回落英文；`msgmerge` 也不会报警
+    （pot 里没有 ⇒ po 里的旧条目变成 obsolete，新 msgid 从未进过 po）。
+    CI 上完全不可见 ⇒ 必须有门禁兜底：
+    `bash tools/check_i18n_extract.sh` 校验「源码里每条 msgid 都在 pot 里」
+    且「pot 里每条都有非空中文译文」。
+    ★ 同理，`po/messages.sh` 的抽取范围与 `check_i18n_drift.sh` 的扫描范围
+    都必须覆盖**所有层级**（`find "$dir" -type f -name '*.sh'`）——
+    只扫一层会漏掉 zsh_setup 的 `lib/`、`frameworks/` 与 sys-setup 的 `platform/`。
 
 ### 改完必须做的两件事
 
@@ -232,6 +264,7 @@ CLI 一次性切换到分组子命令面，旧扁平写法**全部删除**。命
   | `bash tools/check_i18n_drift.sh <分类>` | 源码里没有残留硬编码中文 |
   | `bash tools/check_i18n_cross.sh` | 译文没串到别的模块 |
   | `bash tools/check_i18n_equiv.sh` | **译文与迁移前原文对得上**（不漏字、不吞 emoji） |
+  | `bash tools/check_i18n_extract.sh` | **每条 msgid 都进了 pot 且都有中文译文**（防 gettext 漏抽） |
   | `bash tests/unit_i18n.sh` | 占位符个数一致 |
 
   `check_i18n_equiv.sh` 是后加的，抓到过三类真缺陷：
@@ -239,6 +272,11 @@ CLI 一次性切换到分组子命令面，旧扁平写法**全部删除**。命
   msgstr 少了字（docker 丢「当前」）、批量包装时把 🚀/🎉 当噪声删掉。
   ⚠️ 只比 help/status 不够：只在 **install 路径**上出现的文案（emoji、
   「服务状态：」这类）比对不到，得靠这道门禁兜底。
+  ⚠️ **保真判据必须逐字比对，不能只比「汉字多重集」**：
+  只比多重集抓不到「汉字顺序变了 / 全角括号变半角 / URL 被重复 / 词写错
+  （卸载失败→安装失败）/ 多一个空格」这一整类输出回归。
+  判别式门禁要逐字比；辅助手段可用「去本地化比对」
+  （把 `_t 'msgid'` 换回中文原文后与基线逐字节 diff）。
 
 ### 灌译文的规矩
 

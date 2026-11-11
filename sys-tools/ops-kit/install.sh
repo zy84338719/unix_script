@@ -18,7 +18,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../lib/common.sh
 source "$SCRIPT_DIR/../../lib/common.sh"
-detect_os >/dev/null 2>&1 || true   # 初始化 OS_TYPE，供平台护栏判断
+# 初始化 OS_TYPE，供平台护栏判断
+detect_os >/dev/null 2>&1 || true
 
 OPS_OK='✅'; OPS_WARN='⚠️ '; OPS_CRIT='🔴'; OPS_SKIP='⬜'
 OPS_LOGROTATE_DIR="${OPS_LOGROTATE_DIR:-/etc/logrotate.d}"
@@ -28,7 +29,7 @@ OPS_LOGROTATE_DIR="${OPS_LOGROTATE_DIR:-/etc/logrotate.d}"
 # ============================================================
 _ops_platform_check() {
     if [[ "${OS_TYPE:-}" == "darwin" ]]; then
-        info "ops-kit 运维工具箱仅支持 Linux（依赖 systemd），macOS 不适用。"
+        info "ops-kit $(_t 'Only supports Linux (depends on systemd); not applicable on macOS')"
         exit 0
     fi
 }
@@ -96,7 +97,8 @@ _ops_failed_units() {
     printf '%s\n' "$1" | awk 'NF && $1 ~ /\.(service|timer|socket|mount|target)$/ {print $1}' || true
 }
 
-_ops_sshd_one() {  # <小写文本> <键> → 值（空=未设置）
+# <小写文本> <键> → 值（空=未设置）
+_ops_sshd_one() {
     printf '%s\n' "$1" | awk -v k="$2" '$1==k{print $2; exit}'
 }
 
@@ -140,7 +142,8 @@ _ops_json_escape() { printf '%s' "${1:-}" | tr -d '\042\134' ; }  # \042=" \134=
 # ============================================================
 OPS_CHECKS=''; OPS_JSON=''; OPS_CRIT_N=0; OPS_WARN_N=0
 
-_ops_check_add() {  # <级别 ok|warn|crit|skip> <名称> <详情>
+# <级别 ok|warn|crit|skip> <名称> <详情>
+_ops_check_add() {
     local lvl="$1" name="$2" detail="$3" icon
     case "$lvl" in
         ok)   icon="$OPS_OK" ;;
@@ -148,7 +151,7 @@ _ops_check_add() {  # <级别 ok|warn|crit|skip> <名称> <详情>
         crit) icon="$OPS_CRIT"; OPS_CRIT_N=$((OPS_CRIT_N+1)) ;;
         *)    icon="$OPS_SKIP"; lvl=skip ;;
     esac
-    OPS_CHECKS+="${icon} ${name}：${detail}"$'\n'
+    OPS_CHECKS+="${icon} ${name}$(_tf ': %s' "${detail}")"$'\n'
     OPS_JSON+="${OPS_JSON:+,}{\"name\":\"$(_ops_json_escape "$name")\",\"level\":\"$lvl\",\"detail\":\"$(_ops_json_escape "$detail")\"}"
 }
 
@@ -182,13 +185,13 @@ cmd_inspect() {
             mount="${dline%%|*}"; pct="${dline##*|}"
             [[ "$pct" =~ ^[0-9]+$ ]] || continue
             (( pct > worst )) && { worst=$pct; wline="$mount"; }
-            if   (( pct >= 90 )); then _ops_check_add crit "磁盘空间 $mount" "已用 ${pct}%"
-            elif (( pct >= 80 )); then _ops_check_add warn "磁盘空间 $mount" "已用 ${pct}%"; fi
+            if   (( pct >= 90 )); then _ops_check_add crit "$(_tf 'Disk space %s' "$mount")" "$(_tf 'Used %s%%' "${pct}")"
+            elif (( pct >= 80 )); then _ops_check_add warn "$(_tf 'Disk space %s' "$mount")" "$(_tf 'Used %s%%' "${pct}")"; fi
         done < <(_ops_df_parse "$(df -P 2>/dev/null)")
-        (( worst > 0 && worst < 80 )) && _ops_check_add ok "磁盘空间" "最大使用率 ${worst}%（${wline}）"
-        (( worst == 0 )) && _ops_check_add ok "磁盘空间" "无真实文件系统可报"
+        (( worst > 0 && worst < 80 )) && _ops_check_add ok "$(_t 'Disk space')" "$(_tf 'Max usage %s%% (%s)' "${worst}" "${wline}")"
+        (( worst == 0 )) && _ops_check_add ok "$(_t 'Disk space')" "$(_t 'No real filesystem to report')"
     else
-        _ops_check_add skip "磁盘空间" "df 不可用"
+        _ops_check_add skip "$(_t 'Disk space')" "df $(_t 'unavailable')"
     fi
 
     # 2) SMART 总评（装了 smartmontools 才查）
@@ -197,39 +200,39 @@ cmd_inspect() {
         for sdev in /dev/sd? /dev/nvme?; do
             [[ -e "$sdev" ]] || continue
             sh=$(sudo -n smartctl -H "$sdev" 2>/dev/null || smartctl -H "$sdev" 2>/dev/null || true)
-            if [[ -z "$sh" ]]; then _ops_check_add skip "SMART $sdev" "读不到（权限/USB 桥/RAID 背板）"
+            if [[ -z "$sh" ]]; then _ops_check_add skip "SMART $sdev" "$(_t 'Cannot read (permissions / USB bridge / RAID backplane)')"
             elif printf '%s' "$sh" | grep -q PASSED; then _ops_check_add ok "SMART $sdev" "PASSED"
-            else _ops_check_add crit "SMART $sdev" "总评非 PASSED——详情: sudo smartctl -H $sdev"; fi
+            else _ops_check_add crit "SMART $sdev" "$(_tf 'Overall result is not PASSED — details: sudo smartctl -H %s' "$sdev")"; fi
         done
-        [[ -z "${sh:-}" && ! -e /dev/sda && ! -e /dev/nvme0 ]] && _ops_check_add skip "SMART" "未发现 sd/nvme 整盘"
+        [[ -z "${sh:-}" && ! -e /dev/sda && ! -e /dev/nvme0 ]] && _ops_check_add skip "SMART" "$(_t 'No sd/nvme whole disk found')"
     else
-        _ops_check_add skip "SMART" "未安装 smartmontools"
+        _ops_check_add skip "SMART" "$(_t 'smartmontools is not installed')"
     fi
 
     # 3) systemd 失败单元
     if command -v systemctl >/dev/null 2>&1; then
         local sysstate; sysstate=$(systemctl is-system-running 2>/dev/null || true)
         if [[ -z "$sysstate" ]]; then
-            _ops_check_add skip "systemd" "不可用（容器/无 systemd）"
+            _ops_check_add skip "systemd" "$(_t 'unavailable (container / no systemd)')"
         else
             local fu; fu=$(_ops_failed_units "$(systemctl --failed --no-legend 2>/dev/null || true)")
-            if [[ -z "$fu" ]]; then _ops_check_add ok "systemd" "无失败单元"
+            if [[ -z "$fu" ]]; then _ops_check_add ok "systemd" "$(_t 'No failed units')"
             else
                 local fu_flat="${fu//$'\n'/ }"
-                _ops_check_add crit "systemd 失败单元" "${fu_flat}——排查: ./install.sh ops-kit svc failed"
+                _ops_check_add crit "systemd $(_t 'failed units')" "${fu_flat}$(_t 'Troubleshoot: ./install.sh ops-kit svc failed')"
             fi
         fi
     else
-        _ops_check_add skip "systemd" "systemctl 不可用"
+        _ops_check_add skip "systemd" "systemctl $(_t 'unavailable')"
     fi
 
     # 4) journal 占用（>2G ⚠️）
     if command -v journalctl >/dev/null 2>&1; then
         local jmb; jmb=$(_ops_size_to_mb "$(_ops_journal_usage_parse "$(journalctl --disk-usage 2>/dev/null || true)")")
-        if   (( jmb >= 2048 )); then _ops_check_add warn "journal 占用" "${jmb}MB——清理: ./install.sh ops-kit log vacuum 200M"
-        else _ops_check_add ok "journal 占用" "${jmb}MB"; fi
+        if   (( jmb >= 2048 )); then _ops_check_add warn "journal $(_t 'usage')" "${jmb}MB$(_t 'Cleanup: ./install.sh ops-kit log vacuum 200M')"
+        else _ops_check_add ok "journal $(_t 'usage')" "${jmb}MB"; fi
     else
-        _ops_check_add skip "journal" "journalctl 不可用"
+        _ops_check_add skip "journal" "journalctl $(_t 'unavailable')"
     fi
 
     # 5) SSH 基线摘要
@@ -246,9 +249,9 @@ cmd_inspect() {
                 warn) [[ "$sshlvl" != "crit" ]] && sshlvl=warn ;;
             esac
         done < <(_ops_sshd_check "$sshout")
-        _ops_check_add "$sshlvl" "SSH 基线" "摘要见 ./install.sh ops-kit audit ssh"
+        _ops_check_add "$sshlvl" "SSH $(_t 'baseline')" "$(_t 'Summary: see ./install.sh ops-kit audit ssh')"
     else
-        _ops_check_add skip "SSH 基线" "读不到 sshd 配置"
+        _ops_check_add skip "SSH $(_t 'baseline')" "$(_t 'Cannot read sshd config')"
     fi
 
     # 6) 公网监听
@@ -259,43 +262,44 @@ cmd_inspect() {
             addr="${sp#*|}"; addr="${addr%%|*}"
             _ops_is_public_addr "$addr" && pub_n=$((pub_n+1))
         done < <(_ops_ss_parse "$(ss -tulpn 2>/dev/null || true)")
-        if   (( pub_n == 0 )); then _ops_check_add ok "公网监听" "无 0.0.0.0/[::] 监听"
-        else _ops_check_add warn "公网监听" "${pub_n} 个——清单: ./install.sh ops-kit audit ports"; fi
+        if   (( pub_n == 0 )); then _ops_check_add ok "$(_t 'public listeners')" "$(_t 'No 0.0.0.0/[::] listener')"
+        else _ops_check_add warn "$(_t 'public listeners')" "${pub_n} $(_t 'items — list: ./install.sh ops-kit audit ports')"; fi
     else
-        _ops_check_add skip "公网监听" "ss 不可用"
+        _ops_check_add skip "$(_t 'public listeners')" "ss $(_t 'unavailable')"
     fi
 
     # 7) 待更新（>0 ⚠️ / >50 🔴）
     local upds; upds=$(_ops_collect_updates)
     if [[ -z "$upds" ]]; then
-        _ops_check_add skip "待更新" "未识别包管理器"
+        _ops_check_add skip "$(_t 'pending updates')" "$(_t 'Unrecognized package manager')"
     else
         local usrc="${upds%% *}"; local un="${upds##* }"
         un=$(_ops_updates_count "$un")
-        if   (( un > 50 )); then _ops_check_add crit "待更新($usrc)" "${un} 个"
-        elif (( un > 0 ));  then _ops_check_add warn "待更新($usrc)" "${un} 个"
-        else _ops_check_add ok "待更新($usrc)" "0"; fi
+        if   (( un > 50 )); then _ops_check_add crit "$(_tf 'Pending updates (%s)' "$usrc")" "${un} $(_t 'items')"
+        elif (( un > 0 ));  then _ops_check_add warn "$(_tf 'Pending updates (%s)' "$usrc")" "${un} $(_t 'items')"
+        else _ops_check_add ok "$(_tf 'Pending updates (%s)' "$usrc")" "0"; fi
     fi
 
     # 8) 登录失败
     if command -v lastb >/dev/null 2>&1 && [[ -e /var/log/btmp || -e /var/log/lastlog ]]; then
         local lbc; lbc=$(_ops_lastb_count "$(lastb -n 50 2>/dev/null | head -50 || true)")
-        if (( lbc > 0 )); then _ops_check_add warn "登录失败" "近期 ${lbc}+ 条（lastb，失败登录爆破迹象）"
-        else _ops_check_add ok "登录失败" "无记录"; fi
+        if (( lbc > 0 )); then _ops_check_add warn "$(_t 'failed logins')" "$(_tf 'Recent %s+ entries (lastb, signs of a failed-login brute force)' "${lbc}")"
+        else _ops_check_add ok "$(_t 'failed logins')" "$(_t 'No records')"; fi
     else
-        _ops_check_add skip "登录失败" "lastb/btmp 不可用"
+        _ops_check_add skip "$(_t 'failed logins')" "lastb/btmp $(_t 'unavailable')"
     fi
 
     # 输出
     if (( json )); then
         printf '{"summary":{"crit":%d,"warn":%d},"checks":[%s]}\n' "$OPS_CRIT_N" "$OPS_WARN_N" "$OPS_JSON"
     else
-        header "🩺 ops-kit 系统巡检报告（$(date '+%F %T')）"
+        local ts; ts=$(date '+%F %T')
+        header "$(_tf '🩺 ops-kit inspection report (%s)' "$ts")"
         printf '%s' "$OPS_CHECKS"
         echo "-----------------------------------------------"
-        if   (( OPS_CRIT_N > 0 )); then echo "${OPS_CRIT}巡检汇总：${OPS_CRIT_N} 项危险、${OPS_WARN_N} 项注意——优先处理 🔴 项"
-        elif (( OPS_WARN_N > 0 )); then echo "${OPS_WARN}巡检汇总：${OPS_WARN_N} 项注意，无危险项"
-        else echo "${OPS_OK}巡检汇总：全部通过"; fi
+        if   (( OPS_CRIT_N > 0 )); then printf '%s\n' "${OPS_CRIT}$(_tf 'Inspection summary: %s critical, %s warnings — prioritize 🔴 items' "${OPS_CRIT_N}" "${OPS_WARN_N}")"
+        elif (( OPS_WARN_N > 0 )); then printf '%s\n' "${OPS_WARN}$(_tf 'Inspection summary: %s warnings, no critical items' "${OPS_WARN_N}")"
+        else printf '%s\n' "${OPS_OK}$(_t 'Inspection summary: all passed')"; fi
     fi
     return 0
 }
@@ -304,39 +308,41 @@ cmd_inspect() {
 # log 日志运维
 # ============================================================
 _ops_log_status() {
-    header "📜 日志占用"
+    header "$(_t '📜 Log usage')"
     if command -v journalctl >/dev/null 2>&1; then
-        info "journal：$(journalctl --disk-usage 2>/dev/null || echo '读取失败')"
+        local ju; ju=$(journalctl --disk-usage 2>/dev/null || printf '%s\n' "$(_t 'Failed to read')")
+        info "$(_tf 'journal: %s' "$ju")"
     else
-        info "journalctl 不可用"
+        info "journalctl $(_t 'unavailable')"
     fi
     if [[ -d /var/log ]]; then
-        info "/var/log 大户 TOP5："
+        info "/var/log $(_t 'top 5 consumers:')"
         sudo du -x -m /var/log/* 2>/dev/null | sort -rn | head -5 | awk '{printf "  %6dMB  %s\n", $1, $2}' || true
     fi
-    info "清理指路: ./install.sh ops-kit log vacuum 200M"
+    info "$(_t 'Cleanup pointer: ./install.sh ops-kit log vacuum 200M')"
 }
 
 _ops_log_vacuum() {
     local arg="$1"
-    [[ -z "$arg" ]] && { error "用法: ops-kit log vacuum <200M|2weeks>（大小或时长，必填）"; return 1; }
+    [[ -z "$arg" ]] && { error "$(_t 'Usage: ops-kit log vacuum <200M|2weeks> (size or duration, required)')"; return 1; }
     if [[ "${UNIX_SCRIPT_DRY_RUN:-0}" == "1" ]]; then
         case "$arg" in *M|*G) info "[dry-run] journalctl --vacuum-size=$arg" ;; *) info "[dry-run] journalctl --vacuum-time=$arg" ;; esac
         return 0
     fi
-    if [[ ! -t 0 ]]; then error "清理 journal 属写操作，仅允许在交互终端执行（或加 --dry-run 预览）"; return 1; fi
-    case "$arg" in *M|*G) info "将执行: journalctl --vacuum-size=$arg" ;; *) info "将执行: journalctl --vacuum-time=$arg" ;; esac
-    local a; read -r -p "确认清理 journal？输入 yes 继续: " a
-    [[ "$a" == "yes" ]] || { info "已取消"; return 0; }
+    if [[ ! -t 0 ]]; then error "$(_t 'Cleaning journal is a write op; needs a TTY (or --dry-run to preview)')"; return 1; fi
+    case "$arg" in *M|*G) info "$(_tf 'Will run: journalctl --vacuum-size=%s' "$arg")" ;; *) info "$(_tf 'Will run: journalctl --vacuum-time=%s' "$arg")" ;; esac
+    local a; read -r -p "$(_t 'Confirm cleaning journal? Type yes to continue:') " a
+    [[ "$a" == "yes" ]] || { info "$(_t 'Cancelled')"; return 0; }
     case "$arg" in
         *M|*G) sudo journalctl --vacuum-size="$arg" ;;
         *)     sudo journalctl --vacuum-time="$arg" ;;
     esac
-    info "✅ journal 清理完成"
+    info "$(_t '✅ journal cleanup done')"
 }
 
-# shellcheck disable=SC2016  # nginx 模板里的 $(cat ...) 是要写入文件的字面量
-_ops_log_rotate_tpl() {  # <app> → 模板文本（未知输出空）
+# <app> → 模板文本（未知输出空）
+# nginx 模板里的 $(cat ...) 是要写入文件的字面量
+_ops_log_rotate_tpl() {  # shellcheck disable=SC2016
     case "$1" in
         nginx) printf '/var/log/nginx/*.log {\n  daily\n  rotate 14\n  compress\n  delaycompress\n  missingok\n  notifempty\n  sharedscripts\n  postrotate\n    [ -f /var/run/nginx.pid ] && kill -USR1 "$(cat /var/run/nginx.pid)"\n  endscript\n}\n' ;;
         redis) printf '/var/log/redis/redis-server.log {\n  weekly\n  rotate 12\n  compress\n  missingok\n  notifempty\n  copytruncate\n}\n' ;;
@@ -349,25 +355,25 @@ _ops_log_rotate() {
     local action="${1:-list}" app="${2:-}"
     case "$action" in
         list)
-            header "📋 $OPS_LOGROTATE_DIR 现有条目"
-            ls -1 "$OPS_LOGROTATE_DIR" 2>/dev/null || info "（目录不存在）" ;;
+            header "$(_tf '📋 %s existing entries' "$OPS_LOGROTATE_DIR")"
+            ls -1 "$OPS_LOGROTATE_DIR" 2>/dev/null || info "$(_t '(directory does not exist)')" ;;
         show)
-            [[ -z "$app" ]] && { error "用法: ops-kit log rotate show <app>"; return 1; }
+            [[ -z "$app" ]] && { error "$(_t 'Usage: ops-kit log rotate show <app>')"; return 1; }
             if [[ -f "$OPS_LOGROTATE_DIR/$app" ]]; then cat "$OPS_LOGROTATE_DIR/$app"
-            else error "无 $app 条目（list 查看现有）"; return 1; fi ;;
+            else error "$(_tf 'No %s entry (use list to see existing ones)' "$app")"; return 1; fi ;;
         apply)
-            [[ -z "$app" ]] && { error "用法: ops-kit log rotate apply <app>（内置模板: nginx|redis|journal）"; return 1; }
+            [[ -z "$app" ]] && { error "$(_t 'Usage: ops-kit log rotate apply <app> (templates: nginx|redis|journal)')"; return 1; }
             local tpl; tpl=$(_ops_log_rotate_tpl "$app")
-            [[ -z "$tpl" ]] && { error "无内置模板: ${app}（可选 nginx|redis|journal）"; return 1; }
+            [[ -z "$tpl" ]] && { error "$(_tf 'No built-in template: %s (available: nginx|redis|journal)' "${app}")"; return 1; }
             printf '%s' "$tpl"
-            if [[ "${UNIX_SCRIPT_DRY_RUN:-0}" == "1" ]]; then info "[dry-run] 写入 $OPS_LOGROTATE_DIR/$app"; return 0; fi
-            if [[ ! -t 0 ]]; then error "写入 logrotate 属写操作，仅允许在交互终端执行（或加 --dry-run 预览）"; return 1; fi
-            local a; read -r -p "写入 ${OPS_LOGROTATE_DIR}/${app}？输入 yes 继续: " a
-            [[ "$a" == "yes" ]] || { info "已取消"; return 0; }
+            if [[ "${UNIX_SCRIPT_DRY_RUN:-0}" == "1" ]]; then info "[dry-run] $(_tf 'Write %s/%s' "$OPS_LOGROTATE_DIR" "$app")"; return 0; fi
+            if [[ ! -t 0 ]]; then error "$(_t 'Writing logrotate is a write op; needs a TTY (or --dry-run to preview)')"; return 1; fi
+            local a; read -r -p "$(_tf 'Write %s/%s? Type yes to continue:' "${OPS_LOGROTATE_DIR}" "${app}") " a
+            [[ "$a" == "yes" ]] || { info "$(_t 'Cancelled')"; return 0; }
             [[ -f "$OPS_LOGROTATE_DIR/$app" ]] && sudo cp "$OPS_LOGROTATE_DIR/$app" "$OPS_LOGROTATE_DIR/$app.bak.$(date +%s)"
             printf '%s' "$tpl" | sudo tee "$OPS_LOGROTATE_DIR/$app" >/dev/null
-            info "✅ 已写入；验证: sudo logrotate -d $OPS_LOGROTATE_DIR/$app" ;;
-        *) error "用法: ops-kit log rotate list|show <app>|apply <app>"; return 1 ;;
+            info "$(_tf '✅ Written; verify: sudo logrotate -d %s/%s' "$OPS_LOGROTATE_DIR" "$app")" ;;
+        *) error "$(_t 'Usage: ops-kit log rotate list|show <app>|apply <app>')"; return 1 ;;
     esac
 }
 
@@ -377,7 +383,7 @@ cmd_log() {
         status) shift || true; _ops_log_status ;;
         vacuum) shift || true; _ops_log_vacuum "${1:-}" ;;
         rotate) shift || true; _ops_log_rotate "${1:-list}" "${2:-}" ;;
-        *) error "用法: ops-kit log status|vacuum <200M|2weeks>|rotate list|show <app>|apply <app>"; return 1 ;;
+        *) error "$(_t 'Usage: ops-kit log status|vacuum <arg>|rotate list|show|apply <app>')"; return 1 ;;
     esac
 }
 
@@ -390,26 +396,26 @@ cmd_svc() {
     local unit="${1:-}"
     case "$action" in
         failed|logs|status|start|stop|restart|enable|disable) ;;
-        *) error "用法: ops-kit svc failed|logs <unit>|status <unit>|start|stop|restart|enable|disable <unit>"; return 1 ;;
+        *) error "$(_t 'Usage: ops-kit svc failed|logs|status|start|stop|restart|enable|disable')"; return 1 ;;
     esac
     # 参数校验先于 systemd 探测：无 unit 的用法错误在任何环境都应报错
     case "$action" in
         logs|status|start|stop|restart|enable|disable)
-            [[ -z "$unit" ]] && { error "用法: ops-kit svc $action <unit>"; return 1; } ;;
+            [[ -z "$unit" ]] && { error "$(_tf 'Usage: ops-kit svc %s <unit>' "$action")"; return 1; } ;;
     esac
-    command -v systemctl >/dev/null 2>&1 || { info "本环境无 systemd，svc 子命令不可用"; return 0; }
+    command -v systemctl >/dev/null 2>&1 || { info "$(_t 'No systemd in this environment; the svc subcommand is unavailable')"; return 0; }
     case "$action" in
         failed)
-            header "🚨 systemd 失败单元"
+            header "$(_t '🚨 systemd failed units')"
             local fu; fu=$(_ops_failed_units "$(systemctl --failed --no-legend 2>/dev/null || true)")
-            if [[ -z "$fu" ]]; then info "${OPS_OK} 无失败单元"; return 0; fi
+            if [[ -z "$fu" ]]; then info "${OPS_OK} $(_t 'No failed units')"; return 0; fi
             local u
             for u in $fu; do
                 echo "---- $u ----"
                 systemctl status "$u" --no-pager -l 2>/dev/null | grep -E 'Loaded:|Active:|Since:|Main PID:' || true
                 journalctl -u "$u" -n 3 --no-pager 2>/dev/null || true
             done
-            info "查看完整日志: ./install.sh ops-kit svc logs <unit> 100" ;;
+            info "$(_t 'View full logs: ./install.sh ops-kit svc logs <unit> 100')" ;;
         logs)
             journalctl -u "$unit" -n "${2:-50}" --no-pager ;;
         status)
@@ -418,13 +424,13 @@ cmd_svc() {
             case "$action" in
                 stop|restart|disable)
                     if [[ "${UNIX_SCRIPT_DRY_RUN:-0}" != "1" && -t 0 ]]; then
-                        local a; read -r -p "确认对 ${unit} 执行 ${action}？输入 yes 继续: " a
-                        [[ "$a" == "yes" ]] || { info "已取消"; return 0; }
+                        local a; read -r -p "$(_tf 'Confirm %s on %s? Type yes to continue:' "${unit}" "${action}") " a
+                        [[ "$a" == "yes" ]] || { info "$(_t 'Cancelled')"; return 0; }
                     fi ;;
             esac
             sudo systemctl "$action" "$unit"
-            info "✅ systemctl $action $unit 完成" ;;
-        *) error "用法: ops-kit svc failed|logs <unit>|status <unit>|start|stop|restart|enable|disable <unit>"; return 1 ;;
+            info "$(_tf '✅ systemctl %s %s done' "$action" "$unit")" ;;
+        *) error "$(_t 'Usage: ops-kit svc failed|logs|status|start|stop|restart|enable|disable')"; return 1 ;;
     esac
 }
 
@@ -432,14 +438,14 @@ cmd_svc() {
 # audit 安全基线（只读）
 # ============================================================
 _ops_audit_ssh() {
-    header "🔐 SSH 基线自查"
+    header "$(_t '🔐 SSH baseline self-check')"
     local out=''
     if command -v sshd >/dev/null 2>&1; then
         out=$(sshd -T 2>/dev/null || sudo -n sshd -T 2>/dev/null || true)
     fi
     [[ -z "$out" ]] && out=$(grep -RhiE '^[[:space:]]*(PermitRootLogin|PasswordAuthentication|MaxAuthTries|X11Forwarding)' /etc/ssh/sshd_config /etc/ssh/sshd_config.d/ 2>/dev/null || true)
     if [[ -z "$out" ]]; then
-        info "读不到 sshd 配置（未安装 OpenSSH server 或无权限），跳过"
+        info "$(_t 'Cannot read sshd config (no OpenSSH server or no permission), skipped')"
         return 0
     fi
     local line icon
@@ -447,31 +453,31 @@ _ops_audit_ssh() {
         case "$line" in crit*) icon="$OPS_CRIT" ;; warn*) icon="$OPS_WARN" ;; *) icon="$OPS_OK" ;; esac
         echo "  ${icon} ${line#*|}"
     done < <(_ops_sshd_check "$out")
-    info "加固指路: ./install.sh sys-setup ssh"
+    info "$(_t 'Hardening pointer: ./install.sh sys-setup ssh')"
 }
 
 _ops_audit_ports() {
-    header "🌐 公网监听端口"
-    command -v ss >/dev/null 2>&1 || { info "ss 不可用，跳过"; return 0; }
+    header "$(_t '🌐 Public listening ports')"
+    command -v ss >/dev/null 2>&1 || { info "ss $(_t 'unavailable, skipped')"; return 0; }
     local sp addr pub_n=0
     while IFS= read -r sp; do
         [[ -z "$sp" ]] && continue
         addr="${sp#*|}"; addr="${addr%%|*}"
         if _ops_is_public_addr "$addr"; then
             pub_n=$((pub_n+1))
-            echo "  $OPS_WARN ${sp%%|*}  ${addr}  进程: ${sp##*|}"
+            printf '%s\n' "  $OPS_WARN ${sp%%|*}  ${addr}  $(_tf 'process: %s' "${sp##*|}")"
         fi
     done < <(_ops_ss_parse "$(ss -tulpn 2>/dev/null || true)")
-    (( pub_n == 0 )) && info "${OPS_OK} 无 0.0.0.0/[::] 公网监听"
-    info "收口指路: ./install.sh ufw"
+    (( pub_n == 0 )) && info "${OPS_OK} $(_t 'No 0.0.0.0/[::] public listener')"
+    info "$(_t 'Closure pointer: ./install.sh ufw')"
 }
 
 _ops_audit_updates() {
-    header "📦 待更新"
+    header "$(_t '📦 Pending updates')"
     local upds; upds=$(_ops_collect_updates)
-    if [[ -z "$upds" ]]; then info "未识别包管理器，跳过"; return 0; fi
+    if [[ -z "$upds" ]]; then info "$(_t 'Unrecognized package manager, skipped')"; return 0; fi
     local usrc="${upds%% *}"; local un; un=$(_ops_updates_count "${upds##* }")
-    info "[$usrc] 待更新 ${un} 个；自动安装指路: ./install.sh sys-setup unattended"
+    info "[$usrc] $(_tf 'Pending updates %s; auto-install: ./install.sh sys-setup unattended' "${un}")"
 }
 
 cmd_audit() {
@@ -481,7 +487,7 @@ cmd_audit() {
         ports) _ops_audit_ports ;;
         updates) _ops_audit_updates ;;
         all) _ops_audit_ssh; _ops_audit_ports; _ops_audit_updates ;;
-        *) error "用法: ops-kit audit ssh|ports|updates|all"; return 1 ;;
+        *) error "$(_t 'Usage: ops-kit audit ssh|ports|updates|all')"; return 1 ;;
     esac
     return 0
 }
@@ -493,55 +499,55 @@ _ops_tool_avail() { command -v "$1" >/dev/null 2>&1 && echo 1 || echo 0; }
 
 status_ops_kit() {
     if [[ "${OS_TYPE:-}" == "darwin" ]]; then
-        emit_status "n/a" "⏭️  ops-kit 运维工具箱（仅 Linux，本机不适用）"
+        emit_status "n/a" "$(_t '⏭️  ops-kit toolbox (Linux only, not applicable on this machine)')"
         return 0
     fi
-    emit_status "installed" "✅ ops-kit 运维工具箱就绪（inspect 巡检 / log 日志 / svc 服务 / audit 基线）"
+    emit_status "installed" "$(_t '✅ ops-kit toolbox ready (inspect checks / log / svc / audit baseline)')"
     emit_extra "tools=systemctl:$(_ops_tool_avail systemctl),journalctl:$(_ops_tool_avail journalctl),smartctl:$(_ops_tool_avail smartctl),ss:$(_ops_tool_avail ss)"
 }
 
 cmd_install() {
     _ops_platform_check
-    header "🧰 ops-kit 依赖检查"
+    header "$(_t '🧰 ops-kit dependency check')"
     local t miss_cnt=0
     for t in systemctl journalctl ss logrotate; do
         if command -v "$t" >/dev/null 2>&1; then
-            info "✔ $t 可用"
+            info "$(_tf '✔ %s available' "$t")"
         else
-            warn "✘ $t 缺失（相关子命令将降级）"
+            warn "$(_tf '✘ %s missing (related subcommands will degrade)' "$t")"
             miss_cnt=$((miss_cnt+1))
         fi
     done
     if (( miss_cnt == 0 )); then
-        info "🎉 依赖齐备。试试: ./install.sh ops-kit inspect"
+        info "$(_t '🎉 All dependencies present. Try: ./install.sh ops-kit inspect')"
     else
-        info "缺 $miss_cnt 项——ops-kit 不自动安装系统组件，缺啥用啥，其余子命令不受影响"
+        info "$(_tf 'Missing %s item(s) — no auto-install; other subcommands unaffected' "$miss_cnt")"
     fi
     return 0
 }
 
-cmd_uninstall() { info "ops-kit 为只读命令封装，不安装任何组件，无需卸载"; }
+cmd_uninstall() { info "ops-kit $(_t 'A read-only wrapper; it installs no components, no uninstall needed')"; }
 
 usage() {
-    cat <<'EOF'
-运维工具箱（仅 Linux）—— 一站式巡检与日常运维
+    cat <<EOF
+$(_t 'Ops toolbox (Linux only) — one-stop inspection and daily ops')
 
 用法: ops-kit {inspect|log|svc|audit|status|help} [参数...]
 
-  inspect [--json]      聚合巡检：磁盘/SMART/失败服务/journal/SSH 基线/公网端口/更新/登录失败
-  log status            journal 占用 + /var/log 大户 TOP5
+  inspect [--json]      $(_t 'Aggregate check: disk/SMART/units/journal/SSH/ports/updates/logins')
+  log status            journal $(_t 'usage + /var/log top 5 consumers')
   log vacuum <200M|2weeks>
-                        清理 journald（写操作，需交互确认，支持 --dry-run）
+                        $(_t 'Clean up journald (write op, interactive confirm, --dry-run)')
   log rotate list|show <app>|apply <app>
-                        查看/生成 /etc/logrotate.d 条目（内置模板: nginx|redis|journal）
-  svc failed            systemd 失败单元汇总（unit/状态/journal 尾行）
-  svc logs <unit> [n]   查看单元日志（默认 50 行）
+                        $(_t 'View/generate /etc/logrotate.d entries (templates: nginx|redis|journal)')
+  svc failed            systemd $(_t 'Failed unit summary (unit/status/journal tail lines)')
+  svc logs <unit> [n]   $(_t 'View unit logs (50 lines by default)')
   svc status|start|stop|restart|enable|disable <unit>
-                        systemctl 透传（stop/restart/disable 交互确认）
+                        systemctl $(_t 'Pass through (stop/restart/disable require interactive confirmation)')
   audit ssh|ports|updates|all
-                        安全基线自查（只读，附修复指路）
-  status                依赖齐备度（UXS_STATUS_MODE=machine 可读）
-  help                  本帮助
+                        $(_t 'Security baseline self-check (read-only, with repair pointers)')
+  status                $(_t 'Dependency readiness (machine readable with UXS_STATUS_MODE=machine)')
+  help                  $(_t 'This help')
 EOF
 }
 
@@ -558,7 +564,7 @@ main() {
         uninstall) cmd_uninstall ;;
         status)    status_ops_kit ;;
         help|-h|--help) usage ;;
-        *) error "未知子命令: $sub"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown ops-kit subcommand: %s' "$sub")"; usage; exit 1 ;;
     esac
 }
 

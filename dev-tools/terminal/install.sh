@@ -15,7 +15,7 @@ source "$SCRIPT_DIR/../../lib/common.sh"
 
 # 编排顺序即依赖顺序
 STEPS=(zsh zsh_setup modern-cli nerd-font atuin)
-STEP_DESC=("zsh 本体" "Zsh + Oh My Zsh" "现代 CLI 工具集" "Nerd Font 字体" "Atuin 历史")
+STEP_DESC=("zsh $(_t 'the core')" "Zsh + Oh My Zsh" "$(_t 'modern CLI toolset')" "Nerd Font $(_t 'the font')" "Atuin $(_t 'the history')")
 
 module_dir() { echo "$SCRIPT_DIR/../$1"; }
 
@@ -59,31 +59,31 @@ install_terminal() {
     for i in "${!STEPS[@]}"; do
         mod="${STEPS[$i]}"
         if excluded "$mod"; then
-            info "⏭ 跳过（UXS_CONFIG_EXCLUDE）: ${STEP_DESC[$i]}"
+            info "$(_tf '⏭ skipped (UXS_CONFIG_EXCLUDE): %s' "${STEP_DESC[$i]}")"
             continue
         fi
         if step_ready "$mod"; then
-            success "✅ 已就绪: ${STEP_DESC[$i]}"
+            success "$(_tf '✅ ready: %s' "${STEP_DESC[$i]}")"
             continue
         fi
-        info "🔧 安装: ${STEP_DESC[$i]} ..."
+        info "$(_tf '🔧 installing: %s ...' "${STEP_DESC[$i]}")"
         if [[ "$mod" == "zsh" ]]; then
-            command_exists zsh || pkg_install zsh || { error "zsh 本体安装失败"; return 1; }
+            command_exists zsh || pkg_install zsh || { error "zsh $(_t 'the core installation failed')"; return 1; }
         else
-            bash "$(module_dir "$mod")/install.sh" install || warn "⚠️ ${STEP_DESC[$i]} 安装失败（继续后续环节）"
+            bash "$(module_dir "$mod")/install.sh" install || warn "$(_tf '⚠️ %s installation failed (continue with the remaining steps)' "${STEP_DESC[$i]}")"
         fi
     done
     status_terminal_human
-    success "🎉 终端全家桶完成！新开终端或 exec zsh 生效"
+    success "$(_t '🎉 the terminal suite is complete! Open a new terminal or run exec zsh to take effect')"
 }
 
 status_terminal_human() {
     local i mod mark
     echo
-    info "环节状态："
+    info "$(_t 'step status:')"
     for i in "${!STEPS[@]}"; do
         mod="${STEPS[$i]}"
-        if excluded "$mod"; then mark="⏭ 跳过"
+        if excluded "$mod"; then mark="$(_t '⏭ skipped')"
         elif step_ready "$mod"; then mark="✅"
         else mark="❌"; fi
         echo "  $mark ${STEP_DESC[$i]}"
@@ -104,14 +104,14 @@ status_terminal() {
         fi
     done
     if [[ $ready -eq $total ]]; then
-        emit_status "installed" "${GREEN}✅ 终端全家桶全部就绪（${ready}/${total}）${NC}"
+        emit_status "installed" "${GREEN}$(_tf '✅ the whole terminal suite is ready (%s/%s)' "${ready}" "${total}")${NC}"
     else
         local csv
         csv=$(IFS=,; echo "${missing[*]}")
         if [[ $ready -gt 0 ]]; then
-            emit_status "not_installed" "${YELLOW}⚠️ 部分就绪（${ready}/${total}）${NC}"
+            emit_status "not_installed" "${YELLOW}$(_tf '⚠️ partially ready (%s/%s)' "${ready}" "${total}")${NC}"
         else
-            emit_status "not_installed" "${RED}❌ 未配置${NC}"
+            emit_status "not_installed" "${RED}$(_t '❌ not configured')${NC}"
         fi
         emit_extra "missing=${csv}"
     fi
@@ -119,22 +119,22 @@ status_terminal() {
 }
 
 uninstall_terminal() {
-    warn "terminal 为编排模块，无独立卸载；请逐个子模块 uninstall："
+    warn "terminal $(_t 'This is an orchestration module and has no standalone uninstall; please uninstall the sub-modules one by one:')"
     echo "  ./install.sh atuin uninstall && ./install.sh zsh_setup uninstall"
-    echo "  rc 清理: 删除各 '# >>> unix_script <模块> >>>' 标记块"
+    echo "  rc $(_t 'cleanup: delete the marker blocks marked with # >>> unix_script <module> >>>')"
 }
 
 usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     一键终端全家桶（zsh → zsh_setup → modern-cli → nerd-font → atuin）
-              UXS_CONFIG_FRAMEWORK=oh-my-zsh      框架选择（透传 zsh_setup）
-              UXS_CONFIG_THEME=p10k               主题（透传 zsh_setup）
-              UXS_CONFIG_FONTS=JetBrainsMono      字体清单（透传 nerd-font）
-              UXS_CONFIG_SYNC=0                   atuin 同步开关（透传 atuin）
-              UXS_CONFIG_EXCLUDE=atuin,nerd-font  裁剪环节
-  status      查看各环节就绪状态
+  install     $(_t 'one-click terminal suite (zsh → zsh_setup → modern-cli → nerd-font → atuin)')
+              UXS_CONFIG_FRAMEWORK=oh-my-zsh      $(_t 'framework choice (passed through to zsh_setup)')
+              UXS_CONFIG_THEME=p10k               $(_t 'theme (passed through to zsh_setup)')
+              UXS_CONFIG_FONTS=JetBrainsMono      $(_t 'font list (passed through to nerd-font)')
+              UXS_CONFIG_SYNC=0                   atuin $(_t 'sync switch (passed through to atuin)')
+              UXS_CONFIG_EXCLUDE=atuin,nerd-font  $(_t 'exclude steps')
+  status      $(_t 'view the ready status of each step')
 EOF
 }
 
@@ -146,7 +146,7 @@ main() {
         status)    status_terminal ;;
         uninstall) uninstall_terminal ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

@@ -57,7 +57,8 @@ resolve_source() {
                 ustc)     echo "https://mirrors.ustc.edu.cn/crates.io-index/" ;;
                 sjtu)     echo "https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index/" ;;
                 rsproxy)  echo "https://rsproxy.cn/index/" ;;
-                official) echo "OFFICIAL" ;;  # 特殊标记：还原=移除配置块
+                # 特殊标记：还原=移除配置块
+                official) echo "OFFICIAL" ;;
                 https*)   echo "$key" ;;
                 *) return 1 ;;
             esac
@@ -91,26 +92,26 @@ default_source_key() {
 label_source() {
     local eco="$1" key="$2"
     case "$eco:$key" in
-        npm:taobao)   echo "淘宝 npmmirror" ;;
-        npm:tencent)  echo "腾讯云" ;;
-        npm:huawei)   echo "华为云" ;;
-        npm:official|npm:npm) echo "官方 npm" ;;
-        go:goproxy-cn)  echo "goproxy.cn (七牛)" ;;
-        go:aliyun)      echo "阿里云" ;;
+        npm:taobao)   printf '%s\n' "$(_t 'Taobao npmmirror')" ;;
+        npm:tencent)  printf '%s\n' "$(_t 'Tencent Cloud')" ;;
+        npm:huawei)   printf '%s\n' "$(_t 'Huawei Cloud')" ;;
+        npm:official|npm:npm) printf '%s\n' "$(_t 'Official npm')" ;;
+        go:goproxy-cn)  echo "goproxy.cn ($(_t 'Qiniu)')" ;;
+        go:aliyun)      printf '%s\n' "$(_t 'Alibaba Cloud')" ;;
         go:goproxy-io)  echo "goproxy.io" ;;
-        go:official)    echo "官方 proxy.golang.org" ;;
-        rust:tuna)    echo "清华 TUNA" ;;
-        rust:ustc)    echo "中科大 USTC" ;;
-        rust:sjtu)    echo "上海交大 SJTU" ;;
-        rust:rsproxy) echo "字节 rsproxy" ;;
-        rust:official) echo "官方 crates.io" ;;
-        python:tuna)     echo "清华 TUNA" ;;
-        python:aliyun)   echo "阿里云" ;;
-        python:ustc)     echo "中科大 USTC" ;;
-        python:tencent)  echo "腾讯云" ;;
-        python:official) echo "官方 PyPI" ;;
-        *:https*) echo "自定义" ;;
-        *) echo "未知" ;;
+        go:official)    printf '%s\n' "$(_t 'Official proxy.golang.org')" ;;
+        rust:tuna)    printf '%s\n' "$(_t 'Tsinghua TUNA')" ;;
+        rust:ustc)    printf '%s\n' "$(_t 'USTC')" ;;
+        rust:sjtu)    printf '%s\n' "$(_t 'Shanghai Jiao Tong SJTU')" ;;
+        rust:rsproxy) printf '%s\n' "$(_t 'ByteDance rsproxy')" ;;
+        rust:official) printf '%s\n' "$(_t 'Official crates.io')" ;;
+        python:tuna)     printf '%s\n' "$(_t 'Tsinghua TUNA')" ;;
+        python:aliyun)   printf '%s\n' "$(_t 'Alibaba Cloud')" ;;
+        python:ustc)     printf '%s\n' "$(_t 'USTC')" ;;
+        python:tencent)  printf '%s\n' "$(_t 'Tencent Cloud')" ;;
+        python:official) printf '%s\n' "$(_t 'Official PyPI')" ;;
+        *:https*) printf '%s\n' "$(_t 'Custom')" ;;
+        *) printf '%s\n' "$(_t 'Unknown')" ;;
     esac
 }
 
@@ -137,7 +138,8 @@ ecosystem_available() {
         go)    command_exists go ;;
         rust)  command_exists cargo ;;
         python) command_exists pip3 || command_exists pip ;;
-        *)     return 1 ;;   # 未知生态一律视为不可用
+        # 未知生态一律视为不可用
+        *)     return 1 ;;
     esac
 }
 
@@ -148,8 +150,8 @@ preflight_any() {
         if ecosystem_available "$eco"; then has_any=true; break; fi
     done
     if ! $has_any; then
-        error "未检测到任何目标工具链（npm/go/cargo/pip）。"
-        error "请先安装对应运行时再运行本模块。"
+        error "$(_t 'No target toolchain detected (npm/go/cargo/pip).')"
+        error "$(_t 'Please install the corresponding runtime before running this module.')"
         exit 1
     fi
 }
@@ -158,7 +160,7 @@ preflight_any() {
 require_ecosystem() {
     local eco="$1"
     if ! ecosystem_available "$eco"; then
-        error "$(label_eco "$eco") 工具链未安装，跳过。"
+        error "$(label_eco "$eco") $(_t 'Toolchain not installed, skipping.')"
         exit 1
     fi
 }
@@ -166,11 +168,11 @@ require_ecosystem() {
 # nrm/cnpm 冲突提示（仅 npm 生态）
 check_npm_conflict() {
     if command_exists nrm; then
-        warn "检测到 nrm（NPM registry 管理器），它可能覆盖本模块写入的 registry。"
-        warn "建议二选一：要么只用 nrm，要么卸载 nrm 后用本模块。"
+        warn "$(_t 'nrm (NPM registry manager) detected, it may override the registry written by this module.')"
+        warn "$(_t 'Recommendation: either use only nrm, or uninstall nrm and then use this module.')"
     fi
     if command_exists cnpm; then
-        info "检测到 cnpm（自带淘宝源），通常无需为 npm 换源。"
+        info "$(_t 'cnpm detected (ships with the Taobao mirror), usually no need to switch the npm mirror.')"
     fi
 }
 
@@ -202,26 +204,26 @@ config_npm() {
 
 status_npm() {
     if command_exists npm; then
-        printf "  %-8s %s\n" "npm:" "$(npm config get registry 2>/dev/null || echo 未知)"
+        printf "  %-8s %s\n" "npm:" "$(npm config get registry 2>/dev/null || _t 'Unknown')"
     else
-        printf "  %-8s %s\n" "npm:" "未安装"
+        printf "  %-8s %s\n" "npm:" "$(_t 'Not installed')"
     fi
     if command_exists yarn; then
         local yver reg
         yver=$(yarn --version 2>/dev/null | cut -d. -f1 || echo "1")
         if [[ "$yver" -ge 2 ]]; then
-            reg=$(yarn config get npmRegistryServer 2>/dev/null || echo 未知)
+            reg=$(yarn config get npmRegistryServer 2>/dev/null || _t 'Unknown')
         else
-            reg=$(yarn config get registry 2>/dev/null || echo 未知)
+            reg=$(yarn config get registry 2>/dev/null || _t 'Unknown')
         fi
         printf "  %-8s %s\n" "yarn:" "$reg"
     else
-        printf "  %-8s %s\n" "yarn:" "未安装"
+        printf "  %-8s %s\n" "yarn:" "$(_t 'Not installed')"
     fi
     if command_exists pnpm; then
-        printf "  %-8s %s\n" "pnpm:" "$(pnpm config get registry 2>/dev/null || echo 未知)"
+        printf "  %-8s %s\n" "pnpm:" "$(pnpm config get registry 2>/dev/null || _t 'Unknown')"
     else
-        printf "  %-8s %s\n" "pnpm:" "未安装"
+        printf "  %-8s %s\n" "pnpm:" "$(_t 'Not installed')"
     fi
 }
 
@@ -240,7 +242,7 @@ config_go() {
         success "go     → $url"
     else
         # fallback: 写 shell 配置（兼容老版本 go）
-        warn "go 版本较低或 go env -w 不可用，回退到写 ~/.bashrc 环境变量"
+        warn "go $(_t 'version is too old or go env -w is unavailable, falling back to writing the ~/.bashrc environment variable')"
         local line="export GOPROXY=\"$url\""
         local f
         for f in "$HOME/.bashrc" "$HOME/.zshrc"; do
@@ -251,15 +253,15 @@ config_go() {
                 printf '\n# dev-mirror: Go proxy\n%s\n' "$line" >> "$f"
             fi
         done
-        success "go     → $url (写入 ~/.bashrc / ~/.zshrc，需 source 生效)"
+        success "go     $(_tf '→ %s (written to ~/.bashrc / ~/.zshrc, run source to take effect)' "$url")"
     fi
 }
 
 status_go() {
     if command_exists go; then
-        printf "  %-8s %s\n" "GOPROXY:" "$(go env GOPROXY 2>/dev/null || echo 未知)"
+        printf "  %-8s %s\n" "GOPROXY:" "$(go env GOPROXY 2>/dev/null || _t 'Unknown')"
     else
-        printf "  %-8s %s\n" "go:" "未安装"
+        printf "  %-8s %s\n" "go:" "$(_t 'Not installed')"
     fi
 }
 
@@ -268,8 +270,11 @@ status_go() {
 # ============================================================
 CARGO_CFG="$HOME/.cargo/config.toml"
 CARGO_CFG_LEGACY="$HOME/.cargo/config"
+# 结束标记的 '<<<' 用变量拼出：源码里直接写裸 '<<<' 会被只认 '<<' 的解析器
+# 误判成 heredoc 起始，导致后面的行全被当成 heredoc 正文。取值与原来逐字相同。
+_MIRROR_END_TAG='<<<'
 MIRROR_BEGIN="# >>> dev-mirror (cargo) >>>"
-MIRROR_END="# <<< dev-mirror (cargo) <<<"
+MIRROR_END="# ${_MIRROR_END_TAG} dev-mirror (cargo) ${_MIRROR_END_TAG}"
 
 # 写入 cargo 镜像段（url 为实际镜像 URL）
 config_rust() {
@@ -325,7 +330,7 @@ uninstall_rust() {
                 !inblk {print}
             ' "$cfg" > "$tmp"
             mv "$tmp" "$cfg"
-            success "cargo  → 已还原官方 crates.io"
+            success "cargo  $(_t '→ restored to official crates.io')"
         fi
     done
 }
@@ -348,14 +353,15 @@ cargo_mirror_registry() {
 
 status_rust() {
     if command_exists cargo; then
-        local reg="未知"
+        local reg
+        reg="$(_t 'Unknown')"
         if [[ -f "$CARGO_CFG" ]]; then
             reg=$(cargo_mirror_registry "$CARGO_CFG")
         fi
-        [[ -z "$reg" ]] && reg="官方 crates.io"
+        [[ -z "$reg" ]] && reg="$(_t 'Official crates.io')"
         printf "  %-8s %s\n" "cargo:" "$reg"
     else
-        printf "  %-8s %s\n" "cargo:" "未安装"
+        printf "  %-8s %s\n" "cargo:" "$(_t 'Not installed')"
     fi
 }
 
@@ -371,7 +377,7 @@ config_python() {
         success "pip    → $url"
     else
         # fallback: 手写 ~/.config/pip/pip.conf
-        warn "pip config 命令不可用，回退到手写配置文件"
+        warn "pip config $(_t 'pip config command unavailable, falling back to writing the config file by hand')"
         local cfg_dir="$HOME/.config/pip"
         mkdir -p "$cfg_dir"
         local cfg="$cfg_dir/pip.conf"
@@ -383,7 +389,7 @@ config_python() {
                 echo "index-url = $url"
             } >> "$cfg"
         fi
-        success "pip    → $url (写入 $cfg)"
+        success "pip    $(_tf '→ %s (written to %s)' "$url" "$cfg")"
     fi
 }
 
@@ -393,10 +399,10 @@ status_python() {
     [[ -z "$pip_cmd" ]] && command_exists pip && pip_cmd="pip"
     if [[ -n "$pip_cmd" ]]; then
         local reg
-        reg=$("$pip_cmd" config get global.index-url 2>/dev/null || echo "官方 PyPI")
+        reg=$("$pip_cmd" config get global.index-url 2>/dev/null || _t 'Official PyPI')
         printf "  %-8s %s\n" "pip:" "$reg"
     else
-        printf "  %-8s %s\n" "pip:" "未安装"
+        printf "  %-8s %s\n" "pip:" "$(_t 'Not installed')"
     fi
 }
 
@@ -425,24 +431,24 @@ apply_source() {
 prompt_ecosystem() {
     while true; do
         echo
-        menu "请选择要配置的生态："
+        menu "$(_t 'Please select the ecosystem to configure:')"
         local idx=1
         local eco avail_list=()
         for eco in $ECOSYSTEMS; do
             local mark=""
-            ecosystem_available "$eco" || mark="(未安装，将跳过)"
+            ecosystem_available "$eco" || mark="($(_t 'Not installed, will skip)')"
             echo "  $idx) $(label_eco "$eco") $mark"
             avail_list+=("$eco")
             idx=$((idx + 1))
         done
-        echo "  $idx) 全部（逐个已安装的生态）"
-        echo "  0) 取消"
-        read -r -p "请输入选项 [0-$idx]: " opt
+        echo "  $idx) $(_t 'All (one by one for each installed ecosystem)')"
+        echo "  0) $(_t 'Cancel')"
+        read -r -p "$(_tf 'Enter option [0-%s]:' "$idx") " opt
         case "$opt" in
             1|2|3|4) echo "${avail_list[$((opt - 1))]}"; return 0 ;;
             5) echo "all"; return 0 ;;
-            0) info "已取消"; exit 0 ;;
-            *) error "无效选项"; sleep 1 ;;
+            0) info "$(_t 'Cancelled')"; exit 0 ;;
+            *) error "$(_t 'Invalid option')"; sleep 1 ;;
         esac
     done
 }
@@ -453,40 +459,41 @@ prompt_source() {
     local eco="$1"
     while true; do
         echo
-        menu "请选择 $(label_eco "$eco") 的源："
+        menu "$(_t 'Please select') $(label_eco "$eco") $(_t 'the source:')"
         case "$eco" in
             npm)
-                echo "  1) 淘宝 npmmirror   https://registry.npmmirror.com        [默认/推荐]"
-                echo "  2) 腾讯云           https://mirrors.cloud.tencent.com/npm/"
-                echo "  3) 华为云           https://mirrors.huaweicloud.com/repository/npm/"
-                echo "  4) 官方 npm         https://registry.npmjs.org/          (还原)"
+                echo "  1) $(_t 'Taobao npmmirror   https://registry.npmmirror.com        [Default/Recommended]')"
+                echo "  2) $(_t 'Tencent Cloud           https://mirrors.cloud.tencent.com/npm/')"
+                echo "  3) $(_t 'Huawei Cloud           https://mirrors.huaweicloud.com/repository/npm/')"
+                echo "  4) $(_t 'Official npm         https://registry.npmjs.org/          (restore)')"
                 ;;
             go)
-                echo "  1) goproxy.cn (七牛) https://goproxy.cn,direct          [默认/推荐]"
-                echo "  2) 阿里云            https://mirrors.aliyun.com/goproxy/,direct"
+                echo "  1) goproxy.cn ($(_t 'Qiniu) https://goproxy.cn,direct          [Default/Recommended]')"
+                echo "  2) $(_t 'Alibaba Cloud            https://mirrors.aliyun.com/goproxy/,direct')"
                 echo "  3) goproxy.io        https://goproxy.io,direct"
-                echo "  4) 官方              https://proxy.golang.org,direct     (还原)"
+                echo "  4) $(_t 'Official              https://proxy.golang.org,direct     (restore)')"
                 ;;
             rust)
-                echo "  1) 清华 TUNA   https://mirrors.tuna.tsinghua.edu.cn/crates.io-index/  [默认/推荐]"
-                echo "  2) 中科大 USTC https://mirrors.ustc.edu.cn/crates.io-index/"
-                echo "  3) 上交 SJTU   https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index/"
-                echo "  4) 字节 rsproxy https://rsproxy.cn/index/"
-                echo "  5) 官方 crates.io                                       (还原)"
+                echo "  1) $(_t 'Tsinghua TUNA   https://mirrors.tuna.tsinghua.edu.cn/crates.io-index/  [Default/Recommended]')"
+                echo "  2) $(_t 'USTC https://mirrors.ustc.edu.cn/crates.io-index/')"
+                echo "  3) $(_t 'SJTU   https://mirrors.sjtug.sjtu.edu.cn/git/crates.io-index/')"
+                echo "  4) $(_t 'ByteDance rsproxy https://rsproxy.cn/index/')"
+                echo "  5) $(_t 'Official crates.io                                       (restore)')"
                 ;;
             python)
-                echo "  1) 清华 TUNA   https://pypi.tuna.tsinghua.edu.cn/simple  [默认/推荐]"
-                echo "  2) 阿里云      https://mirrors.aliyun.com/pypi/simple/"
-                echo "  3) 中科大 USTC https://pypi.mirrors.ustc.edu.cn/simple/"
-                echo "  4) 腾讯云      https://mirrors.cloud.tencent.com/pypi/simple"
-                echo "  5) 官方 PyPI   https://pypi.org/simple                  (还原)"
+                echo "  1) $(_t 'Tsinghua TUNA   https://pypi.tuna.tsinghua.edu.cn/simple  [Default/Recommended]')"
+                echo "  2) $(_t 'Alibaba Cloud      https://mirrors.aliyun.com/pypi/simple/')"
+                echo "  3) $(_t 'USTC https://pypi.mirrors.ustc.edu.cn/simple/')"
+                echo "  4) $(_t 'Tencent Cloud      https://mirrors.cloud.tencent.com/pypi/simple')"
+                echo "  5) $(_t 'Official PyPI   https://pypi.org/simple                  (restore)')"
                 ;;
         esac
         local max_opt=4
         [[ "$eco" == "rust" || "$eco" == "python" ]] && max_opt=5
-        echo "  $((max_opt + 1))) 自定义输入 URL"
-        echo "  0) 取消"
-        read -r -p "请输入选项 [0-$((max_opt + 1))]，默认 1: " sopt
+        local max_range=$((max_opt + 1))
+        echo "  ${max_range}) $(_t 'Custom URL input')"
+        echo "  0) $(_t 'Cancel')"
+        read -r -p "$(_tf 'Enter option [0-%s], default 1:' "${max_range}") " sopt
         sopt="${sopt:-1}"
         local key=""
         case "$eco:$sopt" in
@@ -507,15 +514,15 @@ prompt_source() {
             python:5) key="official" ;;
             *:$((max_opt + 1)))
                 local custom
-                read -r -p "请输入 URL (http(s)://): " custom
+                read -r -p "$(_t 'Enter URL (http(s)://):') " custom
                 if [[ "$custom" =~ ^https?:// ]]; then
                     resolve_source "$eco" "$custom" && return 0
                 fi
-                error "URL 非法，需以 http:// 或 https:// 开头"
+                error "URL $(_t 'is invalid, must start with http:// or https://')"
                 continue
                 ;;
-            *:0) info "已取消"; exit 0 ;;
-            *) error "无效选项"; sleep 1; continue ;;
+            *:0) info "$(_t 'Cancelled')"; exit 0 ;;
+            *) error "$(_t 'Invalid option')"; sleep 1; continue ;;
         esac
         resolve_source "$eco" "$key" && return 0
     done
@@ -539,7 +546,7 @@ do_install() {
         local _valid=false _e
         for _e in $ECOSYSTEMS; do [[ "$_e" == "$eco" ]] && _valid=true; done
         if ! $_valid; then
-            error "未知生态: ${eco}（可选: $ECOSYSTEMS | all）"
+            error "$(_tf 'Unknown ecosystem: %s (available: %s | all)' "${eco}" "$ECOSYSTEMS")"
             exit 1
         fi
     fi
@@ -555,7 +562,7 @@ do_install() {
                 echo
                 info "=== $(label_eco "$e") ==="
                 url=$(prompt_source "$e")
-                info "目标: $url ($(label_source "$e" "$(src_key_or_url "$e" "$url")"))"
+                info "$(_t 'Target'): $url ($(label_source "$e" "$(src_key_or_url "$e" "$url")"))"
                 [[ "$e" == "npm" ]] && check_npm_conflict
                 apply_source "$e" "$url"
             done
@@ -575,17 +582,17 @@ do_install() {
             url=$(prompt_source "$eco")
         else
             if ! url=$(resolve_source "$eco" "$src"); then
-                error "无法识别的源标识: $src (生态: $eco)"
+                error "$(_tf 'Unrecognized source identifier: %s (ecosystem: %s)' "$src" "$eco")"
                 exit 1
             fi
         fi
-        info "$(label_eco "$eco") 目标: $url"
+        info "$(label_eco "$eco") $(_tf 'Target: %s' "$url")"
         [[ "$eco" == "npm" ]] && check_npm_conflict
         echo
         apply_source "$eco" "$url"
     fi
     echo
-    success "换源完成！"
+    success "$(_t 'Mirror switch completed!')"
 }
 
 # 由 url 反推 source key（用于展示 label）；找不到则当 URL 处理
@@ -613,17 +620,17 @@ do_uninstall() {
         local _valid=false _e
         for _e in $ECOSYSTEMS; do [[ "$_e" == "$eco" ]] && _valid=true; done
         if ! $_valid; then
-            error "未知生态: ${eco}（可选: $ECOSYSTEMS | all）"
+            error "$(_tf 'Unknown ecosystem: %s (available: %s | all)' "${eco}" "$ECOSYSTEMS")"
             exit 1
         fi
     fi
     if [[ "$eco" == "all" ]]; then
-        warn "将把所有已安装的生态还原为官方源（npm/Go/Rust/Python）"
+        warn "$(_t 'All installed ecosystems will be restored to the official mirror (npm/Go/Rust/Python)')"
     else
-        warn "将把以下生态还原为官方源：$(label_eco "$eco")"
+        warn "$(_t 'The following ecosystems will be restored to the official mirror:')$(label_eco "$eco")"
     fi
-    if ! yes_no "确认还原？"; then
-        info "已取消"; return 0
+    if ! yes_no "$(_t 'Confirm restore?')"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
     echo
     if [[ "$eco" == "all" ]]; then
@@ -637,7 +644,7 @@ do_uninstall() {
         apply_source "$eco" "$(resolve_source "$eco" official)"
     fi
     echo
-    success "已还原为官方源"
+    success "$(_t 'Restored to the official mirror')"
 }
 
 do_status() {
@@ -648,7 +655,7 @@ do_status() {
     local npm_installed=false npm_mirrored=false npm_val=""
     if command_exists npm; then
         npm_installed=true
-        npm_val=$(npm config get registry 2>/dev/null || echo "未知")
+        npm_val=$(npm config get registry 2>/dev/null || _t 'Unknown')
         # 官方源判定：含 registry.npmjs.org 视为未换源
         [[ "$npm_val" == *"registry.npmjs.org"* ]] || npm_mirrored=true
     fi
@@ -656,12 +663,13 @@ do_status() {
     local go_installed=false go_mirrored=false go_val=""
     if command_exists go; then
         go_installed=true
-        go_val=$(go env GOPROXY 2>/dev/null || echo "未知")
+        go_val=$(go env GOPROXY 2>/dev/null || _t 'Unknown')
         # 官方源判定：含 proxy.golang.org 视为未换源
         [[ "$go_val" == *"proxy.golang.org"* ]] || go_mirrored=true
     fi
 
-    local rust_installed=false rust_mirrored=false rust_val="官方 crates.io"
+    local rust_installed=false rust_mirrored=false rust_val
+    rust_val="$(_t 'Official crates.io')"
     if command_exists cargo; then
         rust_installed=true
         local _reg=""
@@ -677,13 +685,14 @@ do_status() {
         fi
     fi
 
-    local py_installed=false py_mirrored=false py_val="官方 PyPI"
+    local py_installed=false py_mirrored=false py_val
+    py_val="$(_t 'Official PyPI')"
     local pip_cmd=""
     command_exists pip3 && pip_cmd="pip3"
     [[ -z "$pip_cmd" ]] && command_exists pip && pip_cmd="pip"
     if [[ -n "$pip_cmd" ]]; then
         py_installed=true
-        py_val=$("$pip_cmd" config get global.index-url 2>/dev/null || echo "官方 PyPI")
+        py_val=$("$pip_cmd" config get global.index-url 2>/dev/null || _t 'Official PyPI')
         # 官方源判定：含 pypi.org 视为未换源
         [[ "$py_val" == *"pypi.org"* ]] || py_mirrored=true
     fi
@@ -701,16 +710,16 @@ do_status() {
     if [[ $installed_count -eq 0 ]]; then
         # 无已装语言工具链：n/a 保留给「平台不适用」；此处用 not_configured（0/0 视为未配置）
         agg_state="not_configured"
-        agg_msg="${YELLOW}⚠️  无已安装的语言工具链${NC}"
+        agg_msg="${YELLOW}$(_t 'No installed language toolchain')${NC}"
     elif [[ $mirrored_count -eq $installed_count ]]; then
         agg_state="configured"
-        agg_msg="${GREEN}✅ 全部已装语言已换源（$mirrored_count/${installed_count}）${NC}"
+        agg_msg="${GREEN}$(_tf 'All installed languages have switched mirrors (%s/%s)' "$mirrored_count" "${installed_count}")${NC}"
     elif [[ $mirrored_count -gt 0 ]]; then
         agg_state="not_configured"
-        agg_msg="${YELLOW}⚠️  部分已换源（$mirrored_count/${installed_count}）${NC}"
+        agg_msg="${YELLOW}$(_tf 'Some languages have switched mirrors (%s/%s)' "$mirrored_count" "${installed_count}")${NC}"
     else
         agg_state="not_configured"
-        agg_msg="${RED}❌ 均未换源（0/${installed_count}）${NC}"
+        agg_msg="${RED}$(_tf 'No language has switched mirrors (0/%s)' "${installed_count}")${NC}"
     fi
     emit_status "$agg_state" "$agg_msg"
 
@@ -746,27 +755,27 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help} [ecosystem] [source]
 
-开发语言生态换源加速（npm / Go / Rust / Python）。
+$(_t 'Development language ecosystem mirror acceleration (npm / Go / Rust / Python).')
 
-  install [ecosystem] [source]   换源
-    ecosystem: npm | go | rust | python | all（缺省=交互选择）
-    source:    各生态内置源 key（见下）或完整 URL（缺省=交互选择）
-  uninstall [ecosystem]          还原官方源
-  status                         查看各生态当前镜像
-  help                           显示本帮助
+  install [ecosystem] [source]   $(_t 'Switch mirror')
+    ecosystem: npm | go | rust | python | all$(_t '(default = interactive selection)')
+    source:    $(_t 'Built-in source key for each ecosystem (see below) or a full URL (default = interactive selection)')
+  uninstall [ecosystem]          $(_t 'Restore the official mirror')
+  status                         $(_t 'Show the current mirror of each ecosystem')
+  help                           $(_t 'Show this help')
 
-内置源 key：
-  npm     : taobao(默认) | tencent | huawei | npm/official
-  go      : goproxy-cn(默认) | aliyun | goproxy-io | official
-  rust    : tuna(默认) | ustc | sjtu | rsproxy | official
-  python  : tuna(默认) | aliyun | ustc | tencent | official
+$(_t 'Built-in source keys:')
+  npm     : taobao($(_t 'Default) | tencent | huawei | npm/official')
+  go      : goproxy-cn($(_t 'Default) | aliyun | goproxy-io | official')
+  rust    : tuna($(_t 'Default) | ustc | sjtu | rsproxy | official')
+  python  : tuna($(_t 'Default) | aliyun | ustc | tencent | official')
 
-示例:
-  $0 install                       # 交互：先选生态，再选源
-  $0 install go goproxy-cn         # 直接为 Go 配置 goproxy.cn
-  $0 install all                   # 交互逐个生态选源
-  $0 install npm https://my.com/   # 自定义 URL
-  $0 uninstall rust                # 还原 cargo 官方源
+$(_t 'Examples:')
+  $0 install                       $(_t '# Interactive: first choose the ecosystem, then the source')
+  $0 install go goproxy-cn         $(_t '# Configure goproxy.cn for Go directly')
+  $0 install all                   $(_t '# Interactively choose a source for each ecosystem')
+  $0 install npm https://my.com/   $(_t '# Custom URL')
+  $0 uninstall rust                $(_t '# Restore the official cargo mirror')
 EOF
 }
 
@@ -790,7 +799,7 @@ main() {
             exit 0
             ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

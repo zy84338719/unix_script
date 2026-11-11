@@ -13,9 +13,9 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # --- 日志函数 ---
-info() { echo -e "${BLUE}[信息]${NC} $1"; }
-error() { echo -e "${RED}[错误]${NC} $1"; }
-warn() { echo -e "${YELLOW}[警告]${NC} $1"; }
+info() { echo -e "${BLUE}[$(_t 'Info]')${NC} $1"; }
+error() { echo -e "${RED}[$(_t 'Error]')${NC} $1"; }
+warn() { echo -e "${YELLOW}[$(_t 'Warning]')${NC} $1"; }
 
 # --- 智能检测 process_manager 位置 ---
 find_process_manager() {
@@ -70,18 +70,18 @@ check_dependencies() {
             ;;
         Linux)
             if ! command -v ss >/dev/null 2>&1 && ! command -v netstat >/dev/null 2>&1; then
-                missing_deps+=("ss 或 netstat")
+                missing_deps+=("ss $(_t 'or netstat')")
             fi
             ;;
     esac
     
     if [[ ${#missing_deps[@]} -gt 0 ]]; then
-        error "缺少以下依赖命令: ${missing_deps[*]}"
+        error "$(_tf 'The following dependency commands are missing: %s' "${missing_deps[*]}")"
         echo ""
-        echo "请安装缺少的依赖:"
+        printf '%s\n' "$(_t 'Please install the missing dependencies:')"
         case "$(uname -s)" in
             Darwin)
-                echo "  macOS 通常已预装所需工具"
+                echo "  macOS $(_t 'The required tools are usually pre-installed')"
                 ;;
             Linux)
                 echo "  Ubuntu/Debian: sudo apt-get install iproute2 net-tools"
@@ -97,72 +97,72 @@ check_dependencies() {
 
 # --- 显示使用帮助 ---
 show_help() {
-    echo "进程管理工具 (Process Manager)"
+    printf '%s\n' "$(_t 'Process Manager')"
     echo ""
-    echo "用法:"
-    echo "  $0 [搜索词]           # 搜索并管理进程"
-    echo "  $0 --help            # 显示此帮助信息"
-    echo "  $0 --version         # 显示版本信息"
-    echo "  $0 --install         # 运行安装程序"
-    echo "  $0 --config          # 显示配置信息"
+    printf '%s\n' "$(_t 'Usage:')"
+    echo "  $0 [$(_t 'search term]           # search and manage processes')"
+    echo "  $0 --help            # $(_t 'Show this help information')"
+    echo "  $0 --version         # $(_t 'Show the version information')"
+    echo "  $0 --install         # $(_t 'Run the installer')"
+    echo "  $0 --config          # $(_t 'Show the configuration information')"
     echo ""
-    echo "示例:"
-    echo "  $0 node              # 搜索 Node.js 进程"
-    echo "  $0 3000              # 搜索使用端口 3000 的进程"
-    echo "  $0 chrome            # 搜索 Chrome 浏览器"
+    printf '%s\n' "$(_t 'Examples:')"
+    echo "  $0 node              # $(_t 'Search the Node.js processes')"
+    echo "  $0 3000              # $(_t 'Search the processes using port 3000')"
+    echo "  $0 chrome            # $(_t 'Search the Chrome browser')"
     echo ""
-    echo "交互式模式:"
-    echo "  $0                   # 不带参数启动交互式界面"
+    printf '%s\n' "$(_t 'Interactive mode:')"
+    echo "  $0                   # $(_t 'Start the interactive interface without arguments')"
 }
 
 # --- 显示版本信息 ---
 show_version() {
-    echo "进程管理工具 v1.0.0"
-    echo "支持平台: macOS, Linux"
-    echo "Shell支持: Bash, Zsh, Fish"
+    printf '%s\n' "$(_t 'Process Manager v1.0.0')"
+    printf '%s\n' "$(_t 'Supported platforms: macOS, Linux')"
+    echo "Shell$(_t 'Supported shells: Bash, Zsh, Fish')"
 }
 
 # --- 显示配置信息 ---
 show_config() {
-    echo "配置信息:"
+    printf '%s\n' "$(_t 'Configuration information:')"
     echo "=================="
-    echo "操作系统: $(uname -s)"
+    printf '%s\n' "$(_t 'Operating system'): $(uname -s)"
     echo "Shell: $SHELL"
-    echo "用户: $USER"
-    echo "主目录: $HOME"
+    printf '%s\n' "$(_tf 'User: %s' "$USER")"
+    printf '%s\n' "$(_tf 'Home directory: %s' "$HOME")"
     echo ""
     
     local pm_path
     if pm_path=$(find_process_manager); then
-        echo "进程管理器位置: $pm_path"
+        printf '%s\n' "$(_tf 'Process manager location: %s' "$pm_path")"
     else
-        echo "进程管理器位置: 未找到"
+        printf '%s\n' "$(_t 'Process manager location: not found')"
     fi
     
     echo ""
-    echo "工具目录结构:"
+    printf '%s\n' "$(_t 'Tool directory structure:')"
     if [[ -d "$HOME/.tools" ]]; then
-        echo "✅ ~/.tools 目录已创建"
+        printf '%s\n' "$(_t '✅ The ~/.tools directory has been created')"
         if [[ -d "$HOME/.tools/bin" ]]; then
-            echo "✅ ~/.tools/bin 目录已创建"
+            printf '%s\n' "$(_t '✅ The ~/.tools/bin directory has been created')"
             if [[ -f "$HOME/.tools/bin/process_manager" ]]; then
-                echo "✅ process_manager 已安装"
+                printf '%s\n' "$(_t '✅ process_manager has been installed')"
             else
-                echo "❌ process_manager 未安装"
+                printf '%s\n' "$(_t '❌ process_manager is not installed')"
             fi
         else
-            echo "❌ ~/.tools/bin 目录不存在"
+            printf '%s\n' "$(_t '❌ The ~/.tools/bin directory does not exist')"
         fi
     else
-        echo "❌ ~/.tools 目录不存在"
+        printf '%s\n' "$(_t '❌ The ~/.tools directory does not exist')"
     fi
     
     echo ""
-    echo "环境变量:"
+    printf '%s\n' "$(_t 'Environment variables:')"
     if echo "$PATH" | grep -q "$HOME/.tools/bin"; then
-        echo "✅ PATH 包含 ~/.tools/bin"
+        printf '%s\n' "$(_t '✅ PATH contains ~/.tools/bin')"
     else
-        echo "❌ PATH 不包含 ~/.tools/bin"
+        printf '%s\n' "$(_t '❌ PATH does not contain ~/.tools/bin')"
     fi
 }
 
@@ -183,11 +183,11 @@ run_installer() {
     done
     
     if [[ -n "$installer_path" ]]; then
-        info "运行安装程序: $installer_path"
+        info "$(_tf 'Run the installer: %s' "$installer_path")"
         bash "$installer_path"
     else
-        error "未找到安装程序 install_process_manager.sh"
-        echo "请确保在项目目录中运行此命令"
+        error "$(_t 'The installer install_process_manager.sh was not found')"
+        printf '%s\n' "$(_t 'Make sure this command is run in the project directory')"
         return 1
     fi
 }
@@ -225,12 +225,12 @@ main() {
         # 执行进程管理器
         exec "$pm_command" "$@"
     else
-        error "未找到进程管理工具"
+        error "$(_t 'The process manager was not found')"
         echo ""
-        echo "可能的解决方案:"
-        echo "1. 运行安装程序: $0 --install"
-        echo "2. 手动安装: ./install_process_manager.sh"
-        echo "3. 确保在项目目录中运行"
+        printf '%s\n' "$(_t 'Possible solutions:')"
+        echo "1. $(_tf 'Run the installer: %s --install' "$0")"
+        echo "2. $(_t 'Manual installation: ./install_process_manager.sh')"
+        echo "3. $(_t 'Make sure you run it in the project directory')"
         echo ""
         exit 1
     fi

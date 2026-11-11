@@ -41,11 +41,11 @@ plugin_list() {
     framework=$(detect_framework)
 
     if [ "$framework" == "none" ]; then
-        warn "未安装框架"
+        warn "$(_t 'No framework installed')"
         return 0
     fi
 
-    info "当前框架: $framework"
+    info "$(_tf 'Current framework: %s' "$framework")"
     framework_list_plugins
 }
 
@@ -55,8 +55,8 @@ plugin_add() {
     local plugin_repo="$2"
 
     if [ -z "$plugin_name" ]; then
-        error "请指定插件名称"
-        echo "常用插件:"
+        error "$(_t 'Please specify a plugin name')"
+        printf '%s\n' "$(_t 'Common plugins:')"
         for name in "${COMMON_PLUGIN_NAMES[@]}"; do
             echo "  - $name"
         done
@@ -67,7 +67,7 @@ plugin_add() {
     framework=$(detect_framework)
 
     if [ "$framework" == "none" ]; then
-        error "未安装框架，请先安装框架"
+        error "$(_t 'No framework installed, please install a framework first')"
         return 1
     fi
 
@@ -99,7 +99,7 @@ plugin_remove() {
     local plugin_name="$1"
 
     if [ -z "$plugin_name" ]; then
-        error "请指定插件名称"
+        error "$(_t 'Please specify a plugin name')"
         return 1
     fi
 
@@ -107,7 +107,7 @@ plugin_remove() {
     framework=$(detect_framework)
 
     if [ "$framework" == "none" ]; then
-        error "未安装框架"
+        error "$(_t 'No framework installed')"
         return 1
     fi
 
@@ -135,11 +135,11 @@ plugin_sync() {
     framework=$(detect_framework)
 
     if [ "$framework" == "none" ]; then
-        warn "未安装框架"
+        warn "$(_t 'No framework installed')"
         return 0
     fi
 
-    info "正在同步 $framework 插件..."
+    info "$(_tf 'Syncing %s plugins...' "$framework")"
 
     local sync_failed=false
 
@@ -168,14 +168,14 @@ plugin_sync() {
             ;;
         sheldon)
             # sheldon 会在下次加载时自动更新
-            info "sheldon 插件将在下次加载时更新"
+            info "$(_t 'sheldon plugins will be updated on the next load')"
             ;;
     esac
 
     if [ "$sync_failed" = true ]; then
-        warn "插件同步完成，但部分仓库更新失败"
+        warn "$(_t 'Plugin sync finished, but some repositories failed to update')"
         return 1
     fi
 
-    success "插件同步完成"
+    success "$(_t 'Plugin sync complete')"
 }

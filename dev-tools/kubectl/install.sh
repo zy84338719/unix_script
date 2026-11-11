@@ -27,7 +27,7 @@ arch_for_k8s() {
     case "$ARCH_TYPE_LOWER" in
         x86_64) echo "amd64" ;;
         arm64)  echo "arm64" ;;
-        *)      error "不支持的架构：${ARCH_TYPE}（仅支持 x86_64/arm64）"; return 1 ;;
+        *)      error "$(_tf 'unsupported architecture: %s (only x86_64/arm64 are supported)' "${ARCH_TYPE}")"; return 1 ;;
     esac
 }
 
@@ -41,78 +41,78 @@ do_install() {
     if command_exists kubectl; then
         local cur
         cur=$(kubectl_client_version)
-        yes_no "已检测到 kubectl ${cur:-}，是否覆盖安装最新稳定版？" || { info "已取消"; exit 0; }
+        yes_no "$(_tf 'kubectl %s detected, overwrite it with the latest stable version?' "${cur:-}")" || { info "$(_t 'Cancelled')"; exit 0; }
     fi
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        info "通过 Homebrew 安装 kubectl..."
-        pkg_install kubectl || { error "brew 安装失败"; exit 1; }
+        info "$(_t 'Installing kubectl via Homebrew...')"
+        pkg_install kubectl || { error "brew $(_t 'Installation failed')"; exit 1; }
     else
-        info "获取 kubectl 最新稳定版本号（dl.k8s.io）..."
+        info "$(_t 'Fetching the latest stable kubectl version (dl.k8s.io)...')"
         local ver
         ver=$(curl -fsSL --connect-timeout 10 https://dl.k8s.io/release/stable.txt || true)
         if [[ -z "$ver" ]]; then
-            error "无法获取版本号（dl.k8s.io 不可达）。手动下载：https://kubernetes.io/zh-cn/docs/tasks/tools/"
+            error "$(_t 'Cannot fetch the version number (dl.k8s.io is unreachable). Download it manually: https://kubernetes.io/zh-cn/docs/tasks/tools/')"
             exit 1
         fi
         local arch
         arch=$(arch_for_k8s)
         local url="https://dl.k8s.io/release/${ver}/bin/linux/${arch}/kubectl"
-        info "下载 $url ..."
+        info "$(_tf 'Downloading %s ...' "$url")"
         local tmp
         tmp=$(mktemp)
         trap 'rm -f "$tmp"' EXIT
-        curl -fSL "$url" -o "$tmp" || { error "下载失败"; exit 1; }
+        curl -fSL "$url" -o "$tmp" || { error "$(_t 'Download failed')"; exit 1; }
         sudo install -m 0755 "$tmp" "$BIN"
-        success "kubectl 已安装到 $BIN"
+        success "kubectl $(_tf 'Installed to %s' "$BIN")"
     fi
-    info "下一步：本地集群用 minikube —— ./install.sh minikube"
+    info "$(_t 'Next step: for a local cluster use minikube —— ./install.sh minikube')"
 }
 
 do_uninstall() {
     if [[ "$OS_TYPE" == "darwin" ]]; then
         if command -v brew >/dev/null 2>&1 && brew list --formula 2>/dev/null | grep -qx "kubectl"; then
-            brew uninstall kubectl && success "已卸载 kubectl"
+            brew uninstall kubectl && success "$(_t 'kubectl has been uninstalled')"
         else
-            warn "未通过 brew 检测到 kubectl"
+            warn "$(_t 'kubectl was not detected via brew')"
         fi
     else
         if [[ -e "$BIN" ]]; then
-            sudo rm -f "$BIN" && success "已删除 $BIN"
+            sudo rm -f "$BIN" && success "$(_tf 'Deleted %s' "$BIN")"
         else
-            warn "未检测到 $BIN"
+            warn "$(_tf '%s was not detected' "$BIN")"
         fi
     fi
     if [[ -d "$HOME/.kube" ]]; then
-        if yes_no "是否同时删除集群配置 ~/.kube（含集群凭据，默认保留）？"; then
-            rm -rf "$HOME/.kube" && success "已删除 ~/.kube"
+        if yes_no "$(_t 'Also delete the cluster config ~/.kube (it contains the cluster credentials, kept by default)?')"; then
+            rm -rf "$HOME/.kube" && success "$(_t 'Deleted ~/.kube')"
         else
-            info "保留 ~/.kube"
+            info "$(_t 'Kept ~/.kube')"
         fi
     fi
 }
 
 do_status() {
     if ! command_exists kubectl; then
-        emit_status "not_installed" "❌ kubectl 未安装"
+        emit_status "not_installed" "$(_t '❌ kubectl is not installed')"
         return 0
     fi
     local ver
     ver=$(kubectl_client_version)
-    emit_status "installed" "✅ kubectl 已安装 ${ver:-(版本未知)}"
+    emit_status "installed" "$(_t '✅ kubectl is installed') ${ver:-$(_t '(unknown version)')}"
     emit_version "${ver#v}"
 }
 
 do_help() {
-    cat <<'EOF'
-kubectl —— Kubernetes 命令行客户端
+    cat <<EOF
+kubectl $(_t '— Kubernetes command line client')
 
 用法: install.sh {install|uninstall|status|help}
 
-  install    安装最新稳定版（Linux: dl.k8s.io 官方二进制；macOS: brew）
-  uninstall  卸载（默认保留 ~/.kube 集群配置）
-  status     查看安装状态（支持 UXS_STATUS_MODE=machine）
-  help       本帮助
+  install    $(_t 'Install the latest stable version (Linux: the official dl.k8s.io binary; macOS: brew)')
+  uninstall  $(_t 'Uninstall (the ~/.kube cluster config is kept by default)')
+  status     $(_t 'View the installation status (UXS_STATUS_MODE=machine is supported)')
+  help       $(_t 'this help')
 EOF
 }
 
@@ -121,5 +121,5 @@ case "${1:-install}" in
     uninstall)      do_uninstall ;;
     status)         do_status ;;
     help|--help|-h) do_help ;;
-    *)              error "未知子命令：$1"; do_help; exit 1 ;;
+    *)              error "$(_tf 'Unknown subcommand: %s' "$1")"; do_help; exit 1 ;;
 esac

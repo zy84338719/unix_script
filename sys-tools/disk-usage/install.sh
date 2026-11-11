@@ -24,7 +24,7 @@ CRON_LOG="/var/log/disk-usage-monitor.log"
 status_disk() {
     detect_os
     # disk-usage 是纯命令封装的仪表盘，无安装态。固定 installed + dashboard=yes。
-    emit_status "installed" "${GREEN}✅ 磁盘仪表盘可用${NC}（纯命令封装）"
+    emit_status "installed" "${GREEN}$(_t '✅ Disk dashboard available')${NC}$(_t '(pure command wrapper)')"
     emit_extra "dashboard=yes"
 
     # 仪表盘多行表格仅在人类模式输出（机器模式只发 STATE=/EXTRA=）
@@ -36,23 +36,25 @@ status_disk() {
 # 仪表盘实现（人类模式专用）。从 status_disk 抽出，便于人类守卫包裹。
 _status_disk_dashboard() {
     header "═══════════════════════════════════════"
-    header "       💾 磁盘空间概况"
+    header "       $(_t '💾 Disk space overview')"
     header "═══════════════════════════════════════"
     echo
 
     # -- 各挂载点使用率 --
-    info "📁 挂载点使用率："
+    info "$(_t '📁 Mount point usage:')"
     echo
     if [[ "$OS_TYPE" == "darwin" ]]; then
         # macOS: df -h 输出格式略有不同，用 awk 格式化
-        df -h | awk 'NR==1 {
-            printf "%-25s %8s %8s %8s %5s  %s\n", "文件系统", "容量", "已用", "可用", "使用率", "挂载点"
+        df -h | awk -v h_fs="$(_t 'File system')" -v h_cap="$(_t 'Capacity')" -v h_used="$(_t 'Used')" \
+            -v h_avail="$(_t 'Available')" -v h_pct="$(_t 'Usage')" -v h_mnt="$(_t 'Mount point')" 'NR==1 {
+            printf "%-25s %8s %8s %8s %5s  %s\n", h_fs, h_cap, h_used, h_avail, h_pct, h_mnt
         }
         NR>1 && $1 ~ /^\/dev\// {
             pct = $5; gsub(/%/, "", pct)
-            if (pct+0 >= 90) color = "\033[0;31m"      # 红色
-            else if (pct+0 >= 80) color = "\033[0;33m"  # 黄色
-            else color = "\033[0;32m"                    # 绿色
+            # 红色 / 黄色 / 绿色
+            if (pct+0 >= 90) color = "\033[0;31m"
+            else if (pct+0 >= 80) color = "\033[0;33m"
+            else color = "\033[0;32m"
             nc = "\033[0m"
             if (ENVIRON["NO_COLOR"] != "") { color = ""; nc = "" }
             printf "%s%-25s %8s %8s %8s %5s  %s%s\n", color, $1, $2, $3, $4, $5, $9, nc
@@ -65,8 +67,9 @@ _status_disk_dashboard() {
         if [[ -z "$df_data" ]]; then
             df_data=$(df -h 2>/dev/null || true)
         fi
-        echo "$df_data" | awk 'NR==1 {
-            printf "%-25s %8s %8s %8s %5s  %s\n", "文件系统", "容量", "已用", "可用", "使用率", "挂载点"
+        echo "$df_data" | awk -v h_fs="$(_t 'File system')" -v h_cap="$(_t 'Capacity')" -v h_used="$(_t 'Used')" \
+            -v h_avail="$(_t 'Available')" -v h_pct="$(_t 'Usage')" -v h_mnt="$(_t 'Mount point')" 'NR==1 {
+            printf "%-25s %8s %8s %8s %5s  %s\n", h_fs, h_cap, h_used, h_avail, h_pct, h_mnt
         }
         NR>1 {
             pct = $5; gsub(/%/, "", pct)
@@ -81,7 +84,7 @@ _status_disk_dashboard() {
     echo
 
     # -- 内存使用 --
-    info "🧠 内存使用："
+    info "$(_t '🧠 Memory usage:')"
     echo
     if [[ "$OS_TYPE" == "darwin" ]]; then
         # macOS 内存信息
@@ -121,22 +124,23 @@ _status_disk_dashboard() {
             local free_kb=$(( (free_pages + inactive_pages) * page_size / 1024 ))
             local used_gb=$((used_kb / 1024 / 1024))
             local free_gb=$((free_kb / 1024 / 1024))
-            printf "  总内存: %dGB | 已用: %dGB | 可用: %dGB\n" "$mem_total_gb" "$used_gb" "$free_gb"
+            printf '  %s\n' "$(_tf 'Total memory: %dGB | Used: %dGB | Available: %dGB' "$mem_total_gb" "$used_gb" "$free_gb")"
         fi
     else
         # free 属 procps/procps-ng，极简容器（CI routing 阶段，essential-pkgs 未装前）可能缺失；
         # 缺失时降级提示而非中止（status 命令不应因一个可选工具缺失而硬失败）。
         if command_exists free; then
-            free -h | awk 'NR==1 {printf "  %-10s %10s %10s %10s %10s %10s\n", "", "总量", "已用", "可用", "共享", "缓存"}
+            free -h | awk -v h_total="$(_t 'Total')" -v h_used="$(_t 'Used')" -v h_avail="$(_t 'Available')" \
+                -v h_shared="$(_t 'Shared')" -v h_cache="$(_t 'Cache')" 'NR==1 {printf "  %-10s %10s %10s %10s %10s %10s\n", "", h_total, h_used, h_avail, h_shared, h_cache}
                             NR==2 {printf "  %-10s %10s %10s %10s %10s %10s\n", $1, $2, $3, $4, $5, $6}'
         else
-            echo "  (free 命令不可用，安装 procps/procps-ng 后可查看内存详情)"
+            echo "  (free $(_t 'free command unavailable, install procps/procps-ng to view memory details'))"
         fi
     fi
     echo
 
     # -- Swap 状态 --
-    info "🔄 Swap 状态："
+    info "$(_t '🔄 Swap status:')"
     echo
     if [[ "$OS_TYPE" == "darwin" ]]; then
         local swap_line
@@ -147,29 +151,31 @@ _status_disk_dashboard() {
             swap_total=$(echo "$swap_line" | awk -F' = ' '{print $2}' | awk '{print $1}')
             swap_used=$(echo "$swap_line" | awk -F'used = ' '{print $2}' | awk '{print $1}')
             swap_free=$(echo "$swap_line" | awk -F'free = ' '{print $2}' | awk '{print $1}')
-            printf "  总量: %s | 已用: %s | 可用: %s\n" "$swap_total" "$swap_used" "$swap_free"
+            printf '  %s\n' "$(_tf 'Total: %s | Used: %s | Available: %s' "$swap_total" "$swap_used" "$swap_free")"
         else
-            echo "  无法获取 swap 信息"
+            echo "  $(_t 'Cannot get swap information')"
         fi
     else
         if swapon --show 2>/dev/null | grep -q .; then
             swapon --show
         else
-            echo "  未启用 swap"
+            echo "  $(_t 'Swap is not enabled')"
         fi
     fi
     echo
 
     # -- 告警检查 --
     local has_warning=0
-    local mount_col=6  # Linux 默认挂载点在第 6 列
-    [[ "$OS_TYPE" == "darwin" ]] && mount_col=9  # macOS 在第 9 列
+    # Linux 默认挂载点在第 6 列
+    local mount_col=6
+    # macOS 在第 9 列
+    [[ "$OS_TYPE" == "darwin" ]] && mount_col=9
     while IFS= read -r line; do
         local pct
         pct=$(echo "$line" | awk '{print $5}' | tr -d '%')
         if [[ "$pct" =~ ^[0-9]+$ ]] && [[ "$pct" -ge 90 ]]; then
             if [[ "$has_warning" -eq 0 ]]; then
-                warn "⚠️  以下挂载点使用率超过 90%："
+                warn "$(_t '⚠️  The following mount points exceed 90% usage:')"
                 has_warning=1
             fi
             local mount_point
@@ -179,7 +185,7 @@ _status_disk_dashboard() {
     done < <(df -h 2>/dev/null | grep '^/dev/' || true)
     if [[ "$has_warning" -eq 1 ]]; then
         echo
-        warn "建议运行 '$0 clean' 清理空间"
+        warn "$(_tf 'Run "%s clean" to free up space' "$0")"
     fi
 }
 
@@ -202,9 +208,10 @@ _top_interactive() {
             _top_print_files "$cur" "$count"
         fi
         echo
-        printf "序号=下钻该目录  u=上一层  c=改数量(当前 %s, 如 10/20/30/50)  q=退出\n> " "$count"
+        printf '%s\n> ' "$(_tf 'Number=drill down into this directory  u=up one level  c=change count (current %s, e.g. 10/20/30/50)  q=quit' "$count")"
         if ! read -r ans; then
-            break    # EOF（Ctrl-D）安全退出
+            # EOF（Ctrl-D）安全退出
+            break
         fi
         case "$ans" in
             q|Q|"")
@@ -212,36 +219,36 @@ _top_interactive() {
                 ;;
             u|U)
                 if [[ "$n" -le 1 ]]; then
-                    info "已在顶层"
+                    info "$(_t 'Already at the top level')"
                 else
                     unset "stack_paths[$((n - 1))]"
                     unset "stack_depths[$((n - 1))]"
                 fi
                 ;;
             c|C)
-                printf "输入数量（正整数，回车保留 %s）: " "$count"
+                printf '%s ' "$(_tf 'Enter the count (positive integer, press Enter to keep %s):' "$count")"
                 if ! read -r new_count; then break; fi
                 if [[ -z "$new_count" ]]; then
                     :
                 elif [[ "$new_count" =~ ^[0-9]+$ && "$new_count" -ge 1 ]]; then
                     count="$new_count"
                 else
-                    warn "非法数量，保留 $count"
+                    warn "$(_tf 'Invalid count, keeping %s' "$count")"
                 fi
                 ;;
             *[!0-9]*)
-                warn "无效输入: $ans"
+                warn "$(_tf 'Invalid input: %s' "$ans")"
                 ;;
             *)
                 n_paths=${#_top_last_paths[@]}
                 if [[ "$n_paths" -eq 0 ]]; then
-                    warn "当前榜单为空，无目录可下钻"
+                    warn "$(_t 'The current list is empty, there is no directory to drill into')"
                 elif [[ "$ans" -ge 1 && "$ans" -le "$n_paths" ]]; then
                     idx=$((ans - 1))
                     stack_paths+=("${_top_last_paths[$idx]}")
                     stack_depths+=(1)
                 else
-                    warn "序号超出范围（1-${n_paths}）"
+                    warn "$(_tf 'Index out of range (1-%s)' "${n_paths}")"
                 fi
                 ;;
         esac
@@ -290,20 +297,20 @@ top_disk() {
 
     # 参数校验（count/depth 正整数；min-size 必须带单位）
     case "${TOP_COUNT:-10}" in
-        ''|*[!0-9]*|0) error "--count 需为正整数: ${TOP_COUNT:-}"; usage; exit 1 ;;
+        ''|*[!0-9]*|0) error "--count $(_tf 'Must be a positive integer: %s' "${TOP_COUNT:-}")"; usage; exit 1 ;;
     esac
     case "${TOP_DEPTH:-1}" in
-        ''|*[!0-9]*|0) error "--depth 需为正整数: ${TOP_DEPTH:-}"; usage; exit 1 ;;
+        ''|*[!0-9]*|0) error "--depth $(_tf 'Must be a positive integer: %s' "${TOP_DEPTH:-}")"; usage; exit 1 ;;
     esac
     TOP_MIN_SIZE_KB=""
     if [[ -n "${TOP_MIN_SIZE:-}" ]]; then
         TOP_MIN_SIZE_KB=$(_parse_size_to_kb "$TOP_MIN_SIZE") || {
-            error "--min-size 需带 K/M/G 单位，如 100M"; usage; exit 1
+            error "--min-size $(_t 'Must carry a K/M/G unit, e.g. 100M')"; usage; exit 1
         }
     fi
 
     if [[ ! -d "$scan_path" ]]; then
-        error "路径不存在: $scan_path"
+        error "$(_tf 'Path does not exist: %s' "$scan_path")"
         exit 1
     fi
 
@@ -345,7 +352,7 @@ _top_scan_dirs() {
     local raw rc=0
     raw=$("${du_cmd[@]}" -k -d "$depth" "$path" 2>/dev/null) || rc=1
     if [[ -z "$raw" && "$rc" -ne 0 ]]; then
-        warn "当前 du 不支持深度扫描，已回退单层模式" >&2
+        warn "$(_t 'The current du does not support depth scanning, fell back to single level mode')" >&2
         raw=$(_top_scan_dirs_fallback "$path")
     fi
     local min_kb="${TOP_MIN_SIZE_KB:-0}"
@@ -383,7 +390,7 @@ _top_scan_files() {
     local count="$1"; shift
     local raw
     if ! _top_find_supports_size_m; then
-        warn "当前 find 不支持按 M/G 过滤（BusyBox？），文件榜已跳过（可装 findutils 恢复）" >&2
+        warn "$(_t 'The current find does not support M/G size filtering (BusyBox?), the file list is skipped (install findutils to restore)')" >&2
         return 0
     fi
     if [[ "$USE_SUDO" == "1" ]]; then
@@ -399,15 +406,15 @@ _top_last_paths=()
 
 _top_print_dirs() {
     local path="$1" depth="$2" count="$3"
-    info "正在扫描（深度 ${depth}，大目录可能需要一些时间）..."
+    info "$(_tf 'Scanning (depth %s, large directories may take a while)...' "${depth}")"
     _top_last_paths=()
     local lines
     lines=$(_top_scan_dirs "$path" "$depth" "$count") || true
     header "═══════════════════════════════════════"
-    header "  📊 ${path} 下最大的目录（Top ${count} · 深度 ${depth}）"
+    header "  $(_tf '📊 Largest directories under %s (Top %s · depth %s)' "${path}" "${count}" "${depth}")"
     header "═══════════════════════════════════════"
     if [[ -z "$lines" ]]; then
-        info "  （无匹配的子目录）"
+        info "  $(_t '(no matching subdirectories)')"
         return 0
     fi
     local kb p
@@ -438,15 +445,15 @@ _top_print_files() {
     else
         search_paths=("$path")
     fi
-    header "  📄 最大的文件（Top ${count}，仅列 >50M）"
+    header "  $(_tf '📄 Largest files (Top %s, only >50M listed)' "${count}")"
     if [[ ${#search_paths[@]} -eq 0 ]]; then
-        info "  （无可扫描的文件路径）"
+        info "  $(_t '(no file path to scan)')"
         return 0
     fi
     local lines kb p
     lines=$(_top_scan_files "$count" "${search_paths[@]}") || true
     if [[ -z "$lines" ]]; then
-        info "  （未发现大于 50M 的文件）"
+        info "  $(_t '(no files larger than 50M found)')"
         return 0
     fi
     while IFS=$'\t' read -r kb p; do
@@ -483,7 +490,7 @@ _monitor_check() {
     local has_alert=0
 
     header "═══════════════════════════════════════"
-    header "  🔍 磁盘空间监控（阈值: ${threshold}%）"
+    header "  $(_tf '🔍 Disk space monitoring (threshold: %s%%)' "${threshold}")"
     header "═══════════════════════════════════════"
     echo
 
@@ -498,9 +505,9 @@ _monitor_check() {
         if [[ "$pct" =~ ^[0-9]+$ ]]; then
             if [[ "$pct" -ge "$threshold" ]]; then
                 has_alert=1
-                error "🔴 $mount ($fs): ${pct}% — 超过阈值 ${threshold}%"
+                error "$(_tf '🔴 %s (%s): %s%% — exceeds threshold %s%%' "$mount" "$fs" "${pct}" "${threshold}")"
             elif [[ "$pct" -ge $((threshold - 10)) ]]; then
-                warn "🟡 $mount ($fs): ${pct}% — 接近阈值 ${threshold}%"
+                warn "$(_tf '🟡 %s (%s): %s%% — close to threshold %s%%' "$mount" "$fs" "${pct}" "${threshold}")"
             else
                 success "🟢 $mount ($fs): ${pct}%"
             fi
@@ -509,10 +516,10 @@ _monitor_check() {
 
     echo
     if [[ "$has_alert" -eq 1 ]]; then
-        error "存在空间不足的挂载点！建议运行 '$0 clean' 清理"
+        error "$(_tf 'Out of disk space on some mount points! Run "%s clean" to free space' "$0")"
         return 1
     else
-        success "所有挂载点空间充足 ✅"
+        success "$(_t 'All mount points have enough space ✅')"
         return 0
     fi
 }
@@ -521,7 +528,7 @@ _monitor_install() {
     local threshold="$1"
     require_sudo
 
-    info "安装磁盘空间监控定时任务（每天 08:00 检查，阈值: ${threshold}%）"
+    info "$(_tf 'Installing the disk space monitoring cron job (checks daily at 08:00, threshold: %s%%)' "${threshold}")"
 
     local script_path
     script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/install.sh"
@@ -530,27 +537,27 @@ _monitor_install() {
 
     # 检查是否已存在
     if crontab -l 2>/dev/null | grep -qF "disk-usage/install.sh monitor"; then
-        warn "已存在磁盘监控定时任务，将更新"
+        warn "$(_t 'The disk monitoring cron job already exists, it will be updated')"
         _monitor_uninstall
     fi
 
     (crontab -l 2>/dev/null; echo "$cron_line") | crontab -
-    success "定时任务已安装"
-    info "日志文件: ${CRON_LOG}"
-    info "查看任务: crontab -l | grep disk-usage"
-    info "卸载任务: $0 monitor --uninstall"
+    success "$(_t 'Cron job installed')"
+    info "$(_tf 'Log file: %s' "${CRON_LOG}")"
+    info "$(_t 'View the job: crontab -l | grep disk-usage')"
+    info "$(_tf 'Uninstall the job: %s monitor --uninstall' "$0")"
 }
 
 _monitor_uninstall() {
     require_sudo
 
     if ! crontab -l 2>/dev/null | grep -qF "disk-usage/install.sh monitor"; then
-        warn "未找到磁盘监控定时任务"
+        warn "$(_t 'No disk monitoring cron job found')"
         return 0
     fi
 
     crontab -l 2>/dev/null | grep -vF "disk-usage/install.sh monitor" | crontab -
-    success "定时任务已移除"
+    success "$(_t 'Cron job removed')"
 }
 
 # ============================================================
@@ -561,7 +568,7 @@ clean_disk() {
     local total_freed=0
 
     header "═══════════════════════════════════════"
-    header "  🧹 磁盘空间清理"
+    header "  $(_t '🧹 Disk space cleanup')"
     header "═══════════════════════════════════════"
     echo
 
@@ -573,31 +580,31 @@ clean_disk() {
 
     # 如果没有指定任何选项，显示帮助
     if [[ -z "${CLEAN_LOGS:-}" && -z "${CLEAN_CACHE:-}" && -z "${CLEAN_DOCKER:-}" ]]; then
-        warn "请指定清理类型："
-        echo "  --logs     清理系统日志"
-        echo "  --cache    清理包管理器缓存"
-        echo "  --docker   清理 Docker 垃圾（需已安装 Docker）"
-        echo "  --all      全部清理"
+        warn "$(_t 'Please specify the cleanup type:')"
+        echo "  --logs     $(_t 'Clean up system logs')"
+        echo "  --cache    $(_t 'Clean up the package manager cache')"
+        echo "  --docker   $(_t 'Clean up Docker junk (Docker must be installed)')"
+        echo "  --all      $(_t 'Clean up everything')"
         echo
-        echo "示例: $0 clean --all"
+        printf '%s\n' "$(_tf 'Example: %s clean --all' "$0")"
         echo "      $0 clean --logs --cache"
         return 1
     fi
 
     # -- 清理日志 --
     if [[ -n "${CLEAN_LOGS:-}" ]]; then
-        header "── 清理系统日志 ──"
+        header "$(_t '── Clean up system logs ──')"
         if [[ "$OS_TYPE" == "linux" ]] && command_exists journalctl; then
             local journal_size
-            journal_size=$(journalctl --disk-usage 2>/dev/null | grep -oE '[0-9.]+[MG]' || echo "未知")
-            info "当前 journal 日志大小: $journal_size"
+            journal_size=$(journalctl --disk-usage 2>/dev/null | grep -oE '[0-9.]+[MG]' || printf '%s\n' "$(_t 'Unknown')")
+            info "$(_tf 'Current journal log size: %s' "$journal_size")"
 
             if [[ "${DRY_RUN:-}" == "1" ]]; then
-                info "[dry-run] 将执行: journalctl --vacuum-time=3d"
+                info "[dry-run] $(_t 'Will run: journalctl --vacuum-time=3d')"
             else
-                if yes_no "清理 3 天前的 journal 日志？"; then
+                if yes_no "$(_t 'Clean up journal logs older than 3 days?')"; then
                     sudo journalctl --vacuum-time=3d
-                    success "journal 日志已清理"
+                    success "journal $(_t 'Journal logs cleaned')"
                 fi
             fi
         fi
@@ -611,7 +618,7 @@ clean_disk() {
         fi
 
         if [[ -n "$large_logs" ]]; then
-            info "发现以下大于 100M 的日志文件："
+            info "$(_t 'Found the following log files larger than 100M:')"
             echo "$large_logs" | while IFS= read -r f; do
                 local fsize
                 fsize=$(du -sh "$f" 2>/dev/null | awk '{print $1}')
@@ -619,82 +626,82 @@ clean_disk() {
             done
             echo
             if [[ "${DRY_RUN:-}" == "1" ]]; then
-                info "[dry-run] 将截断以上大日志文件"
+                info "[dry-run] $(_t 'Will truncate the large log files above')"
             else
-                if yes_no "截断以上大日志文件（保留空文件）？"; then
+                if yes_no "$(_t 'Truncate the large log files above (keep the empty files)?')"; then
                     echo "$large_logs" | while IFS= read -r f; do
                         sudo truncate -s 0 "$f" 2>/dev/null || true
                     done
-                    success "大日志文件已截断"
+                    success "$(_t 'Large log files truncated')"
                 fi
             fi
         else
-            info "未发现大于 100M 的日志文件"
+            info "$(_t 'No log files larger than 100M found')"
         fi
         echo
     fi
 
     # -- 清理包管理器缓存 --
     if [[ -n "${CLEAN_CACHE:-}" ]]; then
-        header "── 清理包管理器缓存 ──"
+        header "$(_t '── Clean up the package manager cache ──')"
         detect_pkg_manager || true
         case "${PKG_MANAGER:-}" in
             apt-get)
                 local apt_size
-                apt_size=$(du -sh /var/cache/apt/archives 2>/dev/null | awk '{print $1}' || echo "未知")
-                info "APT 缓存大小: $apt_size"
+                apt_size=$(du -sh /var/cache/apt/archives 2>/dev/null | awk '{print $1}' || printf '%s\n' "$(_t 'Unknown')")
+                info "APT $(_tf 'Cache size: %s' "$apt_size")"
                 if [[ "${DRY_RUN:-}" == "1" ]]; then
-                    info "[dry-run] 将执行: apt-get clean"
+                    info "[dry-run] $(_t 'Will run: apt-get clean')"
                 else
-                    if yes_no "清理 APT 缓存？"; then
+                    if yes_no "$(_t 'Clean up the APT cache?')"; then
                         sudo apt-get clean
-                        success "APT 缓存已清理"
+                        success "APT $(_t 'Cache cleaned')"
                     fi
                 fi
                 ;;
             dnf)
                 local dnf_size
-                dnf_size=$(du -sh /var/cache/dnf 2>/dev/null | awk '{print $1}' || echo "未知")
-                info "DNF 缓存大小: $dnf_size"
+                dnf_size=$(du -sh /var/cache/dnf 2>/dev/null | awk '{print $1}' || printf '%s\n' "$(_t 'Unknown')")
+                info "DNF $(_tf 'Cache size: %s' "$dnf_size")"
                 if [[ "${DRY_RUN:-}" == "1" ]]; then
-                    info "[dry-run] 将执行: dnf clean all"
+                    info "[dry-run] $(_t 'Will run: dnf clean all')"
                 else
-                    if yes_no "清理 DNF 缓存？"; then
+                    if yes_no "$(_t 'Clean up the DNF cache?')"; then
                         sudo dnf clean all
-                        success "DNF 缓存已清理"
+                        success "DNF $(_t 'Cache cleaned')"
                     fi
                 fi
                 ;;
             yum)
                 local yum_size
-                yum_size=$(du -sh /var/cache/yum 2>/dev/null | awk '{print $1}' || echo "未知")
-                info "YUM 缓存大小: $yum_size"
+                yum_size=$(du -sh /var/cache/yum 2>/dev/null | awk '{print $1}' || printf '%s\n' "$(_t 'Unknown')")
+                info "YUM $(_tf 'Cache size: %s' "$yum_size")"
                 if [[ "${DRY_RUN:-}" == "1" ]]; then
-                    info "[dry-run] 将执行: yum clean all"
+                    info "[dry-run] $(_t 'Will run: yum clean all')"
                 else
-                    if yes_no "清理 YUM 缓存？"; then
+                    if yes_no "$(_t 'Clean up the YUM cache?')"; then
                         sudo yum clean all
-                        success "YUM 缓存已清理"
+                        success "YUM $(_t 'Cache cleaned')"
                     fi
                 fi
                 ;;
             brew)
                 if [[ "$OS_TYPE" == "darwin" ]]; then
                     local brew_size
-                    brew_size=$(du -sh "$(brew --cache)" 2>/dev/null | awk '{print $1}' || echo "未知")
-                    info "Homebrew 缓存大小: $brew_size"
+                    brew_size=$(du -sh "$(brew --cache)" 2>/dev/null | awk '{print $1}' || printf '%s\n' "$(_t 'Unknown')")
+                    info "Homebrew $(_tf 'Cache size: %s' "$brew_size")"
                     if [[ "${DRY_RUN:-}" == "1" ]]; then
-                        info "[dry-run] 将执行: brew cleanup --prune=all"
+                        info "[dry-run] $(_t 'Will run: brew cleanup --prune=all')"
                     else
-                        if yes_no "清理 Homebrew 缓存？"; then
+                        if yes_no "$(_t 'Clean up the Homebrew cache?')"; then
                             brew cleanup --prune=all 2>/dev/null || true
-                            success "Homebrew 缓存已清理"
+                            success "Homebrew $(_t 'Cache cleaned')"
                         fi
                     fi
                 fi
                 ;;
             *)
-                info "未检测到已知包管理器，跳过缓存清理"
+                info "$(_t 'No known package manager detected, skipping the cache cleanup')"
                 ;;
         esac
 
@@ -706,14 +713,14 @@ clean_disk() {
             pip_cache_dir=$($pip_cmd cache dir 2>/dev/null || echo "")
             if [[ -n "$pip_cache_dir" && -d "$pip_cache_dir" ]]; then
                 local pip_size
-                pip_size=$(du -sh "$pip_cache_dir" 2>/dev/null | awk '{print $1}' || echo "未知")
-                info "pip 缓存大小: $pip_size ($pip_cache_dir)"
+                pip_size=$(du -sh "$pip_cache_dir" 2>/dev/null | awk '{print $1}' || printf '%s\n' "$(_t 'Unknown')")
+                info "pip $(_tf 'Cache size: %s (%s)' "$pip_size" "$pip_cache_dir")"
                 if [[ "${DRY_RUN:-}" == "1" ]]; then
-                    info "[dry-run] 将执行: $pip_cmd cache purge"
+                    info "[dry-run] $(_tf 'Will run: %s cache purge' "$pip_cmd")"
                 else
-                    if yes_no "清理 pip 缓存？"; then
+                    if yes_no "$(_t 'Clean up the pip cache?')"; then
                         $pip_cmd cache purge
-                        success "pip 缓存已清理"
+                        success "pip $(_t 'Cache cleaned')"
                     fi
                 fi
             fi
@@ -725,14 +732,14 @@ clean_disk() {
             npm_cache_dir=$(npm config get cache 2>/dev/null || echo "")
             if [[ -n "$npm_cache_dir" && -d "$npm_cache_dir" ]]; then
                 local npm_size
-                npm_size=$(du -sh "$npm_cache_dir" 2>/dev/null | awk '{print $1}' || echo "未知")
-                info "npm 缓存大小: $npm_size"
+                npm_size=$(du -sh "$npm_cache_dir" 2>/dev/null | awk '{print $1}' || printf '%s\n' "$(_t 'Unknown')")
+                info "npm $(_tf 'Cache size: %s' "$npm_size")"
                 if [[ "${DRY_RUN:-}" == "1" ]]; then
-                    info "[dry-run] 将执行: npm cache clean --force"
+                    info "[dry-run] $(_t 'Will run: npm cache clean --force')"
                 else
-                    if yes_no "清理 npm 缓存？"; then
+                    if yes_no "$(_t 'Clean up the npm cache?')"; then
                         npm cache clean --force
-                        success "npm 缓存已清理"
+                        success "npm $(_t 'Cache cleaned')"
                     fi
                 fi
             fi
@@ -743,14 +750,14 @@ clean_disk() {
             local bun_cache_dir="${HOME}/.bun/install/cache"
             if [[ -d "$bun_cache_dir" ]]; then
                 local bun_size
-                bun_size=$(du -sh "$bun_cache_dir" 2>/dev/null | awk '{print $1}' || echo "未知")
-                info "bun 缓存大小: $bun_size"
+                bun_size=$(du -sh "$bun_cache_dir" 2>/dev/null | awk '{print $1}' || printf '%s\n' "$(_t 'Unknown')")
+                info "bun $(_tf 'Cache size: %s' "$bun_size")"
                 if [[ "${DRY_RUN:-}" == "1" ]]; then
-                    info "[dry-run] 将清理 $bun_cache_dir"
+                    info "[dry-run] $(_tf 'Will clean %s' "$bun_cache_dir")"
                 else
-                    if yes_no "清理 bun 缓存？"; then
+                    if yes_no "$(_t 'Clean up the bun cache?')"; then
                         rm -rf "${bun_cache_dir:?}"/*
-                        success "bun 缓存已清理"
+                        success "bun $(_t 'Cache cleaned')"
                     fi
                 fi
             fi
@@ -760,22 +767,22 @@ clean_disk() {
 
     # -- 清理 Docker --
     if [[ -n "${CLEAN_DOCKER:-}" ]]; then
-        header "── 清理 Docker ──"
+        header "$(_t '── Clean up Docker ──')"
         if ! command_exists docker; then
-            warn "Docker 未安装，跳过"
+            warn "Docker $(_t 'not installed, skipping')"
         else
             if ! docker info >/dev/null 2>&1; then
-                warn "Docker 服务未运行，跳过"
+                warn "Docker $(_t 'the service is not running, skipping')"
             else
-                info "Docker 磁盘使用情况："
+                info "Docker $(_t 'Disk usage:')"
                 docker system df 2>/dev/null || true
                 echo
                 if [[ "${DRY_RUN:-}" == "1" ]]; then
-                    info "[dry-run] 将执行: docker system prune -af --volumes"
+                    info "[dry-run] $(_t 'Will run: docker system prune -af --volumes')"
                 else
-                    if yes_no "清理 Docker 未使用的镜像、容器、网络和卷？"; then
+                    if yes_no "$(_t 'Clean up unused Docker images, containers, networks and volumes?')"; then
                         docker system prune -af --volumes
-                        success "Docker 垃圾已清理"
+                        success "Docker $(_t 'Docker junk cleaned')"
                     fi
                 fi
             fi
@@ -783,52 +790,52 @@ clean_disk() {
         echo
     fi
 
-    success "🎉 清理操作完成"
+    success "$(_t '🎉 Cleanup finished')"
 }
 
 # ============================================================
 # help
 # ============================================================
 usage() {
-    cat <<'EOF'
+    cat <<EOF
 用法: disk-usage {status|top|monitor|clean|help}
 
-磁盘空间管理工具 — 查看存储概况、大文件排行、监控告警、一键清理。
+$(_t 'Disk space management tool — view the storage overview, the large file ranking, monitoring alerts, one-click cleanup.')
 
-子命令:
-  status                     查看存储概况（默认动作）
-                             显示各挂载点使用率、内存、Swap 状态
+$(_t 'Subcommands:')
+  status                     $(_t 'View the storage overview (default action)')
+                             $(_t 'Show the usage of each mount point, memory and Swap status')
 
-  top [路径] [--count N] [--depth D] [--min-size SIZE] [--no-interactive]
-                             大文件/目录排行（路径默认 /，数量默认 10）
-    --depth D                目录扫描深度（默认 1）；2 可看第二层子目录
-    --min-size SIZE          只显示不小于该大小的条目（需带 K/M/G 单位，如 100M）
-    --no-interactive         禁用交互（管道/CI 下自动禁用）
-                             交互键位：序号=下钻  u=上一层  c=改数量  q=退出
+  top [$(_t 'path argument')] [--count N] [--depth D] [--min-size SIZE] [--no-interactive]
+                             $(_t 'Large file/directory ranking (path defaults to /, count defaults to 10)')
+    --depth D                $(_t 'Directory scan depth (defaults to 1); 2 shows the second level subdirectories')
+    --min-size SIZE          $(_t 'Only show the entries not smaller than the given size (must carry a K/M/G unit, e.g. 100M)')
+    --no-interactive         $(_t 'Disable the interactive mode (disabled automatically under a pipe/CI)')
+                             $(_t 'Interactive keys: number=drill down  u=up one level  c=change count  q=quit')
 
-  monitor [--threshold N]    检查使用率是否超阈值（默认 90%）
-    --install                写入 crontab（每天 08:00 检查）
-    --uninstall              移除 crontab 定时任务
+  monitor [--threshold N]    $(_t 'Check whether the usage exceeds the threshold (defaults to 90%)')
+    --install                $(_t 'Write to crontab (checks daily at 08:00)')
+    --uninstall              $(_t 'Remove the crontab cron job')
 
-  clean                      一键清理磁盘空间
-    --logs                   清理系统日志（journal + 大日志文件）
-    --cache                  清理包管理器缓存（apt/dnf/yum/brew/pip/npm/bun）
-    --docker                 清理 Docker 垃圾（需已安装 Docker）
-    --all                    全部清理
-    --dry-run                仅预览，不执行
+  clean                      $(_t 'One-click disk space cleanup')
+    --logs                   $(_t 'Clean up system logs (journal + large log files)')
+    --cache                  $(_t 'Clean up the package manager cache (apt/dnf/yum/brew/pip/npm/bun)')
+    --docker                 $(_t 'Clean up Docker junk (Docker must be installed)')
+    --all                    $(_t 'Clean up everything')
+    --dry-run                $(_t 'Preview only, do not execute')
 
-  help                       显示本帮助
+  help                       $(_t 'Show this help')
 
-示例:
-  disk-usage status              # 查看存储概况
-  disk-usage top /home           # 查看 /home 下大目录
-  disk-usage top --count 20      # 查看 Top 20 大目录
-  disk-usage top /var --depth 2  # 二层下钻：/var 与 /var/lib/docker 一屏可见
-  disk-usage top ~ --min-size 100M  # 只看 100M 以上的大家伙
-  disk-usage monitor             # 检查是否超过 90%
-  disk-usage monitor --threshold 80 --install   # 安装 80% 阈值的定时监控
-  disk-usage clean --all         # 全部清理
-  disk-usage clean --logs --dry-run  # 预览日志清理
+$(_t 'Examples:')
+  disk-usage status              $(_t '# View the storage overview')
+  disk-usage top /home           $(_t '# View the large directories under /home')
+  disk-usage top --count 20      $(_t '# View the Top 20 large directories')
+  disk-usage top /var --depth 2  $(_t '# Two level drill down: /var and /var/lib/docker in one screen')
+  disk-usage top ~ --min-size 100M  $(_t '# Only show the big ones above 100M')
+  disk-usage monitor             $(_t '# Check whether it exceeds 90%')
+  disk-usage monitor --threshold 80 --install   $(_t '# Install the scheduled monitoring with an 80% threshold')
+  disk-usage clean --all         $(_t '# Clean up everything')
+  disk-usage clean --logs --dry-run  $(_t '# Preview the log cleanup')
 EOF
 }
 
@@ -855,7 +862,7 @@ main() {
             --docker)     CLEAN_DOCKER=1; shift ;;
             --all)        CLEAN_ALL=1; shift ;;
             --dry-run)    DRY_RUN=1; export UNIX_SCRIPT_DRY_RUN=1; shift ;;
-            -*)           error "未知选项: $1"; usage; exit 1 ;;
+            -*)           error "$(_tf 'Unknown option: %s' "$1")"; usage; exit 1 ;;
             *)            positional_args+=("$1"); shift ;;
         esac
     done
@@ -867,7 +874,7 @@ main() {
         monitor)  monitor_disk ;;
         clean)    clean_disk ;;
         help|--help|-h) usage ;;
-        *)        error "未知操作: $action"; usage; exit 1 ;;
+        *)        error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

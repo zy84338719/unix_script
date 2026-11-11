@@ -105,7 +105,7 @@ t_eq "inspect: --json 合法" "rc0" "$(
 
 # ---------- log ----------
 t_eq "log: vacuum 无参数拒绝" "rc1" "$(cmd_log vacuum </dev/null >/dev/null 2>&1 && echo rc0 || echo rc1)"
-t_eq "log: 护栏文案存在" "rc0" "$(grep -qF '仅允许在交互终端执行' "$REPO_DIR/sys-tools/ops-kit/install.sh" && echo rc0 || echo rc1)"
+t_eq "log: 护栏文案存在" "rc0" "$(grep -qF 'needs a TTY (or --dry-run to preview)' "$REPO_DIR/sys-tools/ops-kit/install.sh" && echo rc0 || echo rc1)"
 t_eq "log: vacuum dry-run 只打印" "rc0" "$(
     T=$(mktemp -d)
     printf '#!/bin/sh\ncase "$*" in *--disk-usage*) echo "take up 300M";; *vacuum*) echo vacuumed;; esac\n' >"$T/journalctl"; chmod +x "$T/journalctl"

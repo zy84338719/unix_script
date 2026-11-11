@@ -55,21 +55,21 @@ quick_search() {
     elif [[ -x "./process_manager.sh" ]]; then
         pm_command="./process_manager.sh"
     else
-        echo "错误: 未找到 process_manager 命令"
-        echo "请确保已正确安装或在项目目录中运行"
+        printf '%s\n' "$(_t 'Error: the process_manager command was not found')"
+        printf '%s\n' "$(_t 'Make sure it is installed correctly or run it in a project directory')"
         return 1
     fi
     
     # 检查是否是常用端口别名
     if [[ -n "${COMMON_PORTS[$pattern]}" ]]; then
-        echo "搜索端口: ${COMMON_PORTS[$pattern]} ($pattern)"
+        printf '%s\n' "$(_tf 'Search the port: %s (%s)' "${COMMON_PORTS[$pattern]}" "$pattern")"
         "$pm_command" "${COMMON_PORTS[$pattern]}"
         return
     fi
     
     # 检查是否是常用进程别名
     if [[ -n "${COMMON_PROCESSES[$pattern]}" ]]; then
-        echo "搜索进程: ${COMMON_PROCESSES[$pattern]} ($pattern)"
+        printf '%s\n' "$(_tf 'Search the process: %s (%s)' "${COMMON_PROCESSES[$pattern]}" "$pattern")"
         "$pm_command" "$pattern"
         return
     fi
@@ -80,22 +80,22 @@ quick_search() {
 
 # --- 使用示例 ---
 show_examples() {
-    echo "进程管理工具使用示例："
+    printf '%s\n' "$(_t 'Examples of using the process manager:')"
     echo ""
-    echo "1. 直接模式（命令行参数）："
-    echo "   ./process_manager.sh node          # 搜索包含 'node' 的进程"
-    echo "   ./process_manager.sh 3000          # 搜索使用端口 3000 的进程"
-    echo "   ./process_manager.sh 1234          # 搜索 PID 为 1234 的进程"
+    echo "1. $(_t 'Direct mode (command line arguments):')"
+    echo "   ./process_manager.sh node          # $(_t 'Search the processes that contain node')"
+    echo "   ./process_manager.sh 3000          # $(_t 'Search the processes using port 3000')"
+    echo "   ./process_manager.sh 1234          # $(_t 'Search the process with PID 1234')"
     echo ""
-    echo "2. 交互式模式："
-    echo "   ./process_manager.sh               # 启动交互式界面"
+    printf '%s\n' "$(_tf '2. Interactive mode:')"
+    echo "   ./process_manager.sh               # $(_t 'Start the interactive interface')"
     echo ""
-    echo "3. 使用配置文件快捷搜索："
+    echo "3. $(_t 'Quick search with the configuration file:')"
     echo "   source process_manager_config.sh"
-    echo "   quick_search chrome                # 搜索 Chrome 浏览器"
-    echo "   quick_search http                  # 搜索使用 HTTP 端口的进程"
+    echo "   quick_search chrome                # $(_t 'Search the Chrome browser')"
+    echo "   quick_search http                  # $(_t 'Search the processes using an HTTP port')"
     echo ""
-    echo "常用快捷别名："
+    printf '%s\n' "$(_t 'Common shortcuts:')"
     echo "   chrome, firefox, vscode, docker"
     echo "   nginx, apache, mysql, postgres, redis"
     echo "   http, https, ssh, node, react, vue"

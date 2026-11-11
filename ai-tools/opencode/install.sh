@@ -23,24 +23,24 @@ preflight() {
 
 install_opencode() {
     preflight
-    info "🤖 安装 OpenCode（终端 AI 编程助手）"
+    info "$(_t '🤖 Installing OpenCode (the terminal AI coding assistant)')"
 
     if command_exists opencode; then
         local cur
-        cur=$(opencode --version 2>/dev/null || echo "已安装")
-        warn "检测到已安装 OpenCode（${cur}）"
-        if ! yes_no "是否继续并重新安装/更新？"; then
-            info "已取消"; return 0
+        cur=$(opencode --version 2>/dev/null || printf '%s\n' "$(_t 'Installed')")
+        warn "$(_tf 'OpenCode detected (%s)' "${cur}")"
+        if ! yes_no "$(_t 'Continue and reinstall/update it?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
     fi
 
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
-        info "通过 Homebrew 安装 opencode..."
+        info "$(_t 'Installing opencode via Homebrew...')"
         brew install opencode
     else
-        info "通过官方脚本安装（${OFFICIAL_INSTALLER}）..."
+        info "$(_tf 'Installing with the official script (%s)...' "${OFFICIAL_INSTALLER}")"
         if ! bash -c "$(curl -fsSL "$OFFICIAL_INSTALLER")"; then
-            error "官方安装脚本执行失败，请检查网络或参考 https://opencode.ai/docs/"
+            error "$(_t 'The official installation script failed, check the network or see https://opencode.ai/docs/')"
             exit 1
         fi
     fi
@@ -48,26 +48,27 @@ install_opencode() {
     if ! command_exists opencode; then
         # 官方脚本可能装到 ~/.local/bin，可能不在当前 PATH
         if [[ -x "$HOME/.local/bin/opencode" ]]; then
-            warn "opencode 已装到 ~/.local/bin/opencode，但不在当前 PATH"
-            info "请添加到 shell 配置：export PATH=\"$HOME/.local/bin:\$PATH\""
+            warn "opencode $(_t 'It has been installed to ~/.local/bin/opencode, but it is not in the current PATH')"
+            # shellcheck disable=SC2016  # 单引号有意为之：$PATH 是让用户照抄的原文，不该在这里展开
+            info "$(_tf 'Please add it to your shell configuration: export PATH="%s/.local/bin:$PATH"' "$HOME")"
         else
-            error "安装后仍找不到 opencode，请重新打开终端或检查 PATH"
+            error "$(_t 'opencode was not found after the installation, reopen the terminal or check PATH')"
             exit 1
         fi
     fi
 
-    success "🎉 OpenCode 安装完成！"
-    info "快速开始："
-    echo "  opencode          # 在项目目录启动 AI 编程会话"
-    echo "  opencode --help   # 查看帮助"
+    success "$(_t '🎉 OpenCode installation complete!')"
+    info "$(_t 'Quick start:')"
+    echo "  opencode          # $(_t 'Start an AI coding session in the project directory')"
+    echo "  opencode --help   # $(_t 'View the help')"
     echo
-    info "配置模型/API Key：参考 https://opencode.ai/docs/"
+    info "$(_t 'Configure the model / API key: see https://opencode.ai/docs/')"
 }
 
 uninstall_opencode() {
     preflight
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
-        brew uninstall opencode 2>/dev/null && success "已通过 brew 卸载 opencode" && return 0
+        brew uninstall opencode 2>/dev/null && success "$(_t 'opencode has been uninstalled via brew')" && return 0
     fi
     # 官方脚本安装的通常在 ~/.local/bin
     local removed=false
@@ -78,11 +79,11 @@ uninstall_opencode() {
         fi
     done
     if $removed; then
-        success "已删除 opencode 二进制"
+        success "$(_t 'The opencode binary has been deleted')"
     else
-        warn "未找到 opencode 二进制（可能通过其他方式安装，请手动卸载）"
+        warn "$(_t 'The opencode binary was not found (it may have been installed in another way, uninstall it manually)')"
     fi
-    info "配置目录保留：~/.config/opencode（可手动删除）"
+    info "$(_t 'The configuration directory is kept: ~/.config/opencode (you can delete it manually)')"
 }
 
 status_opencode() {
@@ -90,10 +91,10 @@ status_opencode() {
     if command_exists opencode || [[ -x "$HOME/.local/bin/opencode" ]]; then
         local ver
         ver=$(opencode --version 2>/dev/null || "$HOME/.local/bin/opencode" --version 2>/dev/null || echo "")
-        emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
         emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 
@@ -101,9 +102,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装 OpenCode（终端 AI 编程助手，默认动作）
-  uninstall   卸载
-  status      查看状态
+  install     $(_t 'Install OpenCode (the terminal AI coding assistant, default action)')
+  uninstall   $(_t 'Uninstall')
+  status      $(_t 'View the status')
 EOF
 }
 
@@ -115,7 +116,7 @@ main() {
         uninstall) uninstall_opencode ;;
         status)    status_opencode ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

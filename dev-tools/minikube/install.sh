@@ -19,19 +19,19 @@ PREFERRED_DRIVER="auto"
 
 # 检查操作系统和架构
 check_system() {
-    info "检测系统信息..."
+    info "$(_t 'Detecting system information...')"
     
     case "$(uname -s)" in
         Darwin*)
             OS_TYPE="darwin"
-            info "检测到 macOS 系统"
+            info "$(_t 'macOS detected')"
             ;;
         Linux*)
             OS_TYPE="linux"
-            info "检测到 Linux 系统"
+            info "$(_t 'Linux detected')"
             ;;
         *)
-            error "不支持的操作系统: $(uname -s)"
+            error "$(_tf 'Unsupported operating system: %s' "$(uname -s)")"
             exit 1
             ;;
     esac
@@ -44,12 +44,12 @@ check_system() {
             ARCH="arm64"
             ;;
         *)
-            error "不支持的架构: $(uname -m)"
+            error "$(_tf 'Unsupported architecture: %s (uname -m)' "$(uname -m)")"
             exit 1
             ;;
     esac
     
-    success "系统: $OS_TYPE-$ARCH"
+    success "$(_tf 'System: %s-%s' "$OS_TYPE" "$ARCH")"
 }
 
 # 解析参数（支持 --yes 和 --driver）
@@ -79,7 +79,7 @@ parse_args() {
 
 # 检查依赖
 check_dependencies() {
-    info "检查依赖项..."
+    info "$(_t 'Checking dependencies...')"
     
     local missing_deps=()
     
@@ -91,21 +91,21 @@ check_dependencies() {
     done
     
     if [[ ${#missing_deps[@]} -gt 0 ]]; then
-        error "缺少依赖项: ${missing_deps[*]}"
-        info "请先安装这些工具"
+        error "$(_tf 'Missing dependencies: %s' "${missing_deps[*]}")"
+        info "$(_t 'Please install these tools first')"
         
         if [[ "$OS_TYPE" == "darwin" ]]; then
-            info "在 macOS 上，您可以使用 Homebrew 安装："
+            info "$(_t 'On macOS you can install them with Homebrew:')"
             info "brew install ${missing_deps[*]}"
         elif [[ "$OS_TYPE" == "linux" ]]; then
-            info "在 Linux 上，您可以使用包管理器安装："
+            info "$(_t 'On Linux you can install them with the package manager:')"
             info "sudo apt update && sudo apt install -y ${missing_deps[*]}"
-            info "或者: sudo yum install -y ${missing_deps[*]}"
+            info "$(_tf 'Or: sudo yum install -y %s' "${missing_deps[*]}")"
         fi
         exit 1
     fi
     
-    success "所有依赖项都已安装"
+    success "$(_t 'All dependencies are installed')"
 }
 
 # 自动检测可用驱动
@@ -139,7 +139,7 @@ detect_driver() {
 
 # 获取最新版本号
 get_latest_versions() {
-    info "获取最新版本信息..."
+    info "$(_t 'Fetching the latest version information...')"
     
     # 获取 kubectl 最新版本
     if command -v curl >/dev/null 2>&1; then
@@ -149,7 +149,7 @@ get_latest_versions() {
     fi
     
     if [[ -z "$KUBECTL_VERSION" ]]; then
-        warn "无法获取 kubectl 最新版本，使用默认版本 v1.28.0"
+        warn "$(_t 'Cannot get the latest kubectl version, using the default v1.28.0')"
         KUBECTL_VERSION="v1.28.0"
     fi
     
@@ -157,32 +157,32 @@ get_latest_versions() {
     MINIKUBE_VERSION="v$(github_latest_tag "kubernetes/minikube")"
 
     if [[ -z "$MINIKUBE_VERSION" || "$MINIKUBE_VERSION" == "v" ]]; then
-        warn "无法获取 minikube 最新版本，使用默认版本 v1.32.0"
+        warn "$(_t 'Cannot get the latest minikube version, using the default v1.32.0')"
         MINIKUBE_VERSION="v1.32.0"
     fi
     
-    success "kubectl 版本: $KUBECTL_VERSION"
-    success "minikube 版本: $MINIKUBE_VERSION"
+    success "kubectl $(_tf 'kubectl version: %s' "$KUBECTL_VERSION")"
+    success "minikube $(_tf 'minikube version: %s' "$MINIKUBE_VERSION")"
 }
 
 # 创建安装目录
 create_install_dir() {
-    info "创建安装目录..."
+    info "$(_t 'Creating the install directory...')"
     
     mkdir -p "$INSTALL_DIR/bin"
     mkdir -p "$INSTALL_DIR/config"
     
-    success "安装目录已创建: $INSTALL_DIR"
+    success "$(_tf 'Install directory created: %s' "$INSTALL_DIR")"
 }
 
 # 安装 kubectl
 install_kubectl() {
-    header "安装 kubectl"
+    header "$(_t 'Installing kubectl')"
     
     local kubectl_url="https://dl.k8s.io/release/$KUBECTL_VERSION/bin/$OS_TYPE/$ARCH/kubectl"
     local kubectl_path="$INSTALL_DIR/bin/kubectl"
     
-    info "下载 kubectl $KUBECTL_VERSION..."
+    info "$(_tf 'Downloading kubectl %s...' "$KUBECTL_VERSION")"
     
     if command -v curl >/dev/null 2>&1; then
         curl -L "$kubectl_url" -o "$kubectl_path"
@@ -194,20 +194,20 @@ install_kubectl() {
     
     # 验证安装
     if "$kubectl_path" version --client >/dev/null 2>&1; then
-        success "kubectl 安装成功"
+        success "kubectl $(_t 'Installed successfully')"
     else
-        error "kubectl 安装失败"
+        error "kubectl $(_t 'Installation failed')"
         exit 1
     fi
 }
 
 # 安装 minikube
 install_minikube() {
-    header "安装 minikube"
+    header "$(_t 'Installing minikube')"
     local minikube_url="https://github.com/kubernetes/minikube/releases/download/$MINIKUBE_VERSION/minikube-$OS_TYPE-$ARCH"
     local minikube_path="$INSTALL_DIR/bin/minikube"
 
-    info "下载 minikube $MINIKUBE_VERSION..."
+    info "$(_tf 'Downloading minikube %s...' "$MINIKUBE_VERSION")"
 
     if command -v curl >/dev/null 2>&1; then
         curl -L "$minikube_url" -o "$minikube_path"
@@ -219,21 +219,21 @@ install_minikube() {
 
     # 验证安装
     if "$minikube_path" version >/dev/null 2>&1; then
-        success "minikube 安装成功"
+        success "minikube $(_t 'Installed successfully')"
     else
-        error "minikube 安装失败"
+        error "minikube $(_t 'Installation failed')"
         exit 1
     fi
 
     # 如果指定或检测到驱动，建议用户在启动时使用该驱动
     local detected_driver
     detected_driver=$(detect_driver)
-    info "建议的驱动: $detected_driver (可使用 --driver 参数覆盖)"
+    info "$(_tf 'Suggested driver: %s (override it with the --driver option)' "$detected_driver")"
 }
 
 # 配置环境变量
 setup_environment() {
-    header "配置环境变量"
+    header "$(_t 'Configuring environment variables')"
     
     local shell_rc=""
     case "$SHELL" in
@@ -250,26 +250,29 @@ setup_environment() {
     
     # 检查 PATH 是否已经包含安装目录
     if ! echo "$PATH" | grep -q "$INSTALL_DIR/bin"; then
-        info "添加 $INSTALL_DIR/bin 到 PATH..."
+        info "$(_tf 'Adding %s/bin to PATH...' "$INSTALL_DIR")"
         
         {
             echo ""
-            echo "# minikube 和 kubectl 路径"
+            echo "# minikube $(_t 'and the kubectl path')"
             echo "export PATH=\"$INSTALL_DIR/bin:\$PATH\""
         } >> "$shell_rc"
         
-        success "环境变量已添加到 $shell_rc"
-        warn "请运行 'source $shell_rc' 或重新打开终端以生效"
+        success "$(_tf 'Environment variables added to %s' "$shell_rc")"
+        warn "$(_tf 'Run source %s or reopen the terminal to apply' "$shell_rc")"
     else
-        info "PATH 中已包含 minikube 安装目录"
+        info "PATH $(_t 'already contains the minikube install directory')"
     fi
 }
 
 # 创建启动脚本
 create_start_script() {
-    header "创建启动脚本"
+    header "$(_t 'Creating the start script')"
     
-    cat > "$INSTALL_DIR/start-minikube.sh" << 'EOF'
+    # 生成到用户目录的脚本运行时没有 unix_script 的 _t
+    # ⇒ 译文在安装时用 uxs_i18n_localize_file 烘进去（与 safe-rm / pm 脚本同一口径）
+    local _tmp="$INSTALL_DIR/.start-minikube.sh.tmp"
+    cat > "$_tmp" << 'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -287,12 +290,12 @@ print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # 检查 minikube 是否正在运行
 if minikube status >/dev/null 2>&1; then
-    print_info "minikube 已在运行中"
+    print_info "$(_t 'minikube is already running')"
     minikube status
     exit 0
 fi
 
-print_info "启动 minikube..."
+print_info "$(_t 'Starting minikube...')"
 
 # 启动 minikube（使用推荐配置）
 DRIVER_ARG="$(detect_driver)"
@@ -311,30 +314,34 @@ else
 fi
 
 if [ $? -eq 0 ]; then
-    print_success "minikube 启动成功！"
-    print_info "集群状态："
+    print_success "$(_t 'minikube started successfully!')"
+    print_info "$(_t 'Cluster status:')"
     minikube status
-    
-    print_info "可用命令："
-    echo "  minikube dashboard  # 打开 Kubernetes 仪表板"
-    echo "  minikube stop       # 停止集群"
-    echo "  minikube delete     # 删除集群"
-    echo "  kubectl get nodes   # 查看节点"
+
+    print_info "$(_t 'Available commands:')"
+    echo "  minikube dashboard  # $(_t 'Open the Kubernetes dashboard')"
+    echo "  minikube stop       # $(_t 'Stop the cluster')"
+    echo "  minikube delete     # $(_t 'Delete the cluster')"
+    echo "  kubectl get nodes   # $(_t 'List the nodes')"
 else
-    print_error "minikube 启动失败"
+    print_error "$(_t 'Failed to start minikube')"
     exit 1
 fi
 EOF
-    
+    uxs_i18n_localize_file "$_tmp" "$INSTALL_DIR/start-minikube.sh"
+    rm -f "$_tmp"
     chmod +x "$INSTALL_DIR/start-minikube.sh"
-    print_success "启动脚本已创建: $INSTALL_DIR/start-minikube.sh"
+    print_success "$(_tf 'Start script created: %s/start-minikube.sh' "$INSTALL_DIR")"
 }
 
 # 创建状态检查脚本
 create_status_script() {
-    print_header "创建状态检查脚本"
+    print_header "$(_t 'Creating the status check script')"
     
-    cat > "$INSTALL_DIR/check-status.sh" << 'EOF'
+    # 生成到用户目录的脚本运行时没有 unix_script 的 _t
+    # ⇒ 译文在安装时用 uxs_i18n_localize_file 烘进去（与 safe-rm / pm 脚本同一口径）
+    local _tmp="$INSTALL_DIR/.check-status.sh.tmp"
+    cat > "$_tmp" << 'EOF'
 #!/usr/bin/env bash
 
 # 颜色定义
@@ -349,64 +356,65 @@ print_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 print_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-echo "=== Kubernetes 开发环境状态 ==="
+echo "=== Kubernetes $(_t 'development environment status') ==="
 
 # 检查 kubectl
 echo
-print_info "检查 kubectl..."
+print_info "$(_t 'Checking kubectl...')"
 if command -v kubectl >/dev/null 2>&1; then
     kubectl_version=$(kubectl version --client --short 2>/dev/null | cut -d' ' -f3)
     print_success "kubectl: $kubectl_version"
 else
-    print_error "kubectl 未安装"
+    print_error "kubectl $(_t 'Not installed')"
 fi
 
 # 检查 minikube
 echo
-print_info "检查 minikube..."
+print_info "$(_t 'Checking minikube...')"
 if command -v minikube >/dev/null 2>&1; then
     minikube_version=$(minikube version --short)
     print_success "minikube: $minikube_version"
-    
+
     # 检查 minikube 状态
     echo
-    print_info "minikube 集群状态："
+    print_info "$(_t 'Cluster status:')"
     if minikube status 2>/dev/null; then
         echo
-        print_info "集群节点："
-        kubectl get nodes 2>/dev/null || print_warning "无法连接到集群"
+        print_info "$(_t 'Cluster nodes:')"
+        kubectl get nodes 2>/dev/null || print_warning "$(_t 'Cannot connect to the cluster')"
     else
-        print_warning "minikube 集群未运行"
-        print_info "使用 'minikube start' 启动集群"
+        print_warning "$(_t 'The cluster is not running')"
+        print_info "$(_t 'Use minikube start to launch the cluster')"
     fi
 else
-    print_error "minikube 未安装"
+    print_error "minikube $(_t 'Not installed')"
 fi
 
 # 检查 Docker
 echo
-print_info "检查 Docker..."
+print_info "$(_t 'Checking Docker...')"
 if command -v docker >/dev/null 2>&1; then
     if docker info >/dev/null 2>&1; then
         docker_version=$(docker version --format '{{.Server.Version}}' 2>/dev/null)
-        print_success "Docker: $docker_version (运行中)"
+        print_success "Docker: $docker_version $(_t '(running)')"
     else
-        print_warning "Docker 已安装但未运行"
+        print_warning "$(_t 'Installed but not running')"
     fi
 else
-    print_warning "Docker 未安装 (minikube 可能需要其他驱动)"
+    print_warning "$(_t 'Not installed (minikube may need another driver)')"
 fi
 
 echo
 EOF
-    
+    uxs_i18n_localize_file "$_tmp" "$INSTALL_DIR/check-status.sh"
+    rm -f "$_tmp"
     chmod +x "$INSTALL_DIR/check-status.sh"
-    print_success "状态检查脚本已创建: $INSTALL_DIR/check-status.sh"
+    print_success "$(_tf 'Status check script created: %s/check-status.sh' "$INSTALL_DIR")"
 }
 
 # 创建卸载脚本
 create_uninstall_script() {
-    print_header "创建卸载脚本"
+    print_header "$(_t 'Creating the uninstall script')"
     
     cat > "$INSTALL_DIR/uninstall.sh" << EOF
 #!/usr/bin/env bash
@@ -424,53 +432,53 @@ print_success() { echo -e "${GREEN}[SUCCESS]${NC} \$1"; }
 print_warning() { echo -e "${YELLOW}[WARNING]${NC} \$1"; }
 print_error() { echo -e "${RED}[ERROR]${NC} \$1"; }
 
-echo "=== minikube 卸载工具 ==="
+echo "=== minikube $(_t 'uninstall tool') ==="
 echo
 
-print_warning "这将完全删除 minikube 和 kubectl 安装"
-read -p "确定要继续吗？ (y/N): " -n 1 -r
+print_warning "$(_t 'This will completely remove the minikube and kubectl installation')"
+read -p "$(_t 'Are you sure you want to continue? (y/N):') " -n 1 -r
 echo
 if [[ ! \$REPLY =~ ^[Yy]\$ ]]; then
-    print_info "取消卸载"
+    print_info "$(_t 'Uninstall cancelled')"
     exit 0
 fi
 
 # 停止并删除 minikube 集群
 if command -v minikube >/dev/null 2>&1; then
-    print_info "停止并删除 minikube 集群..."
+    print_info "$(_t 'Stopping and deleting the minikube cluster...')"
     minikube stop 2>/dev/null || true
     minikube delete 2>/dev/null || true
-    print_success "minikube 集群已删除"
+    print_success "minikube $(_t 'cluster deleted')"
 fi
 
 # 删除安装目录
-if [[ -d "$INSTALL_DIR" ]]; then
-    print_info "删除安装目录..."
-    rm -rf "$INSTALL_DIR"
-    print_success "安装目录已删除"
+if [[ -d "\$INSTALL_DIR" ]]; then
+    print_info "$(_t 'Deleting the install directory...')"
+    rm -rf "\$INSTALL_DIR"
+    print_success "$(_t 'Install directory deleted')"
 fi
 
 # 提示用户手动删除 PATH 配置
 echo
-print_warning "请手动从以下文件中删除 PATH 配置："
+print_warning "$(_t 'Please remove the PATH configuration from the following files manually:')"
 echo "  ~/.zshrc"
 echo "  ~/.bashrc" 
 echo "  ~/.profile"
 echo
-print_warning "删除这一行："
-echo "  export PATH=\"$INSTALL_DIR/bin:\\\$PATH\""
+print_warning "$(_t 'Remove this line:')"
+echo "  export PATH=\"\$INSTALL_DIR/bin:\\\$PATH\""
 echo
 
-print_success "minikube 卸载完成"
+print_success "minikube $(_t 'uninstall complete')"
 EOF
     
     chmod +x "$INSTALL_DIR/uninstall.sh"
-    print_success "卸载脚本已创建: $INSTALL_DIR/uninstall.sh"
+    print_success "$(_tf 'Uninstall script created: %s/uninstall.sh' "$INSTALL_DIR")"
 }
 
 # 验证安装
 verify_installation() {
-    print_header "验证安装"
+    print_header "$(_t 'Verifying the installation')"
     
     local kubectl_path="$INSTALL_DIR/bin/kubectl"
     local minikube_path="$INSTALL_DIR/bin/minikube"
@@ -480,7 +488,7 @@ verify_installation() {
         kubectl_version=$("$kubectl_path" version --client --short 2>/dev/null | cut -d' ' -f3)
         print_success "kubectl: $kubectl_version"
     else
-        print_error "kubectl 验证失败"
+        print_error "kubectl $(_t 'Verification failed')"
         return 1
     fi
     
@@ -489,22 +497,22 @@ verify_installation() {
         minikube_version=$("$minikube_path" version --short 2>/dev/null)
         print_success "minikube: $minikube_version"
     else
-        print_error "minikube 验证失败"
+        print_error "minikube $(_t 'Verification failed')"
         return 1
     fi
     
-    print_success "所有组件验证通过"
+    print_success "$(_t 'All components verified')"
 }
 
 # 显示使用说明
 show_usage() {
-    print_header "安装完成"
+    print_header "$(_t 'Installation complete')"
     
     echo
-    print_success "minikube 和 kubectl 已成功安装到: $INSTALL_DIR"
+    print_success "minikube $(_tf 'and kubectl have been installed to: %s' "$INSTALL_DIR")"
     echo
-    print_info "接下来的步骤："
-    echo "1. 重新加载环境变量："
+    print_info "$(_t 'What to do next:')"
+    echo "1. $(_t 'Reload the environment variables:')"
     
     case "$SHELL" in
         */zsh)
@@ -519,28 +527,28 @@ show_usage() {
     esac
     
     echo
-    echo "2. 启动 minikube："
+    echo "2. $(_t 'Start minikube:')"
     echo "   $INSTALL_DIR/start-minikube.sh"
-    echo "   或者: minikube start"
+    echo "   $(_t 'Or: minikube start')"
     echo
-    echo "3. 检查状态："
+    echo "3. $(_t 'Check the status:')"
     echo "   $INSTALL_DIR/check-status.sh"
     echo
-    echo "4. 常用命令："
-    echo "   minikube status       # 查看集群状态"
-    echo "   minikube dashboard    # 打开仪表板"
-    echo "   kubectl get nodes     # 查看节点"
-    echo "   kubectl get pods      # 查看 Pod"
+    echo "4. $(_t 'Common commands:')"
+    echo "   minikube status       # $(_t 'Check the cluster status')"
+    echo "   minikube dashboard    # $(_t 'Open the dashboard')"
+    echo "   kubectl get nodes     # $(_t 'List the nodes')"
+    echo "   kubectl get pods      # $(_t 'List the pods')"
     echo
-    echo "5. 卸载 (如需要):"
+    echo "5. $(_t 'Uninstall (if needed):')"
     echo "   $INSTALL_DIR/uninstall.sh"
     echo
 }
 
 # 执行完整安装流程
 do_install() {
-    print_header "minikube 安装工具"
-    echo "此工具将为您安装 Kubernetes 开发环境"
+    print_header "minikube $(_t 'install tool')"
+    printf '%s\n' "$(_t 'This tool installs a Kubernetes development environment for you')"
     echo
 
     check_system
@@ -557,7 +565,7 @@ do_install() {
     verify_installation
     show_usage
 
-    print_success "安装完成！"
+    print_success "$(_t 'Installation complete!')"
 }
 
 # 查询安装/运行状态（供主菜单“查看状态”调用）
@@ -565,9 +573,9 @@ do_status() {
     local install_dir="$HOME/.tools/minikube"
     if [[ -x "$install_dir/bin/minikube" ]] && [[ -x "$install_dir/bin/kubectl" ]]; then
         if echo "$PATH" | grep -q "$install_dir/bin"; then
-            emit_status "installed" "${GREEN}✅ 已安装并配置${NC}"
+            emit_status "installed" "${GREEN}✅ $(_t 'Installed and configured')${NC}"
         else
-            emit_status "installed" "${YELLOW}⚠️  已安装但 PATH 未配置${NC}"
+            emit_status "installed" "${YELLOW}⚠️  $(_t 'Installed but PATH is not configured')${NC}"
             emit_extra "path=unconfigured"
         fi
         local mk_ver
@@ -582,7 +590,7 @@ do_status() {
             emit_version "$mk_ver"
         fi
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
     fi
     return 0
 }
@@ -593,9 +601,9 @@ do_uninstall() {
     if [[ -x "$uninstall_script" ]]; then
         "$uninstall_script"
     else
-        warn "未找到卸载脚本（${uninstall_script}），可能尚未安装。"
+        warn "$(_tf 'Uninstall script not found (%s), it may not be installed yet.' "${uninstall_script}")"
         if [[ -d "$HOME/.tools/minikube" ]]; then
-            rm -rf "$HOME/.tools/minikube" && success "已删除 $HOME/.tools/minikube"
+            rm -rf "$HOME/.tools/minikube" && success "$(_tf 'Removed %s/.tools/minikube' "$HOME")"
         fi
     fi
 }
@@ -604,14 +612,14 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help} [--yes] [--driver <驱动>]
 
-  install     安装 minikube + kubectl（默认动作）
-  uninstall   卸载 minikube
-  status      查看安装与运行状态
-  help        显示本帮助
+  install     $(_t 'Install minikube + kubectl (default action)')
+  uninstall   $(_t 'Uninstall minikube')
+  status      $(_t 'Show the installation and running status')
+  help        $(_t 'Show this help')
 
-选项（仅 install）:
-  --yes, -y             非交互模式
-  --driver <驱动>       指定 minikube 驱动（docker/hyperkit/kvm2 等，默认 auto）
+$(_t 'Options (install only):')
+  --yes, -y             $(_t 'Non-interactive mode')
+  --driver <$(_t 'Driver>       minikube driver (docker/hyperkit/kvm2, default auto)')
 EOF
 }
 
@@ -628,7 +636,7 @@ main() {
         uninstall) do_uninstall ;;
         status)    do_status ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

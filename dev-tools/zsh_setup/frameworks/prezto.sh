@@ -12,15 +12,15 @@ PREZTO_DIR="${ZDOTDIR:-$HOME}/.zprezto"
 # 安装 Prezto
 install_prezto() {
     if [ -d "$PREZTO_DIR" ]; then
-        warn "Prezto 已安装"
+        warn "$(_t 'Prezto is already installed')"
         return 0
     fi
 
-    info "正在安装 Prezto..."
+    info "$(_t 'Installing Prezto...')"
     git clone --recursive https://github.com/sorin-ionescu/prezto.git "$PREZTO_DIR"
 
     if [ ! -d "$PREZTO_DIR" ]; then
-        error "Prezto 安装失败"
+        error "$(_t 'Failed to install Prezto')"
         return 1
     fi
 
@@ -32,22 +32,22 @@ install_prezto() {
         ln -s "$rcfile" "${ZDOTDIR:-$HOME}/.${basename}"
     done
 
-    success "Prezto 安装成功"
+    success "$(_t 'Prezto installed successfully')"
 }
 
 # 卸载 Prezto
 uninstall_prezto() {
     if [ ! -d "$PREZTO_DIR" ]; then
-        warn "Prezto 未安装"
+        warn "$(_t 'Prezto is not installed')"
         return 0
     fi
 
-    if ! yes_no "确定要卸载 Prezto 吗？"; then
-        info "取消卸载"
+    if ! yes_no "$(_t 'Uninstall Prezto?')"; then
+        info "$(_t 'Uninstall cancelled')"
         return 0
     fi
 
-    info "正在卸载 Prezto..."
+    info "$(_t 'Uninstalling Prezto...')"
 
     # 删除符号链接
     for rcfile in "$PREZTO_DIR"/runcoms/z*; do
@@ -58,45 +58,45 @@ uninstall_prezto() {
     done
 
     rm -rf "$PREZTO_DIR"
-    success "Prezto 已卸载"
+    success "$(_t 'Prezto uninstalled')"
 }
 
 # Prezto 状态
 status_prezto() {
     if [ ! -d "$PREZTO_DIR" ]; then
-        echo "Prezto: 未安装"
+        printf '%s\n' "$(_t 'Prezto: not installed')"
         return 0
     fi
 
-    echo "Prezto: 已安装"
+    printf '%s\n' "$(_t 'Prezto: installed')"
 
     # 检测主题
     if [ -f "${ZDOTDIR:-$HOME}/.zpreztorc" ]; then
         local theme
         theme=$(grep "^zstyle ':prezto:module:prompt' theme" "${ZDOTDIR:-$HOME}/.zpreztorc" | awk '{print $NF}' || true)
-        echo "主题: ${theme:-未设置}"
+        echo "$(_t 'Theme:') ${theme:-$(_t 'not set')}"
     fi
 
     # 列出模块
-    echo "模块:"
+    printf '%s\n' "$(_t 'Modules:')"
     list_plugins_prezto
 }
 
 # 列出 Prezto 模块
 list_plugins_prezto() {
     if [ ! -d "$PREZTO_DIR" ]; then
-        warn "Prezto 未安装"
+        warn "$(_t 'Prezto is not installed')"
         return 0
     fi
 
     # 内置模块
-    echo "内置模块:"
+    printf '%s\n' "$(_t 'Built-in modules:')"
     ls "$PREZTO_DIR/modules/" 2>/dev/null || true
 
     # 外部模块（contrib）
     if [ -d "$PREZTO_DIR/contrib" ]; then
         echo ""
-        echo "外部模块:"
+        printf '%s\n' "$(_t 'External modules:')"
         ls "$PREZTO_DIR/contrib/" 2>/dev/null || true
     fi
 }
@@ -106,20 +106,20 @@ enable_module_prezto() {
     local module_name="$1"
 
     if [ -z "$module_name" ]; then
-        error "请指定模块名称"
+        error "$(_t 'Please specify a module name')"
         return 1
     fi
 
     local preztorc="${ZDOTDIR:-$HOME}/.zpreztorc"
 
     if [ ! -f "$preztorc" ]; then
-        error "未找到 .zpreztorc 文件"
+        error "$(_t '.zpreztorc file not found')"
         return 1
     fi
 
     # 检查模块是否已启用
     if grep -q "'$module_name'" "$preztorc"; then
-        warn "模块 $module_name 已启用"
+        warn "$(_tf 'Module %s is already enabled' "$module_name")"
         return 0
     fi
 
@@ -128,7 +128,7 @@ enable_module_prezto() {
     # 若用户自定义了 zpreztorc 且无 'completion' 行，sed 将不匹配。
     sed -i.bak "s/^\(  'completion'\)/\1\n  '$module_name'/" "$preztorc"
     rm -f "${preztorc}.bak"
-    success "模块 $module_name 已启用"
+    success "$(_tf 'Module %s enabled' "$module_name")"
 }
 
 # 禁用模块
@@ -136,19 +136,19 @@ disable_module_prezto() {
     local module_name="$1"
 
     if [ -z "$module_name" ]; then
-        error "请指定模块名称"
+        error "$(_t 'Please specify a module name')"
         return 1
     fi
 
     local preztorc="${ZDOTDIR:-$HOME}/.zpreztorc"
 
     if [ ! -f "$preztorc" ]; then
-        error "未找到 .zpreztorc 文件"
+        error "$(_t '.zpreztorc file not found')"
         return 1
     fi
 
     # 删除模块
     sed -i.bak "/'$module_name'/d" "$preztorc"
     rm -f "${preztorc}.bak"
-    success "模块 $module_name 已禁用"
+    success "$(_tf 'Module %s disabled' "$module_name")"
 }

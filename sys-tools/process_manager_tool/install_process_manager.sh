@@ -35,7 +35,7 @@ detect_user_shell() {
         zsh)  SHELL_RC="$HOME/.zshrc" ;;
         fish) SHELL_RC="$HOME/.config/fish/config.fish" ;;
         *)
-            warn "未识别的 Shell: ${user_shell}，使用默认配置"
+            warn "$(_tf 'Unrecognized shell: %s, using the default configuration' "${user_shell}")"
             if [[ "$OS_TYPE" == "darwin" ]]; then
                 SHELL_RC="$HOME/.bash_profile"
             else
@@ -45,44 +45,46 @@ detect_user_shell() {
             ;;
     esac
     USER_SHELL="$user_shell"
-    info "检测到 Shell: ${USER_SHELL}，配置文件: $SHELL_RC"
+    info "$(_tf 'Detected shell: %s, configuration file: %s' "${USER_SHELL}" "$SHELL_RC")"
 }
 
 # --- 创建工具目录 ---
 create_tools_directory() {
-    info "检查 ~/.tools 目录..."
+    info "$(_t 'Checking the ~/.tools directory...')"
     if [[ ! -d "$TOOLS_DIR" ]]; then
         mkdir -p "$TOOLS_DIR"
-        success "已创建 $TOOLS_DIR"
+        success "$(_tf 'Created %s' "$TOOLS_DIR")"
     fi
     if [[ ! -d "$BIN_DIR" ]]; then
         mkdir -p "$BIN_DIR"
-        success "已创建 $BIN_DIR"
+        success "$(_tf 'Created %s' "$BIN_DIR")"
     fi
 }
 
 # --- 复制脚本文件 ---
 install_scripts() {
-    info "安装进程管理工具脚本..."
+    info "$(_t 'Installing the process manager scripts...')"
 
     if [[ ! -f "$SCRIPT_DIR/process_manager.sh" ]]; then
-        error "未找到 process_manager.sh 文件"
+        error "$(_t 'The process_manager.sh file was not found')"
         return 1
     fi
 
-    cp "$SCRIPT_DIR/process_manager.sh" "$BIN_DIR/$SCRIPT_NAME"
+    # 装到 ~/.tools/bin 的脚本由用户的 shell 直接运行，运行时没有 unix_script 的 _t
+    # ⇒ 译文在安装时用 uxs_i18n_localize_file 烘进目标文件
+    uxs_i18n_localize_file "$SCRIPT_DIR/process_manager.sh" "$BIN_DIR/$SCRIPT_NAME"
     chmod +x "$BIN_DIR/$SCRIPT_NAME"
-    success "已安装 $SCRIPT_NAME 到 $BIN_DIR"
+    success "$(_tf 'Installed %s to %s' "$SCRIPT_NAME" "$BIN_DIR")"
 
     if [[ -f "$SCRIPT_DIR/pm_wrapper.sh" ]]; then
-        cp "$SCRIPT_DIR/pm_wrapper.sh" "$BIN_DIR/pm"
+        uxs_i18n_localize_file "$SCRIPT_DIR/pm_wrapper.sh" "$BIN_DIR/pm"
         chmod +x "$BIN_DIR/pm"
-        success "已安装 pm 包装脚本到 $BIN_DIR"
+        success "$(_tf 'Installed the pm wrapper script to %s' "$BIN_DIR")"
     fi
 
     if [[ -f "$SCRIPT_DIR/process_manager_config.sh" ]]; then
-        cp "$SCRIPT_DIR/process_manager_config.sh" "$BIN_DIR/$CONFIG_NAME.sh"
-        success "已安装配置文件到 $BIN_DIR"
+        uxs_i18n_localize_file "$SCRIPT_DIR/process_manager_config.sh" "$BIN_DIR/$CONFIG_NAME.sh"
+        success "$(_tf 'Installed the configuration file to %s' "$BIN_DIR")"
     fi
 
     if [[ -f "$SCRIPT_DIR/README.md" ]]; then
@@ -98,10 +100,10 @@ install_scripts() {
 
 # --- 配置环境变量 ---
 setup_environment() {
-    info "配置环境变量..."
+    info "$(_t 'Configuring the environment variables...')"
 
     if echo "$PATH" | grep -q "$BIN_DIR"; then
-        info "PATH 中已包含 ~/.tools/bin"
+        info "PATH $(_t 'already contains ~/.tools/bin')"
         return 0
     fi
 
@@ -116,21 +118,21 @@ setup_environment() {
             if ! grep -q "/.tools/bin" "$SHELL_RC" 2>/dev/null; then
                 {
                     echo ""
-                    echo "# 添加 ~/.tools/bin 到 PATH（由 unix_script process_manager 添加）"
+                    echo "# $(_t 'Adding ~/.tools/bin to PATH (added by unix_script process_manager)')"
                     echo "set -gx PATH \$HOME/.tools/bin \$PATH"
                 } >> "$SHELL_RC"
-                success "已更新 Fish 配置文件"
+                success "$(_t 'Updated the Fish configuration file')"
             fi
             ;;
         *)
             if ! grep -q "/.tools/bin" "$SHELL_RC" 2>/dev/null; then
                 {
                     echo ""
-                    echo "# 添加 ~/.tools/bin 到 PATH（由 unix_script process_manager 添加）"
+                    echo "# $(_t 'Adding ~/.tools/bin to PATH (added by unix_script process_manager)')"
                     # shellcheck disable=SC2016
                     echo 'export PATH="$HOME/.tools/bin:$PATH"'
                 } >> "$SHELL_RC"
-                success "已更新 $USER_SHELL 配置文件"
+                success "$(_tf 'Updated the %s configuration file' "$USER_SHELL")"
             fi
             ;;
     esac
@@ -138,18 +140,18 @@ setup_environment() {
 
 # --- 验证安装 ---
 verify_installation() {
-    info "验证安装..."
+    info "$(_t 'Verifying the process manager installation...')"
     if [[ -f "$BIN_DIR/$SCRIPT_NAME" && -x "$BIN_DIR/$SCRIPT_NAME" ]]; then
-        success "主脚本文件安装成功"
+        success "$(_t 'The main script file was installed successfully')"
     else
-        error "主脚本文件安装失败"
+        error "$(_t 'The main script file failed to install')"
         return 1
     fi
 
     if [[ -f "$BIN_DIR/pm" && -x "$BIN_DIR/pm" ]]; then
-        success "包装脚本安装成功"
+        success "$(_t 'The wrapper script was installed successfully')"
     else
-        info "包装脚本未安装（可选）"
+        info "$(_t 'The wrapper script is not installed (optional)')"
     fi
     return 0
 }
@@ -171,19 +173,19 @@ install_pm() {
 
     if verify_installation; then
         echo
-        header "🎉 安装完成！"
+        header "$(_t '🎉 Installation complete!')"
         echo "================================================"
-        success "进程管理工具已安装到: $BIN_DIR/$SCRIPT_NAME"
+        success "$(_tf 'The process manager has been installed to: %s/%s' "$BIN_DIR" "$SCRIPT_NAME")"
         echo
-        info "使用方法："
-        echo "  source $SHELL_RC          # 重新加载 Shell 配置"
-        echo "  pm <搜索词>               # 搜索进程"
-        echo "  pm                        # 交互式模式"
-        echo "  process_manager <搜索词>  # 直接使用主脚本"
+        info "$(_t 'How to use:')"
+        echo "  source $SHELL_RC          # $(_t 'Reload the shell configuration')"
+        echo "  pm <$(_t 'search term>               # search the processes')"
+        echo "  pm                        # $(_t 'Interactive mode')"
+        echo "  process_manager <$(_t 'search term>  # use the main script directly')"
         echo "================================================"
-        warn "请重新加载 Shell 配置或重启终端以使环境变量生效"
+        warn "$(_t 'Please reload the shell configuration or restart the terminal for the environment variables to take effect')"
     else
-        error "安装验证失败"
+        error "$(_t 'The installation verification failed')"
         return 1
     fi
 }
@@ -193,19 +195,19 @@ uninstall_pm() {
     detect_os
     detect_user_shell
 
-    header "🗑️  卸载进程管理工具"
+    header "$(_t '🗑️  Uninstalling the process manager')"
     echo
 
-    warn "将删除以下内容:"
+    warn "$(_t 'The following will be removed:')"
     echo "  • $BIN_DIR/$SCRIPT_NAME"
     echo "  • $BIN_DIR/pm"
     [[ -f "$BIN_DIR/$CONFIG_NAME.sh" ]] && echo "  • $BIN_DIR/$CONFIG_NAME.sh"
-    [[ -f "$TOOLS_DIR/docs/process_manager_README.md" ]] && echo "  • 文档文件"
-    echo "  • Shell 配置文件中的相关配置"
+    [[ -f "$TOOLS_DIR/docs/process_manager_README.md" ]] && echo "  $(_t '• The documentation files')"
+    echo "  $(_t '• The related configuration in the shell configuration files')"
     echo
 
-    if ! yes_no "确认卸载？"; then
-        info "已取消卸载"
+    if ! yes_no "$(_t 'Confirm the uninstall?')"; then
+        info "$(_t 'The uninstall has been cancelled')"
         return 0
     fi
 
@@ -229,13 +231,15 @@ uninstall_pm() {
     # 清理 Shell 配置
     if [[ -f "$SHELL_RC" ]]; then
         cp "$SHELL_RC" "$SHELL_RC.backup.$(date +%Y%m%d_%H%M%S)"
-        sed -i.tmp '/# 添加.*\.tools\/bin.*unix_script process_manager/,/^$/d' "$SHELL_RC" 2>/dev/null || true
+        # 标记行是安装时写进 rc 的注释，会随安装语言变化 ⇒ 匹配模式必须与语言无关：
+        # 标记里恒定含 "unix_script process_manager"，中英文都命中。
+        sed -i.tmp '/unix_script process_manager/,/^$/d' "$SHELL_RC" 2>/dev/null || true
         rm -f "$SHELL_RC.tmp" 2>/dev/null || true
     fi
 
-    success "卸载完成"
-    info "Shell 配置文件已备份为: $SHELL_RC.backup.*"
-    warn "请重启终端或重新加载 Shell 配置以使更改生效"
+    success "$(_t 'Uninstall complete')"
+    info "Shell $(_tf 'The configuration file has been backed up to: %s.backup.*' "$SHELL_RC")"
+    warn "$(_t 'Please restart the terminal or reload the shell configuration for the changes to take effect')"
 }
 
 # --- 状态检查（契约：emit_status 双轨，供 status --json 复用）---
@@ -249,14 +253,14 @@ status_pm() {
     if $installed; then
         state="installed"
         if echo "$PATH" | grep -q "$BIN_DIR"; then
-            human="${GREEN}✅ 已安装并配置${NC}"
+            human="${GREEN}$(_t '✅ Installed and configured')${NC}"
         else
-            human="${YELLOW}⚠️  已安装但 PATH 未配置${NC}"
+            human="${YELLOW}$(_t '⚠️  Installed but PATH is not configured')${NC}"
             emit_extra "path=not_configured"
         fi
     else
         state="not_installed"
-        human="${RED}❌ 未安装${NC}"
+        human="${RED}$(_t '❌ Not installed')${NC}"
     fi
     emit_status "$state" "$human"
 }
@@ -265,10 +269,10 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装进程管理工具到 ~/.tools（默认动作）
-  uninstall   卸载进程管理工具
-  status      查看安装状态
-  help        显示此帮助信息
+  install     $(_t 'Install the process manager into ~/.tools (default action)')
+  uninstall   $(_t 'Uninstall the process manager')
+  status      $(_t 'View the installation status')
+  help        $(_t 'Show this help information')
 EOF
 }
 
@@ -280,7 +284,7 @@ main() {
         uninstall) uninstall_pm ;;
         status)    status_pm ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

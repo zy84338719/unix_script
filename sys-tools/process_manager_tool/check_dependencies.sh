@@ -6,6 +6,13 @@
 # 检查进程管理工具的系统依赖和兼容性
 #
 
+# --- unix_script 公共库（提供 _t 翻译）---
+# 本脚本在仓库内直接运行（不会被复制到用户环境），所以直接 source 拿 _t。
+# 颜色与日志函数在下面对齐定义，会覆盖 common.sh 里的同名定义。
+_UXS_CD_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../../lib/common.sh
+source "$_UXS_CD_DIR/../../lib/common.sh"
+
 # --- 颜色定义 ---
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -13,13 +20,14 @@ YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 BOLD='\033[1m'
-NC='\033[0m' # 无颜色
+# 无颜色
+NC='\033[0m'
 
 # --- 日志函数 ---
-info() { echo -e "${BLUE}[信息]${NC} $1"; }
-success() { echo -e "${GREEN}[成功]${NC} $1"; }
-error() { echo -e "${RED}[错误]${NC} $1"; }
-warn() { echo -e "${YELLOW}[警告]${NC} $1"; }
+info() { echo -e "${BLUE}[$(_t 'Info]')${NC} $1"; }
+success() { echo -e "${GREEN}[$(_t 'Success]')${NC} $1"; }
+error() { echo -e "${RED}[$(_t 'Error]')${NC} $1"; }
+warn() { echo -e "${YELLOW}[$(_t 'Warning]')${NC} $1"; }
 header() { echo -e "${CYAN}${BOLD}$1${NC}"; }
 
 # --- 检测操作系统 ---
@@ -27,14 +35,14 @@ detect_system() {
     case "$(uname -s)" in
         Darwin)
             OS="macOS"
-            OS_VERSION=$(sw_vers -productVersion 2>/dev/null || echo "未知")
+            OS_VERSION=$(sw_vers -productVersion 2>/dev/null || printf '%s\n' "$(_t 'Unknown')")
             ;;
         Linux)
             OS="Linux"
             if [[ -f /etc/os-release ]]; then
                 OS_VERSION=$(grep '^PRETTY_NAME=' /etc/os-release | cut -d'"' -f2)
             else
-                OS_VERSION="未知发行版"
+                OS_VERSION="$(_t 'Unknown distribution')"
             fi
             ;;
         CYGWIN*|MINGW*|MSYS*)
@@ -42,37 +50,39 @@ detect_system() {
             OS_VERSION="$(uname -r)"
             ;;
         *)
-            OS="其他"
+            OS="$(_t 'Other')"
             OS_VERSION="$(uname -r)"
             ;;
     esac
     
-    echo "操作系统: $OS"
-    echo "版本: $OS_VERSION"
-    echo "内核: $(uname -r)"
-    echo "架构: $(uname -m)"
+    printf '%s\n' "$(_tf 'Operating system: %s' "$OS")"
+    printf '%s\n' "$(_tf 'Version: %s' "$OS_VERSION")"
+    printf '%s\n' "$(_t 'Kernel'): $(uname -r)"
+    printf '%s\n' "$(_t 'Architecture'): $(uname -m)"
 }
 
 # --- 检测Shell ---
 detect_shell() {
     echo ""
-    header "🐚 Shell 环境检测"
+    header "$(_t '🐚 Shell environment detection')"
     echo "=================="
     
-    echo "当前Shell: $SHELL"
-    echo "Shell版本: $($SHELL --version 2>/dev/null | head -1 || echo '无法获取版本')"
+    printf '%s\n' "$(_tf 'Current shell: %s' "$SHELL")"
+    local shell_ver
+    shell_ver=$($SHELL --version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Cannot get the version')")
+    printf '%s\n' "$(_tf 'Shell version: %s' "$shell_ver")"
     
     # 检测可用的Shell
     local shells=("bash" "zsh" "fish")
     echo ""
-    echo "已安装的Shell:"
+    printf '%s\n' "$(_t 'Installed shells:')"
     for shell in "${shells[@]}"; do
         if command -v "$shell" >/dev/null 2>&1; then
             local version
-            version=$("$shell" --version 2>/dev/null | head -1 || echo "版本未知")
+            version=$("$shell" --version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Version unknown')")
             success "✅ $shell - $version"
         else
-            warn "❌ $shell - 未安装"
+            warn "$(_tf '❌ %s - not installed' "$shell")"
         fi
     done
 }
@@ -80,7 +90,7 @@ detect_shell() {
 # --- 检测基本命令 ---
 check_basic_commands() {
     echo ""
-    header "🔧 基本命令检测"
+    header "$(_t '🔧 Basic command detection')"
     echo "=================="
     
     local commands=("ps" "grep" "awk" "sed" "head" "tail" "cut" "sort" "uniq")
@@ -96,10 +106,10 @@ check_basic_commands() {
     done
     
     if [[ ${#missing[@]} -eq 0 ]]; then
-        success "所有基本命令都可用"
+        success "$(_t 'All the basic commands are available')"
         return 0
     else
-        error "缺少以下命令: ${missing[*]}"
+        error "$(_tf 'The following commands are missing: %s' "${missing[*]}")"
         return 1
     fi
 }
@@ -107,15 +117,15 @@ check_basic_commands() {
 # --- 检测网络工具 ---
 check_network_tools() {
     echo ""
-    header "🌐 网络工具检测"
+    header "$(_t '🌐 Network tool detection')"
     echo "=================="
     
     case "$OS" in
         macOS)
             if command -v lsof >/dev/null 2>&1; then
-                success "✅ lsof (macOS网络端口检测)"
+                success "$(_t '✅ lsof (macOS network port detection)')"
             else
-                error "❌ lsof - macOS系统必需"
+                error "$(_t '❌ lsof - required on macOS')"
                 return 1
             fi
             ;;
@@ -123,36 +133,36 @@ check_network_tools() {
             local has_network_tool=false
             
             if command -v ss >/dev/null 2>&1; then
-                success "✅ ss (现代网络统计工具)"
+                success "$(_t '✅ ss (modern network statistics tool)')"
                 has_network_tool=true
             else
-                warn "❌ ss - 推荐安装"
+                warn "$(_t '❌ ss - recommended')"
             fi
             
             if command -v netstat >/dev/null 2>&1; then
-                success "✅ netstat (传统网络统计工具)"
+                success "$(_t '✅ netstat (traditional network statistics tool)')"
                 has_network_tool=true
             else
-                warn "❌ netstat - 备用工具"
+                warn "$(_t '❌ netstat - fallback tool')"
             fi
             
             if command -v lsof >/dev/null 2>&1; then
-                success "✅ lsof (文件和网络连接)"
+                success "$(_t '✅ lsof (files and network connections)')"
                 has_network_tool=true
             else
-                warn "❌ lsof - 可选工具"
+                warn "$(_t '❌ lsof - optional tool')"
             fi
             
             if ! $has_network_tool; then
-                error "至少需要安装 ss、netstat 或 lsof 中的一个"
+                error "$(_t 'At least one of ss, netstat or lsof must be installed')"
                 return 1
             fi
             ;;
         Windows)
             if command -v netstat >/dev/null 2>&1; then
-                success "✅ netstat (Windows网络工具)"
+                success "$(_t '✅ netstat (Windows network tool)')"
             else
-                error "❌ netstat - Windows系统必需"
+                error "$(_t '❌ netstat - required on Windows')"
                 return 1
             fi
             ;;
@@ -164,42 +174,42 @@ check_network_tools() {
 # --- 检测权限 ---
 check_permissions() {
     echo ""
-    header "🔒 权限检测"
+    header "$(_t '🔒 Permission detection')"
     echo "=================="
     
     # 检查是否能访问进程信息
     if ps aux >/dev/null 2>&1; then
-        success "✅ 可以读取进程信息"
+        success "$(_t '✅ The process information can be read')"
     else
-        error "❌ 无法读取进程信息"
+        error "$(_t '❌ The process information cannot be read')"
         return 1
     fi
     
     # 检查是否能发送信号
     if kill -0 $$ >/dev/null 2>&1; then
-        success "✅ 可以发送进程信号"
+        success "$(_t '✅ The process signals can be sent')"
     else
-        error "❌ 无法发送进程信号"
+        error "$(_t '❌ The process signals cannot be sent')"
         return 1
     fi
     
     # 检查用户目录权限
     if [[ -w "$HOME" ]]; then
-        success "✅ 可以写入用户目录"
+        success "$(_t '✅ The user directory can be written')"
     else
-        error "❌ 无法写入用户目录"
+        error "$(_t '❌ The user directory cannot be written')"
         return 1
     fi
     
     # 检查 ~/.tools 目录
     if [[ -d "$HOME/.tools" ]]; then
         if [[ -w "$HOME/.tools" ]]; then
-            success "✅ ~/.tools 目录可写"
+            success "$(_t '✅ The ~/.tools directory is writable')"
         else
-            warn "⚠️  ~/.tools 目录存在但不可写"
+            warn "$(_t '⚠️  The ~/.tools directory exists but is not writable')"
         fi
     else
-        info "ℹ️  ~/.tools 目录不存在（将在安装时创建）"
+        info "$(_t 'ℹ️  The ~/.tools directory does not exist (it will be created at install time)')"
     fi
     
     return 0
@@ -208,7 +218,7 @@ check_permissions() {
 # --- 检测环境变量 ---
 check_environment() {
     echo ""
-    header "🌍 环境变量检测"
+    header "$(_t '🌍 Environment variable detection')"
     echo "=================="
     
     echo "PATH: $PATH"
@@ -216,70 +226,70 @@ check_environment() {
     
     # 检查 ~/.tools/bin 是否在 PATH 中
     if echo "$PATH" | grep -q "$HOME/.tools/bin"; then
-        success "✅ ~/.tools/bin 已在 PATH 中"
+        success "$(_t '✅ ~/.tools/bin is already in PATH')"
     else
-        info "ℹ️  ~/.tools/bin 不在 PATH 中（将在安装时添加）"
+        info "$(_t 'ℹ️  ~/.tools/bin is not in PATH (it will be added at install time)')"
     fi
     
     # 检查 ~/.local/bin 是否在 PATH 中
     if echo "$PATH" | grep -q "$HOME/.local/bin"; then
-        success "✅ ~/.local/bin 已在 PATH 中"
+        success "$(_t '✅ ~/.local/bin is already in PATH')"
     else
-        info "ℹ️  ~/.local/bin 不在 PATH 中"
+        info "$(_t 'ℹ️  ~/.local/bin is not in PATH')"
     fi
     
     # 检查系统二进制目录
     if echo "$PATH" | grep -q "/usr/local/bin"; then
-        success "✅ /usr/local/bin 已在 PATH 中"
+        success "$(_t '✅ /usr/local/bin is already in PATH')"
     else
-        warn "⚠️  /usr/local/bin 不在 PATH 中"
+        warn "$(_t '⚠️  /usr/local/bin is not in PATH')"
     fi
 }
 
 # --- 性能测试 ---
 performance_test() {
     echo ""
-    header "⚡ 性能测试"
+    header "$(_t '⚡ Performance test')"
     echo "=================="
     
-    info "测试进程列表性能..."
+    info "$(_t 'Testing the process list performance...')"
     local start_time
     start_time=$(date +%s.%N)
     ps aux >/dev/null 2>&1
     local end_time
     end_time=$(date +%s.%N)
     local duration
-    duration=$(echo "$end_time - $start_time" | bc 2>/dev/null || echo "无法计算")
+    duration=$(echo "$end_time - $start_time" | bc 2>/dev/null || printf '%s\n' "$(_t 'Cannot compute')")
     
-    if [[ "$duration" != "无法计算" ]]; then
-        success "✅ ps aux 执行时间: ${duration}s"
+    if [[ "$duration" != "$(_t 'Cannot compute')" ]]; then
+        success "$(_tf '✅ ps aux execution time: %ss' "${duration}")"
     else
-        info "ℹ️  无法测量 ps 命令性能"
+        info "$(_t 'ℹ️  The performance of the ps command cannot be measured')"
     fi
     
     # 测试网络工具性能
     case "$OS" in
         macOS)
             if command -v lsof >/dev/null 2>&1; then
-                info "测试端口扫描性能..."
+                info "$(_t 'Testing the port scan performance...')"
                 start_time=$(date +%s.%N 2>/dev/null || date +%s)
                 lsof -i >/dev/null 2>&1
                 end_time=$(date +%s.%N 2>/dev/null || date +%s)
                 if [[ "$start_time" != "$end_time" ]]; then
-                    duration=$(echo "$end_time - $start_time" | bc 2>/dev/null || echo "无法计算")
-                    success "✅ lsof -i 执行时间: ${duration}s"
+                    duration=$(echo "$end_time - $start_time" | bc 2>/dev/null || printf '%s\n' "$(_t 'Cannot compute')")
+                    success "$(_tf '✅ lsof -i execution time: %ss' "${duration}")"
                 fi
             fi
             ;;
         Linux)
             if command -v ss >/dev/null 2>&1; then
-                info "测试端口扫描性能..."
+                info "$(_t 'Testing the port scan performance...')"
                 start_time=$(date +%s.%N 2>/dev/null || date +%s)
                 ss -tulnp >/dev/null 2>&1
                 end_time=$(date +%s.%N 2>/dev/null || date +%s)
                 if [[ "$start_time" != "$end_time" ]]; then
-                    duration=$(echo "$end_time - $start_time" | bc 2>/dev/null || echo "无法计算")
-                    success "✅ ss -tulnp 执行时间: ${duration}s"
+                    duration=$(echo "$end_time - $start_time" | bc 2>/dev/null || printf '%s\n' "$(_t 'Cannot compute')")
+                    success "$(_tf '✅ ss -tulnp execution time: %ss' "${duration}")"
                 fi
             fi
             ;;
@@ -289,52 +299,52 @@ performance_test() {
 # --- 生成安装建议 ---
 generate_recommendations() {
     echo ""
-    header "💡 安装建议"
+    header "$(_t '💡 Installation suggestions')"
     echo "=================="
     
     case "$OS" in
         macOS)
-            echo "macOS 系统建议:"
-            echo "• 确保已安装 Xcode Command Line Tools"
-            echo "• 使用 Homebrew 安装额外工具(可选)"
-            echo "• 建议使用 iTerm2 或 Terminal.app"
+            echo "macOS $(_t 'System suggestions:')"
+            printf '%s\n' "$(_t '• Make sure the Xcode Command Line Tools are installed')"
+            printf '%s\n' "$(_t '• Use Homebrew to install the extra tools (optional)')"
+            printf '%s\n' "$(_t '• iTerm2 or Terminal.app is recommended')"
             ;;
         Linux)
-            echo "Linux 系统建议:"
+            echo "Linux $(_t 'System suggestions:')"
             echo "• Ubuntu/Debian: sudo apt-get install iproute2 net-tools lsof"
             echo "• CentOS/RHEL: sudo yum install iproute net-tools lsof"
             echo "• Arch Linux: sudo pacman -S iproute2 net-tools lsof"
-            echo "• 建议使用现代终端模拟器"
+            printf '%s\n' "$(_t '• A modern terminal emulator is recommended')"
             ;;
         Windows)
-            echo "Windows 系统建议:"
-            echo "• 使用 WSL2 或 Git Bash"
-            echo "• 安装 Windows Terminal"
-            echo "• 考虑使用 PowerShell Core"
+            echo "Windows $(_t 'System suggestions:')"
+            printf '%s\n' "$(_t '• Use WSL2 or Git Bash')"
+            printf '%s\n' "$(_t '• Install Windows Terminal')"
+            printf '%s\n' "$(_t '• Consider using PowerShell Core')"
             ;;
     esac
     
     echo ""
-    echo "Shell 配置建议:"
-    echo "• 使用 Zsh + Oh My Zsh (推荐)"
-    echo "• 或使用 Fish shell"
-    echo "• 配置合适的终端主题"
+    echo "Shell $(_t 'Configuration suggestions:')"
+    printf '%s\n' "$(_t '• Use Zsh + Oh My Zsh (recommended)')"
+    printf '%s\n' "$(_t '• Or use the Fish shell')"
+    printf '%s\n' "$(_t '• Configure a suitable terminal theme')"
     echo ""
     
-    echo "安装后配置:"
-    echo "• 重新加载 shell 配置或重启终端"
-    echo "• 测试 'pm' 命令是否可用"
-    echo "• 查看文档: ~/.tools/docs/process_manager_README.md"
+    printf '%s\n' "$(_t 'Configuration after the installation:')"
+    printf '%s\n' "$(_t '• Reload the shell configuration or restart the terminal')"
+    printf '%s\n' "$(_t '• Test whether the pm command works')"
+    printf '%s\n' "$(_t '• See the documentation: ~/.tools/docs/process_manager_README.md')"
 }
 
 # --- 主函数 ---
 main() {
-    header "🔍 进程管理工具依赖检测"
+    header "$(_t '🔍 Process manager dependency detection')"
     echo "=============================="
     echo ""
     
     # 系统信息
-    header "💻 系统信息"
+    header "$(_t '💻 System information')"
     echo "=================="
     detect_system
     
@@ -364,18 +374,18 @@ main() {
     
     # 结果总结
     echo ""
-    header "📋 检测结果"
+    header "$(_t '📋 Detection results')"
     echo "=================="
     
     if [[ $errors -eq 0 ]]; then
-        success "🎉 所有依赖检测通过！"
-        echo "您的系统兼容进程管理工具。"
+        success "$(_t '🎉 All the dependency checks passed!')"
+        printf '%s\n' "$(_t 'Your system is compatible with the process manager.')"
         echo ""
-        echo "下一步: 运行安装脚本"
+        printf '%s\n' "$(_t 'Next step: run the installation script')"
         echo "  ./install_process_manager.sh"
     else
-        error "❌ 发现 $errors 个问题"
-        echo "请解决上述问题后再尝试安装。"
+        error "$(_tf '❌ %s problem(s) found' "$errors")"
+        printf '%s\n' "$(_t 'Please fix the problems above and try installing again.')"
     fi
     
     # 生成建议

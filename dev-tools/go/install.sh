@@ -38,21 +38,21 @@ arch_suffix() {
         linux/aarch64|linux/arm64) echo "linux-arm64" ;;
         darwin/x86_64)       echo "darwin-amd64" ;;
         darwin/arm64|darwin/aarch64) echo "darwin-arm64" ;;
-        *) error "不支持的架构：$OS_TYPE/$arch"; exit 1 ;;
+        *) error "$(_tf 'unsupported architecture: %s/%s' "$OS_TYPE" "$arch")"; exit 1 ;;
     esac
 }
 
 install_go() {
     preflight
-    info "🐹 安装 Go（Golang）"
+    info "$(_t '🐹 Installing Go (Golang)')"
 
     # macOS 优先 brew（无需 sudo，自动管理）
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
-        info "通过 Homebrew 安装 Go..."
+        info "$(_t 'Installing Go via Homebrew...')"
         brew install go
-        success "Go 安装完成（brew 管理版本）"
-        echo "  go version          # 查看版本"
-        echo "  go env GOPATH       # 查看 GOPATH"
+        success "Go $(_t 'Installation complete (the version is managed by brew)')"
+        echo "  go version          # $(_t 'View the version')"
+        echo "  go env GOPATH       # $(_t 'View GOPATH')"
         return 0
     fi
 
@@ -60,10 +60,10 @@ install_go() {
 
     if [[ -x "$GO_BIN" ]]; then
         local cur
-        cur=$("$GO_BIN" version 2>/dev/null | awk '{print $3}' || echo "已安装")
-        warn "检测到已安装 Go（${cur}）"
-        if ! yes_no "是否继续并覆盖安装最新版？"; then
-            info "已取消"; return 0
+        cur=$("$GO_BIN" version 2>/dev/null | awk '{print $3}' || printf '%s\n' "$(_t 'Installed')")
+        warn "$(_tf 'Go %s detected (already installed)' "${cur}")"
+        if ! yes_no "$(_t 'Continue and overwrite it with the latest version?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
         sudo rm -rf "$GO_DIR"
     fi
@@ -71,24 +71,24 @@ install_go() {
     local version suffix url tmpdir
     version=$(latest_go_version)
     if [[ -z "$version" ]]; then
-        error "无法获取 Go 最新版本（请检查网络或设置 GH_TOKEN）"
+        error "$(_t 'Cannot get the latest Go version (check the network or set GH_TOKEN)')"
         exit 1
     fi
-    success "最新版本：Go $version"
+    success "$(_tf 'Latest version: Go %s' "$version")"
     suffix=$(arch_suffix)
 
     url="https://go.dev/dl/go${version}.${suffix}.tar.gz"
-    info "下载：$url"
+    info "$(_tf 'Downloading: %s' "$url")"
     tmpdir=$(mktemp -d)
     if ! curl -fSL "$url" -o "$tmpdir/go.tar.gz"; then
-        error "下载失败"; rm -rf "$tmpdir"; exit 1
+        error "$(_t 'Download failed')"; rm -rf "$tmpdir"; exit 1
     fi
-    info "解压到 $GO_DIR..."
+    info "$(_tf 'Extracting to %s...' "$GO_DIR")"
     if ! sudo tar -C /usr/local -xzf "$tmpdir/go.tar.gz"; then
-        error "解压失败"; rm -rf "$tmpdir"; exit 1
+        error "$(_t 'Extraction failed')"; rm -rf "$tmpdir"; exit 1
     fi
     rm -rf "$tmpdir"
-    success "Go $version 安装完成"
+    success "Go $version $(_t 'Installation complete')"
 
     # 配置 PATH
     local rc updated=false
@@ -96,48 +96,48 @@ install_go() {
         if [[ -f "$rc" ]] && ! grep -q '/usr/local/go/bin' "$rc" 2>/dev/null; then
             {
                 echo ""
-                echo "# Go 环境（由 unix_script 添加）"
+                echo "# >>> unix_script go >>> Go $(_t 'Environment (added by unix_script)')"
                 # 以下两行需以字面量写入 rc（$PATH 和 $(go env GOPATH) 在 shell 启动时展开）
                 # shellcheck disable=SC2016
                 echo 'export PATH=$PATH:/usr/local/go/bin'
                 # shellcheck disable=SC2016
                 echo 'export PATH=$PATH:$(go env GOPATH)/bin'
             } >> "$rc"
-            info "已为 $(basename "$rc") 添加 Go PATH 配置"
+            info "$(_tf 'Added the Go PATH configuration for %s' "$(basename "$rc")")"
             updated=true
         fi
     done
     if ! $updated; then
-        info "Go PATH 配置已存在（或无 rc 文件）"
+        info "Go PATH $(_t 'The configuration already exists (or there is no rc file)')"
     fi
 
     echo
-    success "🎉 Go $version 安装完成！"
-    info "重新加载 shell 后生效：source ~/.bashrc（或 ~/.zshrc）"
-    echo "  go version          # 查看版本"
-    echo "  go env GOPATH       # 查看 GOPATH"
-    echo "  go run main.go      # 运行"
+    success "$(_tf '🎉 Go %s installation complete!' "$version")"
+    info "$(_t 'Take effect after reloading the shell: source ~/.bashrc (or ~/.zshrc)')"
+    echo "  go version          # $(_t 'View the version')"
+    echo "  go env GOPATH       # $(_t 'View GOPATH')"
+    echo "  go run main.go      # $(_t 'Run')"
 }
 
 uninstall_go() {
     preflight
     require_sudo
     if [[ ! -d "$GO_DIR" ]]; then
-        warn "未安装 Go（$GO_DIR 不存在）"; return 0
+        warn "$(_tf 'Go is not installed (%s does not exist)' "$GO_DIR")"; return 0
     fi
-    if ! yes_no "确认卸载 Go（删除 ${GO_DIR}）？"; then
-        info "已取消"; return 0
+    if ! yes_no "$(_tf 'Confirm uninstalling Go (deleting %s)?' "${GO_DIR}")"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
     sudo rm -rf "$GO_DIR"
     # 清理 shell rc 中的 Go PATH
     local rc
     for rc in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile"; do
         if [[ -f "$rc" ]]; then
-            sed -i.bak '/Go 环境\|\/usr\/local\/go\/bin\|GOPATH.\/bin/d' "$rc" 2>/dev/null || true
+            sed -i.bak '/>>> unix_script go >>>\|\/usr\/local\/go\/bin\|GOPATH.\/bin/d' "$rc" 2>/dev/null || true
         fi
     done
-    success "Go 已卸载（$GO_DIR 已删除）"
-    warn "GOPATH 数据保留在 ~/go，可手动删除"
+    success "Go $(_tf 'Uninstalled (%s deleted)' "$GO_DIR")"
+    warn "GOPATH $(_t 'The data stays in ~/go, you can delete it manually')"
 }
 
 status_go() {
@@ -145,10 +145,10 @@ status_go() {
     if [[ -x "$GO_BIN" ]] || command_exists go; then
         local ver
         ver=$("$GO_BIN" version 2>/dev/null | awk '{print $3}' || go version 2>/dev/null | awk '{print $3}' || echo "")
-        emit_status "installed" "${GREEN}✅ 已安装${NC} ${ver:+($ver)}"
+        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} ${ver:+($ver)}"
         emit_version "$ver"
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 
@@ -156,9 +156,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装 Go（官方二进制，装到 /usr/local/go，默认动作）
-  uninstall   卸载
-  status      查看状态
+  install     $(_t 'Install Go (the official binary, into /usr/local/go, default action)')
+  uninstall   $(_t 'Uninstall')
+  status      $(_t 'View the status')
 EOF
 }
 
@@ -170,7 +170,7 @@ main() {
         uninstall) uninstall_go ;;
         status)    status_go ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

@@ -30,7 +30,7 @@ arch_go_suffix() {
         x86_64)         echo "x86_64" ;;
         aarch64|arm64)  echo "arm64" ;;
         armv7l)         echo "armv7" ;;
-        *) error "不支持的架构：$arch"; exit 1 ;;
+        *) error "$(_tf 'unsupported architecture: %s' "$arch")"; exit 1 ;;
     esac
 }
 
@@ -40,7 +40,7 @@ install_one() {
     local arch version url tmpdir suffix capos
     version=$(github_latest_tag "$repo")
     if [[ -z "$version" ]]; then
-        error "无法获取 $tool 最新版本（请检查网络或设置 GH_TOKEN）"
+        error "$(_tf 'Cannot get the latest version of %s (check the network or set GH_TOKEN)' "$tool")"
         return 1
     fi
     suffix=$(arch_go_suffix)
@@ -50,16 +50,16 @@ install_one() {
         darwin) capos="Darwin" ;;
     esac
     url="https://github.com/${repo}/releases/download/v${version}/${tool}_${version}_${capos}_${suffix}.tar.gz"
-    info "下载 $tool v$version ..."
+    info "$(_tf 'Downloading %s v%s ...' "$tool" "$version")"
     tmpdir=$(mktemp -d)
     if ! curl -fSL "$url" -o "$tmpdir/pkg.tar.gz"; then
-        error "$tool 下载失败：$url"
+        error "$tool $(_tf 'Download failed: %s' "$url")"
         rm -rf "$tmpdir"; return 1
     fi
     if ! tar -xzf "$tmpdir/pkg.tar.gz" -C "$tmpdir" 2>/dev/null; then
         # 部分版本可能是 .tar.xz 或裸二进制，兜底尝试
         if ! tar -xJf "$tmpdir/pkg.tar.gz" -C "$tmpdir" 2>/dev/null; then
-            error "$tool 解压失败"
+            error "$tool $(_t 'Extraction failed')"
             rm -rf "$tmpdir"; return 1
         fi
     fi
@@ -73,57 +73,57 @@ install_one() {
         if [[ -n "$found" ]]; then
             mv "$found" "$INSTALL_DIR/$tool"
         else
-            error "$tool 二进制未在压缩包中找到"
+            error "$tool $(_t 'The binary was not found in the archive')"
             rm -rf "$tmpdir"; return 1
         fi
     fi
     chmod +x "$INSTALL_DIR/$tool"
     rm -rf "$tmpdir"
-    success "$tool v$version 已安装到 $INSTALL_DIR/$tool"
+    success "$tool v$version $(_tf 'Installed to %s/%s' "$INSTALL_DIR" "$tool")"
 }
 
 install_dev_tui() {
     preflight
-    info "🚀 开始安装终端 TUI 工具（lazydocker + lazygit）"
+    info "$(_t '🚀 Starting the installation of the terminal TUI tools (lazydocker + lazygit)')"
 
     # macOS 优先 brew
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
-        info "通过 Homebrew 安装..."
+        info "$(_t 'Installing via Homebrew...')"
         brew install lazydocker lazygit
-        success "lazydocker + lazygit 安装完成（brew 管理）"
-        info "使用：lazydocker / lazygit"
+        success "lazydocker + lazygit $(_t 'Installation complete (managed by brew)')"
+        info "$(_t 'Usage: lazydocker / lazygit')"
         return 0
     fi
 
     mkdir -p "$INSTALL_DIR"
-    install_one "jesseduffield/lazydocker" "lazydocker" || warn "lazydocker 安装失败"
-    install_one "jesseduffield/lazygit" "lazygit" || warn "lazygit 安装失败"
+    install_one "jesseduffield/lazydocker" "lazydocker" || warn "lazydocker $(_t 'Installation failed')"
+    install_one "jesseduffield/lazygit" "lazygit" || warn "lazygit $(_t 'Installation failed')"
 
     # PATH 配置提示
     if ! echo "$PATH" | grep -q "$INSTALL_DIR"; then
-        warn "$INSTALL_DIR 不在 PATH 中。请添加到 shell 配置："
+        warn "$INSTALL_DIR $(_t 'is not in PATH. Please add it to your shell configuration:')"
         echo "  export PATH=\"$INSTALL_DIR:\$PATH\""
     fi
 
     echo
-    info "使用方法："
-    echo "  lazydocker    # Docker 终端 UI"
-    echo "  lazygit       # Git 终端 UI"
+    info "$(_t 'How to use:')"
+    echo "  lazydocker    # Docker $(_t 'terminal UI')"
+    echo "  lazygit       # Git $(_t 'terminal UI')"
 }
 
 uninstall_dev_tui() {
     preflight
-    if ! yes_no "确认卸载 lazydocker 与 lazygit？"; then
-        info "已取消"; return 0
+    if ! yes_no "$(_t 'Confirm uninstalling lazydocker and lazygit?')"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
     local t
     for t in "${TOOLS[@]}"; do
         if [[ -f "$INSTALL_DIR/$t" ]]; then
             rm -f "$INSTALL_DIR/$t"
-            success "已删除 $INSTALL_DIR/$t"
+            success "$(_tf 'Deleted %s/%s' "$INSTALL_DIR" "$t")"
         fi
     done
-    success "TUI 工具已卸载。"
+    success "TUI $(_t 'The tools have been uninstalled.')"
 }
 
 status_dev_tui() {
@@ -136,12 +136,12 @@ status_dev_tui() {
         fi
     done
     if [[ $installed -eq ${#TOOLS[@]} ]]; then
-        emit_status "installed" "${GREEN}✅ lazydocker + lazygit 已安装${NC}"
+        emit_status "installed" "${GREEN}$(_t '✅ lazydocker + lazygit are installed')${NC}"
     elif [[ $installed -gt 0 ]]; then
-        emit_status "installed" "${YELLOW}⚠️  部分已安装（$installed/${#TOOLS[@]}）${NC}"
+        emit_status "installed" "${YELLOW}$(_tf '⚠️  partially installed (%s/%s)' "$installed" "${#TOOLS[@]}")${NC}"
         emit_extra "installed=$installed/${#TOOLS[@]}"
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 
@@ -149,9 +149,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装 lazydocker + lazygit 到 $INSTALL_DIR
-  uninstall   卸载
-  status      查看状态
+  install     $(_tf 'Install lazydocker + lazygit to %s' "$INSTALL_DIR")
+  uninstall   $(_t 'Uninstall')
+  status      $(_t 'View the status')
 EOF
 }
 
@@ -163,7 +163,7 @@ main() {
         uninstall) uninstall_dev_tui ;;
         status)    status_dev_tui ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

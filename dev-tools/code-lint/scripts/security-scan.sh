@@ -14,19 +14,19 @@ source "$SCRIPT_DIR/../../../lib/common.sh"
 
 TARGET="${1:-.}"
 
-header "🔍 跨语言安全扫描（semgrep）：$TARGET"
+header "🔍 $(_tf 'Cross-language security scan (semgrep): %s' "$TARGET")"
 echo
 
 if ! command_exists semgrep; then
-    error "semgrep 未安装"
-    info "安装：./install.sh install-semgrep"
+    error "$(_t 'semgrep is not installed')"
+    info "$(_t 'Install: ./install.sh install-semgrep')"
     exit 1
 fi
 
-info "运行 semgrep（自动规则检测）..."
+info "$(_t 'Running semgrep (automatic rule detection)...')"
 if semgrep scan --config auto --quiet "$TARGET" 2>&1; then
-    success "✅ semgrep 扫描通过"
+    success "✅ $(_t 'semgrep scan passed')"
 else
-    error "semgrep 发现安全问题"
+    error "$(_t 'semgrep found security issues')"
     exit 1
 fi

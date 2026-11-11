@@ -28,7 +28,7 @@ source "$SCRIPT_DIR/../../lib/common.sh"
 
 # ---- CPU 占用 TOP10 ----
 cmd_cpu() {
-    header "🔥 CPU 占用 TOP10"
+    header "$(_t '🔥 CPU usage TOP10')"
     echo "-----------------------------------------------"
     if [[ "$OS_TYPE" == "darwin" ]]; then
         ps -Arceo pid,%cpu,%mem,comm | head -11 || true
@@ -39,7 +39,7 @@ cmd_cpu() {
 
 # ---- 内存占用 TOP10 ----
 cmd_mem() {
-    header "💾 内存占用 TOP10"
+    header "$(_t '💾 Memory usage TOP10')"
     echo "-----------------------------------------------"
     if [[ "$OS_TYPE" == "darwin" ]]; then
         ps -Amceo pid,%mem,rss,comm | head -11 || true
@@ -52,13 +52,13 @@ cmd_mem() {
 cmd_port() {
     local port="$1"
     if [[ -z "$port" ]]; then
-        error "用法: $0 port <端口号>，例如: $0 port 8080"
+        error "$(_tf 'Usage: %s port <port>, for example: %s port 8080' "$0" "$0")"
         return 1
     fi
-    header "🔌 占用端口 $port 的进程"
+    header "$(_tf '🔌 Processes using port %s' "$port")"
     echo "-----------------------------------------------"
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        sudo lsof -i ":$port" -P -n 2>/dev/null || lsof -i ":$port" -P -n 2>/dev/null || warn "无进程占用端口 $port 或需要 sudo"
+        sudo lsof -i ":$port" -P -n 2>/dev/null || lsof -i ":$port" -P -n 2>/dev/null || warn "$(_tf 'No process is using port %s, or sudo is required' "$port")"
     else
         # 先试 ss（现代），再试 netstat（老系统）
         if command_exists ss; then
@@ -66,14 +66,14 @@ cmd_port() {
         elif command_exists netstat; then
             netstat -tlnp 2>/dev/null | grep ":$port"
         else
-            warn "无 ss/netstat 命令"
+            warn "$(_t 'No ss/netstat command found')"
         fi
     fi
 }
 
 # ---- 所有监听端口 ----
 cmd_ports() {
-    header "🌐 所有监听端口"
+    header "$(_t '🌐 All listening ports')"
     echo "-----------------------------------------------"
     if [[ "$OS_TYPE" == "darwin" ]]; then
         lsof -iTCP -sTCP:LISTEN -P -n 2>/dev/null | head -30 || true
@@ -83,21 +83,21 @@ cmd_ports() {
         elif command_exists netstat; then
             netstat -tlnp 2>/dev/null | head -30 || true
         else
-            warn "无 ss/netstat 命令"
+            warn "$(_t 'No ss/netstat command found')"
         fi
     fi
 }
 
 # ---- 磁盘空间 ----
 cmd_disk() {
-    header "💽 磁盘空间（df -h）"
+    header "$(_t '💽 Disk space (df -h)')"
     echo "-----------------------------------------------"
     df -h 2>/dev/null || df
 }
 
 # ---- 目录磁盘占用 TOP10 ----
 cmd_du() {
-    header "📦 目录占用 TOP10（当前目录）"
+    header "$(_t '📦 Directory usage TOP10 (current directory)')"
     echo "-----------------------------------------------"
     if [[ "$OS_TYPE" == "darwin" ]]; then
         # macOS du 不支持 --max-depth，用 -d 1
@@ -109,28 +109,28 @@ cmd_du() {
 
 # ---- 网络连接统计 ----
 cmd_net() {
-    header "🌍 网络连接统计"
+    header "$(_t '🌍 Network connection statistics')"
     echo "-----------------------------------------------"
     if [[ "$OS_TYPE" == "darwin" ]]; then
         local total estab listen
         total=$(netstat -an 2>/dev/null | grep -c tcp || echo 0)
         estab=$(netstat -an 2>/dev/null | grep -c ESTABLISHED || echo 0)
         listen=$(netstat -an 2>/dev/null | grep -c LISTEN || echo 0)
-        echo "TCP 总连接: $total"
+        printf '%s\n' "TCP $(_tf 'Total connections: %s' "$total")"
         echo "ESTABLISHED: $estab"
         echo "LISTEN: $listen"
         echo
-        echo "活跃连接 TOP10:"
+        printf '%s\n' "$(_t 'Active connections TOP10:')"
         netstat -an 2>/dev/null | grep ESTABLISHED | head -10 || true
     else
         if command_exists ss; then
-            echo "TCP 连接状态统计:"
+            printf '%s\n' "TCP $(_t 'Connection state statistics:')"
             ss -s 2>/dev/null
             echo
             echo "ESTABLISHED TOP10:"
             ss -tunap state established 2>/dev/null | head -11 || true
         elif command_exists netstat; then
-            echo "TCP 连接状态统计:"
+            printf '%s\n' "TCP $(_t 'Connection state statistics:')"
             netstat -ant 2>/dev/null | awk '{print $6}' | sort | uniq -c | sort -rn
             echo
             echo "ESTABLISHED TOP10:"
@@ -141,45 +141,48 @@ cmd_net() {
 
 # ---- 系统概览快照 ----
 cmd_top() {
-    header "📊 系统概览快照"
+    header "$(_t '📊 System overview snapshot')"
     echo "-----------------------------------------------"
     # uptime + 负载
     uptime 2>/dev/null
     echo
     # 内存
+    local ncpu
     if [[ "$OS_TYPE" == "darwin" ]]; then
         vm_stat 2>/dev/null | head -5 || true
         echo
-        echo "CPU 核心: $(sysctl -n hw.ncpu 2>/dev/null || echo '?')"
+        ncpu=$(sysctl -n hw.ncpu 2>/dev/null || echo '?')
+        printf '%s\n' "$(_tf 'CPU cores: %s' "$ncpu")"
     else
         free -h 2>/dev/null || free
         echo
-        echo "CPU 核心: $(nproc 2>/dev/null || grep -c processor /proc/cpuinfo)"
+        ncpu=$(nproc 2>/dev/null || grep -c processor /proc/cpuinfo) || true
+        printf '%s\n' "$(_tf 'CPU cores: %s' "$ncpu")"
     fi
 }
 
 # ---- 日志入口提示 ----
 cmd_logs() {
-    header "📋 系统日志入口"
+    header "$(_t '📋 System log entry points')"
     echo "-----------------------------------------------"
     if [[ "$OS_TYPE" == "linux" ]]; then
-        echo "查看 systemd 服务日志:"
-        echo "  sudo journalctl -u <服务名> -f       # 实时跟踪"
-        echo "  sudo journalctl -u <服务名> --since today"
-        echo "  sudo journalctl -p err -b            # 本次启动的错误日志"
+        printf '%s\n' "$(_t 'View systemd service logs:')"
+        printf '%s\n' "  sudo journalctl -u <$(_t 'service name')> -f       # $(_t 'real-time follow')"
+        printf '%s\n' "  sudo journalctl -u <$(_t 'service name')> --since today"
+        printf '%s\n' "  sudo journalctl -p err -b            # $(_t 'errors since this boot')"
         echo
-        echo "常见服务日志文件:"
-        echo "  /var/log/syslog 或 /var/log/messages  # 系统日志"
-        echo "  /var/log/auth.log 或 /var/log/secure  # 认证日志"
+        printf '%s\n' "$(_t 'Common service log files:')"
+        printf '%s\n' "  /var/log/syslog $(_t 'or') /var/log/messages  # $(_t 'system log')"
+        printf '%s\n' "  /var/log/auth.log $(_t 'or') /var/log/secure  # $(_t 'auth log')"
         echo "  /var/log/nginx/                        # Nginx"
         echo "  /var/log/fail2ban.log                  # Fail2ban"
     else
-        echo "macOS 日志:"
-        echo "  log show --predicate 'processImagePath contains \"<关键字>\"' --last 1h"
-        echo "  log stream                             # 实时流"
-        echo "  Console.app                            # 图形界面"
+        printf '%s\n' "$(_t 'macOS logs:')"
+        printf '%s\n' "  log show --predicate 'processImagePath contains \"<$(_t 'keyword')>\"' --last 1h"
+        printf '%s\n' "  log stream                             # $(_t 'real-time stream')"
+        printf '%s\n' "  Console.app                            # $(_t 'graphical interface')"
         echo
-        echo "常见日志文件:"
+        printf '%s\n' "$(_t 'Common log files:')"
         echo "  /var/log/system.log"
         echo "  /var/log/install.log"
     fi
@@ -202,7 +205,7 @@ cmd_all() {
 
 status_sys_cmd() {
     detect_os
-    emit_status "installed" "${GREEN}✅ 可用${NC}（纯命令封装，无需安装）"
+    emit_status "installed" "${GREEN}$(_t '✅ Available')${NC}$(_t '(pure command wrapper, nothing to install)')"
     emit_extra "type=builtin"
 }
 
@@ -210,21 +213,21 @@ status_sys_cmd() {
 interactive_menu() {
     while true; do
         clear
-        header "🔍 系统诊断命令"
+        header "$(_t '🔍 System diagnostic commands')"
         echo "========================================"
-        echo "  1) 系统概览        - 负载/内存/CPU核心"
-        echo "  2) CPU 占用 TOP10"
-        echo "  3) 内存占用 TOP10"
-        echo "  4) 磁盘空间        - df -h"
-        echo "  5) 目录占用 TOP10  - du（当前目录）"
-        echo "  6) 网络连接统计"
-        echo "  7) 监听端口一览"
-        echo "  8) 查端口占用      - 需输入端口号"
-        echo "  9) 系统日志入口提示"
-        echo "  a) 全部展示"
-        echo "  0) 返回主菜单"
+        printf '%s\n' "  1) $(_t 'System overview        - load/memory/CPU cores')"
+        printf '%s\n' "  2) $(_t 'CPU usage TOP10')"
+        printf '%s\n' "  3) $(_t 'Memory usage TOP10')"
+        printf '%s\n' "  4) $(_t 'Disk space        - df -h')"
+        printf '%s\n' "  5) $(_t 'Directory usage TOP10  - du (current directory)')"
+        printf '%s\n' "  6) $(_t 'Network connection statistics')"
+        printf '%s\n' "  7) $(_t 'Listening ports at a glance')"
+        printf '%s\n' "  8) $(_t 'Check port usage      - port number required')"
+        printf '%s\n' "  9) $(_t 'System log entry point tips')"
+        printf '%s\n' "  a) $(_t 'Show everything')"
+        printf '%s\n' "  0) $(_t 'Back to the main menu')"
         echo "========================================"
-        read -r -p "请选择 [0-9/a]: " choice
+        read -r -p "$(_t 'Select [0-9/a]:') " choice
         echo
         case "$choice" in
             1) cmd_top ;;
@@ -234,14 +237,14 @@ interactive_menu() {
             5) cmd_du ;;
             6) cmd_net ;;
             7) cmd_ports ;;
-            8) read -r -p "输入端口号: " p; cmd_port "$p" ;;
+            8) read -r -p "$(_t 'Enter the port number:') " p; cmd_port "$p" ;;
             9) cmd_logs ;;
             a|A) cmd_all ;;
             0) break ;;
-            *) error "无效选项"; sleep 1; continue ;;
+            *) error "$(_t 'Invalid option')"; sleep 1; continue ;;
         esac
         echo
-        read -r -p "按回车键继续..."
+        read -r -p "$(_t 'Press Enter to continue...')"
     done
 }
 
@@ -249,18 +252,18 @@ usage() {
     cat <<EOF
 用法: $0 {cpu|mem|port|ports|disk|du|net|top|logs|all|menu|status|help}
 
-系统诊断命令集（Linux + macOS）:
-  menu        交互式菜单（默认动作）
-  cpu         CPU 占用 TOP10 进程
-  mem         内存占用 TOP10 进程
-  port <端口> 占用指定端口的进程（如 port 8080）
-  ports       所有监听端口一览
-  disk        磁盘空间（df -h）
-  du          当前目录占用 TOP10
-  net         网络连接状态统计
-  top         系统概览快照（负载/内存/CPU核心）
-  logs        系统日志入口提示
-  all         依次展示 top/cpu/mem/disk/net/ports
+$(_t 'System diagnostic command set (Linux + macOS):')
+  menu        $(_t 'Interactive menu (default action)')
+  cpu         $(_t 'CPU usage TOP10 processes')
+  mem         $(_t 'Memory usage TOP10 processes')
+  port <$(_t 'port> processes using the given port (e.g. port 8080)')
+  ports       $(_t 'Overview of all listening ports')
+  disk        $(_t 'Disk space (df -h)')
+  du          $(_t 'TOP10 usage of the current directory')
+  net         $(_t 'Network connection state statistics')
+  top         $(_t 'System overview snapshot (load/memory/CPU cores)')
+  logs        $(_t 'System log entry point tips')
+  all         $(_t 'Show top/cpu/mem/disk/net/ports in sequence')
 EOF
 }
 
@@ -280,9 +283,10 @@ main() {
         all)    cmd_all ;;
         menu)   interactive_menu ;;
         status) status_sys_cmd ;;
-        uninstall) info "sys-cmd 为只读命令封装，不安装任何组件，无需卸载" ;;   # 契约 no-op
+        # 契约 no-op
+        uninstall) info "$(_t 'sys-cmd is a read-only command wrapper, installs no components, nothing to uninstall')" ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 
