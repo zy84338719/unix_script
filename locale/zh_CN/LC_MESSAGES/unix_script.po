@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 16:18+0800\n"
+"POT-Creation-Date: 2026-11-11 16:43+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
@@ -1254,6 +1254,652 @@ msgid "Uninstall Fail2ban"
 msgstr "卸载 Fail2ban"
 
 #, sh-printf-format
+msgid "Unsupported architecture: %s (only x86_64/arm64 are supported)"
+msgstr "不支持的架构：%s（仅支持 x86_64/arm64）"
+
+msgid "frp detected, overwrite it with the latest version?"
+msgstr "已检测到 frp，是否覆盖安装最新版？"
+
+msgid "Fetching the latest frp version (GitHub API)..."
+msgstr "获取 frp 最新版本（GitHub API）..."
+
+msgid ""
+"Cannot fetch the version (GitHub is unreachable or rate limited), set "
+"GH_TOKEN and retry"
+msgstr "无法获取版本号（GitHub 不可达或限流），可设 GH_TOKEN 重试"
+
+#, sh-printf-format
+msgid "Asset frp_%s_%s_%s.tar.gz not found"
+msgstr "未找到资产 frp_%s_%s_%s.tar.gz"
+
+#, sh-printf-format
+msgid "Downloading %s ..."
+msgstr "下载 %s ..."
+
+msgid "Installed to /usr/local/bin"
+msgstr "已安装到 /usr/local/bin"
+
+#, sh-printf-format
+msgid ""
+"The sample configuration is in %s (a full example, edit it before use); the "
+"systemd unit is installed (disabled by default)"
+msgstr ""
+"配置样例已放 %s（完整示例，编辑后使用）；systemd unit 已装（默认不启用）"
+
+msgid "Enable the server: sudo systemctl enable --now frps"
+msgstr "服务端启用：sudo systemctl enable --now frps"
+
+msgid "Enable the client: sudo systemctl enable --now frpc"
+msgstr "客户端启用：sudo systemctl enable --now frpc"
+
+msgid ""
+"Without the systemd service, run it manually: frps -c <config> / frpc -c "
+"<config>"
+msgstr "不装 systemd 服务，直接手跑：frps -c <配置> / frpc -c <配置>"
+
+#, sh-printf-format
+msgid ""
+"Edit %s/frps.toml to set bindPort and token; set serverAddr/serverName and "
+"the tunnel rules in frpc.toml"
+msgstr ""
+"编辑 %s/frps.toml 设 bindPort 与 token；frpc.toml 配 serverAddr/serverName 及"
+"穿透规则"
+
+msgid "Confirm uninstall of frp (the frpc/frps binaries and the systemd unit)?"
+msgstr "确认卸载 frp（frpc/frps 二进制与 systemd unit）？"
+
+msgid "Uninstalled"
+msgstr "已卸载"
+
+#, sh-printf-format
+msgid ""
+"Delete the configuration directory %s (it holds your token and the tunnel "
+"rules)?"
+msgstr "是否删除配置目录 %s（含你的 token 与穿透规则）？"
+
+msgid "Configuration deleted"
+msgstr "配置已删除"
+
+msgid "Keeping the configuration"
+msgstr "保留配置"
+
+msgid "❌ frp not installed"
+msgstr "❌ frp 未安装"
+
+msgid "✅ frp installed and the frps service is running"
+msgstr "✅ frp 已安装且 frps 服务运行中"
+
+msgid "⚠️ frp installed but the frps service is not running"
+msgstr "⚠️ frp 已安装但 frps 服务未运行"
+
+msgid "✅ frp installed"
+msgstr "✅ frp 已安装"
+
+msgid "(run it manually on macOS)"
+msgstr "（macOS 手动运行）"
+
+msgid "— Intranet penetration (the frps server + the frpc client)"
+msgstr "—— 内网穿透（frps 服务端 + frpc 客户端）"
+
+msgid ""
+"Install the frpc/frps binaries and a sample configuration (Linux also gets a "
+"systemd unit, disabled by default)"
+msgstr ""
+"安装 frpc/frps 二进制 + 配置样例（Linux 另附 systemd unit，默认不启用）"
+
+msgid ""
+"Uninstall (the /etc/frp configuration holds the token, deletion needs a "
+"second confirmation)"
+msgstr "卸载（/etc/frp 配置含 token，删除需二次确认）"
+
+msgid "View the install status (supports UXS_STATUS_MODE=machine)"
+msgstr "查看安装状态（支持 UXS_STATUS_MODE=machine）"
+
+msgid ""
+"Note: the server sets bindPort/token, the client sets serverAddr and the "
+"tunnel rules;"
+msgstr "说明：服务端设 bindPort/token，客户端配 serverAddr 与穿透规则；"
+
+msgid ""
+"it complements ddns-go (DNS resolution) and tailscale (networking) — run ./"
+"install.sh ddns-go"
+msgstr "与 ddns-go（域名解析）、tailscale（组网）互补——./install.sh ddns-go"
+
+msgid "Cannot fetch the latest version info, check the network connection"
+msgstr "无法获取最新版本信息，请检查网络连接"
+
+#, sh-printf-format
+msgid "Gitea detected (%s)"
+msgstr "检测到已安装 Gitea（%s）"
+
+msgid "Continue and overwrite it with the newest version?"
+msgstr "是否继续并覆盖安装最新版本？"
+
+msgid "The installation was cancelled"
+msgstr "安装已取消"
+
+msgid "Stopping the existing service..."
+msgstr "正在停止现有服务..."
+
+#, sh-printf-format
+msgid "The user %s already exists"
+msgstr "用户 %s 已存在"
+
+#, sh-printf-format
+msgid "Creating the system user %s..."
+msgstr "创建系统用户 %s..."
+
+msgid "Failed to create the user"
+msgstr "创建用户失败"
+
+#, sh-printf-format
+msgid "The user %s was created"
+msgstr "用户 %s 创建成功"
+
+msgid "Creating the directory structure..."
+msgstr "创建目录结构..."
+
+msgid "The directory structure is ready"
+msgstr "目录结构创建完成"
+
+msgid "Creating the systemd service..."
+msgstr "创建 systemd 服务..."
+
+msgid "The service file was created"
+msgstr "服务文件创建成功"
+
+msgid "The service is running and enabled on boot"
+msgstr "服务已启动并设置为开机自启"
+
+msgid "Failed to start the service"
+msgstr "服务启动失败"
+
+msgid "Creating the macOS service..."
+msgstr "创建 macOS 服务..."
+
+msgid "The service is already running"
+msgstr "服务已在运行中"
+
+msgid "The service is running"
+msgstr "服务已启动"
+
+msgid "failed, trying load"
+msgstr "失败，尝试 load"
+
+msgid "The service is running (load)"
+msgstr "服务已启动（load）"
+
+msgid "The auto-start failed, the service file is installed"
+msgstr "自动启动失败，服务文件已安装"
+
+#, sh-printf-format
+msgid "Start it manually: sudo launchctl bootstrap system %s"
+msgstr "手动启动：sudo launchctl bootstrap system %s"
+
+msgid "🚀 Gitea self-hosted Git service install script"
+msgstr "🚀 Gitea 自托管 Git 服务安装脚本"
+
+msgid "Installing Gitea via Homebrew..."
+msgstr "通过 Homebrew 安装 Gitea..."
+
+msgid "🎉 Gitea installation complete! (managed by brew)"
+msgstr "🎉 Gitea 安装完成！（brew 管理）"
+
+#, sh-printf-format
+msgid "Access URL: http://%s:%s"
+msgstr "访问地址：http://%s:%s"
+
+msgid "Common commands: brew services info gitea"
+msgstr "常用命令：brew services info gitea"
+
+msgid "Fetching the latest version info..."
+msgstr "正在获取最新版本信息..."
+
+#, sh-printf-format
+msgid "Latest version: v%s"
+msgstr "最新版本：v%s"
+
+msgid "Detected architecture:"
+msgstr "检测到架构："
+
+#, sh-printf-format
+msgid "About to install Gitea v%s"
+msgstr "即将安装 Gitea v%s"
+
+#, sh-printf-format
+msgid "Port: %s | SSH port: %s"
+msgstr "端口：%s | SSH 端口：%s"
+
+#, sh-printf-format
+msgid "Configuration file: %s"
+msgstr "配置文件：%s"
+
+#, sh-printf-format
+msgid "Data directory: %s"
+msgstr "数据目录：%s"
+
+msgid "Continue with the installation?"
+msgstr "确认继续安装？"
+
+#, sh-printf-format
+msgid "Download URL: %s"
+msgstr "下载地址：%s"
+
+msgid "Download complete"
+msgstr "下载完成"
+
+msgid "The binary files are installed"
+msgstr "二进制文件安装完成"
+
+msgid "Verifying the installation..."
+msgstr "正在验证安装..."
+
+msgid "The service is running normally"
+msgstr "服务运行正常"
+
+msgid "The service may still be starting..."
+msgstr "服务可能还在启动中..."
+
+#, sh-printf-format
+msgid "🎉 Gitea v%s installation complete!"
+msgstr "🎉 Gitea v%s 安装完成！"
+
+#, sh-printf-format
+msgid "Access: http://%s:%s"
+msgstr "访问：http://%s:%s"
+
+#, sh-printf-format
+msgid "Address: ssh://%s:%s"
+msgstr "地址：ssh://%s:%s"
+
+msgid ""
+"On the first visit, finish the initial setup wizard (set the admin account, "
+"the database, ...)."
+msgstr "首次访问请完成初始安装向导（设置管理员账号、数据库等）。"
+
+msgid "Service status: sudo systemctl status gitea"
+msgstr "服务状态：sudo systemctl status gitea"
+
+msgid "View the logs: sudo journalctl -u gitea -f"
+msgstr "查看日志：sudo journalctl -u gitea -f"
+
+msgid "Restart the service: sudo systemctl restart gitea"
+msgstr "重启服务：sudo systemctl restart gitea"
+
+#, sh-printf-format
+msgid "Edit the configuration: sudo nano %s"
+msgstr "编辑配置：sudo nano %s"
+
+msgid "Service status: sudo launchctl list | grep gitea"
+msgstr "服务状态：sudo launchctl list | grep gitea"
+
+msgid "View the logs: tail -f /var/log/gitea.log"
+msgstr "查看日志：tail -f /var/log/gitea.log"
+
+#, sh-printf-format
+msgid "Restart the service: sudo launchctl kickstart -k system/%s"
+msgstr "重启服务：sudo launchctl kickstart -k system/%s"
+
+msgid "About to uninstall Gitea."
+msgstr "即将卸载 Gitea。"
+
+#, sh-printf-format
+msgid "Delete the data directory (%s) too?"
+msgstr "是否同时删除数据目录（%s）？"
+
+msgid "The data directory will be deleted"
+msgstr "将删除数据目录"
+
+msgid "The data directory will be kept"
+msgstr "将保留数据目录"
+
+msgid "Confirm uninstall of Gitea?"
+msgstr "确认卸载 Gitea？"
+
+msgid "Data directory deleted"
+msgstr "数据目录已删除"
+
+#, sh-printf-format
+msgid "Data directory kept: %s"
+msgstr "数据目录已保留：%s"
+
+msgid "Uninstalled."
+msgstr "已卸载。"
+
+msgid "✅ Installed and running"
+msgstr "✅ 已安装并运行"
+
+msgid "⚠️ Installed but the service is not running"
+msgstr "⚠️  已安装但服务未运行"
+
+msgid "❌ Not installed"
+msgstr "❌ 未安装"
+
+msgid "Install or update Gitea (default action)"
+msgstr "安装或更新 Gitea（默认动作）"
+
+msgid "Uninstall Gitea"
+msgstr "卸载 Gitea"
+
+msgid "View the install and run status"
+msgstr "查看安装与运行状态"
+
+msgid "Adding the Grafana APT repository..."
+msgstr "正在添加 Grafana APT 仓库..."
+
+msgid "The key was added"
+msgstr "密钥已添加"
+
+msgid "The repository was added"
+msgstr "仓库已添加"
+
+msgid "Adding the Grafana YUM/DNF repository..."
+msgstr "正在添加 Grafana YUM/DNF 仓库..."
+
+msgid "Installing Grafana..."
+msgstr "正在安装 Grafana..."
+
+#, sh-printf-format
+msgid "Unsupported package manager: %s"
+msgstr "不支持的包管理器：%s"
+
+msgid "The install only supports APT and DNF/YUM"
+msgstr "安装仅支持 APT 和 DNF/YUM"
+
+msgid "The package installation is complete"
+msgstr "软件包安装完成"
+
+msgid "Starting the Grafana service..."
+msgstr "正在启动 Grafana 服务..."
+
+msgid "Homebrew is required on macOS, install it first"
+msgstr "上需要 Homebrew，请先安装 Homebrew"
+
+msgid "Installing Grafana via Homebrew..."
+msgstr "正在通过 Homebrew 安装 Grafana..."
+
+#, sh-printf-format
+msgid "Port %s responds normally"
+msgstr "端口 %s 响应正常"
+
+#, sh-printf-format
+msgid "Port %s does not respond yet, it may take a few seconds"
+msgstr "端口 %s 暂时无响应，可能需要等待几秒钟"
+
+msgid "The service is not running normally"
+msgstr "服务未正常运行"
+
+msgid "View the logs: sudo journalctl -u grafana-server -f"
+msgstr "查看日志：sudo journalctl -u grafana-server -f"
+
+msgid "View the logs: brew services log grafana"
+msgstr "查看日志：brew services log grafana"
+
+msgid "Installation complete!"
+msgstr "安装完成！"
+
+#, sh-printf-format
+msgid ": http://%s:%s"
+msgstr "：http://%s:%s"
+
+msgid "Default login credentials:"
+msgstr "默认登录凭据："
+
+msgid "User name: admin"
+msgstr "用户名：admin"
+
+msgid "Password: admin"
+msgstr "密码：admin"
+
+msgid "(you are asked to change the password after the first login)"
+msgstr "（首次登录后会提示修改密码）"
+
+msgid "Add a Prometheus data source:"
+msgstr "添加 Prometheus 数据源："
+
+msgid "After logging in to Grafana, go to Configuration -> Data Sources"
+msgstr "登录 Grafana 后，进入 Configuration -> Data Sources"
+
+msgid "Click \"Add data source\" and pick Prometheus"
+msgstr "点击 \"Add data source\"，选择 Prometheus"
+
+msgid "Fill in: http://localhost:9090"
+msgstr "填写：http://localhost:9090"
+
+msgid "Click \"Save & Test\" to verify the connection"
+msgstr "点击 \"Save & Test\" 验证连接"
+
+msgid "Service status: sudo systemctl status grafana-server"
+msgstr "服务状态：sudo systemctl status grafana-server"
+
+msgid "Restart the service: sudo systemctl restart grafana-server"
+msgstr "重启服务：sudo systemctl restart grafana-server"
+
+msgid "Service status: brew services info grafana"
+msgstr "服务状态：brew services info grafana"
+
+msgid "Restart the service: brew services restart grafana"
+msgstr "重启服务：brew services restart grafana"
+
+msgid "Cross-platform install script"
+msgstr "跨平台安装脚本"
+
+msgid "Grafana detected"
+msgstr "检测到已安装 Grafana"
+
+msgid "Continue and overwrite the installation?"
+msgstr "是否继续并覆盖安装？"
+
+msgid "About to install Grafana"
+msgstr "即将安装 Grafana"
+
+#, sh-printf-format
+msgid "Service port: %s"
+msgstr "服务端口：%s"
+
+msgid "Uninstalling Grafana..."
+msgstr "正在卸载 Grafana..."
+
+msgid ""
+"Delete the Grafana data directory (/var/lib/grafana, the dashboards and the "
+"data source configurations are lost)?"
+msgstr ""
+"是否删除 Grafana 数据目录（/var/lib/grafana，仪表盘和数据源配置将丢失）？"
+
+msgid "Keeping the data directory"
+msgstr "保留数据目录"
+
+msgid "Uninstalled successfully!"
+msgstr "已成功卸载！"
+
+msgid "⚠️  Installed but not running"
+msgstr "⚠️  已安装但未运行"
+
+msgid "Install or update Grafana (default action)"
+msgstr "安装或更新 Grafana（默认动作）"
+
+msgid "Uninstall Grafana"
+msgstr "卸载 Grafana"
+
+msgid "The docker runtime is required, run this first: ./install.sh docker"
+msgstr "运行依赖 docker，请先：./install.sh docker"
+
+#, sh-printf-format
+msgid "%s detected (Harbor may already be installed), reinstall?"
+msgstr "已检测到 %s（Harbor 可能已安装），是否重新安装？"
+
+msgid "Fetching the latest Harbor version (GitHub API)..."
+msgstr "获取 Harbor 最新版本（GitHub API）..."
+
+msgid ""
+"The offline installer is about 600MB+, the download time depends on the "
+"network"
+msgstr "离线安装包约 600MB+，下载耗时取决于网络"
+
+msgid "Download failed (GitHub large files are slow, you can retry)"
+msgstr "下载失败（GitHub 大文件较慢，可重试）"
+
+#, sh-printf-format
+msgid "Extracting to %s ..."
+msgstr "解压到 %s ..."
+
+msgid "Set the Harbor admin password (press Enter to generate a random one):"
+msgstr "设置 Harbor admin 密码（直接回车则随机生成）:"
+
+msgid ""
+"Running the official install orchestration (prepare and compose up, it takes "
+"several minutes)..."
+msgstr "执行官方安装编排（含 prepare 与 compose up，需数分钟）..."
+
+#, sh-printf-format
+msgid "The orchestrated install failed, check %s for the details"
+msgstr "编排安装失败，可查看 %s 排查"
+
+#, sh-printf-format
+msgid "Installation complete: http://%s"
+msgstr "安装完成：http://%s"
+
+#, sh-printf-format
+msgid "Password: %s (store it safely, it is shown only once)"
+msgstr "密码：%s（请妥善保存，仅此一次回显）"
+
+msgid ""
+"A client using this registry needs insecure-registries (for plain http), see "
+"the README"
+msgstr "客户端使用该仓库需配 insecure-registries（纯 http 时），见 README"
+
+#, sh-printf-format
+msgid "Not installed (%s not found)"
+msgstr "未安装（未找到 %s）"
+
+msgid "Confirm uninstall of Harbor (stop and remove all the containers)?"
+msgstr "确认卸载 Harbor（停止并移除全部容器）？"
+
+#, sh-printf-format
+msgid "failed, run it manually in %s"
+msgstr "失败，可手动在 %s 执行"
+
+msgid ""
+"Delete the Harbor data directory /data (images/database/certificates, "
+"irreversible)?"
+msgstr "是否删除 Harbor 数据目录 /data（镜像/数据库/证书，不可恢复）？"
+
+msgid "Keeping the data"
+msgstr "保留数据"
+
+msgid "❌ Harbor not installed"
+msgstr "❌ Harbor 未安装"
+
+msgid "✅ Harbor containers are running"
+msgstr "✅ Harbor 容器运行中"
+
+msgid "⚠️ Harbor installed but the containers are not running"
+msgstr "⚠️ Harbor 已安装但容器未运行"
+
+msgid "— Self-hosted Docker image registry (Linux only, requires docker)"
+msgstr "—— 自托管 Docker 镜像仓库（仅 Linux，依赖 docker）"
+
+msgid ""
+"Download the offline installer to /opt/harbor and install it with the "
+"official orchestration (http mode)"
+msgstr "下载 offline installer 到 /opt/harbor 并官方编排安装（http 模式）"
+
+msgid ""
+"Stop the containers and uninstall (the /data is kept by default, deletion "
+"needs a second confirmation)"
+msgstr "停容器并卸载（/data 数据默认保留，删除需二次确认）"
+
+msgid ""
+"Note: the admin password is set during the install (random in non-"
+"interactive mode, shown once); http is the default,"
+msgstr "说明：admin 密码安装时设置（非交互随机生成、一次性回显）；默认 http，"
+
+msgid ""
+"a client has to add the registry address to insecure-registries in "
+"daemon.json."
+msgstr "客户端需在 daemon.json 的 insecure-registries 加仓库地址。"
+
+#, sh-printf-format
+msgid "Incus %s detected, reinstall?"
+msgstr "已检测到 Incus %s，是否重新安装？"
+
+msgid "Configuring the Zabbly stable repository and installing Incus..."
+msgstr "配置 Zabbly 稳定仓库并安装 Incus..."
+
+msgid ""
+"Installation failed (is that codename missing from the Zabbly repository?)"
+msgstr "安装失败（Zabbly 仓库不含该代号？）"
+
+msgid "Installing Incus from the system repositories..."
+msgstr "通过系统仓库安装 Incus..."
+
+msgid "Installation failed (the EPEL or openEuler repository is required)"
+msgstr "安装失败（需 EPEL 或 openEuler 仓库）"
+
+#, sh-printf-format
+msgid "Only the Deb and RHEL families are supported (current: %s)"
+msgstr "仅支持 Deb 系 / RHEL 系（当前：%s）"
+
+msgid ""
+"Failed to start the service, start it manually: sudo systemctl enable --now "
+"incus"
+msgstr "服务启动失败，可手动：sudo systemctl enable --now incus"
+
+msgid "Installation complete"
+msgstr "安装完成"
+
+msgid "Initialize it (interactive): sudo incus admin init"
+msgstr "初始化（交互式）：sudo incus admin init"
+
+#, sh-printf-format
+msgid ""
+"Add the user to the incus-admin group to run without sudo: sudo usermod -aG "
+"incus-admin %s"
+msgstr "把用户加入 incus-admin 组可免 sudo：sudo usermod -aG incus-admin %s"
+
+msgid "Confirm uninstall of Incus?"
+msgstr "确认卸载 Incus？"
+
+msgid "Package manager uninstall failed, please check it manually"
+msgstr "包管理器卸载失败，请手动确认"
+
+msgid ""
+"Delete the Incus data /var/lib/incus (containers/VMs/images, irreversible)?"
+msgstr "是否删除 Incus 数据 /var/lib/incus（容器/虚拟机/镜像，不可恢复）？"
+
+msgid "❌ Incus not installed"
+msgstr "❌ Incus 未安装"
+
+msgid "✅ Incus installed and the service is running"
+msgstr "✅ Incus 已安装且服务运行中"
+
+msgid "⚠️ Incus installed but the service is not running"
+msgstr "⚠️ Incus 已安装但服务未运行"
+
+msgid ""
+"— System container and virtual machine management (the LXD community branch, "
+"Linux only)"
+msgstr "—— 系统容器与虚拟化管理（LXD 社区分支，仅 Linux）"
+
+msgid ""
+"Install and start the service (Deb family: Zabbly stable repo; RHEL family: "
+"distro/EPEL packages)"
+msgstr "安装并启动服务（Deb 系: Zabbly 稳定仓；RHEL 系: 发行版/EPEL 包）"
+
+msgid ""
+"Uninstall (the /var/lib/incus data is kept by default, deletion needs a "
+"second confirmation)"
+msgstr "卸载（/var/lib/incus 数据默认保留，删除需二次确认）"
+
+msgid ""
+"Note: run sudo incus admin init after the install to set up storage/network;"
+msgstr "说明：装完先 sudo incus admin init 初始化存储/网络；"
+
+msgid ""
+"it is the equivalent of the command; the images: remote mirror is available."
+msgstr "命令的等价替代，镜像源可用 images: 远程。"
+
+#, sh-printf-format
 msgid "Detected k3s %s installed, reinstall?"
 msgstr "已检测到 k3s %s，是否重新安装？"
 
@@ -1319,6 +1965,621 @@ msgid ""
 msgstr ""
 "说明：kubeconfig 在 /etc/rancher/k3s/k3s.yaml；终端管理配 k9s，\n"
 "包管理配 helm——./install.sh k9s / ./install.sh helm"
+
+#, sh-printf-format
+msgid "MariaDB %s detected, reinstall?"
+msgstr "已检测到 MariaDB %s，是否重新安装？"
+
+msgid ""
+"MySQL detected: MariaDB listens on the same port 3306, running both on one "
+"machine conflicts"
+msgstr "检测到已装 MySQL：MariaDB 同样监听 3306，同机共存会端口冲突"
+
+msgid "Continue installing MariaDB anyway?"
+msgstr "仍要继续安装 MariaDB？"
+
+msgid "Installing MariaDB via Homebrew..."
+msgstr "通过 Homebrew 安装 MariaDB..."
+
+msgid "Installation failed"
+msgstr "安装失败"
+
+msgid ""
+"Start it: brew services start mariadb (the first root login has no password)"
+msgstr "启动：brew services start mariadb（首次 root 无密码）"
+
+msgid "Installing MariaDB from the system repositories..."
+msgstr "通过系统仓库安装 MariaDB..."
+
+msgid ""
+"Installation failed (is the package missing from the system repositories?)"
+msgstr "安装失败（系统仓库无该包？）"
+
+msgid ""
+"Failed to start the service, start it manually: sudo systemctl enable --now "
+"mariadb"
+msgstr "服务启动失败，可手动：sudo systemctl enable --now mariadb"
+
+msgid "Run this soon: mariadb-secure-installation"
+msgstr "建议尽快跑：mariadb-secure-installation"
+
+msgid "Check the status: ./install.sh mariadb status"
+msgstr "状态查询：./install.sh mariadb status"
+
+msgid "Confirm uninstall of MariaDB?"
+msgstr "确认卸载 MariaDB？"
+
+msgid ""
+"Delete the database data /var/lib/mysql (all databases and tables, "
+"irreversible)?"
+msgstr "是否删除数据库数据 /var/lib/mysql（所有库表，不可恢复）？"
+
+msgid "❌ MariaDB not installed"
+msgstr "❌ MariaDB 未安装"
+
+msgid "✅ MariaDB installed and the service is running"
+msgstr "✅ MariaDB 已安装且服务运行中"
+
+msgid "⚠️ MariaDB installed but the service is not running"
+msgstr "⚠️ MariaDB 已安装但服务未运行"
+
+msgid "✅ MariaDB installed"
+msgstr "✅ MariaDB 已安装"
+
+msgid "Database (the MySQL compatible branch)"
+msgstr "数据库（MySQL 兼容分支）"
+
+msgid "Install and start (Linux: system repositories; macOS: brew)"
+msgstr "安装并启动（Linux: 系统仓库；macOS: brew）"
+
+msgid ""
+"Uninstall (the /var/lib/mysql data is kept by default, deletion needs a "
+"second confirmation)"
+msgstr "卸载（/var/lib/mysql 数据默认保留，删除需二次确认）"
+
+msgid ""
+"Note: it shares port 3306 with MySQL, change the port to run both on one "
+"machine; run this after the install"
+msgstr "说明：与 MySQL 同端口 3306，同机共存需改端口；装完建议跑"
+
+msgid ". For MySQL 8 use ./install.sh mysql."
+msgstr "。要 MySQL 8 用 ./install.sh mysql。"
+
+msgid "Distribution codename"
+msgstr "发行版代号"
+
+#, sh-printf-format
+msgid "is not in the MongoDB %s supported list (jammy/noble/bookworm/trixie)"
+msgstr "不在 MongoDB %s 支持列表（jammy/noble/bookworm/trixie）"
+
+#, sh-printf-format
+msgid "MongoDB %s detected, reinstall?"
+msgstr "已检测到 MongoDB %s，是否重新安装？"
+
+#, sh-printf-format
+msgid "Configuring the MongoDB %s APT repository (TUNA mirror)..."
+msgstr "配置 MongoDB %s APT 仓库（TUNA 镜像）..."
+
+#, sh-printf-format
+msgid "Configuring the MongoDB %s YUM repository (TUNA mirror)..."
+msgstr "配置 MongoDB %s YUM 仓库（TUNA 镜像）..."
+
+msgid ""
+"Failed to start the service, start it manually: sudo systemctl enable --now "
+"mongod"
+msgstr "服务启动失败，可手动：sudo systemctl enable --now mongod"
+
+msgid "Installation complete. Connect with: mongosh"
+msgstr "安装完成。连一下：mongosh"
+
+msgid "Confirm uninstall of MongoDB?"
+msgstr "确认卸载 MongoDB？"
+
+msgid "Delete the database data /var/lib/mongodb (irreversible)?"
+msgstr "是否删除数据库数据 /var/lib/mongodb（不可恢复）？"
+
+msgid "❌ MongoDB not installed"
+msgstr "❌ MongoDB 未安装"
+
+msgid "✅ MongoDB installed and the service is running"
+msgstr "✅ MongoDB 已安装且服务运行中"
+
+msgid "⚠️ MongoDB installed but the service is not running"
+msgstr "⚠️ MongoDB 已安装但服务未运行"
+
+msgid "Document database (mongodb-org 8.0, Linux only)"
+msgstr "文档型数据库（mongodb-org 8.0，仅 Linux）"
+
+msgid ""
+"Install mongodb-org with the official GPG key and the TUNA mirror "
+"repository, service enable-now"
+msgstr "官方 GPG key + TUNA 镜像仓库安装 mongodb-org，服务 enable-now"
+
+msgid ""
+"Uninstall (the /var/lib/mongodb data is kept by default, deletion needs a "
+"second confirmation)"
+msgstr "卸载（/var/lib/mongodb 数据默认保留，删除需二次确认）"
+
+#, sh-format
+msgid ""
+"Note: the Deb family supports the jammy/noble/bookworm/trixie codenames; the "
+"RHEL family uses el$releasever."
+msgstr ""
+"说明：Deb 系支持 jammy/noble/bookworm/trixie 代号；RHEL 系走 el\\$releasever。"
+
+msgid "Client shell: mongosh (installed together with mongodb-org)."
+msgstr "客户端 shell：mongosh（随 mongodb-org 安装）。"
+
+#, sh-printf-format
+msgid "MySQL %s detected, reinstall?"
+msgstr "已检测到 MySQL %s，是否重新安装？"
+
+msgid "Installing MySQL via Homebrew..."
+msgstr "通过 Homebrew 安装 MySQL..."
+
+msgid ""
+"Start it: brew services start mysql (the first root login has no password)"
+msgstr "启动：brew services start mysql（首次 root 无密码）"
+
+msgid "Installing MySQL from the system repositories..."
+msgstr "通过系统仓库安装 MySQL..."
+
+msgid ""
+"Installation failed (the package is missing from the system repositories, "
+"the RHEL family needs AppStream)"
+msgstr "安装失败（系统仓库无该包，RHEL 系需启用 AppStream）"
+
+#, sh-printf-format
+msgid ""
+"Failed to start the service, start it manually: sudo systemctl enable --now "
+"%s"
+msgstr "服务启动失败，可手动：sudo systemctl enable --now %s"
+
+#, sh-printf-format
+msgid "The temporary root password is: %s (change it right after you log in)"
+msgstr "系 root 临时密码：%s（登录后请立即改密）"
+
+msgid ""
+"On the Deb family the root account uses auth_socket (log in directly with "
+"sudo mysql); run mysql_secure_installation soon"
+msgstr ""
+"系 root 默认走 auth_socket（sudo mysql 直登）；建议尽快跑 "
+"mysql_secure_installation"
+
+msgid "Check the status: ./install.sh mysql status"
+msgstr "状态查询：./install.sh mysql status"
+
+msgid "Confirm uninstall of MySQL?"
+msgstr "确认卸载 MySQL？"
+
+msgid "Package manager uninstall failed, check the package name manually"
+msgstr "包管理器卸载失败，请手动确认包名"
+
+msgid "❌ MySQL not installed"
+msgstr "❌ MySQL 未安装"
+
+msgid "✅ MySQL installed and the service is running"
+msgstr "✅ MySQL 已安装且服务运行中"
+
+msgid "⚠️ MySQL installed but the service is not running"
+msgstr "⚠️ MySQL 已安装但服务未运行"
+
+msgid "✅ MySQL installed"
+msgstr "✅ MySQL 已安装"
+
+msgid "Database"
+msgstr "数据库"
+
+msgid "Install and start (Linux: distro repositories; macOS: brew)"
+msgstr "安装并启动（Linux: 发行版仓库；macOS: brew）"
+
+msgid ""
+"Note: on the Deb family the root account uses auth_socket (log in directly "
+"with sudo mysql); on the RHEL family the first root"
+msgstr "说明：Deb 系 root 走 auth_socket（sudo mysql 直登）；RHEL 系首次 root"
+
+msgid ""
+"temporary password is in /var/log/mysqld.log; run mysql_secure_installation "
+"after the install."
+msgstr "临时密码在 /var/log/mysqld.log；装完建议跑 mysql_secure_installation。"
+
+msgid ""
+"Users who need MariaDB can install mariadb-server from the system "
+"repositories, this module does not wrap it."
+msgstr "需要 MariaDB 的用户可直接用系统仓库 mariadb-server，本模块不做封装。"
+
+#, sh-printf-format
+msgid "Nginx detected (%s)"
+msgstr "检测到已安装 Nginx（%s）"
+
+#, sh-printf-format
+msgid "Installing Nginx (package manager: %s)..."
+msgstr "安装 Nginx（包管理器：%s）..."
+
+#, sh-printf-format
+msgid "Installation failed (package manager: %s)"
+msgstr "安装失败（包管理器：%s）"
+
+msgid "Installation failed: the nginx command was not found"
+msgstr "安装失败：找不到 nginx 命令"
+
+msgid "Enabling and starting the Nginx service..."
+msgstr "启用并启动 Nginx 服务..."
+
+msgid "The service did not start properly, check the logs:"
+msgstr "服务未正常启动，请检查日志："
+
+msgid "Starting Nginx through brew services..."
+msgstr "通过 brew services 启动 Nginx..."
+
+msgid "Started through brew services"
+msgstr "已通过 brew services 启动"
+
+msgid "brew not detected, start Nginx manually or configure launchd."
+msgstr "未检测到 brew，请手动启动 Nginx 或配置 launchd。"
+
+msgid "Version:"
+msgstr "版本："
+
+msgid "Configuration directory:"
+msgstr "配置文件目录："
+
+msgid "Main configuration"
+msgstr "主配置"
+
+msgid "Virtual host configurations"
+msgstr "虚拟主机配置"
+
+msgid "Default site:"
+msgstr "默认站点："
+
+msgid "Default welcome page"
+msgstr "默认欢迎页"
+
+msgid "Default document root"
+msgstr "默认网站根目录"
+
+msgid "Default port"
+msgstr "默认端口"
+
+msgid "Test the configuration syntax"
+msgstr "测试配置语法"
+
+msgid "Reload the configuration (without dropping the connections)"
+msgstr "重载配置（不中断连接）"
+
+msgid "Stop the service"
+msgstr "停止服务"
+
+msgid "View the service status"
+msgstr "查看服务状态"
+
+msgid "Restart the service"
+msgstr "重启服务"
+
+msgid "View the error log"
+msgstr "查看错误日志"
+
+msgid "Confirm uninstall of Nginx?"
+msgstr "确认卸载 Nginx？"
+
+msgid "Package removal failed, uninstall it manually"
+msgstr "包移除失败，请手动卸载"
+
+#, sh-printf-format
+msgid ""
+"Delete the configuration directory %s? (the site configurations and the "
+"certificate links are deleted too)"
+msgstr "是否删除配置文件目录 %s？（站点配置和证书链接也会被删除）"
+
+#, sh-printf-format
+msgid "Configuration directory %s deleted."
+msgstr "配置目录 %s 已删除。"
+
+#, sh-printf-format
+msgid "Configuration directory kept: %s"
+msgstr "配置目录已保留：%s"
+
+msgid "Delete the default website directory /var/www/html?"
+msgstr "是否删除默认网站目录 /var/www/html？"
+
+msgid "Deleted."
+msgstr "已删除。"
+
+msgid "Install Nginx and start the service"
+msgstr "安装 Nginx 并启动服务"
+
+msgid "Uninstall Nginx (deleting the configuration files is optional)"
+msgstr "卸载 Nginx（可选删除配置文件）"
+
+msgid "node_exporter v detected"
+msgstr "检测到已安装 node_exporter v"
+
+msgid "Continue and upgrade to the latest version?"
+msgstr "是否继续并升级到最新版本？"
+
+msgid "Installing the binary files..."
+msgstr "正在安装二进制文件..."
+
+msgid "The binary installation failed"
+msgstr "二进制文件安装失败"
+
+msgid "Creating the system user..."
+msgstr "正在创建系统用户..."
+
+msgid "The user node_exporter was created"
+msgstr "用户 node_exporter 创建成功"
+
+msgid "The user creation failed"
+msgstr "用户创建失败"
+
+msgid "The user node_exporter already exists"
+msgstr "用户 node_exporter 已存在"
+
+msgid "Creating the systemd service file..."
+msgstr "正在创建 systemd 服务..."
+
+msgid "Failed to create the service file"
+msgstr "服务文件创建失败"
+
+msgid "Starting the service..."
+msgstr "正在启动服务..."
+
+msgid "Creating the macOS service file..."
+msgstr "正在创建 macOS 服务..."
+
+msgid "The command failed, trying the load command as a fallback"
+msgstr "命令失败，尝试使用 load 命令作为备选方案"
+
+msgid "The service is running (started with the load command)"
+msgstr "服务已启动（使用 load 命令）"
+
+msgid "The auto-start failed, but the service file is installed"
+msgstr "自动启动失败，但服务文件已安装"
+
+#, sh-printf-format
+msgid "You can start the service manually: sudo launchctl bootstrap system %s"
+msgstr "您可以手动启动服务：sudo launchctl bootstrap system %s"
+
+msgid "Port 9100 responds normally"
+msgstr "端口 9100 响应正常"
+
+msgid "Port 9100 does not respond yet, it may take a few seconds"
+msgstr "端口 9100 暂时无响应，可能需要等待几秒钟"
+
+msgid "You can use these commands to check the status and the logs:"
+msgstr "可以使用以下命令查看状态和日志："
+
+msgid "🎉 Node Exporter installation complete!"
+msgstr "🎉 Node Exporter 安装完成！"
+
+#, sh-printf-format
+msgid "Installed version: v%s"
+msgstr "已安装版本：v%s"
+
+msgid "Listen address: http://0.0.0.0:9100"
+msgstr "监听地址：http://0.0.0.0:9100"
+
+#, sh-printf-format
+msgid "Metrics URL: http://%s:9100/metrics"
+msgstr "指标地址：http://%s:9100/metrics"
+
+#, sh-printf-format
+msgid "Status page: http://%s:9100"
+msgstr "状态页面：http://%s:9100"
+
+msgid "Service status: sudo systemctl status node_exporter"
+msgstr "服务状态：sudo systemctl status node_exporter"
+
+msgid "View the logs: sudo journalctl -u node_exporter -f"
+msgstr "查看日志：sudo journalctl -u node_exporter -f"
+
+msgid "Restart the service: sudo systemctl restart node_exporter"
+msgstr "重启服务：sudo systemctl restart node_exporter"
+
+msgid "Service status: sudo launchctl list | grep node_exporter"
+msgstr "服务状态：sudo launchctl list | grep node_exporter"
+
+msgid "View the logs: tail -f /var/log/node_exporter.log"
+msgstr "查看日志：tail -f /var/log/node_exporter.log"
+
+#, sh-printf-format
+msgid "Start the service: sudo launchctl bootstrap system %s"
+msgstr "启动服务：sudo launchctl bootstrap system %s"
+
+#, sh-printf-format
+msgid "Version v%s installed, running brew upgrade to pull the latest..."
+msgstr "已安装 v%s，执行 brew upgrade 拉取最新版..."
+
+msgid "It did not work, falling back to brew reinstall"
+msgstr "未成功，回退到 brew reinstall"
+
+msgid ""
+"The service is running, running restart to make the new version effective..."
+msgstr "服务运行中，执行 restart 使新版本生效..."
+
+msgid "🎉 Node Exporter installation complete! (managed by Homebrew)"
+msgstr "🎉 Node Exporter 安装完成！（Homebrew 管理）"
+
+#, sh-printf-format
+msgid "Current version: v%s"
+msgstr "当前版本：v%s"
+
+#, sh-printf-format
+msgid ""
+"The upstream sync lags behind: the official latest is v%s, brew currently "
+"provides v%s"
+msgstr "同步上游有延迟：官方最新 v%s，brew 当前提供 v%s"
+
+msgid ""
+"Wait for the Homebrew sync and run this script again, this repository needs "
+"no change"
+msgstr "等 Homebrew 同步后重跑本脚本即可，本仓库无需改动"
+
+msgid "Common commands: brew services info node_exporter"
+msgstr "常用命令：brew services info node_exporter"
+
+msgid "🚀 Node Exporter cross-platform install script"
+msgstr "🚀 Node Exporter 跨平台安装脚本"
+
+msgid "Fetching the official latest version info..."
+msgstr "正在获取官方最新版本信息..."
+
+#, sh-printf-format
+msgid "Official latest version: v%s"
+msgstr "官方最新版本：v%s"
+
+#, sh-printf-format
+msgid "About to install Node Exporter v%s (official GitHub release)"
+msgstr "即将安装 Node Exporter v%s（官方 GitHub release）"
+
+msgid "Service port: 9100"
+msgstr "服务端口：9100"
+
+msgid "Uninstalling Node Exporter..."
+msgstr "正在卸载 Node Exporter..."
+
+msgid "Install or update Node Exporter (default action)"
+msgstr "安装或更新 Node Exporter（默认动作）"
+
+msgid "Uninstall Node Exporter"
+msgstr "卸载 Node Exporter"
+
+msgid "nomad detected, overwrite it with the latest version?"
+msgstr "已检测到 nomad，是否覆盖安装最新版？"
+
+msgid "Installing nomad via Homebrew..."
+msgstr "通过 Homebrew 安装 nomad..."
+
+msgid "Try the dev mode: nomad agent -dev"
+msgstr "体验 dev 模式：nomad agent -dev"
+
+msgid "Fetching the latest nomad version (GitHub API)..."
+msgstr "获取 nomad 最新版本（GitHub API）..."
+
+#, sh-printf-format
+msgid "Asset nomad_%s_linux_%s.zip not found"
+msgstr "未找到资产 nomad_%s_linux_%s.zip"
+
+#, sh-printf-format
+msgid "Installed to %s"
+msgstr "已安装到 %s"
+
+msgid ""
+"Try the dev mode: nomad agent -dev; a production deployment needs a server/"
+"client cluster"
+msgstr "体验 dev 模式：nomad agent -dev；生产部署需配 server/client 集群"
+
+msgid "nomad uninstalled"
+msgstr "已卸载 nomad"
+
+msgid "nomad not detected through brew"
+msgstr "未通过 brew 检测到 nomad"
+
+#, sh-printf-format
+msgid "Deleted %s"
+msgstr "已删除 %s"
+
+#, sh-printf-format
+msgid "%s not detected"
+msgstr "未检测到 %s"
+
+msgid "❌ nomad not installed"
+msgstr "❌ nomad 未安装"
+
+msgid "✅ nomad installed"
+msgstr "✅ nomad 已安装"
+
+msgid "(single binary, dev mode: nomad agent -dev)"
+msgstr "（单二进制，dev 模式: nomad agent -dev）"
+
+msgid "— HashiCorp workload orchestration"
+msgstr "—— HashiCorp 工作负载编排"
+
+msgid "Install the latest version (Linux: GitHub release zip; macOS: brew)"
+msgstr "安装最新版（Linux: GitHub release zip；macOS: brew）"
+
+msgid "Uninstall the binary"
+msgstr "卸载二进制"
+
+msgid ""
+"Note: a single binary with no built-in service concept; nomad agent -dev "
+"gives you a quick start;"
+msgstr "说明：单二进制、无内置服务概念；nomad agent -dev 一键体验；"
+
+msgid ""
+"Container task runtimes depend on docker/podman — run ./install.sh docker"
+msgstr "容器任务运行时依赖 docker/podman——./install.sh docker"
+
+#, sh-printf-format
+msgid "Unsupported architecture: %s/%s"
+msgstr "不支持的架构：%s/%s"
+
+msgid "🚀 Starting the OpenList installation"
+msgstr "🚀 开始安装 OpenList"
+
+#, sh-printf-format
+msgid "OpenList detected (%s)"
+msgstr "检测到已安装 OpenList（%s）"
+
+msgid "Continue and overwrite it with the latest version?"
+msgstr "是否继续并覆盖安装最新版？"
+
+msgid "Fetching the latest version..."
+msgstr "获取最新版本..."
+
+msgid ""
+"Cannot fetch the latest version (check the network or set GH_TOKEN to avoid "
+"the API rate limit)"
+msgstr "无法获取最新版本（请检查网络或设置 GH_TOKEN 规避 API 限速）"
+
+#, sh-printf-format
+msgid "Downloading: %s"
+msgstr "下载：%s"
+
+msgid "The binary installation is complete"
+msgstr "二进制安装完成"
+
+msgid "Creating the launchd service..."
+msgstr "创建 launchd 服务..."
+
+msgid "The service may still be starting, check the web interface later"
+msgstr "服务可能仍在启动中，稍后访问 Web 界面确认"
+
+msgid "The admin password of the first install (randomly generated):"
+msgstr "首次安装的管理员密码（随机生成）："
+
+#, sh-printf-format
+msgid "Run: sudo %s admin random   # regenerate a random password"
+msgstr "可执行：sudo %s admin random   # 重新生成随机密码"
+
+#, sh-printf-format
+msgid "Run: sudo %s admin random"
+msgstr "可执行：sudo %s admin random"
+
+#, sh-printf-format
+msgid "🎉 OpenList v%s installation complete!"
+msgstr "🎉 OpenList v%s 安装完成！"
+
+msgid "The default admin account is: admin"
+msgstr "默认管理员账号：admin"
+
+msgid "Set the admin password"
+msgstr "设置管理员密码"
+
+msgid "Confirm uninstall of OpenList?"
+msgstr "确认卸载 OpenList？"
+
+#, sh-printf-format
+msgid ""
+"Delete the data directory %s (it holds the configuration and the database)?"
+msgstr "是否删除数据目录 %s（含配置与数据库）？"
+
+msgid "Install Alist (file listing / drive aggregation, default port 5244)"
+msgstr "安装 Alist（文件列表/网盘聚合，默认端口 5244）"
+
+msgid "Uninstall Alist"
+msgstr "卸载 Alist"
 
 msgid "Detected Podman Desktop, reinstall?"
 msgstr "已检测到 Podman Desktop，是否重新安装？"
@@ -1392,8 +2653,337 @@ msgstr ""
 "说明：GUI 管理容器与 K8s 上下文；Linux 需先装 flatpak 并添加 flathub；\n"
 "容器运行时配 podman——./install.sh podman"
 
+msgid ""
+"Set up the rootless prerequisites: /etc/subuid /etc/subgid user mappings..."
+msgstr "补齐 rootless 前置：/etc/subuid /etc/subgid 用户映射..."
+
+#, sh-printf-format
+msgid ""
+"The automatic setup failed, run it manually: sudo usermod --add-subuids "
+"100000-165535 --add-subgids 100000-165535 %s"
+msgstr ""
+"自动补齐失败，请手动执行：sudo usermod --add-subuids 100000-165535 --add-"
+"subgids 100000-165535 %s"
+
+msgid ""
+"Optional: to start rootless containers on boot you need loginctl enable-"
+"linger"
+msgstr "可选：开机自启 rootless 容器需 loginctl enable-linger"
+
+#, sh-printf-format
+msgid "podman %s detected, reinstall?"
+msgstr "已检测到 podman %s，是否重新安装？"
+
+msgid "Installing the podman CLI via Homebrew..."
+msgstr "通过 Homebrew 安装 podman CLI..."
+
+msgid ""
+"Initialize the podman machine now (it downloads a GB sized system image and "
+"takes a while)?"
+msgstr "是否立即初始化 podman machine（需下载 GB 级系统镜像，耗时较长）？"
+
+msgid "Ready"
+msgstr "已就绪"
+
+msgid ""
+"Skipped. Run it manually later: podman machine init && podman machine start"
+msgstr "已跳过。之后手动执行：podman machine init && podman machine start"
+
+msgid "An existing podman machine was detected, skipping the initialization"
+msgstr "检测到已有 podman machine，跳过初始化"
+
+msgid "Installing podman from the system repositories..."
+msgstr "通过系统仓库安装 podman..."
+
+msgid ""
+"The repository has no podman-compose, you can install it later with pipx "
+"install podman-compose"
+msgstr "仓库无 podman-compose，可后续 pipx install podman-compose"
+
+msgid "Installation complete. Try it: podman run --rm quay.io/podman/hello"
+msgstr "安装完成。试一下：podman run --rm quay.io/podman/hello"
+
+msgid ""
+"Pulling docker.io images is slow? Use a domestic mirror: ./install.sh podman "
+"mirror"
+msgstr "拉取 docker.io 镜像慢？换国内加速：./install.sh podman mirror"
+
+#, sh-printf-format
+msgid "Written to %s/registries.conf"
+msgstr "已写入 %s/registries.conf"
+
+msgid ""
+"It takes effect after a restart: podman machine stop && podman machine start"
+msgstr "需重启后生效：podman machine stop && podman machine start"
+
+#, sh-printf-format
+msgid "Written to %s/%s, it takes effect on the next pull"
+msgstr "已写入 %s/%s，下次拉取即生效"
+
+msgid "The mirror configuration was removed"
+msgstr "已移除镜像加速配置"
+
+msgid "No mirror configuration detected"
+msgstr "未检测到镜像加速配置"
+
+msgid "Delete the podman machine disk (it holds all the container/image data)?"
+msgstr "是否删除 podman machine 磁盘（含全部容器/镜像数据）？"
+
+msgid "Deleted"
+msgstr "已删除"
+
+msgid "Keeping the machine and the data"
+msgstr "保留 machine 与数据"
+
+msgid "Confirm uninstall of podman?"
+msgstr "确认卸载 podman？"
+
+#, sh-printf-format
+msgid ""
+"Container storage directories: /var/lib/containers, %s/.local/share/"
+"containers"
+msgstr "容器存储目录：/var/lib/containers、%s/.local/share/containers"
+
+msgid "Delete the container storage data (images/volumes, irreversible)?"
+msgstr "是否删除容器存储数据（镜像/卷，不可恢复）？"
+
+msgid "Storage data deleted"
+msgstr "存储数据已删除"
+
+msgid "Keeping the storage data"
+msgstr "保留存储数据"
+
+msgid "❌ podman not installed"
+msgstr "❌ podman 未安装"
+
+msgid "✅ podman installed"
+msgstr "✅ podman 已安装"
+
+#, sh-printf-format
+msgid "(machine: %s)"
+msgstr "（machine: %s）"
+
+#, sh-printf-format
+msgid "(%s)"
+msgstr "（%s）"
+
+msgid "— Daemonless container engine (rootless)"
+msgstr "—— 无守护进程容器引擎（rootless）"
+
+msgid ""
+"Install (Linux: system repositories including podman-compose; macOS: brew, "
+"the machine init is optional)"
+msgstr ""
+"安装（Linux: 系统仓库含 podman-compose；macOS: brew，可选初始化 machine）"
+
+msgid ""
+"Pull through a domestic image mirror (write the containers registries "
+"configuration)"
+msgstr "拉取走国内镜像加速（写 containers registries 配置）"
+
+msgid "Remove the image mirror configuration"
+msgstr "移除镜像加速配置"
+
+msgid ""
+"Uninstall (the container storage data is kept by default, deletion needs a "
+"second confirmation)"
+msgstr "卸载（默认保留容器存储数据，删除需二次确认）"
+
+msgid ""
+"Note: this module does not install podman-docker (it would hijack the docker "
+"command and conflict with the docker module)."
+msgstr ""
+"注意：本模块不装 podman-docker（避免劫持 docker 命令，与 docker 模块冲突）。"
+
 msgid "Unable to detect the package manager"
 msgstr "无法识别包管理器"
+
+#, sh-printf-format
+msgid "Install PostgreSQL (relational database, default port %s)"
+msgstr "安装 PostgreSQL（关系型数据库，默认端口 %s）"
+
+#, sh-printf-format
+msgid "PostgreSQL detected (%s)"
+msgstr "检测到已安装 PostgreSQL（%s）"
+
+msgid "Continue and reinstall or update?"
+msgstr "是否继续并重新安装/更新？"
+
+#, sh-printf-format
+msgid "Installing %s via Homebrew..."
+msgstr "通过 Homebrew 安装 %s..."
+
+msgid "Starting the PostgreSQL service..."
+msgstr "启动 PostgreSQL 服务..."
+
+#, sh-printf-format
+msgid "Installing %s via %s..."
+msgstr "通过 %s 安装 %s..."
+
+msgid "Initializing the database (postgresql-setup --initdb)..."
+msgstr "初始化数据库（postgresql-setup --initdb）..."
+
+msgid "Enabling and starting the postgresql service..."
+msgstr "启用并启动 postgresql 服务..."
+
+msgid "psql is still not found after the install, check PATH"
+msgstr "安装后仍找不到 psql，请检查 PATH"
+
+msgid "Installation complete, the service is running normally"
+msgstr "安装完成，服务运行正常"
+
+msgid ""
+"Installed, but pg_isready is not ready yet, the service may still be starting"
+msgstr "已安装，但 pg_isready 未就绪，服务可能还在启动中"
+
+msgid "Installation summary:"
+msgstr "安装摘要："
+
+#, sh-printf-format
+msgid "Port: %s"
+msgstr "端口：%s"
+
+#, sh-printf-format
+msgid "Configuration directory: %s"
+msgstr "配置目录：%s"
+
+msgid "Connection test: pg_isready"
+msgstr "连接测试：pg_isready"
+
+msgid "Log in with the postgres system user"
+msgstr "使用 postgres 系统用户登录"
+
+msgid "Create a user and a database"
+msgstr "创建用户和数据库"
+
+msgid "Database name>"
+msgstr "数据库名>"
+
+msgid ""
+"Connect directly with the current user (brew creates it at install time)"
+msgstr "直接用当前用户连接（brew 安装时已创建）"
+
+msgid ""
+"A remote connection needs pg_hba.conf edited to allow the matching IP/user"
+msgstr "远程连接需编辑 pg_hba.conf 允许对应 IP/用户"
+
+msgid "Uninstalling PostgreSQL removes the package."
+msgstr "卸载 PostgreSQL 将移除软件包。"
+
+msgid "The database data directory may be kept, clean it up manually."
+msgstr "数据库数据目录可能保留，需手动清理。"
+
+msgid "Confirm uninstall of PostgreSQL?"
+msgstr "确认卸载 PostgreSQL？"
+
+msgid "Uninstalled (macOS)"
+msgstr "已卸载（macOS）"
+
+msgid "To delete the database data, clean it up manually:"
+msgstr "如需删除数据库数据，请手动清理："
+
+#, sh-printf-format
+msgid "port %s)"
+msgstr "端口 %s)"
+
+msgid "⚠️  Installed but the service is not running"
+msgstr "⚠️  已安装但服务未运行"
+
+msgid "Uninstall PostgreSQL (it asks whether to keep the data directory)"
+msgstr "卸载 PostgreSQL（提示是否保留数据目录）"
+
+msgid "Unsupported Linux architecture:"
+msgstr "不支持的 Linux 架构："
+
+msgid "Unsupported macOS architecture:"
+msgstr "不支持的 macOS 架构："
+
+#, sh-printf-format
+msgid "Prometheus v%s detected"
+msgstr "检测到已安装 Prometheus v%s"
+
+msgid "The binary files are installed (prometheus, promtool)"
+msgstr "二进制文件安装完成（prometheus, promtool）"
+
+#, sh-printf-format
+msgid "Creating the default configuration %s ..."
+msgstr "正在创建默认配置 %s ..."
+
+msgid "The default configuration is ready"
+msgstr "默认配置已创建"
+
+#, sh-printf-format
+msgid "The configuration file %s already exists, skipping the creation"
+msgstr "配置文件 %s 已存在，跳过创建"
+
+msgid "failed, trying the load command"
+msgstr "命令失败，尝试使用 load 命令"
+
+#, sh-printf-format
+msgid "Listen address: http://0.0.0.0:%s"
+msgstr "监听地址：http://0.0.0.0:%s"
+
+msgid "Default scrape jobs:"
+msgstr "默认采集任务："
+
+msgid "(its own metrics)"
+msgstr "（自身指标）"
+
+msgid "(system metrics)"
+msgstr "（系统指标）"
+
+msgid "Service status: sudo systemctl status prometheus"
+msgstr "服务状态：sudo systemctl status prometheus"
+
+msgid "View the logs: sudo journalctl -u prometheus -f"
+msgstr "查看日志：sudo journalctl -u prometheus -f"
+
+msgid "Restart the service: sudo systemctl restart prometheus"
+msgstr "重启服务：sudo systemctl restart prometheus"
+
+#, sh-printf-format
+msgid "Check the configuration: promtool check config %s"
+msgstr "检查配置：promtool check config %s"
+
+msgid "Service status: sudo launchctl list | grep prometheus"
+msgstr "服务状态：sudo launchctl list | grep prometheus"
+
+msgid "View the logs: tail -f /var/log/prometheus.log"
+msgstr "查看日志：tail -f /var/log/prometheus.log"
+
+#, sh-printf-format
+msgid "About to install Prometheus v%s"
+msgstr "即将安装 Prometheus v%s"
+
+#, sh-printf-format
+msgid "Install locations: %s, %s"
+msgstr "安装位置：%s, %s"
+
+msgid "Uninstalling Prometheus..."
+msgstr "正在卸载 Prometheus..."
+
+msgid "Delete the configuration directory /etc/prometheus?"
+msgstr "是否删除配置目录 /etc/prometheus？"
+
+msgid "Configuration directory deleted"
+msgstr "配置目录已删除"
+
+msgid "Keeping the configuration directory /etc/prometheus"
+msgstr "保留配置目录 /etc/prometheus"
+
+#, sh-printf-format
+msgid "Delete the data directory %s (the historical monitoring data is lost)?"
+msgstr "是否删除数据目录 %s（历史监控数据将丢失）？"
+
+#, sh-printf-format
+msgid "Keeping the data directory %s"
+msgstr "保留数据目录 %s"
+
+msgid "Install or update Prometheus (default action)"
+msgstr "安装或更新 Prometheus（默认动作）"
+
+msgid "Uninstall Prometheus"
+msgstr "卸载 Prometheus"
 
 #, sh-printf-format
 msgid "Installing Redis (in-memory database, default port %s)"
@@ -1405,9 +2995,6 @@ msgstr "已安装"
 #, sh-printf-format
 msgid "Detected Redis installed (%s)"
 msgstr "检测到已安装 Redis（%s）"
-
-msgid "Continue and reinstall or update?"
-msgstr "是否继续并重新安装/更新？"
 
 msgid "Installing redis via Homebrew..."
 msgstr "通过 Homebrew 安装 redis..."
@@ -1433,9 +3020,6 @@ msgid ""
 "Redis is installed, but redis-cli ping did not return PONG; the service may "
 "still be starting"
 msgstr "Redis 已安装，但 redis-cli ping 未返回 PONG，服务可能还在启动中"
-
-msgid "Installation summary:"
-msgstr "安装摘要："
 
 #, sh-printf-format
 msgid "  Port: %s"
@@ -1530,6 +3114,123 @@ msgid ""
 "Common: skopeo inspect/copy docker://<image> (cross-registry image copy, "
 "offline sync)"
 msgstr "常用：skopeo inspect/copy docker://<镜像>（跨仓库镜像搬运、离线同步）"
+
+msgid "requires Homebrew to be installed first: https://brew.sh/"
+msgstr "上需要先安装 Homebrew：https://brew.sh/"
+
+msgid "🚀 Starting the Tailscale installation"
+msgstr "🚀 开始安装 Tailscale"
+
+#, sh-printf-format
+msgid "Tailscale detected (%s)"
+msgstr "检测到已安装 Tailscale（%s）"
+
+msgid ""
+"Using the official one-line install script (works on apt/yum/dnf "
+"distributions)..."
+msgstr "使用官方一键安装脚本（适用于 apt/yum/dnf 等发行版）..."
+
+msgid ""
+"The official install script failed, check the network or install it manually"
+msgstr "官方安装脚本执行失败，请检查网络或手动安装"
+
+msgid "Installing Tailscale via Homebrew..."
+msgstr "通过 Homebrew 安装 Tailscale..."
+
+msgid ""
+"The tailscale command is still not found after the install, check PATH or "
+"open a new terminal"
+msgstr "安装后仍找不到 tailscale 命令，请检查 PATH 或重新打开终端"
+
+msgid "Next step: log in and enable the node"
+msgstr "下一步：登录并启用节点"
+
+msgid "Show the nodes and the connection status"
+msgstr "查看节点与连接状态"
+
+msgid "Show the Tailscale IP of this machine"
+msgstr "查看本机 Tailscale IP"
+
+msgid "Disconnect"
+msgstr "断开"
+
+msgid "Reconnect / log in"
+msgstr "重新连接 / 登录"
+
+msgid "About to uninstall Tailscale."
+msgstr "即将卸载 Tailscale。"
+
+#, sh-printf-format
+msgid "The automatic uninstall failed (%s), uninstall tailscale manually"
+msgstr "自动卸载失败（%s），请手动卸载 tailscale"
+
+msgid "Install or update Tailscale"
+msgstr "安装或更新 Tailscale"
+
+msgid "Uninstall Tailscale"
+msgstr "卸载 Tailscale"
+
+msgid ""
+"Docker not detected. Install Docker first (you can use the docker module of "
+"this project)."
+msgstr "未检测到 Docker。请先安装 Docker（可使用本项目的 docker 模块）。"
+
+msgid "🚀 Starting the Uptime Kuma installation (Docker deployment)"
+msgstr "🚀 开始安装 Uptime Kuma（Docker 部署）"
+
+#, sh-printf-format
+msgid "Existing container %s detected"
+msgstr "检测到已存在容器 %s"
+
+msgid "Stop and delete the old container, then deploy again?"
+msgstr "是否停止并删除旧容器后重新部署？"
+
+#, sh-printf-format
+msgid "Pulling the image %s ..."
+msgstr "拉取镜像 %s ..."
+
+msgid "Image pull failed, check Docker and the network"
+msgstr "镜像拉取失败，请检查 Docker 与网络"
+
+msgid "Creating and starting the container..."
+msgstr "创建并启动容器..."
+
+msgid "The container is running normally"
+msgstr "容器运行正常"
+
+#, sh-printf-format
+msgid ""
+"The container is not running normally, check the logs: sudo docker logs %s"
+msgstr "容器未正常运行，查看日志：sudo docker logs %s"
+
+msgid "🎉 Uptime Kuma installation complete!"
+msgstr "🎉 Uptime Kuma 安装完成！"
+
+msgid "The first visit needs an administrator account."
+msgstr "首次访问需创建管理员账号。"
+
+msgid "Confirm uninstall of Uptime Kuma?"
+msgstr "确认卸载 Uptime Kuma？"
+
+#, sh-printf-format
+msgid "Delete the data volume %s too (the monitoring history will be lost)?"
+msgstr "是否同时删除数据卷 %s（监控历史数据将丢失）？"
+
+msgid "Data volume deleted"
+msgstr "数据卷已删除"
+
+msgid "❌ Not installed (Docker required)"
+msgstr "❌ 未安装（需 Docker）"
+
+msgid "⚠️  The container was created but is not running"
+msgstr "⚠️  容器已创建但未运行"
+
+#, sh-printf-format
+msgid "Deploy Uptime Kuma via Docker (monitoring dashboard, default port %s)"
+msgstr "通过 Docker 部署 Uptime Kuma（监控面板，默认端口 %s）"
+
+msgid "Uninstall Uptime Kuma (container and image)"
+msgstr "卸载 Uptime Kuma（容器与镜像）"
 
 #, sh-printf-format
 msgid "Webmin is Linux-only. Current: %s"
@@ -1639,6 +3340,9 @@ msgstr "卸载服务 + 询问删除 .conf（完整卸载）"
 
 msgid "Configure auto-start on boot (legacy name kept)"
 msgstr "配置开机自启（保留旧名）"
+
+#~ msgid "Unknown subcommand: $1"
+#~ msgstr "未知子命令：$1"
 
 #~ msgid "Party popper 1Panel installation complete!"
 #~ msgstr "🎉 1Panel 安装完成！"

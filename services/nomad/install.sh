@@ -28,53 +28,53 @@ arch_for_nomad() {
     case "$ARCH_TYPE_LOWER" in
         x86_64) echo "amd64" ;;
         arm64)  echo "arm64" ;;
-        *)      error "不支持的架构：${ARCH_TYPE}（仅支持 x86_64/arm64）"; return 1 ;;
+        *)      error "$(_tf 'Unsupported architecture: %s (only x86_64/arm64 are supported)' "${ARCH_TYPE}")"; return 1 ;;
     esac
 }
 
 do_install() {
     preflight
     if command_exists nomad; then
-        yes_no "已检测到 nomad，是否覆盖安装最新版？" || { info "已取消"; exit 0; }
+        yes_no "$(_t 'nomad detected, overwrite it with the latest version?')" || { info "$(_t 'Cancelled')"; exit 0; }
     fi
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        info "通过 Homebrew 安装 nomad..."
-        pkg_install nomad || { error "brew 安装失败"; exit 1; }
-        info "体验 dev 模式：nomad agent -dev"
+        info "$(_t 'Installing nomad via Homebrew...')"
+        pkg_install nomad || { error "brew $(_t 'Installation failed')"; exit 1; }
+        info "$(_t 'Try the dev mode: nomad agent -dev')"
     else
-        info "获取 nomad 最新版本（GitHub API）..."
+        info "$(_t 'Fetching the latest nomad version (GitHub API)...')"
         local ver
         ver=$(github_latest_tag "$REPO")
-        [[ -n "$ver" ]] || { error "无法获取版本号（GitHub 不可达或限流），可设 GH_TOKEN 重试"; exit 1; }
+        [[ -n "$ver" ]] || { error "$(_t 'Cannot fetch the version (GitHub is unreachable or rate limited), set GH_TOKEN and retry')"; exit 1; }
         local arch
         arch=$(arch_for_nomad)
         local url
         url=$(github_release_asset_url "$REPO" "nomad_${ver}_linux_${arch}\.zip")
-        [[ -n "$url" ]] || { error "未找到资产 nomad_${ver}_linux_${arch}.zip"; exit 1; }
-        info "下载 $url ..."
+        [[ -n "$url" ]] || { error "$(_tf 'Asset nomad_%s_linux_%s.zip not found' "${ver}" "${arch}")"; exit 1; }
+        info "$(_tf 'Downloading %s ...' "$url")"
         local tmpdir
         tmpdir=$(mktemp -d)
         trap 'rm -rf "$tmpdir"' EXIT
-        curl -fSL "$url" -o "$tmpdir/nomad.zip" || { error "下载失败"; exit 1; }
+        curl -fSL "$url" -o "$tmpdir/nomad.zip" || { error "$(_t 'Download failed')"; exit 1; }
         unzip -o -q "$tmpdir/nomad.zip" -d "$tmpdir"
         sudo install -m 0755 "$tmpdir/nomad" "$BIN"
-        success "nomad v$ver 已安装到 $BIN"
-        info "体验 dev 模式：nomad agent -dev；生产部署需配 server/client 集群"
+        success "nomad v$ver $(_tf 'Installed to %s' "$BIN")"
+        info "$(_t 'Try the dev mode: nomad agent -dev; a production deployment needs a server/client cluster')"
     fi
 }
 
 do_uninstall() {
     if [[ "$OS_TYPE" == "darwin" ]]; then
         if command -v brew >/dev/null 2>&1 && brew list --formula 2>/dev/null | grep -qx "nomad"; then
-            brew uninstall nomad && success "已卸载 nomad"
+            brew uninstall nomad && success "$(_t 'nomad uninstalled')"
         else
-            warn "未通过 brew 检测到 nomad"
+            warn "$(_t 'nomad not detected through brew')"
         fi
     else
         if [[ -e "$BIN" ]]; then
-            sudo rm -f "$BIN" && success "已删除 $BIN"
+            sudo rm -f "$BIN" && success "$(_tf 'Deleted %s' "$BIN")"
         else
-            warn "未检测到 $BIN"
+            warn "$(_tf '%s not detected' "$BIN")"
         fi
     fi
 }
@@ -83,28 +83,28 @@ do_status() {
     # status 可能独立于 install 调用，先补平台变量（其他子命令走 preflight）
     detect_os
     if ! command_exists nomad; then
-        emit_status "not_installed" "❌ nomad 未安装"
+        emit_status "not_installed" "$(_t '❌ nomad not installed')"
         return 0
     fi
     local ver
     ver=$(nomad version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' || true)
-    emit_status "installed" "✅ nomad 已安装 ${ver:-(版本未知)}（单二进制，dev 模式: nomad agent -dev）"
+    emit_status "installed" "$(_t '✅ nomad installed') ${ver:-$(_t '(unknown version)')}$(_t '(single binary, dev mode: nomad agent -dev)')"
     emit_version "${ver#v}"
 }
 
 do_help() {
-    cat <<'EOF'
-Nomad —— HashiCorp 工作负载编排
+    cat <<EOF
+Nomad $(_t '— HashiCorp workload orchestration')
 
 用法: install.sh {install|uninstall|status|help}
 
-  install    安装最新版（Linux: GitHub release zip；macOS: brew）
-  uninstall  卸载二进制
-  status     查看安装状态（支持 UXS_STATUS_MODE=machine）
-  help       本帮助
+  install    $(_t 'Install the latest version (Linux: GitHub release zip; macOS: brew)')
+  uninstall  $(_t 'Uninstall the binary')
+  status     $(_t 'View the install status (supports UXS_STATUS_MODE=machine)')
+  help       $(_t 'This help')
 
-说明：单二进制、无内置服务概念；nomad agent -dev 一键体验；
-容器任务运行时依赖 docker/podman——./install.sh docker
+$(_t 'Note: a single binary with no built-in service concept; nomad agent -dev gives you a quick start;')
+$(_t 'Container task runtimes depend on docker/podman — run ./install.sh docker')
 EOF
 }
 
@@ -113,5 +113,5 @@ case "${1:-install}" in
     uninstall)      do_uninstall ;;
     status)         do_status ;;
     help|--help|-h) do_help ;;
-    *)              error "未知子命令：$1"; do_help; exit 1 ;;
+    *)              error "$(_tf 'Unknown subcommand: %s' "$1")"; do_help; exit 1 ;;
 esac

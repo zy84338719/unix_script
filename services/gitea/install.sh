@@ -33,7 +33,7 @@ get_latest_version() {
     local ver
     ver=$(github_latest_tag "go-gitea/gitea")
     if [[ -z "$ver" ]]; then
-        error "无法获取最新版本信息，请检查网络连接"
+        error "$(_t 'Cannot fetch the latest version info, check the network connection')"
         return 1
     fi
     echo "$ver"
@@ -49,14 +49,14 @@ detect_arch_suffix() {
                 x86_64)         echo "linux-amd64" ;;
                 aarch64|arm64)  echo "linux-arm64" ;;
                 armv7l)         echo "linux-arm-7" ;;
-                *) error "不支持的 Linux 架构：$arch"; return 1 ;;
+                *) error "$(_tf 'Unsupported Linux architecture: %s' "$arch")"; return 1 ;;
             esac
             ;;
         darwin)
             case "$arch" in
                 x86_64) echo "darwin-amd64" ;;
                 arm64)  echo "darwin-arm64" ;;
-                *) error "不支持的 macOS 架构：$arch"; return 1 ;;
+                *) error "$(_tf 'Unsupported macOS architecture: %s' "$arch")"; return 1 ;;
             esac
             ;;
     esac
@@ -68,13 +68,13 @@ handle_existing_installation() {
         return 0
     fi
     local current_version
-    current_version=$(gitea --version 2>/dev/null | head -1 || echo "未知版本")
-    warn "检测到已安装 Gitea（${current_version}）"
-    if ! yes_no "是否继续并覆盖安装最新版本？"; then
-        info "安装已取消"
+    current_version=$(gitea --version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Unknown version')")
+    warn "$(_tf 'Gitea detected (%s)' "${current_version}")"
+    if ! yes_no "$(_t 'Continue and overwrite it with the newest version?')"; then
+        info "$(_t 'The installation was cancelled')"
         exit 0
     fi
-    info "正在停止现有服务..."
+    info "$(_t 'Stopping the existing service...')"
     if [[ "$OS_TYPE" == "linux" ]]; then
         uxs_svc stop gitea 2>/dev/null || true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
@@ -85,20 +85,20 @@ handle_existing_installation() {
 # --- 创建系统用户（Linux） ---
 create_gitea_user() {
     if id -u "$GITEA_USER" &>/dev/null; then
-        info "用户 $GITEA_USER 已存在"
+        info "$(_tf 'The user %s already exists' "$GITEA_USER")"
         return 0
     fi
-    info "创建系统用户 $GITEA_USER..."
+    info "$(_tf 'Creating the system user %s...' "$GITEA_USER")"
     sudo adduser --system --shell /bin/bash --group --disabled-password --home "/home/$GITEA_USER" "$GITEA_USER" 2>/dev/null \
         || sudo useradd --system --shell /bin/bash --create-home "$GITEA_USER" 2>/dev/null \
-        || { error "创建用户失败"; return 1; }
-    success "用户 $GITEA_USER 创建成功"
+        || { error "$(_t 'Failed to create the user')"; return 1; }
+    success "$(_tf 'The user %s was created' "$GITEA_USER")"
 }
 
 # --- 创建目录结构 ---
 create_directories() {
     require_sudo
-    info "创建目录结构..."
+    info "$(_t 'Creating the directory structure...')"
     sudo mkdir -p "$GITEA_DATA"/{data,indexers,log,custom}
     sudo mkdir -p /etc/gitea
 
@@ -107,12 +107,12 @@ create_directories() {
         sudo chown root:"$GITEA_USER" /etc/gitea
         sudo chmod 750 /etc/gitea
     fi
-    success "目录结构创建完成"
+    success "$(_t 'The directory structure is ready')"
 }
 
 # --- 创建 systemd 服务（Linux） ---
 setup_systemd_service() {
-    info "创建 systemd 服务..."
+    info "$(_t 'Creating the systemd service...')"
     install_systemd_unit gitea.service <<EOF
 [Unit]
 Description=Gitea (Git with a cup of tea)
@@ -132,19 +132,19 @@ Environment=USER=$GITEA_USER HOME=/home/$GITEA_USER GITEA_WORK_DIR=$GITEA_DATA
 [Install]
 WantedBy=multi-user.target
 EOF
-    success "systemd 服务文件创建成功"
+    success "systemd $(_t 'The service file was created')"
 
     if uxs_svc enable-now gitea; then
-        success "Gitea 服务已启动并设置为开机自启"
+        success "Gitea $(_t 'The service is running and enabled on boot')"
     else
-        error "服务启动失败"
+        error "$(_t 'Failed to start the service')"
         return 1
     fi
 }
 
 # --- 创建 launchd 服务（macOS） ---
 setup_launchd_service() {
-    info "创建 macOS 服务..."
+    info "$(_t 'Creating the macOS service...')"
     sudo tee "$GITEA_PLIST" >/dev/null <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -177,20 +177,20 @@ setup_launchd_service() {
 </dict>
 </plist>
 EOF
-    success "LaunchDaemon 服务文件创建成功"
+    success "LaunchDaemon $(_t 'The service file was created')"
 
     if sudo launchctl list | grep -q "$GITEA_PLIST_LABEL"; then
-        info "服务已在运行中"
+        info "$(_t 'The service is already running')"
     else
         if sudo launchctl bootstrap system "$GITEA_PLIST"; then
-            success "Gitea 服务已启动"
+            success "Gitea $(_t 'The service is running')"
         else
-            warn "bootstrap 失败，尝试 load"
+            warn "bootstrap $(_t 'failed, trying load')"
             if sudo launchctl load "$GITEA_PLIST" 2>/dev/null; then
-                success "Gitea 服务已启动（load）"
+                success "Gitea $(_t 'The service is running (load)')"
             else
-                warn "自动启动失败，服务文件已安装"
-                info "手动启动：sudo launchctl bootstrap system $GITEA_PLIST"
+                warn "$(_t 'The auto-start failed, the service file is installed')"
+                info "$(_tf 'Start it manually: sudo launchctl bootstrap system %s' "$GITEA_PLIST")"
             fi
         fi
     fi
@@ -202,60 +202,60 @@ install_gitea() {
     check_commands curl
     handle_existing_installation
 
-    info "🚀 Gitea 自托管 Git 服务安装脚本"
+    info "$(_t '🚀 Gitea self-hosted Git service install script')"
     echo "=========================================="
 
     # macOS 优先 brew
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
-        info "通过 Homebrew 安装 Gitea..."
+        info "$(_t 'Installing Gitea via Homebrew...')"
         brew install gitea
         brew services start gitea 2>/dev/null || true
         local ip_addr; ip_addr=$(get_local_ip)
-        success "🎉 Gitea 安装完成！（brew 管理）"
-        info "访问地址：http://${ip_addr}:${GITEA_PORT}"
-        info "常用命令：brew services info gitea"
+        success "$(_t '🎉 Gitea installation complete! (managed by brew)')"
+        info "$(_tf 'Access URL: http://%s:%s' "${ip_addr}" "${GITEA_PORT}")"
+        info "$(_t 'Common commands: brew services info gitea')"
         return 0
     fi
 
     require_sudo
 
     # 获取最新版本
-    info "正在获取最新版本信息..."
+    info "$(_t 'Fetching the latest version info...')"
     local latest
     latest=$(get_latest_version) || return 1
-    success "最新版本：v$latest"
+    success "$(_tf 'Latest version: v%s' "$latest")"
 
     # 确定架构
     local arch_suffix
     arch_suffix=$(detect_arch_suffix) || return 1
-    info "检测到架构：$(uname -m) -> $arch_suffix"
+    info "$(_t 'Detected architecture:')$(uname -m) -> $arch_suffix"
 
     # 确认安装
     echo
-    info "即将安装 Gitea v$latest"
-    info "安装位置：$GITEA_BIN"
-    info "Web 端口：$GITEA_PORT | SSH 端口：$GITEA_SSH_PORT"
-    info "配置文件：$GITEA_CONFIG"
-    info "数据目录：$GITEA_DATA"
+    info "$(_tf 'About to install Gitea v%s' "$latest")"
+    info "$(_tf 'Install location: %s' "$GITEA_BIN")"
+    info "Web $(_tf 'Port: %s | SSH port: %s' "$GITEA_PORT" "$GITEA_SSH_PORT")"
+    info "$(_tf 'Configuration file: %s' "$GITEA_CONFIG")"
+    info "$(_tf 'Data directory: %s' "$GITEA_DATA")"
     echo
-    if ! yes_no "确认继续安装？"; then
-        info "安装已取消"
+    if ! yes_no "$(_t 'Continue with the installation?')"; then
+        info "$(_t 'The installation was cancelled')"
         return 0
     fi
 
     # 下载二进制
     local url="https://github.com/go-gitea/gitea/releases/download/v${latest}/gitea-${latest}-${arch_suffix}"
-    info "下载地址：$url"
+    info "$(_tf 'Download URL: %s' "$url")"
 
     local tmpdir
     tmpdir=$(mktemp -d)
     trap 'rm -rf "$tmpdir"' EXIT
 
     if ! curl -SL "$url" -o "$tmpdir/gitea"; then
-        error "下载失败"
+        error "$(_t 'Download failed')"
         exit 1
     fi
-    success "下载完成"
+    success "$(_t 'Download complete')"
 
     # 安装二进制
     sudo mv "$tmpdir/gitea" "$GITEA_BIN"
@@ -265,7 +265,7 @@ install_gitea() {
     else
         sudo chown root:root "$GITEA_BIN"
     fi
-    success "二进制文件安装完成"
+    success "$(_t 'The binary files are installed')"
 
     # Linux：创建用户与目录，配置服务
     if [[ "$OS_TYPE" == "linux" ]]; then
@@ -281,58 +281,58 @@ install_gitea() {
     trap - EXIT
 
     # 验证
-    info "正在验证安装..."
+    info "$(_t 'Verifying the installation...')"
     sleep 3
     local ip_addr
     ip_addr=$(get_local_ip)
 
     if service_is_active gitea "$GITEA_PLIST_LABEL"; then
-        success "服务运行正常"
+        success "$(_t 'The service is running normally')"
     else
-        warn "服务可能还在启动中..."
+        warn "$(_t 'The service may still be starting...')"
     fi
 
     echo
     echo "=========================================="
-    success "🎉 Gitea v$latest 安装完成！"
+    success "$(_tf '🎉 Gitea v%s installation complete!' "$latest")"
     echo
-    info "服务信息："
-    echo "  - Web 访问：http://${ip_addr}:${GITEA_PORT}"
-    echo "  - SSH 地址：ssh://${ip_addr}:${GITEA_SSH_PORT}"
-    echo "  - 配置文件：$GITEA_CONFIG"
-    echo "  - 数据目录：$GITEA_DATA"
+    info "$(_t 'Service info:')"
+    echo "  - Web $(_tf 'Access: http://%s:%s' "${ip_addr}" "${GITEA_PORT}")"
+    echo "  - SSH $(_tf 'Address: ssh://%s:%s' "${ip_addr}" "${GITEA_SSH_PORT}")"
+    echo "  - $(_tf 'Configuration file: %s' "$GITEA_CONFIG")"
+    echo "  - $(_tf 'Data directory: %s' "$GITEA_DATA")"
     echo
-    info "首次访问请完成初始安装向导（设置管理员账号、数据库等）。"
+    info "$(_t 'On the first visit, finish the initial setup wizard (set the admin account, the database, ...).')"
     echo
-    info "常用命令："
+    info "$(_t 'Common commands:')"
     if [[ "$OS_TYPE" == "linux" ]]; then
-        echo "  - 服务状态：sudo systemctl status gitea"
-        echo "  - 查看日志：sudo journalctl -u gitea -f"
-        echo "  - 重启服务：sudo systemctl restart gitea"
-        echo "  - 编辑配置：sudo nano $GITEA_CONFIG"
+        echo "  - $(_t 'Service status: sudo systemctl status gitea')"
+        echo "  - $(_t 'View the logs: sudo journalctl -u gitea -f')"
+        echo "  - $(_t 'Restart the service: sudo systemctl restart gitea')"
+        echo "  - $(_tf 'Edit the configuration: sudo nano %s' "$GITEA_CONFIG")"
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        echo "  - 服务状态：sudo launchctl list | grep gitea"
-        echo "  - 查看日志：tail -f /var/log/gitea.log"
-        echo "  - 重启服务：sudo launchctl kickstart -k system/$GITEA_PLIST_LABEL"
-        echo "  - 编辑配置：sudo nano $GITEA_CONFIG"
+        echo "  - $(_t 'Service status: sudo launchctl list | grep gitea')"
+        echo "  - $(_t 'View the logs: tail -f /var/log/gitea.log')"
+        echo "  - $(_tf 'Restart the service: sudo launchctl kickstart -k system/%s' "$GITEA_PLIST_LABEL")"
+        echo "  - $(_tf 'Edit the configuration: sudo nano %s' "$GITEA_CONFIG")"
     fi
 }
 
 # --- 卸载 Gitea ---
 uninstall_gitea() {
     detect_os
-    warn "即将卸载 Gitea。"
+    warn "$(_t 'About to uninstall Gitea.')"
     echo
     local delete_data=false
-    if yes_no "是否同时删除数据目录（${GITEA_DATA}）？"; then
+    if yes_no "$(_tf 'Delete the data directory (%s) too?' "${GITEA_DATA}")"; then
         delete_data=true
-        info "将删除数据目录"
+        info "$(_t 'The data directory will be deleted')"
     else
-        info "将保留数据目录"
+        info "$(_t 'The data directory will be kept')"
     fi
 
-    if ! yes_no "确认卸载 Gitea？"; then
-        info "已取消"
+    if ! yes_no "$(_t 'Confirm uninstall of Gitea?')"; then
+        info "$(_t 'Cancelled')"
         return 0
     fi
 
@@ -348,9 +348,9 @@ uninstall_gitea() {
         # 按用户选择删除数据
         if $delete_data; then
             sudo rm -rf "$GITEA_DATA"
-            info "数据目录已删除"
+            info "$(_t 'Data directory deleted')"
         else
-            info "数据目录已保留：$GITEA_DATA"
+            info "$(_tf 'Data directory kept: %s' "$GITEA_DATA")"
         fi
         if id -u "$GITEA_USER" &>/dev/null; then
             sudo userdel "$GITEA_USER" 2>/dev/null || true
@@ -367,13 +367,13 @@ uninstall_gitea() {
         sudo rm -rf /etc/gitea
         if $delete_data; then
             sudo rm -rf "$GITEA_DATA"
-            info "数据目录已删除"
+            info "$(_t 'Data directory deleted')"
         else
-            info "数据目录已保留：$GITEA_DATA"
+            info "$(_tf 'Data directory kept: %s' "$GITEA_DATA")"
         fi
     fi
 
-    success "Gitea 已卸载。"
+    success "Gitea $(_t 'Uninstalled.')"
 }
 
 # --- 状态检查 ---
@@ -383,7 +383,7 @@ status_gitea() {
     if command_exists gitea || [[ -f "$GITEA_BIN" ]]; then
         is_installed=true
         if command_exists gitea; then
-            version=$(gitea --version 2>/dev/null | head -1 || echo "未知版本")
+            version=$(gitea --version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Unknown version')")
         fi
     fi
     if service_is_active gitea "$GITEA_PLIST_LABEL"; then
@@ -391,13 +391,13 @@ status_gitea() {
     fi
     if $is_installed; then
         if $is_running; then
-            emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} ($version)"
+            emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC} ($version)"
         else
-            emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC} ($version)"
+            emit_status "installed:stopped" "${YELLOW}$(_t '⚠️ Installed but the service is not running')${NC} ($version)"
         fi
         emit_version "$version"
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 
@@ -406,10 +406,10 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装或更新 Gitea（默认动作）
-  uninstall   卸载 Gitea
-  status      查看安装与运行状态
-  help        显示本帮助
+  install     $(_t 'Install or update Gitea (default action)')
+  uninstall   $(_t 'Uninstall Gitea')
+  status      $(_t 'View the install and run status')
+  help        $(_t 'Show this help')
 EOF
 }
 
@@ -421,7 +421,7 @@ main() {
         uninstall) uninstall_gitea ;;
         status)    status_gitea ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

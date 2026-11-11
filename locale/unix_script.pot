@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 16:18+0800\n"
+"POT-Creation-Date: 2026-11-11 16:43+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1248,6 +1248,647 @@ msgid "Uninstall Fail2ban"
 msgstr ""
 
 #, sh-printf-format
+msgid "Unsupported architecture: %s (only x86_64/arm64 are supported)"
+msgstr ""
+
+msgid "frp detected, overwrite it with the latest version?"
+msgstr ""
+
+msgid "Fetching the latest frp version (GitHub API)..."
+msgstr ""
+
+msgid ""
+"Cannot fetch the version (GitHub is unreachable or rate limited), set "
+"GH_TOKEN and retry"
+msgstr ""
+
+#, sh-printf-format
+msgid "Asset frp_%s_%s_%s.tar.gz not found"
+msgstr ""
+
+#, sh-printf-format
+msgid "Downloading %s ..."
+msgstr ""
+
+msgid "Installed to /usr/local/bin"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"The sample configuration is in %s (a full example, edit it before use); the "
+"systemd unit is installed (disabled by default)"
+msgstr ""
+
+msgid "Enable the server: sudo systemctl enable --now frps"
+msgstr ""
+
+msgid "Enable the client: sudo systemctl enable --now frpc"
+msgstr ""
+
+msgid ""
+"Without the systemd service, run it manually: frps -c <config> / frpc -c "
+"<config>"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Edit %s/frps.toml to set bindPort and token; set serverAddr/serverName and "
+"the tunnel rules in frpc.toml"
+msgstr ""
+
+msgid "Confirm uninstall of frp (the frpc/frps binaries and the systemd unit)?"
+msgstr ""
+
+msgid "Uninstalled"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Delete the configuration directory %s (it holds your token and the tunnel "
+"rules)?"
+msgstr ""
+
+msgid "Configuration deleted"
+msgstr ""
+
+msgid "Keeping the configuration"
+msgstr ""
+
+msgid "❌ frp not installed"
+msgstr ""
+
+msgid "✅ frp installed and the frps service is running"
+msgstr ""
+
+msgid "⚠️ frp installed but the frps service is not running"
+msgstr ""
+
+msgid "✅ frp installed"
+msgstr ""
+
+msgid "(run it manually on macOS)"
+msgstr ""
+
+msgid "— Intranet penetration (the frps server + the frpc client)"
+msgstr ""
+
+msgid ""
+"Install the frpc/frps binaries and a sample configuration (Linux also gets a "
+"systemd unit, disabled by default)"
+msgstr ""
+
+msgid ""
+"Uninstall (the /etc/frp configuration holds the token, deletion needs a "
+"second confirmation)"
+msgstr ""
+
+msgid "View the install status (supports UXS_STATUS_MODE=machine)"
+msgstr ""
+
+msgid ""
+"Note: the server sets bindPort/token, the client sets serverAddr and the "
+"tunnel rules;"
+msgstr ""
+
+msgid ""
+"it complements ddns-go (DNS resolution) and tailscale (networking) — run ./"
+"install.sh ddns-go"
+msgstr ""
+
+msgid "Cannot fetch the latest version info, check the network connection"
+msgstr ""
+
+#, sh-printf-format
+msgid "Gitea detected (%s)"
+msgstr ""
+
+msgid "Continue and overwrite it with the newest version?"
+msgstr ""
+
+msgid "The installation was cancelled"
+msgstr ""
+
+msgid "Stopping the existing service..."
+msgstr ""
+
+#, sh-printf-format
+msgid "The user %s already exists"
+msgstr ""
+
+#, sh-printf-format
+msgid "Creating the system user %s..."
+msgstr ""
+
+msgid "Failed to create the user"
+msgstr ""
+
+#, sh-printf-format
+msgid "The user %s was created"
+msgstr ""
+
+msgid "Creating the directory structure..."
+msgstr ""
+
+msgid "The directory structure is ready"
+msgstr ""
+
+msgid "Creating the systemd service..."
+msgstr ""
+
+msgid "The service file was created"
+msgstr ""
+
+msgid "The service is running and enabled on boot"
+msgstr ""
+
+msgid "Failed to start the service"
+msgstr ""
+
+msgid "Creating the macOS service..."
+msgstr ""
+
+msgid "The service is already running"
+msgstr ""
+
+msgid "The service is running"
+msgstr ""
+
+msgid "failed, trying load"
+msgstr ""
+
+msgid "The service is running (load)"
+msgstr ""
+
+msgid "The auto-start failed, the service file is installed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Start it manually: sudo launchctl bootstrap system %s"
+msgstr ""
+
+msgid "🚀 Gitea self-hosted Git service install script"
+msgstr ""
+
+msgid "Installing Gitea via Homebrew..."
+msgstr ""
+
+msgid "🎉 Gitea installation complete! (managed by brew)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Access URL: http://%s:%s"
+msgstr ""
+
+msgid "Common commands: brew services info gitea"
+msgstr ""
+
+msgid "Fetching the latest version info..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Latest version: v%s"
+msgstr ""
+
+msgid "Detected architecture:"
+msgstr ""
+
+#, sh-printf-format
+msgid "About to install Gitea v%s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Port: %s | SSH port: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Configuration file: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Data directory: %s"
+msgstr ""
+
+msgid "Continue with the installation?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Download URL: %s"
+msgstr ""
+
+msgid "Download complete"
+msgstr ""
+
+msgid "The binary files are installed"
+msgstr ""
+
+msgid "Verifying the installation..."
+msgstr ""
+
+msgid "The service is running normally"
+msgstr ""
+
+msgid "The service may still be starting..."
+msgstr ""
+
+#, sh-printf-format
+msgid "🎉 Gitea v%s installation complete!"
+msgstr ""
+
+#, sh-printf-format
+msgid "Access: http://%s:%s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Address: ssh://%s:%s"
+msgstr ""
+
+msgid ""
+"On the first visit, finish the initial setup wizard (set the admin account, "
+"the database, ...)."
+msgstr ""
+
+msgid "Service status: sudo systemctl status gitea"
+msgstr ""
+
+msgid "View the logs: sudo journalctl -u gitea -f"
+msgstr ""
+
+msgid "Restart the service: sudo systemctl restart gitea"
+msgstr ""
+
+#, sh-printf-format
+msgid "Edit the configuration: sudo nano %s"
+msgstr ""
+
+msgid "Service status: sudo launchctl list | grep gitea"
+msgstr ""
+
+msgid "View the logs: tail -f /var/log/gitea.log"
+msgstr ""
+
+#, sh-printf-format
+msgid "Restart the service: sudo launchctl kickstart -k system/%s"
+msgstr ""
+
+msgid "About to uninstall Gitea."
+msgstr ""
+
+#, sh-printf-format
+msgid "Delete the data directory (%s) too?"
+msgstr ""
+
+msgid "The data directory will be deleted"
+msgstr ""
+
+msgid "The data directory will be kept"
+msgstr ""
+
+msgid "Confirm uninstall of Gitea?"
+msgstr ""
+
+msgid "Data directory deleted"
+msgstr ""
+
+#, sh-printf-format
+msgid "Data directory kept: %s"
+msgstr ""
+
+msgid "Uninstalled."
+msgstr ""
+
+msgid "✅ Installed and running"
+msgstr ""
+
+msgid "⚠️ Installed but the service is not running"
+msgstr ""
+
+msgid "❌ Not installed"
+msgstr ""
+
+msgid "Install or update Gitea (default action)"
+msgstr ""
+
+msgid "Uninstall Gitea"
+msgstr ""
+
+msgid "View the install and run status"
+msgstr ""
+
+msgid "Adding the Grafana APT repository..."
+msgstr ""
+
+msgid "The key was added"
+msgstr ""
+
+msgid "The repository was added"
+msgstr ""
+
+msgid "Adding the Grafana YUM/DNF repository..."
+msgstr ""
+
+msgid "Installing Grafana..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Unsupported package manager: %s"
+msgstr ""
+
+msgid "The install only supports APT and DNF/YUM"
+msgstr ""
+
+msgid "The package installation is complete"
+msgstr ""
+
+msgid "Starting the Grafana service..."
+msgstr ""
+
+msgid "Homebrew is required on macOS, install it first"
+msgstr ""
+
+msgid "Installing Grafana via Homebrew..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Port %s responds normally"
+msgstr ""
+
+#, sh-printf-format
+msgid "Port %s does not respond yet, it may take a few seconds"
+msgstr ""
+
+msgid "The service is not running normally"
+msgstr ""
+
+msgid "View the logs: sudo journalctl -u grafana-server -f"
+msgstr ""
+
+msgid "View the logs: brew services log grafana"
+msgstr ""
+
+msgid "Installation complete!"
+msgstr ""
+
+#, sh-printf-format
+msgid ": http://%s:%s"
+msgstr ""
+
+msgid "Default login credentials:"
+msgstr ""
+
+msgid "User name: admin"
+msgstr ""
+
+msgid "Password: admin"
+msgstr ""
+
+msgid "(you are asked to change the password after the first login)"
+msgstr ""
+
+msgid "Add a Prometheus data source:"
+msgstr ""
+
+msgid "After logging in to Grafana, go to Configuration -> Data Sources"
+msgstr ""
+
+msgid "Click \"Add data source\" and pick Prometheus"
+msgstr ""
+
+msgid "Fill in: http://localhost:9090"
+msgstr ""
+
+msgid "Click \"Save & Test\" to verify the connection"
+msgstr ""
+
+msgid "Service status: sudo systemctl status grafana-server"
+msgstr ""
+
+msgid "Restart the service: sudo systemctl restart grafana-server"
+msgstr ""
+
+msgid "Service status: brew services info grafana"
+msgstr ""
+
+msgid "Restart the service: brew services restart grafana"
+msgstr ""
+
+msgid "Cross-platform install script"
+msgstr ""
+
+msgid "Grafana detected"
+msgstr ""
+
+msgid "Continue and overwrite the installation?"
+msgstr ""
+
+msgid "About to install Grafana"
+msgstr ""
+
+#, sh-printf-format
+msgid "Service port: %s"
+msgstr ""
+
+msgid "Uninstalling Grafana..."
+msgstr ""
+
+msgid ""
+"Delete the Grafana data directory (/var/lib/grafana, the dashboards and the "
+"data source configurations are lost)?"
+msgstr ""
+
+msgid "Keeping the data directory"
+msgstr ""
+
+msgid "Uninstalled successfully!"
+msgstr ""
+
+msgid "⚠️  Installed but not running"
+msgstr ""
+
+msgid "Install or update Grafana (default action)"
+msgstr ""
+
+msgid "Uninstall Grafana"
+msgstr ""
+
+msgid "The docker runtime is required, run this first: ./install.sh docker"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s detected (Harbor may already be installed), reinstall?"
+msgstr ""
+
+msgid "Fetching the latest Harbor version (GitHub API)..."
+msgstr ""
+
+msgid ""
+"The offline installer is about 600MB+, the download time depends on the "
+"network"
+msgstr ""
+
+msgid "Download failed (GitHub large files are slow, you can retry)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Extracting to %s ..."
+msgstr ""
+
+msgid "Set the Harbor admin password (press Enter to generate a random one):"
+msgstr ""
+
+msgid ""
+"Running the official install orchestration (prepare and compose up, it takes "
+"several minutes)..."
+msgstr ""
+
+#, sh-printf-format
+msgid "The orchestrated install failed, check %s for the details"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installation complete: http://%s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Password: %s (store it safely, it is shown only once)"
+msgstr ""
+
+msgid ""
+"A client using this registry needs insecure-registries (for plain http), see "
+"the README"
+msgstr ""
+
+#, sh-printf-format
+msgid "Not installed (%s not found)"
+msgstr ""
+
+msgid "Confirm uninstall of Harbor (stop and remove all the containers)?"
+msgstr ""
+
+#, sh-printf-format
+msgid "failed, run it manually in %s"
+msgstr ""
+
+msgid ""
+"Delete the Harbor data directory /data (images/database/certificates, "
+"irreversible)?"
+msgstr ""
+
+msgid "Keeping the data"
+msgstr ""
+
+msgid "❌ Harbor not installed"
+msgstr ""
+
+msgid "✅ Harbor containers are running"
+msgstr ""
+
+msgid "⚠️ Harbor installed but the containers are not running"
+msgstr ""
+
+msgid "— Self-hosted Docker image registry (Linux only, requires docker)"
+msgstr ""
+
+msgid ""
+"Download the offline installer to /opt/harbor and install it with the "
+"official orchestration (http mode)"
+msgstr ""
+
+msgid ""
+"Stop the containers and uninstall (the /data is kept by default, deletion "
+"needs a second confirmation)"
+msgstr ""
+
+msgid ""
+"Note: the admin password is set during the install (random in non-"
+"interactive mode, shown once); http is the default,"
+msgstr ""
+
+msgid ""
+"a client has to add the registry address to insecure-registries in "
+"daemon.json."
+msgstr ""
+
+#, sh-printf-format
+msgid "Incus %s detected, reinstall?"
+msgstr ""
+
+msgid "Configuring the Zabbly stable repository and installing Incus..."
+msgstr ""
+
+msgid ""
+"Installation failed (is that codename missing from the Zabbly repository?)"
+msgstr ""
+
+msgid "Installing Incus from the system repositories..."
+msgstr ""
+
+msgid "Installation failed (the EPEL or openEuler repository is required)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Only the Deb and RHEL families are supported (current: %s)"
+msgstr ""
+
+msgid ""
+"Failed to start the service, start it manually: sudo systemctl enable --now "
+"incus"
+msgstr ""
+
+msgid "Installation complete"
+msgstr ""
+
+msgid "Initialize it (interactive): sudo incus admin init"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Add the user to the incus-admin group to run without sudo: sudo usermod -aG "
+"incus-admin %s"
+msgstr ""
+
+msgid "Confirm uninstall of Incus?"
+msgstr ""
+
+msgid "Package manager uninstall failed, please check it manually"
+msgstr ""
+
+msgid ""
+"Delete the Incus data /var/lib/incus (containers/VMs/images, irreversible)?"
+msgstr ""
+
+msgid "❌ Incus not installed"
+msgstr ""
+
+msgid "✅ Incus installed and the service is running"
+msgstr ""
+
+msgid "⚠️ Incus installed but the service is not running"
+msgstr ""
+
+msgid ""
+"— System container and virtual machine management (the LXD community branch, "
+"Linux only)"
+msgstr ""
+
+msgid ""
+"Install and start the service (Deb family: Zabbly stable repo; RHEL family: "
+"distro/EPEL packages)"
+msgstr ""
+
+msgid ""
+"Uninstall (the /var/lib/incus data is kept by default, deletion needs a "
+"second confirmation)"
+msgstr ""
+
+msgid ""
+"Note: run sudo incus admin init after the install to set up storage/network;"
+msgstr ""
+
+msgid ""
+"it is the equivalent of the command; the images: remote mirror is available."
+msgstr ""
+
+#, sh-printf-format
 msgid "Detected k3s %s installed, reinstall?"
 msgstr ""
 
@@ -1310,6 +1951,618 @@ msgid ""
 "Notes: kubeconfig is at /etc/rancher/k3s/k3s.yaml; terminal management uses "
 "k9s,\n"
 "package management uses helm — ./install.sh k9s / ./install.sh helm"
+msgstr ""
+
+#, sh-printf-format
+msgid "MariaDB %s detected, reinstall?"
+msgstr ""
+
+msgid ""
+"MySQL detected: MariaDB listens on the same port 3306, running both on one "
+"machine conflicts"
+msgstr ""
+
+msgid "Continue installing MariaDB anyway?"
+msgstr ""
+
+msgid "Installing MariaDB via Homebrew..."
+msgstr ""
+
+msgid "Installation failed"
+msgstr ""
+
+msgid ""
+"Start it: brew services start mariadb (the first root login has no password)"
+msgstr ""
+
+msgid "Installing MariaDB from the system repositories..."
+msgstr ""
+
+msgid ""
+"Installation failed (is the package missing from the system repositories?)"
+msgstr ""
+
+msgid ""
+"Failed to start the service, start it manually: sudo systemctl enable --now "
+"mariadb"
+msgstr ""
+
+msgid "Run this soon: mariadb-secure-installation"
+msgstr ""
+
+msgid "Check the status: ./install.sh mariadb status"
+msgstr ""
+
+msgid "Confirm uninstall of MariaDB?"
+msgstr ""
+
+msgid ""
+"Delete the database data /var/lib/mysql (all databases and tables, "
+"irreversible)?"
+msgstr ""
+
+msgid "❌ MariaDB not installed"
+msgstr ""
+
+msgid "✅ MariaDB installed and the service is running"
+msgstr ""
+
+msgid "⚠️ MariaDB installed but the service is not running"
+msgstr ""
+
+msgid "✅ MariaDB installed"
+msgstr ""
+
+msgid "Database (the MySQL compatible branch)"
+msgstr ""
+
+msgid "Install and start (Linux: system repositories; macOS: brew)"
+msgstr ""
+
+msgid ""
+"Uninstall (the /var/lib/mysql data is kept by default, deletion needs a "
+"second confirmation)"
+msgstr ""
+
+msgid ""
+"Note: it shares port 3306 with MySQL, change the port to run both on one "
+"machine; run this after the install"
+msgstr ""
+
+msgid ". For MySQL 8 use ./install.sh mysql."
+msgstr ""
+
+msgid "Distribution codename"
+msgstr ""
+
+#, sh-printf-format
+msgid "is not in the MongoDB %s supported list (jammy/noble/bookworm/trixie)"
+msgstr ""
+
+#, sh-printf-format
+msgid "MongoDB %s detected, reinstall?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Configuring the MongoDB %s APT repository (TUNA mirror)..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Configuring the MongoDB %s YUM repository (TUNA mirror)..."
+msgstr ""
+
+msgid ""
+"Failed to start the service, start it manually: sudo systemctl enable --now "
+"mongod"
+msgstr ""
+
+msgid "Installation complete. Connect with: mongosh"
+msgstr ""
+
+msgid "Confirm uninstall of MongoDB?"
+msgstr ""
+
+msgid "Delete the database data /var/lib/mongodb (irreversible)?"
+msgstr ""
+
+msgid "❌ MongoDB not installed"
+msgstr ""
+
+msgid "✅ MongoDB installed and the service is running"
+msgstr ""
+
+msgid "⚠️ MongoDB installed but the service is not running"
+msgstr ""
+
+msgid "Document database (mongodb-org 8.0, Linux only)"
+msgstr ""
+
+msgid ""
+"Install mongodb-org with the official GPG key and the TUNA mirror "
+"repository, service enable-now"
+msgstr ""
+
+msgid ""
+"Uninstall (the /var/lib/mongodb data is kept by default, deletion needs a "
+"second confirmation)"
+msgstr ""
+
+#, sh-format
+msgid ""
+"Note: the Deb family supports the jammy/noble/bookworm/trixie codenames; the "
+"RHEL family uses el$releasever."
+msgstr ""
+
+msgid "Client shell: mongosh (installed together with mongodb-org)."
+msgstr ""
+
+#, sh-printf-format
+msgid "MySQL %s detected, reinstall?"
+msgstr ""
+
+msgid "Installing MySQL via Homebrew..."
+msgstr ""
+
+msgid ""
+"Start it: brew services start mysql (the first root login has no password)"
+msgstr ""
+
+msgid "Installing MySQL from the system repositories..."
+msgstr ""
+
+msgid ""
+"Installation failed (the package is missing from the system repositories, "
+"the RHEL family needs AppStream)"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Failed to start the service, start it manually: sudo systemctl enable --now "
+"%s"
+msgstr ""
+
+#, sh-printf-format
+msgid "The temporary root password is: %s (change it right after you log in)"
+msgstr ""
+
+msgid ""
+"On the Deb family the root account uses auth_socket (log in directly with "
+"sudo mysql); run mysql_secure_installation soon"
+msgstr ""
+
+msgid "Check the status: ./install.sh mysql status"
+msgstr ""
+
+msgid "Confirm uninstall of MySQL?"
+msgstr ""
+
+msgid "Package manager uninstall failed, check the package name manually"
+msgstr ""
+
+msgid "❌ MySQL not installed"
+msgstr ""
+
+msgid "✅ MySQL installed and the service is running"
+msgstr ""
+
+msgid "⚠️ MySQL installed but the service is not running"
+msgstr ""
+
+msgid "✅ MySQL installed"
+msgstr ""
+
+msgid "Database"
+msgstr ""
+
+msgid "Install and start (Linux: distro repositories; macOS: brew)"
+msgstr ""
+
+msgid ""
+"Note: on the Deb family the root account uses auth_socket (log in directly "
+"with sudo mysql); on the RHEL family the first root"
+msgstr ""
+
+msgid ""
+"temporary password is in /var/log/mysqld.log; run mysql_secure_installation "
+"after the install."
+msgstr ""
+
+msgid ""
+"Users who need MariaDB can install mariadb-server from the system "
+"repositories, this module does not wrap it."
+msgstr ""
+
+#, sh-printf-format
+msgid "Nginx detected (%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing Nginx (package manager: %s)..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Installation failed (package manager: %s)"
+msgstr ""
+
+msgid "Installation failed: the nginx command was not found"
+msgstr ""
+
+msgid "Enabling and starting the Nginx service..."
+msgstr ""
+
+msgid "The service did not start properly, check the logs:"
+msgstr ""
+
+msgid "Starting Nginx through brew services..."
+msgstr ""
+
+msgid "Started through brew services"
+msgstr ""
+
+msgid "brew not detected, start Nginx manually or configure launchd."
+msgstr ""
+
+msgid "Version:"
+msgstr ""
+
+msgid "Configuration directory:"
+msgstr ""
+
+msgid "Main configuration"
+msgstr ""
+
+msgid "Virtual host configurations"
+msgstr ""
+
+msgid "Default site:"
+msgstr ""
+
+msgid "Default welcome page"
+msgstr ""
+
+msgid "Default document root"
+msgstr ""
+
+msgid "Default port"
+msgstr ""
+
+msgid "Test the configuration syntax"
+msgstr ""
+
+msgid "Reload the configuration (without dropping the connections)"
+msgstr ""
+
+msgid "Stop the service"
+msgstr ""
+
+msgid "View the service status"
+msgstr ""
+
+msgid "Restart the service"
+msgstr ""
+
+msgid "View the error log"
+msgstr ""
+
+msgid "Confirm uninstall of Nginx?"
+msgstr ""
+
+msgid "Package removal failed, uninstall it manually"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Delete the configuration directory %s? (the site configurations and the "
+"certificate links are deleted too)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Configuration directory %s deleted."
+msgstr ""
+
+#, sh-printf-format
+msgid "Configuration directory kept: %s"
+msgstr ""
+
+msgid "Delete the default website directory /var/www/html?"
+msgstr ""
+
+msgid "Deleted."
+msgstr ""
+
+msgid "Install Nginx and start the service"
+msgstr ""
+
+msgid "Uninstall Nginx (deleting the configuration files is optional)"
+msgstr ""
+
+msgid "node_exporter v detected"
+msgstr ""
+
+msgid "Continue and upgrade to the latest version?"
+msgstr ""
+
+msgid "Installing the binary files..."
+msgstr ""
+
+msgid "The binary installation failed"
+msgstr ""
+
+msgid "Creating the system user..."
+msgstr ""
+
+msgid "The user node_exporter was created"
+msgstr ""
+
+msgid "The user creation failed"
+msgstr ""
+
+msgid "The user node_exporter already exists"
+msgstr ""
+
+msgid "Creating the systemd service file..."
+msgstr ""
+
+msgid "Failed to create the service file"
+msgstr ""
+
+msgid "Starting the service..."
+msgstr ""
+
+msgid "Creating the macOS service file..."
+msgstr ""
+
+msgid "The command failed, trying the load command as a fallback"
+msgstr ""
+
+msgid "The service is running (started with the load command)"
+msgstr ""
+
+msgid "The auto-start failed, but the service file is installed"
+msgstr ""
+
+#, sh-printf-format
+msgid "You can start the service manually: sudo launchctl bootstrap system %s"
+msgstr ""
+
+msgid "Port 9100 responds normally"
+msgstr ""
+
+msgid "Port 9100 does not respond yet, it may take a few seconds"
+msgstr ""
+
+msgid "You can use these commands to check the status and the logs:"
+msgstr ""
+
+msgid "🎉 Node Exporter installation complete!"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installed version: v%s"
+msgstr ""
+
+msgid "Listen address: http://0.0.0.0:9100"
+msgstr ""
+
+#, sh-printf-format
+msgid "Metrics URL: http://%s:9100/metrics"
+msgstr ""
+
+#, sh-printf-format
+msgid "Status page: http://%s:9100"
+msgstr ""
+
+msgid "Service status: sudo systemctl status node_exporter"
+msgstr ""
+
+msgid "View the logs: sudo journalctl -u node_exporter -f"
+msgstr ""
+
+msgid "Restart the service: sudo systemctl restart node_exporter"
+msgstr ""
+
+msgid "Service status: sudo launchctl list | grep node_exporter"
+msgstr ""
+
+msgid "View the logs: tail -f /var/log/node_exporter.log"
+msgstr ""
+
+#, sh-printf-format
+msgid "Start the service: sudo launchctl bootstrap system %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Version v%s installed, running brew upgrade to pull the latest..."
+msgstr ""
+
+msgid "It did not work, falling back to brew reinstall"
+msgstr ""
+
+msgid ""
+"The service is running, running restart to make the new version effective..."
+msgstr ""
+
+msgid "🎉 Node Exporter installation complete! (managed by Homebrew)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Current version: v%s"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"The upstream sync lags behind: the official latest is v%s, brew currently "
+"provides v%s"
+msgstr ""
+
+msgid ""
+"Wait for the Homebrew sync and run this script again, this repository needs "
+"no change"
+msgstr ""
+
+msgid "Common commands: brew services info node_exporter"
+msgstr ""
+
+msgid "🚀 Node Exporter cross-platform install script"
+msgstr ""
+
+msgid "Fetching the official latest version info..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Official latest version: v%s"
+msgstr ""
+
+#, sh-printf-format
+msgid "About to install Node Exporter v%s (official GitHub release)"
+msgstr ""
+
+msgid "Service port: 9100"
+msgstr ""
+
+msgid "Uninstalling Node Exporter..."
+msgstr ""
+
+msgid "Install or update Node Exporter (default action)"
+msgstr ""
+
+msgid "Uninstall Node Exporter"
+msgstr ""
+
+msgid "nomad detected, overwrite it with the latest version?"
+msgstr ""
+
+msgid "Installing nomad via Homebrew..."
+msgstr ""
+
+msgid "Try the dev mode: nomad agent -dev"
+msgstr ""
+
+msgid "Fetching the latest nomad version (GitHub API)..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Asset nomad_%s_linux_%s.zip not found"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installed to %s"
+msgstr ""
+
+msgid ""
+"Try the dev mode: nomad agent -dev; a production deployment needs a server/"
+"client cluster"
+msgstr ""
+
+msgid "nomad uninstalled"
+msgstr ""
+
+msgid "nomad not detected through brew"
+msgstr ""
+
+#, sh-printf-format
+msgid "Deleted %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s not detected"
+msgstr ""
+
+msgid "❌ nomad not installed"
+msgstr ""
+
+msgid "✅ nomad installed"
+msgstr ""
+
+msgid "(single binary, dev mode: nomad agent -dev)"
+msgstr ""
+
+msgid "— HashiCorp workload orchestration"
+msgstr ""
+
+msgid "Install the latest version (Linux: GitHub release zip; macOS: brew)"
+msgstr ""
+
+msgid "Uninstall the binary"
+msgstr ""
+
+msgid ""
+"Note: a single binary with no built-in service concept; nomad agent -dev "
+"gives you a quick start;"
+msgstr ""
+
+msgid ""
+"Container task runtimes depend on docker/podman — run ./install.sh docker"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unsupported architecture: %s/%s"
+msgstr ""
+
+msgid "🚀 Starting the OpenList installation"
+msgstr ""
+
+#, sh-printf-format
+msgid "OpenList detected (%s)"
+msgstr ""
+
+msgid "Continue and overwrite it with the latest version?"
+msgstr ""
+
+msgid "Fetching the latest version..."
+msgstr ""
+
+msgid ""
+"Cannot fetch the latest version (check the network or set GH_TOKEN to avoid "
+"the API rate limit)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Downloading: %s"
+msgstr ""
+
+msgid "The binary installation is complete"
+msgstr ""
+
+msgid "Creating the launchd service..."
+msgstr ""
+
+msgid "The service may still be starting, check the web interface later"
+msgstr ""
+
+msgid "The admin password of the first install (randomly generated):"
+msgstr ""
+
+#, sh-printf-format
+msgid "Run: sudo %s admin random   # regenerate a random password"
+msgstr ""
+
+#, sh-printf-format
+msgid "Run: sudo %s admin random"
+msgstr ""
+
+#, sh-printf-format
+msgid "🎉 OpenList v%s installation complete!"
+msgstr ""
+
+msgid "The default admin account is: admin"
+msgstr ""
+
+msgid "Set the admin password"
+msgstr ""
+
+msgid "Confirm uninstall of OpenList?"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Delete the data directory %s (it holds the configuration and the database)?"
+msgstr ""
+
+msgid "Install Alist (file listing / drive aggregation, default port 5244)"
+msgstr ""
+
+msgid "Uninstall Alist"
 msgstr ""
 
 msgid "Detected Podman Desktop, reinstall?"
@@ -1380,7 +2633,332 @@ msgid ""
 "container runtime setup uses podman — ./install.sh podman"
 msgstr ""
 
+msgid ""
+"Set up the rootless prerequisites: /etc/subuid /etc/subgid user mappings..."
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"The automatic setup failed, run it manually: sudo usermod --add-subuids "
+"100000-165535 --add-subgids 100000-165535 %s"
+msgstr ""
+
+msgid ""
+"Optional: to start rootless containers on boot you need loginctl enable-"
+"linger"
+msgstr ""
+
+#, sh-printf-format
+msgid "podman %s detected, reinstall?"
+msgstr ""
+
+msgid "Installing the podman CLI via Homebrew..."
+msgstr ""
+
+msgid ""
+"Initialize the podman machine now (it downloads a GB sized system image and "
+"takes a while)?"
+msgstr ""
+
+msgid "Ready"
+msgstr ""
+
+msgid ""
+"Skipped. Run it manually later: podman machine init && podman machine start"
+msgstr ""
+
+msgid "An existing podman machine was detected, skipping the initialization"
+msgstr ""
+
+msgid "Installing podman from the system repositories..."
+msgstr ""
+
+msgid ""
+"The repository has no podman-compose, you can install it later with pipx "
+"install podman-compose"
+msgstr ""
+
+msgid "Installation complete. Try it: podman run --rm quay.io/podman/hello"
+msgstr ""
+
+msgid ""
+"Pulling docker.io images is slow? Use a domestic mirror: ./install.sh podman "
+"mirror"
+msgstr ""
+
+#, sh-printf-format
+msgid "Written to %s/registries.conf"
+msgstr ""
+
+msgid ""
+"It takes effect after a restart: podman machine stop && podman machine start"
+msgstr ""
+
+#, sh-printf-format
+msgid "Written to %s/%s, it takes effect on the next pull"
+msgstr ""
+
+msgid "The mirror configuration was removed"
+msgstr ""
+
+msgid "No mirror configuration detected"
+msgstr ""
+
+msgid "Delete the podman machine disk (it holds all the container/image data)?"
+msgstr ""
+
+msgid "Deleted"
+msgstr ""
+
+msgid "Keeping the machine and the data"
+msgstr ""
+
+msgid "Confirm uninstall of podman?"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Container storage directories: /var/lib/containers, %s/.local/share/"
+"containers"
+msgstr ""
+
+msgid "Delete the container storage data (images/volumes, irreversible)?"
+msgstr ""
+
+msgid "Storage data deleted"
+msgstr ""
+
+msgid "Keeping the storage data"
+msgstr ""
+
+msgid "❌ podman not installed"
+msgstr ""
+
+msgid "✅ podman installed"
+msgstr ""
+
+#, sh-printf-format
+msgid "(machine: %s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "(%s)"
+msgstr ""
+
+msgid "— Daemonless container engine (rootless)"
+msgstr ""
+
+msgid ""
+"Install (Linux: system repositories including podman-compose; macOS: brew, "
+"the machine init is optional)"
+msgstr ""
+
+msgid ""
+"Pull through a domestic image mirror (write the containers registries "
+"configuration)"
+msgstr ""
+
+msgid "Remove the image mirror configuration"
+msgstr ""
+
+msgid ""
+"Uninstall (the container storage data is kept by default, deletion needs a "
+"second confirmation)"
+msgstr ""
+
+msgid ""
+"Note: this module does not install podman-docker (it would hijack the docker "
+"command and conflict with the docker module)."
+msgstr ""
+
 msgid "Unable to detect the package manager"
+msgstr ""
+
+#, sh-printf-format
+msgid "Install PostgreSQL (relational database, default port %s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "PostgreSQL detected (%s)"
+msgstr ""
+
+msgid "Continue and reinstall or update?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing %s via Homebrew..."
+msgstr ""
+
+msgid "Starting the PostgreSQL service..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing %s via %s..."
+msgstr ""
+
+msgid "Initializing the database (postgresql-setup --initdb)..."
+msgstr ""
+
+msgid "Enabling and starting the postgresql service..."
+msgstr ""
+
+msgid "psql is still not found after the install, check PATH"
+msgstr ""
+
+msgid "Installation complete, the service is running normally"
+msgstr ""
+
+msgid ""
+"Installed, but pg_isready is not ready yet, the service may still be starting"
+msgstr ""
+
+msgid "Installation summary:"
+msgstr ""
+
+#, sh-printf-format
+msgid "Port: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Configuration directory: %s"
+msgstr ""
+
+msgid "Connection test: pg_isready"
+msgstr ""
+
+msgid "Log in with the postgres system user"
+msgstr ""
+
+msgid "Create a user and a database"
+msgstr ""
+
+msgid "Database name>"
+msgstr ""
+
+msgid ""
+"Connect directly with the current user (brew creates it at install time)"
+msgstr ""
+
+msgid ""
+"A remote connection needs pg_hba.conf edited to allow the matching IP/user"
+msgstr ""
+
+msgid "Uninstalling PostgreSQL removes the package."
+msgstr ""
+
+msgid "The database data directory may be kept, clean it up manually."
+msgstr ""
+
+msgid "Confirm uninstall of PostgreSQL?"
+msgstr ""
+
+msgid "Uninstalled (macOS)"
+msgstr ""
+
+msgid "To delete the database data, clean it up manually:"
+msgstr ""
+
+#, sh-printf-format
+msgid "port %s)"
+msgstr ""
+
+msgid "⚠️  Installed but the service is not running"
+msgstr ""
+
+msgid "Uninstall PostgreSQL (it asks whether to keep the data directory)"
+msgstr ""
+
+msgid "Unsupported Linux architecture:"
+msgstr ""
+
+msgid "Unsupported macOS architecture:"
+msgstr ""
+
+#, sh-printf-format
+msgid "Prometheus v%s detected"
+msgstr ""
+
+msgid "The binary files are installed (prometheus, promtool)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Creating the default configuration %s ..."
+msgstr ""
+
+msgid "The default configuration is ready"
+msgstr ""
+
+#, sh-printf-format
+msgid "The configuration file %s already exists, skipping the creation"
+msgstr ""
+
+msgid "failed, trying the load command"
+msgstr ""
+
+#, sh-printf-format
+msgid "Listen address: http://0.0.0.0:%s"
+msgstr ""
+
+msgid "Default scrape jobs:"
+msgstr ""
+
+msgid "(its own metrics)"
+msgstr ""
+
+msgid "(system metrics)"
+msgstr ""
+
+msgid "Service status: sudo systemctl status prometheus"
+msgstr ""
+
+msgid "View the logs: sudo journalctl -u prometheus -f"
+msgstr ""
+
+msgid "Restart the service: sudo systemctl restart prometheus"
+msgstr ""
+
+#, sh-printf-format
+msgid "Check the configuration: promtool check config %s"
+msgstr ""
+
+msgid "Service status: sudo launchctl list | grep prometheus"
+msgstr ""
+
+msgid "View the logs: tail -f /var/log/prometheus.log"
+msgstr ""
+
+#, sh-printf-format
+msgid "About to install Prometheus v%s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Install locations: %s, %s"
+msgstr ""
+
+msgid "Uninstalling Prometheus..."
+msgstr ""
+
+msgid "Delete the configuration directory /etc/prometheus?"
+msgstr ""
+
+msgid "Configuration directory deleted"
+msgstr ""
+
+msgid "Keeping the configuration directory /etc/prometheus"
+msgstr ""
+
+#, sh-printf-format
+msgid "Delete the data directory %s (the historical monitoring data is lost)?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Keeping the data directory %s"
+msgstr ""
+
+msgid "Install or update Prometheus (default action)"
+msgstr ""
+
+msgid "Uninstall Prometheus"
 msgstr ""
 
 #, sh-printf-format
@@ -1392,9 +2970,6 @@ msgstr ""
 
 #, sh-printf-format
 msgid "Detected Redis installed (%s)"
-msgstr ""
-
-msgid "Continue and reinstall or update?"
 msgstr ""
 
 msgid "Installing redis via Homebrew..."
@@ -1420,9 +2995,6 @@ msgstr ""
 msgid ""
 "Redis is installed, but redis-cli ping did not return PONG; the service may "
 "still be starting"
-msgstr ""
-
-msgid "Installation summary:"
 msgstr ""
 
 #, sh-printf-format
@@ -1515,6 +3087,123 @@ msgstr ""
 msgid ""
 "Common: skopeo inspect/copy docker://<image> (cross-registry image copy, "
 "offline sync)"
+msgstr ""
+
+msgid "requires Homebrew to be installed first: https://brew.sh/"
+msgstr ""
+
+msgid "🚀 Starting the Tailscale installation"
+msgstr ""
+
+#, sh-printf-format
+msgid "Tailscale detected (%s)"
+msgstr ""
+
+msgid ""
+"Using the official one-line install script (works on apt/yum/dnf "
+"distributions)..."
+msgstr ""
+
+msgid ""
+"The official install script failed, check the network or install it manually"
+msgstr ""
+
+msgid "Installing Tailscale via Homebrew..."
+msgstr ""
+
+msgid ""
+"The tailscale command is still not found after the install, check PATH or "
+"open a new terminal"
+msgstr ""
+
+msgid "Next step: log in and enable the node"
+msgstr ""
+
+msgid "Show the nodes and the connection status"
+msgstr ""
+
+msgid "Show the Tailscale IP of this machine"
+msgstr ""
+
+msgid "Disconnect"
+msgstr ""
+
+msgid "Reconnect / log in"
+msgstr ""
+
+msgid "About to uninstall Tailscale."
+msgstr ""
+
+#, sh-printf-format
+msgid "The automatic uninstall failed (%s), uninstall tailscale manually"
+msgstr ""
+
+msgid "Install or update Tailscale"
+msgstr ""
+
+msgid "Uninstall Tailscale"
+msgstr ""
+
+msgid ""
+"Docker not detected. Install Docker first (you can use the docker module of "
+"this project)."
+msgstr ""
+
+msgid "🚀 Starting the Uptime Kuma installation (Docker deployment)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Existing container %s detected"
+msgstr ""
+
+msgid "Stop and delete the old container, then deploy again?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Pulling the image %s ..."
+msgstr ""
+
+msgid "Image pull failed, check Docker and the network"
+msgstr ""
+
+msgid "Creating and starting the container..."
+msgstr ""
+
+msgid "The container is running normally"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"The container is not running normally, check the logs: sudo docker logs %s"
+msgstr ""
+
+msgid "🎉 Uptime Kuma installation complete!"
+msgstr ""
+
+msgid "The first visit needs an administrator account."
+msgstr ""
+
+msgid "Confirm uninstall of Uptime Kuma?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Delete the data volume %s too (the monitoring history will be lost)?"
+msgstr ""
+
+msgid "Data volume deleted"
+msgstr ""
+
+msgid "❌ Not installed (Docker required)"
+msgstr ""
+
+msgid "⚠️  The container was created but is not running"
+msgstr ""
+
+#, sh-printf-format
+msgid "Deploy Uptime Kuma via Docker (monitoring dashboard, default port %s)"
+msgstr ""
+
+msgid "Uninstall Uptime Kuma (container and image)"
 msgstr ""
 
 #, sh-printf-format

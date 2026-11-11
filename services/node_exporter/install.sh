@@ -16,7 +16,7 @@ get_latest_version() {
     local ver
     ver=$(github_latest_tag "prometheus/node_exporter")
     if [[ -z "$ver" ]]; then
-        error "无法获取最新版本信息，请检查网络连接"
+        error "$(_t 'Cannot fetch the latest version info, check the network connection')"
         return 1
     fi
     echo "$ver"
@@ -32,14 +32,14 @@ detect_arch_suffix() {
                 x86_64)         echo "linux-amd64" ;;
                 aarch64|arm64)  echo "linux-arm64" ;;
                 armv7l)         echo "linux-armv7" ;;
-                *) error "不支持的 Linux 架构：$arch"; return 1 ;;
+                *) error "$(_tf 'Unsupported Linux architecture: %s' "$arch")"; return 1 ;;
             esac
             ;;
         darwin)
             case "$arch" in
                 x86_64) echo "darwin-amd64" ;;
                 arm64)  echo "darwin-arm64" ;;
-                *) error "不支持的 macOS 架构：$arch"; return 1 ;;
+                *) error "$(_tf 'Unsupported macOS architecture: %s' "$arch")"; return 1 ;;
             esac
             ;;
     esac
@@ -58,7 +58,7 @@ handle_existing_installation() {
         # /usr/local/bin 不在非交互 shell 的默认 PATH 里，只认 command -v 会读不到版本
         command_exists node_exporter || ne_path="$NE_BIN"
         current_version=$("$ne_path" --version 2>&1 | grep -o 'version [0-9.]*' | cut -d' ' -f2 2>/dev/null || true)
-        warn "检测到已安装 node_exporter v${current_version:-未知版本}"
+        warn "$(_t 'node_exporter v detected')${current_version:-$(_t 'Unknown version')}"
     fi
     if [[ "$OS_TYPE" == "darwin" ]] && command_exists brew; then
         if brew services list 2>/dev/null | awk '$1=="node_exporter" && $2=="started" {f=1} END {exit !f}'; then
@@ -68,13 +68,13 @@ handle_existing_installation() {
 
     # 先问再停：用户取消的话不该已经把服务停了
     if $found_install || $brew_managed; then
-        if ! yes_no "是否继续并升级到最新版本？"; then
-            info "安装已取消"
+        if ! yes_no "$(_t 'Continue and upgrade to the latest version?')"; then
+            info "$(_t 'The installation was cancelled')"
             exit 0
         fi
     fi
 
-    info "正在停止现有服务..."
+    info "$(_t 'Stopping the existing service...')"
     if [[ "$OS_TYPE" == "linux" ]]; then
         uxs_svc stop node_exporter &>/dev/null || true
     elif [[ "$OS_TYPE" == "darwin" ]]; then
@@ -91,23 +91,23 @@ handle_existing_installation() {
 download_and_extract() {
     local latest="$1" arch_suffix="$2" tmpdir="$3"
     local url="https://github.com/prometheus/node_exporter/releases/download/v${latest}/node_exporter-${latest}.${arch_suffix}.tar.gz"
-    info "下载地址：$url"
+    info "$(_tf 'Download URL: %s' "$url")"
 
     if ! curl -SL "$url" -o "$tmpdir/node_exporter.tar.gz"; then
-        error "下载失败"
+        error "$(_t 'Download failed')"
         return 1
     fi
     if ! tar -xzf "$tmpdir/node_exporter.tar.gz" -C "$tmpdir"; then
-        error "解压失败"
+        error "$(_t 'Extract failed')"
         return 1
     fi
-    success "下载和解压完成"
+    success "$(_t 'Download and extract complete')"
 }
 
 # --- 安装二进制文件 ---
 install_binary() {
     local latest="$1" arch_suffix="$2" tmpdir="$3"
-    info "正在安装二进制文件..."
+    info "$(_t 'Installing the binary files...')"
     if sudo mv "$tmpdir/node_exporter-${latest}.${arch_suffix}/node_exporter" /usr/local/bin/; then
         sudo chmod 755 "$NE_BIN"
         if [[ "$OS_TYPE" == "darwin" ]]; then
@@ -115,28 +115,28 @@ install_binary() {
         elif [[ "$OS_TYPE" == "linux" ]]; then
             sudo chown root:root "$NE_BIN"
         fi
-        success "二进制文件安装完成"
+        success "$(_t 'The binary files are installed')"
     else
-        error "二进制文件安装失败"
+        error "$(_t 'The binary installation failed')"
         return 1
     fi
 }
 
 # --- 创建 systemd 服务（Linux） ---
 setup_systemd_service() {
-    info "正在创建系统用户..."
+    info "$(_t 'Creating the system user...')"
     if ! id -u node_exporter &>/dev/null; then
         if sudo useradd --no-create-home --shell /bin/false node_exporter; then
-            success "用户 node_exporter 创建成功"
+            success "$(_t 'The user node_exporter was created')"
         else
-            error "用户创建失败"
+            error "$(_t 'The user creation failed')"
             return 1
         fi
     else
-        info "用户 node_exporter 已存在"
+        info "$(_t 'The user node_exporter already exists')"
     fi
 
-    info "正在创建 systemd 服务..."
+    info "$(_t 'Creating the systemd service file...')"
     if ! install_systemd_unit node_exporter.service <<EOF; then
 [Unit]
 Description=Prometheus Node Exporter
@@ -154,23 +154,23 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 EOF
-        error "systemd 服务文件创建失败"
+        error "systemd $(_t 'Failed to create the service file')"
         return 1
     fi
-    success "systemd 服务文件创建成功"
+    success "systemd $(_t 'The service file was created')"
 
-    info "正在启动服务..."
+    info "$(_t 'Starting the service...')"
     if uxs_svc enable-now node_exporter; then
-        success "node_exporter 服务已启动并设置为开机自启"
+        success "node_exporter $(_t 'The service is running and enabled on boot')"
     else
-        error "服务启动失败"
+        error "$(_t 'Failed to start the service')"
         return 1
     fi
 }
 
 # --- 创建 launchd 服务（macOS） ---
 setup_launchd_service() {
-    info "正在创建 macOS 服务..."
+    info "$(_t 'Creating the macOS service file...')"
     if ! sudo tee "$NE_PLIST" >/dev/null <<EOF; then
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -194,25 +194,25 @@ setup_launchd_service() {
 </dict>
 </plist>
 EOF
-        error "LaunchDaemon 服务文件创建失败"
+        error "LaunchDaemon $(_t 'Failed to create the service file')"
         return 1
     fi
-    success "LaunchDaemon 服务文件创建成功"
+    success "LaunchDaemon $(_t 'The service file was created')"
 
-    info "正在启动服务..."
+    info "$(_t 'Starting the service...')"
     if sudo launchctl list | grep -q "$NE_PLIST_LABEL"; then
-        info "服务已在运行中"
-        success "node_exporter 服务已启动并设置为开机自启"
+        info "$(_t 'The service is already running')"
+        success "node_exporter $(_t 'The service is running and enabled on boot')"
     else
         if sudo launchctl bootstrap system "$NE_PLIST"; then
-            success "node_exporter 服务已启动并设置为开机自启"
+            success "node_exporter $(_t 'The service is running and enabled on boot')"
         else
-            warn "bootstrap 命令失败，尝试使用 load 命令作为备选方案"
+            warn "bootstrap $(_t 'The command failed, trying the load command as a fallback')"
             if sudo launchctl load "$NE_PLIST" 2>/dev/null; then
-                success "node_exporter 服务已启动（使用 load 命令）"
+                success "node_exporter $(_t 'The service is running (started with the load command)')"
             else
-                warn "自动启动失败，但服务文件已安装"
-                info "您可以手动启动服务：sudo launchctl bootstrap system $NE_PLIST"
+                warn "$(_t 'The auto-start failed, but the service file is installed')"
+                info "$(_tf 'You can start the service manually: sudo launchctl bootstrap system %s' "$NE_PLIST")"
             fi
         fi
     fi
@@ -220,20 +220,20 @@ EOF
 
 # --- 验证安装 ---
 verify_install() {
-    info "正在验证安装..."
+    info "$(_t 'Verifying the installation...')"
     sleep 3
 
     if service_is_active node_exporter "$NE_PLIST_LABEL"; then
-        success "服务运行正常"
+        success "$(_t 'The service is running normally')"
         sleep 2
         if curl -s http://localhost:9100/metrics >/dev/null; then
-            success "端口 9100 响应正常"
+            success "$(_t 'Port 9100 responds normally')"
         else
-            warn "端口 9100 暂时无响应，可能需要等待几秒钟"
+            warn "$(_t 'Port 9100 does not respond yet, it may take a few seconds')"
         fi
     else
-        error "服务未正常运行"
-        info "可以使用以下命令查看状态和日志："
+        error "$(_t 'The service is not running normally')"
+        info "$(_t 'You can use these commands to check the status and the logs:')"
         if [[ "$OS_TYPE" == "linux" ]]; then
             echo "  sudo systemctl status node_exporter"
             echo "  sudo journalctl -u node_exporter -f"
@@ -254,25 +254,25 @@ print_install_summary() {
 
     echo
     echo "========================================"
-    success "🎉 Node Exporter 安装完成！"
+    success "$(_t '🎉 Node Exporter installation complete!')"
     echo
     if [[ -n "$installed_ver" ]]; then
-        info "已安装版本：v$installed_ver"
+        info "$(_tf 'Installed version: v%s' "$installed_ver")"
     fi
-    info "服务信息："
-    echo "  - 监听地址：http://0.0.0.0:9100"
-    echo "  - 指标地址：http://${ip_addr}:9100/metrics"
-    echo "  - 状态页面：http://${ip_addr}:9100"
+    info "$(_t 'Service info:')"
+    echo "  - $(_t 'Listen address: http://0.0.0.0:9100')"
+    echo "  - $(_tf 'Metrics URL: http://%s:9100/metrics' "${ip_addr}")"
+    echo "  - $(_tf 'Status page: http://%s:9100' "${ip_addr}")"
     echo
-    info "常用命令："
+    info "$(_t 'Common commands:')"
     if [[ "$OS_TYPE" == "linux" ]]; then
-        echo "  - 服务状态：sudo systemctl status node_exporter"
-        echo "  - 查看日志：sudo journalctl -u node_exporter -f"
-        echo "  - 重启服务：sudo systemctl restart node_exporter"
+        echo "  - $(_t 'Service status: sudo systemctl status node_exporter')"
+        echo "  - $(_t 'View the logs: sudo journalctl -u node_exporter -f')"
+        echo "  - $(_t 'Restart the service: sudo systemctl restart node_exporter')"
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        echo "  - 服务状态：sudo launchctl list | grep node_exporter"
-        echo "  - 查看日志：tail -f /var/log/node_exporter.log"
-        echo "  - 启动服务：sudo launchctl bootstrap system $NE_PLIST"
+        echo "  - $(_t 'Service status: sudo launchctl list | grep node_exporter')"
+        echo "  - $(_t 'View the logs: tail -f /var/log/node_exporter.log')"
+        echo "  - $(_tf 'Start the service: sudo launchctl bootstrap system %s' "$NE_PLIST")"
     fi
 }
 
@@ -287,9 +287,9 @@ install_via_brew() {
     local installed_ver="" new_ver="" latest_ver="" ne_path="node_exporter"
     if brew list --versions node_exporter &>/dev/null; then
         installed_ver=$(brew list --versions node_exporter 2>/dev/null | awk '{print $2}')
-        info "已安装 v${installed_ver}，执行 brew upgrade 拉取最新版..."
+        info "$(_tf 'Version v%s installed, running brew upgrade to pull the latest...' "${installed_ver}")"
         if ! brew upgrade node_exporter; then
-            warn "brew upgrade 未成功，回退到 brew reinstall"
+            warn "brew upgrade $(_t 'It did not work, falling back to brew reinstall')"
             brew reinstall node_exporter || return 1
         fi
     else
@@ -298,7 +298,7 @@ install_via_brew() {
 
     # 换了二进制但旧进程还在监听 9100，不 restart 的话跑的还是老版本
     if brew services list 2>/dev/null | awk '$1=="node_exporter" && $2=="started" {f=1} END {exit !f}'; then
-        info "服务运行中，执行 restart 使新版本生效..."
+        info "$(_t 'The service is running, running restart to make the new version effective...')"
         brew services restart node_exporter &>/dev/null || true
     else
         brew services start node_exporter &>/dev/null || true
@@ -310,20 +310,20 @@ install_via_brew() {
 
     local ip_addr
     ip_addr=$(get_local_ip)
-    success "🎉 Node Exporter 安装完成！（Homebrew 管理）"
+    success "$(_t '🎉 Node Exporter installation complete! (managed by Homebrew)')"
     if [[ -n "$new_ver" ]]; then
-        info "当前版本：v${new_ver}"
+        info "$(_tf 'Current version: v%s' "${new_ver}")"
     fi
 
     # brew 装的是 Homebrew Core 的版本，同步上游有延迟，可能还不是官方最新 tag。
     # 这里如实报出差距——否则「已装到最新版」就是句空头承诺。
     latest_ver=$(get_latest_version 2>/dev/null || true)
     if [[ -n "$latest_ver" && -n "$new_ver" ]] && version_gt "$latest_ver" "$new_ver"; then
-        warn "Homebrew Core 同步上游有延迟：官方最新 v${latest_ver}，brew 当前提供 v${new_ver}"
-        info "等 Homebrew 同步后重跑本脚本即可，本仓库无需改动"
+        warn "Homebrew Core $(_tf 'The upstream sync lags behind: the official latest is v%s, brew currently provides v%s' "${latest_ver}" "${new_ver}")"
+        info "$(_t 'Wait for the Homebrew sync and run this script again, this repository needs no change')"
     fi
-    info "指标地址：http://${ip_addr}:9100/metrics"
-    info "常用命令：brew services info node_exporter"
+    info "$(_tf 'Metrics URL: http://%s:9100/metrics' "${ip_addr}")"
+    info "$(_t 'Common commands: brew services info node_exporter')"
 }
 
 # --- 安装主逻辑 ---
@@ -332,7 +332,7 @@ install_node_exporter() {
     check_commands curl tar
     handle_existing_installation
 
-    info "🚀 Node Exporter 跨平台安装脚本"
+    info "$(_t '🚀 Node Exporter cross-platform install script')"
     echo "=========================================="
 
     # macOS 走 Homebrew（macOS 核心安装载体，且自带服务管理）；
@@ -347,35 +347,35 @@ install_node_exporter() {
     require_sudo
 
     # 官方源取版本（不硬编码，上游发新版重跑即可）
-    info "正在获取官方最新版本信息..."
+    info "$(_t 'Fetching the official latest version info...')"
     local latest
     latest=$(get_latest_version) || return 1
-    success "官方最新版本：v${latest}"
+    success "$(_tf 'Official latest version: v%s' "${latest}")"
 
     # 确定架构
     local arch_suffix
     arch_suffix=$(detect_arch_suffix) || return 1
-    info "检测到架构：$(uname -m) -> $arch_suffix"
+    info "$(_t 'Detected architecture:')$(uname -m) -> $arch_suffix"
 
     # 确认安装
     echo
-    info "即将安装 Node Exporter v${latest}（官方 GitHub release）"
-    info "安装位置：$NE_BIN"
-    info "服务端口：9100"
+    info "$(_tf 'About to install Node Exporter v%s (official GitHub release)' "${latest}")"
+    info "$(_tf 'Install location: %s' "$NE_BIN")"
+    info "$(_t 'Service port: 9100')"
     echo
-    if ! yes_no "确认继续安装？"; then
-        info "安装已取消"
+    if ! yes_no "$(_t 'Continue with the installation?')"; then
+        info "$(_t 'The installation was cancelled')"
         return 0
     fi
 
     # 下载并解压
-    info "正在下载和解压..."
+    info "$(_t 'Downloading and extracting...')"
     local tmpdir
     tmpdir=$(mktemp -d)
     trap 'rm -rf "$tmpdir"' EXIT
 
     if ! download_and_extract "$latest" "$arch_suffix" "$tmpdir"; then
-        error "下载失败"
+        error "$(_t 'Download failed')"
         return 1
     fi
 
@@ -401,7 +401,7 @@ install_node_exporter() {
 uninstall_node_exporter() {
     detect_os
     require_sudo
-    info "正在卸载 Node Exporter..."
+    info "$(_t 'Uninstalling Node Exporter...')"
     if [[ "$OS_TYPE" == "linux" ]]; then
         uxs_svc stop node_exporter &>/dev/null || true
         uxs_svc disable node_exporter &>/dev/null || true
@@ -417,7 +417,7 @@ uninstall_node_exporter() {
         sudo rm -f "$NE_BIN"
         sudo rm -f /var/log/node_exporter.log /var/log/node_exporter.err
     fi
-    success "Node Exporter 已成功卸载！"
+    success "Node Exporter $(_t 'Uninstalled successfully!')"
 }
 
 # 状态
@@ -427,7 +427,7 @@ status_node_exporter() {
     if command -v node_exporter &>/dev/null || [[ -f "$NE_BIN" ]]; then
         is_installed=true
         if command -v node_exporter &>/dev/null; then
-            version=$(node_exporter --version 2>/dev/null | head -1 || echo "未知版本")
+            version=$(node_exporter --version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Unknown version')")
         fi
     fi
     if service_is_active node_exporter "$NE_PLIST_LABEL"; then
@@ -435,13 +435,13 @@ status_node_exporter() {
     fi
     if $is_installed; then
         if $is_running; then
-            emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} ($version)"
+            emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC} ($version)"
         else
-            emit_status "installed:stopped" "${YELLOW}⚠️  已安装但未运行${NC} ($version)"
+            emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but not running')${NC} ($version)"
         fi
         emit_version "$version"
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 
@@ -449,9 +449,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装或更新 Node Exporter（默认动作）
-  uninstall   卸载 Node Exporter
-  status      查看安装与运行状态
+  install     $(_t 'Install or update Node Exporter (default action)')
+  uninstall   $(_t 'Uninstall Node Exporter')
+  status      $(_t 'View the install and run status')
 EOF
 }
 
@@ -463,7 +463,7 @@ main() {
         uninstall) uninstall_node_exporter ;;
         status)    status_node_exporter ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

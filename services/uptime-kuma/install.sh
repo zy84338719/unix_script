@@ -22,7 +22,7 @@ WEB_PORT=3001
 preflight() {
     detect_os
     if ! command_exists docker; then
-        error "未检测到 Docker。请先安装 Docker（可使用本项目的 docker 模块）。"
+        error "$(_t 'Docker not detected. Install Docker first (you can use the docker module of this project).')"
         exit 1
     fi
 }
@@ -30,24 +30,24 @@ preflight() {
 install_uptime_kuma() {
     preflight
     require_sudo
-    info "🚀 开始安装 Uptime Kuma（Docker 部署）"
+    info "$(_t '🚀 Starting the Uptime Kuma installation (Docker deployment)')"
 
     # 检查是否已存在同名容器
     if sudo docker ps -a --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
-        warn "检测到已存在容器 $CONTAINER_NAME"
-        if ! yes_no "是否停止并删除旧容器后重新部署？"; then
-            info "已取消"; return 0
+        warn "$(_tf 'Existing container %s detected' "$CONTAINER_NAME")"
+        if ! yes_no "$(_t 'Stop and delete the old container, then deploy again?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
         sudo docker rm -f "$CONTAINER_NAME" >/dev/null
     fi
 
-    info "拉取镜像 $IMAGE ..."
+    info "$(_tf 'Pulling the image %s ...' "$IMAGE")"
     if ! sudo docker pull "$IMAGE"; then
-        error "镜像拉取失败，请检查 Docker 与网络"
+        error "$(_t 'Image pull failed, check Docker and the network')"
         exit 1
     fi
 
-    info "创建并启动容器..."
+    info "$(_t 'Creating and starting the container...')"
     sudo docker run -d \
         --restart=always \
         --name "$CONTAINER_NAME" \
@@ -55,23 +55,23 @@ install_uptime_kuma() {
         -v "${DATA_VOLUME}":/app/data \
         "$IMAGE" >/dev/null
 
-    info "验证..."
+    info "$(_t 'Verifying...')"
     sleep 4
     if sudo docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
-        success "Uptime Kuma 容器运行正常"
+        success "Uptime Kuma $(_t 'The container is running normally')"
     else
-        error "容器未正常运行，查看日志：sudo docker logs $CONTAINER_NAME"
+        error "$(_tf 'The container is not running normally, check the logs: sudo docker logs %s' "$CONTAINER_NAME")"
         exit 1
     fi
 
     local ip_addr
     ip_addr=$(get_local_ip)
     echo
-    success "🎉 Uptime Kuma 安装完成！"
-    info "访问地址：http://${ip_addr}:${WEB_PORT}"
-    info "首次访问需创建管理员账号。"
+    success "$(_t '🎉 Uptime Kuma installation complete!')"
+    info "$(_tf 'Access URL: http://%s:%s' "${ip_addr}" "${WEB_PORT}")"
+    info "$(_t 'The first visit needs an administrator account.')"
     echo
-    info "常用命令："
+    info "$(_t 'Common commands:')"
     echo "  sudo docker ps | grep $CONTAINER_NAME"
     echo "  sudo docker logs -f $CONTAINER_NAME"
     echo "  sudo docker restart $CONTAINER_NAME"
@@ -80,30 +80,30 @@ install_uptime_kuma() {
 uninstall_uptime_kuma() {
     preflight
     require_sudo
-    if ! yes_no "确认卸载 Uptime Kuma？"; then
-        info "已取消"; return 0
+    if ! yes_no "$(_t 'Confirm uninstall of Uptime Kuma?')"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
     sudo docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
     sudo docker rmi "$IMAGE" 2>/dev/null || true
-    if yes_no "是否同时删除数据卷 ${DATA_VOLUME}（监控历史数据将丢失）？"; then
+    if yes_no "$(_tf 'Delete the data volume %s too (the monitoring history will be lost)?' "${DATA_VOLUME}")"; then
         sudo docker volume rm "$DATA_VOLUME" 2>/dev/null || true
-        success "数据卷已删除"
+        success "$(_t 'Data volume deleted')"
     fi
-    success "Uptime Kuma 已卸载。"
+    success "Uptime Kuma $(_t 'Uninstalled.')"
 }
 
 status_uptime_kuma() {
     detect_os
     if ! command_exists docker; then
-        emit_status "not_installed" "${RED}❌ 未安装（需 Docker）${NC}"; return
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed (Docker required)')${NC}"; return
     fi
     # docker CLI 走 socket 无需 sudo；status 查询绝不弹密码
     if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
-        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
+        emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC}"
     elif docker ps -a --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
-        emit_status "installed:stopped" "${YELLOW}⚠️  容器已创建但未运行${NC}"
+        emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  The container was created but is not running')${NC}"
     else
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
     fi
 }
 
@@ -111,9 +111,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     通过 Docker 部署 Uptime Kuma（监控面板，默认端口 ${WEB_PORT}）
-  uninstall   卸载 Uptime Kuma（容器与镜像）
-  status      查看状态
+  install     $(_tf 'Deploy Uptime Kuma via Docker (monitoring dashboard, default port %s)' "${WEB_PORT}")
+  uninstall   $(_t 'Uninstall Uptime Kuma (container and image)')
+  status      $(_t 'View status')
 EOF
 }
 
@@ -125,7 +125,7 @@ main() {
         uninstall) uninstall_uptime_kuma ;;
         status)    status_uptime_kuma ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

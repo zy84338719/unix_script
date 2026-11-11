@@ -36,45 +36,45 @@ arch_suffix() {
         linux/armv7l)        echo "linux-arm-7" ;;
         darwin/x86_64)       echo "darwin-amd64" ;;
         darwin/arm64|darwin/aarch64) echo "darwin-arm64" ;;
-        *) error "不支持的架构：$OS_TYPE/$arch"; exit 1 ;;
+        *) error "$(_tf 'Unsupported architecture: %s/%s' "$OS_TYPE" "$arch")"; exit 1 ;;
     esac
 }
 
 install_openlist() {
     preflight
     require_sudo
-    info "🚀 开始安装 OpenList"
+    info "$(_t '🚀 Starting the OpenList installation')"
 
     if [[ -x "$OPENLIST_BIN" ]]; then
         local cur
-        cur=$("$OPENLIST_BIN" version 2>/dev/null | head -1 || echo "已安装")
-        warn "检测到已安装 OpenList（${cur}）"
-        if ! yes_no "是否继续并覆盖安装最新版？"; then
-            info "已取消"; return 0
+        cur=$("$OPENLIST_BIN" version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Installed')")
+        warn "$(_tf 'OpenList detected (%s)' "${cur}")"
+        if ! yes_no "$(_t 'Continue and overwrite it with the latest version?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
         # 停止现有服务
         service_stop "$SERVICE_NAME" "$PLIST_FILE"
     fi
 
-    info "获取最新版本..."
+    info "$(_t 'Fetching the latest version...')"
     local version suffix url tmpdir
     version=$(github_latest_tag "OpenListTeam/OpenList")
     if [[ -z "$version" ]]; then
-        error "无法获取最新版本（请检查网络或设置 GH_TOKEN 规避 API 限速）"
+        error "$(_t 'Cannot fetch the latest version (check the network or set GH_TOKEN to avoid the API rate limit)')"
         exit 1
     fi
-    success "最新版本：v$version"
+    success "$(_tf 'Latest version: v%s' "$version")"
 
     suffix=$(arch_suffix)
     url="https://github.com/OpenListTeam/OpenList/releases/download/v${version}/openlist-${suffix}.tar.gz"
-    info "下载：$url"
+    info "$(_tf 'Downloading: %s' "$url")"
 
     tmpdir=$(mktemp -d)
     if ! curl -fSL "$url" -o "$tmpdir/openlist.tar.gz"; then
-        error "下载失败"; rm -rf "$tmpdir"; exit 1
+        error "$(_t 'Download failed')"; rm -rf "$tmpdir"; exit 1
     fi
     if ! tar -xzf "$tmpdir/openlist.tar.gz" -C "$tmpdir"; then
-        error "解压失败"; rm -rf "$tmpdir"; exit 1
+        error "$(_t 'Extract failed')"; rm -rf "$tmpdir"; exit 1
     fi
 
     sudo mkdir -p "$INSTALL_DIR"
@@ -86,11 +86,11 @@ install_openlist() {
         sudo chown root:root "$OPENLIST_BIN"
     fi
     rm -rf "$tmpdir"
-    success "二进制安装完成"
+    success "$(_t 'The binary installation is complete')"
 
     # 配置服务
     if [[ "$OS_TYPE" == "linux" ]]; then
-        info "创建 systemd 服务..."
+        info "$(_t 'Creating the systemd service...')"
         install_systemd_unit "${SERVICE_NAME}.service" <<EOF
 [Unit]
 Description=Alist File List Service
@@ -108,7 +108,7 @@ WantedBy=multi-user.target
 EOF
         uxs_svc enable-now "$SERVICE_NAME"
     elif [[ "$OS_TYPE" == "darwin" ]]; then
-        info "创建 launchd 服务..."
+        info "$(_t 'Creating the launchd service...')"
         sudo tee "$PLIST_FILE" >/dev/null <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -137,31 +137,31 @@ EOF
         service_start "" "$PLIST_FILE"
     fi
 
-    info "验证..."
+    info "$(_t 'Verifying...')"
     sleep 3
     if service_is_active "$SERVICE_NAME" "$PLIST_LABEL"; then
-        success "OpenList 服务运行正常"
+        success "OpenList $(_t 'The service is running normally')"
     else
-        warn "服务可能仍在启动中，稍后访问 Web 界面确认"
+        warn "$(_t 'The service may still be starting, check the web interface later')"
     fi
 
     # 首次安装需获取随机管理员密码
-    info "首次安装的管理员密码（随机生成）："
+    info "$(_t 'The admin password of the first install (randomly generated):')"
     if [[ "$OS_TYPE" == "linux" ]]; then
         sudo journalctl -u "$SERVICE_NAME" --no-pager 2>/dev/null | grep -i "password" | tail -3 || \
-            echo "  可执行：sudo ${OPENLIST_BIN} admin random   # 重新生成随机密码"
+            echo "  $(_tf 'Run: sudo %s admin random   # regenerate a random password' "${OPENLIST_BIN}")"
     else
-        echo "  可执行：sudo ${OPENLIST_BIN} admin random"
+        echo "  $(_tf 'Run: sudo %s admin random' "${OPENLIST_BIN}")"
     fi
 
     local ip_addr
     ip_addr=$(get_local_ip)
     echo
-    success "🎉 OpenList v$version 安装完成！"
-    info "访问地址：http://${ip_addr}:${OPENLIST_PORT}"
-    info "默认管理员账号：admin"
+    success "$(_tf '🎉 OpenList v%s installation complete!' "$version")"
+    info "$(_tf 'Access URL: http://%s:%s' "${ip_addr}" "${OPENLIST_PORT}")"
+    info "$(_t 'The default admin account is: admin')"
     echo
-    info "常用命令："
+    info "$(_t 'Common commands:')"
     if [[ "$OS_TYPE" == "linux" ]]; then
         echo "  sudo systemctl status openlist"
         echo "  sudo journalctl -u openlist -f"
@@ -169,14 +169,14 @@ EOF
         echo "  sudo launchctl list | grep openlist"
         echo "  tail -f /var/log/openlist.log"
     fi
-    echo "  sudo ${OPENLIST_BIN} admin set NEW_PASSWORD   # 设置管理员密码"
+    echo "  sudo ${OPENLIST_BIN} admin set NEW_PASSWORD   # $(_t 'Set the admin password')"
 }
 
 uninstall_openlist() {
     preflight
     require_sudo
-    if ! yes_no "确认卸载 OpenList？"; then
-        info "已取消"; return 0
+    if ! yes_no "$(_t 'Confirm uninstall of OpenList?')"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
     service_stop "$SERVICE_NAME" "$PLIST_FILE"
     if [[ "$OS_TYPE" == "linux" ]]; then
@@ -185,17 +185,17 @@ uninstall_openlist() {
     elif [[ "$OS_TYPE" == "darwin" ]]; then
         sudo rm -f "$PLIST_FILE"
     fi
-    if yes_no "是否删除数据目录 ${INSTALL_DIR}（含配置与数据库）？"; then
+    if yes_no "$(_tf 'Delete the data directory %s (it holds the configuration and the database)?' "${INSTALL_DIR}")"; then
         sudo rm -rf "$INSTALL_DIR"
-        success "数据目录已删除"
+        success "$(_t 'Data directory deleted')"
     fi
-    success "OpenList 已卸载。"
+    success "OpenList $(_t 'Uninstalled.')"
 }
 
 status_openlist() {
     detect_os
     if [[ ! -x "$OPENLIST_BIN" ]]; then
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"; return
     fi
     local ver
     # 不用 `| head -1`：head 命中即退会给上游 SIGPIPE(141)；grep 无匹配时退出 1。
@@ -204,9 +204,9 @@ status_openlist() {
     # 取不到版本号就回落成空值。
     ver=$("$OPENLIST_BIN" version 2>/dev/null | grep -oE '[0-9]+(\.[0-9]+)+' | sed -n '1p') || ver=""
     if service_is_active "$SERVICE_NAME" "$PLIST_LABEL"; then
-        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
+        emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  已安装但未运行${NC}"
+        emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but not running')${NC}"
     fi
     # 收尾用 if 而不是 `[[ -n "$ver" ]] && ...`：后者在版本号为空时返回 1，
     # 会让 status 子命令整体退出 1（同样是「status 恒 0」契约）。
@@ -220,9 +220,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装 Alist（文件列表/网盘聚合，默认端口 5244）
-  uninstall   卸载 Alist
-  status      查看状态
+  install     $(_t 'Install Alist (file listing / drive aggregation, default port 5244)')
+  uninstall   $(_t 'Uninstall Alist')
+  status      $(_t 'View status')
 EOF
 }
 
@@ -234,7 +234,7 @@ main() {
         uninstall) uninstall_openlist ;;
         status)    status_openlist ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 
