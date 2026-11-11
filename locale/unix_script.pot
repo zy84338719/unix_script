@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 17:11+0800\n"
+"POT-Creation-Date: 2026-11-11 17:13+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3313,6 +3313,165 @@ msgstr ""
 msgid "Configure auto-start on boot (legacy name kept)"
 msgstr ""
 
+#, sh-printf-format
+msgid "Service mode is Linux only. Current: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Unsupported architecture: %s"
+msgstr ""
+
+msgid "🚀 Installing mihomo (clash.meta)"
+msgstr ""
+
+msgid ""
+"Cannot fetch the latest mihomo version (check the network or set GH_TOKEN)"
+msgstr ""
+
+#, sh-printf-format
+msgid "build download failed, trying the standard build: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "The binary installation is complete: %s"
+msgstr ""
+
+msgid "🎉 mihomo installation complete!"
+msgstr ""
+
+msgid "Next steps:"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Put the configuration in place: %s config <subscription URL or local file>"
+msgstr ""
+
+#, sh-printf-format
+msgid "Or start with the example: %s example"
+msgstr ""
+
+#, sh-printf-format
+msgid "Start it: %s start"
+msgstr ""
+
+#, sh-printf-format
+msgid "Proxy address: HTTP/SOCKS mixed port %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Management API: http://127.0.0.1:%s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Usage: %s config <subscription URL | local file>"
+msgstr ""
+
+msgid "The existing configuration has been backed up"
+msgstr ""
+
+msgid "Downloading the configuration from the subscription URL..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Download failed: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "The file does not exist: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "The configuration has been written to %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "It takes effect after a restart: %s restart"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"The sample configuration %s has been generated (replace it with a real "
+"subscription)"
+msgstr ""
+
+msgid "No configuration file, run config/example first"
+msgstr ""
+
+msgid "Enabling the TUN transparent proxy in the configuration..."
+msgstr ""
+
+msgid "The configuration already has a tun section, skipping"
+msgstr ""
+
+msgid "TUN has been enabled (restart mihomo to apply it)"
+msgstr ""
+
+msgid "net.ipv4.ip_forward has been enabled"
+msgstr ""
+
+msgid ""
+"The NET_ADMIN capability is required (the systemd service already sets "
+"AmbientCapabilities)"
+msgstr ""
+
+msgid "TUN has been disabled (restart mihomo to apply it)"
+msgstr ""
+
+msgid "The configuration has no tun section, nothing to disable"
+msgstr ""
+
+msgid "Started"
+msgstr ""
+
+msgid "Stopped"
+msgstr ""
+
+msgid "Restarted"
+msgstr ""
+
+msgid "⚠️  Not applicable (Linux only)"
+msgstr ""
+
+msgid "Uninstall mihomo (clash)?"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Delete the configuration directory %s (with the subscriptions and nodes)?"
+msgstr ""
+
+msgid "The configuration directory has been deleted"
+msgstr ""
+
+msgid "Install and configure:"
+msgstr ""
+
+msgid "Install the binary and the systemd service (default)"
+msgstr ""
+
+msgid "Download a subscription or copy a local file as the configuration"
+msgstr ""
+
+msgid "Generate a minimal sample configuration"
+msgstr ""
+
+msgid "Enable or disable the TUN transparent proxy"
+msgstr ""
+
+msgid "Service management"
+msgstr ""
+
+msgid "View the status"
+msgstr ""
+
+#, sh-printf-format
+msgid "Proxy port: HTTP/SOCKS mixed %s ｜ Management API %s"
+msgstr ""
+
+msgid "Examples:"
+msgstr ""
+
 msgid ""
 "The docker command was not found. Install Docker first: ./install.sh docker"
 msgstr ""
@@ -3451,9 +3610,6 @@ msgid ""
 msgstr ""
 
 msgid "Check whether Docker is installed and running"
-msgstr ""
-
-msgid "Examples:"
 msgstr ""
 
 msgid ""
@@ -3689,9 +3845,6 @@ msgid ""
 "can reuse them)"
 msgstr ""
 
-msgid "⚠️  Not applicable (Linux only)"
-msgstr ""
-
 msgid "✅ Configured"
 msgstr ""
 
@@ -3742,10 +3895,6 @@ msgstr ""
 
 #, sh-printf-format
 msgid "Restic detected (%s)"
-msgstr ""
-
-#, sh-printf-format
-msgid "Unsupported architecture: %s"
 msgstr ""
 
 msgid "Extracting..."
@@ -3869,9 +4018,6 @@ msgid "Current rules:"
 msgstr ""
 
 msgid "Common management commands:"
-msgstr ""
-
-msgid "View the status"
 msgstr ""
 
 msgid "Detailed status (including the rules)"

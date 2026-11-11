@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 17:11+0800\n"
+"POT-Creation-Date: 2026-11-11 17:13+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
@@ -3342,6 +3342,165 @@ msgstr "卸载服务 + 询问删除 .conf（完整卸载）"
 msgid "Configure auto-start on boot (legacy name kept)"
 msgstr "配置开机自启（保留旧名）"
 
+#, sh-printf-format
+msgid "Service mode is Linux only. Current: %s"
+msgstr "服务模式仅支持 Linux。当前：%s"
+
+#, sh-printf-format
+msgid "Unsupported architecture: %s"
+msgstr "不支持的架构：%s"
+
+msgid "🚀 Installing mihomo (clash.meta)"
+msgstr "🚀 安装 mihomo (clash.meta)"
+
+msgid ""
+"Cannot fetch the latest mihomo version (check the network or set GH_TOKEN)"
+msgstr "无法获取 mihomo 最新版本（请检查网络或设置 GH_TOKEN）"
+
+#, sh-printf-format
+msgid "build download failed, trying the standard build: %s"
+msgstr "版下载失败，尝试标准版：%s"
+
+#, sh-printf-format
+msgid "The binary installation is complete: %s"
+msgstr "二进制安装完成：%s"
+
+msgid "🎉 mihomo installation complete!"
+msgstr "🎉 mihomo 安装完成！"
+
+msgid "Next steps:"
+msgstr "下一步："
+
+#, sh-printf-format
+msgid ""
+"Put the configuration in place: %s config <subscription URL or local file>"
+msgstr "放入配置: %s config <订阅URL或本地文件>"
+
+#, sh-printf-format
+msgid "Or start with the example: %s example"
+msgstr "或先用示例: %s example"
+
+#, sh-printf-format
+msgid "Start it: %s start"
+msgstr "启动: %s start"
+
+#, sh-printf-format
+msgid "Proxy address: HTTP/SOCKS mixed port %s"
+msgstr "代理地址: HTTP/SOCKS 混合端口 %s"
+
+#, sh-printf-format
+msgid "Management API: http://127.0.0.1:%s"
+msgstr "管理 API: http://127.0.0.1:%s"
+
+#, sh-printf-format
+msgid "Usage: %s config <subscription URL | local file>"
+msgstr "用法: %s config <订阅URL | 本地文件>"
+
+msgid "The existing configuration has been backed up"
+msgstr "已备份现有配置"
+
+msgid "Downloading the configuration from the subscription URL..."
+msgstr "从订阅 URL 下载配置..."
+
+#, sh-printf-format
+msgid "Download failed: %s"
+msgstr "下载失败：%s"
+
+#, sh-printf-format
+msgid "The file does not exist: %s"
+msgstr "文件不存在：%s"
+
+#, sh-printf-format
+msgid "The configuration has been written to %s"
+msgstr "配置已写入 %s"
+
+#, sh-printf-format
+msgid "It takes effect after a restart: %s restart"
+msgstr "重启生效: %s restart"
+
+#, sh-printf-format
+msgid ""
+"The sample configuration %s has been generated (replace it with a real "
+"subscription)"
+msgstr "已生成示例配置 %s（请替换为真实订阅）"
+
+msgid "No configuration file, run config/example first"
+msgstr "无配置文件，请先 config/example"
+
+msgid "Enabling the TUN transparent proxy in the configuration..."
+msgstr "在配置中启用 TUN 透明代理..."
+
+msgid "The configuration already has a tun section, skipping"
+msgstr "配置中已有 tun 段，跳过"
+
+msgid "TUN has been enabled (restart mihomo to apply it)"
+msgstr "已启用 TUN（需重启 mihomo 生效）"
+
+msgid "net.ipv4.ip_forward has been enabled"
+msgstr "已开启 net.ipv4.ip_forward"
+
+msgid ""
+"The NET_ADMIN capability is required (the systemd service already sets "
+"AmbientCapabilities)"
+msgstr "需要 NET_ADMIN 权限（systemd 服务已配置 AmbientCapabilities）"
+
+msgid "TUN has been disabled (restart mihomo to apply it)"
+msgstr "已关闭 TUN（重启 mihomo 生效）"
+
+msgid "The configuration has no tun section, nothing to disable"
+msgstr "配置中无 tun 段，无需关闭"
+
+msgid "Started"
+msgstr "已启动"
+
+msgid "Stopped"
+msgstr "已停止"
+
+msgid "Restarted"
+msgstr "已重启"
+
+msgid "⚠️  Not applicable (Linux only)"
+msgstr "⚠️  不适用（仅 Linux）"
+
+msgid "Uninstall mihomo (clash)?"
+msgstr "确认卸载 mihomo（clash）？"
+
+#, sh-printf-format
+msgid ""
+"Delete the configuration directory %s (with the subscriptions and nodes)?"
+msgstr "是否删除配置目录 %s（含订阅/节点）？"
+
+msgid "The configuration directory has been deleted"
+msgstr "配置目录已删除"
+
+msgid "Install and configure:"
+msgstr "安装与配置:"
+
+msgid "Install the binary and the systemd service (default)"
+msgstr "安装二进制 + systemd 服务（默认）"
+
+msgid "Download a subscription or copy a local file as the configuration"
+msgstr "下载订阅/复制本地文件为配置"
+
+msgid "Generate a minimal sample configuration"
+msgstr "生成最小示例配置"
+
+msgid "Enable or disable the TUN transparent proxy"
+msgstr "开启/关闭 TUN 透明代理"
+
+msgid "Service management"
+msgstr "服务管理"
+
+msgid "View the status"
+msgstr "查看状态"
+
+#, sh-printf-format
+msgid "Proxy port: HTTP/SOCKS mixed %s ｜ Management API %s"
+msgstr "代理端口: HTTP/SOCKS 混合 %s ｜ 管理 API %s"
+
+msgid "Examples:"
+msgstr "示例:"
+
 msgid ""
 "The docker command was not found. Install Docker first: ./install.sh docker"
 msgstr "未检测到 docker 命令。请先安装 Docker：./install.sh docker"
@@ -3481,9 +3640,6 @@ msgstr "镜像名]   拉取并导出镜像为 .tar.gz（默认交互；可传入
 
 msgid "Check whether Docker is installed and running"
 msgstr "检查 Docker 是否已安装并运行"
-
-msgid "Examples:"
-msgstr "示例:"
 
 msgid ""
 "# Interactive: ask for the image name, the directory and the file name step "
@@ -3718,9 +3874,6 @@ msgid ""
 "can reuse them)"
 msgstr "已清除 multi-net 规则（路由表条目保留，可重新 setup 复用）"
 
-msgid "⚠️  Not applicable (Linux only)"
-msgstr "⚠️  不适用（仅 Linux）"
-
 msgid "✅ Configured"
 msgstr "✅ 已配置"
 
@@ -3772,10 +3925,6 @@ msgstr "# 访问 443 端口的流量走 eth1"
 #, sh-printf-format
 msgid "Restic detected (%s)"
 msgstr "检测到已安装 Restic（%s）"
-
-#, sh-printf-format
-msgid "Unsupported architecture: %s"
-msgstr "不支持的架构：%s"
 
 msgid "Extracting..."
 msgstr "正在解压..."
@@ -3899,9 +4048,6 @@ msgstr "当前规则："
 
 msgid "Common management commands:"
 msgstr "常用管理命令："
-
-msgid "View the status"
-msgstr "查看状态"
 
 msgid "Detailed status (including the rules)"
 msgstr "详细状态（含规则）"

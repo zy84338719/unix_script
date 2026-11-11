@@ -36,7 +36,7 @@ API_PORT=9090
 preflight() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        error "clash(mihomo) 服务模式仅支持 Linux。当前：$OS_TYPE"
+        error "clash(mihomo) $(_tf 'Service mode is Linux only. Current: %s' "$OS_TYPE")"
         exit 1
     fi
     check_commands curl
@@ -49,7 +49,7 @@ arch_suffix() {
         x86_64)         echo "amd64" ;;
         aarch64|arm64)  echo "arm64" ;;
         armv7l)         echo "armv7" ;;
-        *) error "不支持的架构：$arch"; exit 1 ;;
+        *) error "$(_tf 'Unsupported architecture: %s' "$arch")"; exit 1 ;;
     esac
 }
 
@@ -57,27 +57,27 @@ arch_suffix() {
 install_clash() {
     preflight
     require_sudo
-    info "🚀 安装 mihomo (clash.meta)"
+    info "$(_t '🚀 Installing mihomo (clash.meta)')"
 
     local version suffix url tmpdir
     version=$(github_latest_tag "$REPO")
     if [[ -z "$version" ]]; then
-        error "无法获取 mihomo 最新版本（请检查网络或设置 GH_TOKEN）"
+        error "$(_t 'Cannot fetch the latest mihomo version (check the network or set GH_TOKEN)')"
         exit 1
     fi
-    success "最新版本：$version"
+    success "$(_tf 'Latest version: %s' "$version")"
     suffix=$(arch_suffix)
 
     # 优先用 -compatible 变体（兼容老 CPU），失败回退标准版
     url="https://github.com/${REPO}/releases/download/${version}/mihomo-linux-${suffix}-compatible-${version}.gz"
-    info "下载：$url"
+    info "$(_tf 'Downloading: %s' "$url")"
     tmpdir=$(mktemp -d)
     trap 'rm -rf "$tmpdir"' EXIT
     if ! curl -fSL "$url" -o "$tmpdir/mihomo.gz" 2>/dev/null; then
         url="https://github.com/${REPO}/releases/download/${version}/mihomo-linux-${suffix}-${version}.gz"
-        info "compatible 版下载失败，尝试标准版：$url"
+        info "compatible $(_tf 'build download failed, trying the standard build: %s' "$url")"
         if ! curl -fSL "$url" -o "$tmpdir/mihomo.gz"; then
-            error "下载失败"; rm -rf "$tmpdir"; exit 1
+            error "$(_t 'Download failed')"; rm -rf "$tmpdir"; exit 1
         fi
     fi
     if ! gzip -d -f "$tmpdir/mihomo.gz" 2>/dev/null; then
@@ -90,10 +90,10 @@ install_clash() {
     sudo chmod +x "$BIN"
     sudo chown root:root "$BIN"
     rm -rf "$tmpdir"
-    success "mihomo 二进制安装完成：$BIN"
+    success "mihomo $(_tf 'The binary installation is complete: %s' "$BIN")"
 
     # systemd 服务（前台运行，日志走 journalctl）
-    info "创建 systemd 服务..."
+    info "$(_t 'Creating the systemd service...')"
     install_systemd_unit "${SERVICE_NAME}.service" <<EOF
 [Unit]
 Description=mihomo (Clash.Meta) Service
@@ -106,7 +106,7 @@ ExecStart=$BIN -d $CONFIG_DIR -f $CONFIG_FILE
 Restart=on-failure
 RestartSec=3
 LimitNOFILE=1048576
-# 允许 TUN 模式（如启用）
+# $(_t 'Allow TUN mode (if enabled)')
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 
@@ -120,13 +120,13 @@ EOF
     fi
 
     echo
-    success "🎉 mihomo 安装完成！"
-    info "下一步："
-    echo "  1. 放入配置: $0 config <订阅URL或本地文件>"
-    echo "     或先用示例: $0 example"
-    echo "  2. 启动: $0 start"
-    echo "  3. 代理地址: HTTP/SOCKS 混合端口 $MIXED_PORT"
-    echo "  4. 管理 API: http://127.0.0.1:$API_PORT"
+    success "$(_t '🎉 mihomo installation complete!')"
+    info "$(_t 'Next steps:')"
+    echo "  1. $(_tf 'Put the configuration in place: %s config <subscription URL or local file>' "$0")"
+    echo "     $(_tf 'Or start with the example: %s example' "$0")"
+    echo "  2. $(_tf 'Start it: %s start' "$0")"
+    echo "  3. $(_tf 'Proxy address: HTTP/SOCKS mixed port %s' "$MIXED_PORT")"
+    echo "  4. $(_tf 'Management API: http://127.0.0.1:%s' "$API_PORT")"
 }
 
 # config <url|file>: 下载订阅或复制本地文件为配置
@@ -135,31 +135,31 @@ do_config() {
     require_sudo
     local src="${1:-}"
     if [[ -z "$src" ]]; then
-        error "用法: $0 config <订阅URL | 本地文件>"
+        error "$(_tf 'Usage: %s config <subscription URL | local file>' "$0")"
         exit 1
     fi
     sudo mkdir -p "$CONFIG_DIR"
     # 备份现有
     if [[ -f "$CONFIG_FILE" ]]; then
         sudo cp -a "$CONFIG_FILE" "$CONFIG_FILE.bak.$(date +%s)"
-        info "已备份现有配置"
+        info "$(_t 'The existing configuration has been backed up')"
     fi
     if [[ "$src" == http* ]]; then
-        info "从订阅 URL 下载配置..."
+        info "$(_t 'Downloading the configuration from the subscription URL...')"
         if ! curl -fsSL "$src" -o "$CONFIG_FILE"; then
-            error "下载失败：$src"
+            error "$(_tf 'Download failed: %s' "$src")"
             exit 1
         fi
     else
         if [[ ! -f "$src" ]]; then
-            error "文件不存在：$src"
+            error "$(_tf 'The file does not exist: %s' "$src")"
             exit 1
         fi
         sudo cp "$src" "$CONFIG_FILE"
     fi
     sudo chmod 644 "$CONFIG_FILE"
-    success "配置已写入 $CONFIG_FILE"
-    info "重启生效: $0 restart"
+    success "$(_tf 'The configuration has been written to %s' "$CONFIG_FILE")"
+    info "$(_tf 'It takes effect after a restart: %s restart' "$0")"
 }
 
 # example: 生成最小示例配置
@@ -168,9 +168,9 @@ do_example() {
     require_sudo
     sudo mkdir -p "$CONFIG_DIR"
     sudo tee "$CONFIG_FILE" >/dev/null <<'EOF'
-# mihomo 最小示例配置（由 clash/install.sh example 生成）
-# 请替换为你的真实订阅/节点配置
-mixed-port: 7890          # HTTP 与 SOCKS5 混合代理端口
+# Minimal sample configuration for mihomo (generated by clash/install.sh example)
+# Replace it with your real subscription / node configuration
+mixed-port: 7890          # HTTP and SOCKS5 mixed proxy port
 allow-lan: false
 mode: rule
 log-level: info
@@ -181,7 +181,7 @@ proxy-groups: []
 rules:
   - MATCH,DIRECT
 EOF
-    success "已生成示例配置 ${CONFIG_FILE}（请替换为真实订阅）"
+    success "$(_tf 'The sample configuration %s has been generated (replace it with a real subscription)' "${CONFIG_FILE}")"
 }
 
 # TUN 透明代理开关
@@ -189,12 +189,12 @@ do_tun_on() {
     preflight
     require_sudo
     if [[ ! -f "$CONFIG_FILE" ]]; then
-        error "无配置文件，请先 config/example"; exit 1
+        error "$(_t 'No configuration file, run config/example first')"; exit 1
     fi
-    info "在配置中启用 TUN 透明代理..."
+    info "$(_t 'Enabling the TUN transparent proxy in the configuration...')"
     # 追加 tun 段（若已存在则跳过）
     if grep -q "^tun:" "$CONFIG_FILE" 2>/dev/null; then
-        warn "配置中已有 tun 段，跳过"
+        warn "$(_t 'The configuration already has a tun section, skipping')"
     else
         sudo tee -a "$CONFIG_FILE" >/dev/null <<'EOF'
 
@@ -206,12 +206,12 @@ tun:
   auto-route: true
   auto-detect-interface: true
 EOF
-        success "已启用 TUN（需重启 mihomo 生效）"
+        success "$(_t 'TUN has been enabled (restart mihomo to apply it)')"
     fi
     # 确保 IP 转发开启
     sudo sysctl -w net.ipv4.ip_forward=1 >/dev/null 2>&1 || true
-    info "已开启 net.ipv4.ip_forward"
-    warn "TUN 需要 NET_ADMIN 权限（systemd 服务已配置 AmbientCapabilities）"
+    info "$(_t 'net.ipv4.ip_forward has been enabled')"
+    warn "TUN $(_t 'The NET_ADMIN capability is required (the systemd service already sets AmbientCapabilities)')"
 }
 
 do_tun_off() {
@@ -220,65 +220,65 @@ do_tun_off() {
     if grep -q "^tun:" "$CONFIG_FILE" 2>/dev/null; then
         # 把 tun.enable 改为 false
         sudo sed -i '/^tun:/,/^[^ ]/ s/enable: true/enable: false/' "$CONFIG_FILE" 2>/dev/null || true
-        success "已关闭 TUN（重启 mihomo 生效）"
+        success "$(_t 'TUN has been disabled (restart mihomo to apply it)')"
     else
-        info "配置中无 tun 段，无需关闭"
+        info "$(_t 'The configuration has no tun section, nothing to disable')"
     fi
 }
 
 # 服务管理
-do_start()   { preflight; require_sudo; uxs_svc enable-now "$SERVICE_NAME"; success "mihomo 已启动"; }
-do_stop()    { preflight; require_sudo; uxs_svc stop "$SERVICE_NAME" 2>/dev/null || true; success "mihomo 已停止"; }
-do_restart() { preflight; require_sudo; uxs_svc restart "$SERVICE_NAME"; success "mihomo 已重启"; }
+do_start()   { preflight; require_sudo; uxs_svc enable-now "$SERVICE_NAME"; success "mihomo $(_t 'Started')"; }
+do_stop()    { preflight; require_sudo; uxs_svc stop "$SERVICE_NAME" 2>/dev/null || true; success "mihomo $(_t 'Stopped')"; }
+do_restart() { preflight; require_sudo; uxs_svc restart "$SERVICE_NAME"; success "mihomo $(_t 'Restarted')"; }
 
 status_clash() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return
+        emit_status "n/a" "${YELLOW}$(_t '⚠️  Not applicable (Linux only)')${NC}"; return
     fi
     if [[ ! -x "$BIN" ]]; then
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
+        emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"; return
     fi
     if uxs_svc is-active "$SERVICE_NAME" 2>/dev/null; then
-        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
+        emit_status "installed:running" "${GREEN}$(_t '✅ Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  已安装但未运行${NC}"
+        emit_status "installed:stopped" "${YELLOW}$(_t '⚠️  Installed but not running')${NC}"
     fi
 }
 
 uninstall_clash() {
     preflight
     require_sudo
-    if ! yes_no "确认卸载 mihomo（clash）？"; then
-        info "已取消"; return 0
+    if ! yes_no "$(_t 'Uninstall mihomo (clash)?')"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
     uxs_svc stop "$SERVICE_NAME" 2>/dev/null || true
     uxs_svc disable "$SERVICE_NAME" 2>/dev/null || true
     sudo rm -f "$SERVICE_FILE"
     uxs_svc daemon-reload 2>/dev/null || true
     sudo rm -f "$BIN"
-    if yes_no "是否删除配置目录 ${CONFIG_DIR}（含订阅/节点）？"; then
+    if yes_no "$(_tf 'Delete the configuration directory %s (with the subscriptions and nodes)?' "${CONFIG_DIR}")"; then
         sudo rm -rf "$CONFIG_DIR"
-        success "配置目录已删除"
+        success "$(_t 'The configuration directory has been deleted')"
     fi
-    success "mihomo 已卸载"
+    success "mihomo $(_t 'Uninstalled')"
 }
 
 usage() {
     cat <<EOF
 用法: $0 {install|config|example|tun-on|tun-off|start|stop|restart|status|uninstall|help}  (仅 Linux)
 
-mihomo (clash.meta) 安装与配置:
-  install              安装二进制 + systemd 服务（默认）
-  config <url|file>    下载订阅/复制本地文件为配置
-  example              生成最小示例配置
-  tun-on / tun-off     开启/关闭 TUN 透明代理
-  start|stop|restart   服务管理
-  status               查看状态
-  uninstall            卸载
+mihomo (clash.meta) $(_t 'Install and configure:')
+  install              $(_t 'Install the binary and the systemd service (default)')
+  config <url|file>    $(_t 'Download a subscription or copy a local file as the configuration')
+  example              $(_t 'Generate a minimal sample configuration')
+  tun-on / tun-off     $(_t 'Enable or disable the TUN transparent proxy')
+  start|stop|restart   $(_t 'Service management')
+  status               $(_t 'View the status')
+  uninstall            $(_t 'Uninstall')
 
-代理端口: HTTP/SOCKS 混合 $MIXED_PORT ｜ 管理 API $API_PORT
-示例:
+$(_tf 'Proxy port: HTTP/SOCKS mixed %s ｜ Management API %s' "$MIXED_PORT" "$API_PORT")
+$(_t 'Examples:')
   $0 install
   $0 config https://example.com/sub.yaml
   $0 start
@@ -301,7 +301,7 @@ main() {
         status)    status_clash ;;
         uninstall) uninstall_clash ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 
