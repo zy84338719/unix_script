@@ -43,21 +43,21 @@ install_macos() {
     tmpdir=$(mktemp -d)
     trap 'rm -rf "$tmpdir"' EXIT
 
-    info "下载 $url ..."
+    info "$(_tf 'Downloading %s ...' "$url")"
     if ! curl -fSL "$url" -o "$tmpdir/$dmg_name"; then
-        error "下载失败，请检查网络或手动下载：https://github.com/${REPO}/releases"
+        error "$(_tf 'Download failed, check the network or download it manually: https://github.com/%s/releases' "${REPO}")"
         return 1
     fi
 
-    info "安装到 /Applications ..."
+    info "$(_t 'Installing into /Applications ...')"
     local volume="/Volumes/k7s-installer"
     hdiutil attach "$tmpdir/$dmg_name" -nobrowse -quiet 2>/dev/null || true
     sleep 1
     if [[ -d "$volume/k7s.app" ]]; then
         if cp -R "$volume/k7s.app" /Applications/ 2>/dev/null; then
-            success "已安装 k7s.app 到 /Applications"
+            success "$(_t 'k7s.app has been installed into /Applications')"
         else
-            sudo cp -R "$volume/k7s.app" /Applications/ && success "已安装 k7s.app 到 /Applications（sudo）"
+            sudo cp -R "$volume/k7s.app" /Applications/ && success "$(_t 'k7s.app has been installed into /Applications (sudo)')"
         fi
         hdiutil detach "$volume" -quiet 2>/dev/null || true
     else
@@ -66,13 +66,13 @@ install_macos() {
         app_path=$(find "$volume" -name "k7s.app" -maxdepth 2 2>/dev/null | head -1)
         if [[ -n "$app_path" ]]; then
             if cp -R "$app_path" /Applications/ 2>/dev/null; then
-                success "已安装 k7s.app 到 /Applications"
+                success "$(_t 'k7s.app has been installed into /Applications')"
             else
-                sudo cp -R "$app_path" /Applications/ && success "已安装 k7s.app 到 /Applications（sudo）"
+                sudo cp -R "$app_path" /Applications/ && success "$(_t 'k7s.app has been installed into /Applications (sudo)')"
             fi
             hdiutil detach "$volume" -quiet 2>/dev/null || true
         else
-            error "未在挂载的 DMG 中找到 k7s.app"
+            error "$(_t 'k7s.app was not found in the mounted DMG')"
             hdiutil detach "$volume" -quiet 2>/dev/null || true
             return 1
         fi
@@ -114,19 +114,19 @@ install_linux() {
         tmpdir=$(mktemp -d)
         trap 'rm -rf "$tmpdir"' EXIT
 
-        info "下载 $url ..."
+        info "$(_tf 'Downloading %s ...' "$url")"
         if curl -fSL "$url" -o "$tmpdir/$filename" 2>/dev/null; then
-            info "安装 $filename ..."
+            info "$(_tf 'Installing %s ...' "$filename")"
             case "$pkg_ext" in
                 deb) sudo dpkg -i "$tmpdir/$filename" 2>/dev/null || sudo apt-get install -f -y ;;
                 rpm) sudo rpm -i "$tmpdir/$filename" 2>/dev/null || sudo dnf install -y "$tmpdir/$filename" 2>/dev/null || sudo yum install -y "$tmpdir/$filename" ;;
             esac
             rm -rf "$tmpdir"
             trap - EXIT
-            success "k7s 已安装（${pkg_ext}）"
+            success "k7s $(_tf 'Installed (%s)' "${pkg_ext}")"
             return 0
         else
-            warn "$pkg_ext 下载失败，尝试 AppImage..."
+            warn "$pkg_ext $(_t 'Download failed, trying AppImage...')"
             rm -rf "$tmpdir"
             trap - EXIT
             pkg_ext="AppImage"
@@ -142,17 +142,17 @@ install_linux() {
 
     mkdir -p "$target_dir"
 
-    info "下载 AppImage: $appimage_url ..."
+    info "$(_tf 'Downloading the AppImage: %s ...' "$appimage_url")"
     if ! curl -fSL "$appimage_url" -o "$target"; then
-        error "下载失败，请检查网络或手动下载：https://github.com/${REPO}/releases"
+        error "$(_tf 'Download failed, check the network or download it manually: https://github.com/%s/releases' "${REPO}")"
         return 1
     fi
     chmod +x "$target"
-    success "已安装 k7s AppImage 到 $target"
+    success "$(_tf 'The k7s AppImage has been installed into %s' "$target")"
 
     # 确保 ~/.local/bin 在 PATH 中
     if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
-        warn "$HOME/.local/bin 不在 PATH 中，请添加到 shell 配置："
+        warn "$HOME/.local/bin $(_t 'Not in PATH, add it to your shell configuration:')"
         echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
     fi
 }
@@ -161,23 +161,23 @@ install_linux() {
 install_k7s() {
     preflight
 
-    info "🚀 安装 k7s（Kubernetes 桌面监控工具）"
+    info "$(_t '🚀 Installing k7s (the Kubernetes desktop monitoring tool)')"
 
     local version
     version=$(get_latest_version)
     if [[ -z "$version" ]]; then
-        error "无法获取最新版本，请检查网络"
+        error "$(_t 'Cannot fetch the latest version, check the network')"
         return 1
     fi
-    success "最新版本：v$version"
+    success "$(_tf 'Latest version: v%s' "$version")"
 
     # 检查是否已安装
     if command_exists k7s; then
         local current
-        current=$(k7s --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "未知")
-        warn "已安装 k7s（${current}）"
-        if ! yes_no "是否继续安装 v${version}？"; then
-            info "已取消"; return 0
+        current=$(k7s --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || printf '%s\n' "$(_t 'Unknown')")
+        warn "$(_tf 'k7s detected (%s)' "${current}")"
+        if ! yes_no "$(_tf 'Continue installing v%s?' "${version}")"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
     fi
 
@@ -188,29 +188,29 @@ install_k7s() {
     fi
 
     echo
-    success "🎉 k7s 安装完成！"
-    info "启动方式："
+    success "$(_t '🎉 k7s installation complete!')"
+    info "$(_t 'How to launch it:')"
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        echo "  从 Launchpad 或 Applications 打开 k7s"
-        echo "  或终端运行：open -a k7s"
+        echo "  $(_t 'Open k7s from Launchpad or Applications')"
+        echo "  $(_t 'Or run it in a terminal: open -a k7s')"
     else
-        echo "  终端运行：k7s"
+        echo "  $(_t 'Run it in a terminal: k7s')"
     fi
     echo
-    info "文档：https://github.com/${REPO}"
+    info "$(_tf 'Docs: https://github.com/%s' "${REPO}")"
 }
 
 # --- 卸载 ---
 uninstall_k7s() {
     detect_os
 
-    info "卸载 k7s ..."
+    info "$(_t 'Uninstalling k7s ...')"
 
     local removed=false
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
         if [[ -d "/Applications/k7s.app" ]]; then
-            if yes_no "确认删除 /Applications/k7s.app？"; then
+            if yes_no "$(_t 'Delete /Applications/k7s.app?')"; then
                 rm -rf "/Applications/k7s.app" 2>/dev/null || sudo rm -rf "/Applications/k7s.app"
                 removed=true
             fi
@@ -224,7 +224,7 @@ uninstall_k7s() {
         fi
         # AppImage
         if [[ -f "$HOME/.local/bin/k7s" ]]; then
-            if yes_no "确认删除 $HOME/.local/bin/k7s？"; then
+            if yes_no "$(_tf 'Delete %s/.local/bin/k7s?' "$HOME")"; then
                 rm -f "$HOME/.local/bin/k7s"
                 removed=true
             fi
@@ -232,9 +232,9 @@ uninstall_k7s() {
     fi
 
     if $removed; then
-        success "k7s 已卸载"
+        success "k7s $(_t 'Uninstalled')"
     else
-        warn "未找到 k7s 安装"
+        warn "$(_t 'No k7s installation was found')"
     fi
 }
 
@@ -246,21 +246,21 @@ status_k7s() {
     if [[ "$OS_TYPE" == "darwin" ]] && [[ -d "/Applications/k7s.app" ]]; then
         found=true
         source="/Applications/k7s.app"
-        ver=$(defaults read "/Applications/k7s.app/Contents/Info" CFBundleShortVersionString 2>/dev/null || echo "未知")
-        emit_status "installed" "${GREEN}✅ 已安装${NC} (v$ver, /Applications/k7s.app)"
+        ver=$(defaults read "/Applications/k7s.app/Contents/Info" CFBundleShortVersionString 2>/dev/null || printf '%s\n' "$(_t 'Unknown')")
+        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} (v$ver, /Applications/k7s.app)"
         emit_extra "source=$source"
         emit_version "$ver"
     elif command_exists k7s; then
         found=true
         source=$(command -v k7s)
-        ver=$(k7s --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "未知")
-        emit_status "installed" "${GREEN}✅ 已安装${NC} (v$ver)"
+        ver=$(k7s --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || printf '%s\n' "$(_t 'Unknown')")
+        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} (v$ver)"
         emit_extra "source=$source"
         emit_version "$ver"
     elif [[ -f "$HOME/.local/bin/k7s" ]]; then
         found=true
         source="$HOME/.local/bin/k7s"
-        emit_status "installed" "${GREEN}✅ 已安装${NC} (~/.local/bin/k7s)"
+        emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} (~/.local/bin/k7s)"
         emit_extra "source=$source"
     fi
 
@@ -269,29 +269,29 @@ status_k7s() {
         if command_exists dpkg && dpkg -l 2>/dev/null | grep -q k7s; then
             found=true
             source="deb"
-            emit_status "installed" "${GREEN}✅ 已安装${NC} (deb 包)"
+            emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} (deb $(_t 'package)')"
             emit_extra "source=$source"
         elif command_exists rpm && rpm -q k7s >/dev/null 2>&1; then
             found=true
             source="rpm"
-            emit_status "installed" "${GREEN}✅ 已安装${NC} (rpm 包)"
+            emit_status "installed" "${GREEN}$(_t '✅ Installed')${NC} (rpm $(_t 'package)')"
             emit_extra "source=$source"
         fi
     fi
 
-    $found || emit_status "not_installed" "${RED}❌ 未安装${NC}"
+    $found || emit_status "not_installed" "${RED}$(_t '❌ Not installed')${NC}"
 }
 
 usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装 k7s（Kubernetes 桌面监控工具，默认动作）
-  uninstall   卸载 k7s
-  status      查看安装状态
-  help        显示此帮助
+  install     $(_t 'Install k7s (the Kubernetes desktop monitoring tool, default action)')
+  uninstall   $(_t 'Uninstall k7s')
+  status      $(_t 'View the installation status')
+  help        $(_t 'Display this help')
 
-  项目主页: https://github.com/${REPO}
+  $(_tf 'Project home: https://github.com/%s' "${REPO}")
 EOF
 }
 
@@ -303,7 +303,7 @@ main() {
         uninstall) uninstall_k7s ;;
         status)    status_k7s ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

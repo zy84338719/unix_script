@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 16:57+0800\n"
+"POT-Creation-Date: 2026-11-11 17:02+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
@@ -3343,6 +3343,114 @@ msgid "Configure auto-start on boot (legacy name kept)"
 msgstr "配置开机自启（保留旧名）"
 
 #, sh-printf-format
+msgid ""
+"Download failed, check the network or download it manually: https://"
+"github.com/%s/releases"
+msgstr "下载失败，请检查网络或手动下载：https://github.com/%s/releases"
+
+msgid "Installing into /Applications ..."
+msgstr "安装到 /Applications ..."
+
+msgid "k7s.app has been installed into /Applications"
+msgstr "已安装 k7s.app 到 /Applications"
+
+msgid "k7s.app has been installed into /Applications (sudo)"
+msgstr "已安装 k7s.app 到 /Applications（sudo）"
+
+msgid "k7s.app was not found in the mounted DMG"
+msgstr "未在挂载的 DMG 中找到 k7s.app"
+
+#, sh-printf-format
+msgid "Installing %s ..."
+msgstr "安装 %s ..."
+
+#, sh-printf-format
+msgid "Installed (%s)"
+msgstr "已安装（%s）"
+
+msgid "Download failed, trying AppImage..."
+msgstr "下载失败，尝试 AppImage..."
+
+#, sh-printf-format
+msgid "Downloading the AppImage: %s ..."
+msgstr "下载 AppImage: %s ..."
+
+#, sh-printf-format
+msgid "The k7s AppImage has been installed into %s"
+msgstr "已安装 k7s AppImage 到 %s"
+
+msgid "Not in PATH, add it to your shell configuration:"
+msgstr "不在 PATH 中，请添加到 shell 配置："
+
+msgid "🚀 Installing k7s (the Kubernetes desktop monitoring tool)"
+msgstr "🚀 安装 k7s（Kubernetes 桌面监控工具）"
+
+msgid "Cannot fetch the latest version, check the network"
+msgstr "无法获取最新版本，请检查网络"
+
+#, sh-printf-format
+msgid "k7s detected (%s)"
+msgstr "已安装 k7s（%s）"
+
+#, sh-printf-format
+msgid "Continue installing v%s?"
+msgstr "是否继续安装 v%s？"
+
+msgid "🎉 k7s installation complete!"
+msgstr "🎉 k7s 安装完成！"
+
+msgid "How to launch it:"
+msgstr "启动方式："
+
+msgid "Open k7s from Launchpad or Applications"
+msgstr "从 Launchpad 或 Applications 打开 k7s"
+
+msgid "Or run it in a terminal: open -a k7s"
+msgstr "或终端运行：open -a k7s"
+
+msgid "Run it in a terminal: k7s"
+msgstr "终端运行：k7s"
+
+#, sh-printf-format
+msgid "Docs: https://github.com/%s"
+msgstr "文档：https://github.com/%s"
+
+msgid "Uninstalling k7s ..."
+msgstr "卸载 k7s ..."
+
+msgid "Delete /Applications/k7s.app?"
+msgstr "确认删除 /Applications/k7s.app？"
+
+#, sh-printf-format
+msgid "Delete %s/.local/bin/k7s?"
+msgstr "确认删除 %s/.local/bin/k7s？"
+
+msgid "No k7s installation was found"
+msgstr "未找到 k7s 安装"
+
+msgid "✅ Installed"
+msgstr "✅ 已安装"
+
+msgid "package)"
+msgstr "包)"
+
+msgid "Install k7s (the Kubernetes desktop monitoring tool, default action)"
+msgstr "安装 k7s（Kubernetes 桌面监控工具，默认动作）"
+
+msgid "Uninstall k7s"
+msgstr "卸载 k7s"
+
+msgid "View the installation status"
+msgstr "查看安装状态"
+
+msgid "Display this help"
+msgstr "显示此帮助"
+
+#, sh-printf-format
+msgid "Project home: https://github.com/%s"
+msgstr "项目主页: https://github.com/%s"
+
+#, sh-printf-format
 msgid "Linux only. Current: %s"
 msgstr "仅支持 Linux。当前：%s"
 
@@ -3572,14 +3680,145 @@ msgstr "更多用法：https://restic.readthedocs.io/"
 msgid "About to uninstall Restic."
 msgstr "即将卸载 Restic。"
 
-msgid "✅ Installed"
-msgstr "✅ 已安装"
-
 msgid "Install or update Restic (default action)"
 msgstr "安装或更新 Restic（默认动作）"
 
 msgid "Uninstall Restic"
 msgstr "卸载 Restic"
+
+msgid "macOS ships with an application firewall, so UFW does not apply."
+msgstr "自带应用程序防火墙，UFW 不适用。"
+
+msgid "To configure the macOS firewall: System Settings > Network > Firewall"
+msgstr "如需配置 macOS 防火墙：系统设置 > 网络 > 防火墙"
+
+#, sh-printf-format
+msgid "Starting the UFW firewall installation (package manager: %s)"
+msgstr "开始安装 UFW 防火墙（包管理器：%s）"
+
+#, sh-printf-format
+msgid "UFW detected (%s)"
+msgstr "检测到已安装 UFW（%s）"
+
+msgid "Continue and reconfigure the default rules?"
+msgstr "是否继续并重新配置默认规则？"
+
+msgid "Installing ufw..."
+msgstr "安装 ufw..."
+
+msgid "Installation failed: the ufw command was not found"
+msgstr "安装失败：找不到 ufw 命令"
+
+msgid "Configuring the default policy..."
+msgstr "配置默认策略..."
+
+msgid ""
+"[IMPORTANT] Allow SSH (port 22) so remote access is not lost once the "
+"firewall is enabled"
+msgstr "【关键】放行 SSH（22 端口），防止启用防火墙后无法远程连接"
+
+msgid "Optional: allow the common web ports"
+msgstr "可选：放行常用 Web 端口"
+
+msgid "Allow HTTP (80) and HTTPS (443)?"
+msgstr "是否放行 HTTP（80）和 HTTPS（443）？"
+
+msgid "Allowed 80/tcp and 443/tcp"
+msgstr "已放行 80/tcp 和 443/tcp"
+
+msgid ""
+"Skipped allowing the web ports (add them later with: sudo ufw allow 80/tcp)"
+msgstr "跳过 Web 端口放行（后续可手动添加：sudo ufw allow 80/tcp）"
+
+msgid "Enabling the UFW firewall..."
+msgstr "启用 UFW 防火墙..."
+
+msgid "The firewall has been enabled"
+msgstr "防火墙已启用"
+
+msgid "Current rules:"
+msgstr "当前规则："
+
+msgid "Common management commands:"
+msgstr "常用管理命令："
+
+msgid "View the status"
+msgstr "查看状态"
+
+msgid "Detailed status (including the rules)"
+msgstr "详细状态（含规则）"
+
+msgid "Allow a port"
+msgstr "放行端口"
+
+msgid "Deny a port"
+msgstr "拒绝端口"
+
+msgid "Delete a rule"
+msgstr "删除规则"
+
+msgid "Reload the rules"
+msgstr "重新加载规则"
+
+msgid "Uninstall the UFW firewall? All firewall rules will be lost afterwards."
+msgstr "确认卸载 UFW 防火墙？卸载后防火墙规则将全部失效。"
+
+msgid "Disabling UFW..."
+msgstr "禁用 UFW..."
+
+msgid "Removing the ufw package..."
+msgstr "卸载 ufw 包..."
+
+msgid "Failed to remove the package, uninstall it manually"
+msgstr "包移除失败，请手动卸载"
+
+msgid "The firewall has been uninstalled and disabled."
+msgstr "防火墙已卸载并禁用。"
+
+msgid ""
+"Note: after the uninstall the system has no firewall protection, make sure "
+"you have other safeguards."
+msgstr "注意：卸载后系统将不再有防火墙保护，请确保有其他安全措施。"
+
+msgid "Not applicable (macOS ships with an application firewall)"
+msgstr "不适用（macOS 自带应用程序防火墙）"
+
+msgid "Configuration path: System Settings > Network > Firewall"
+msgstr "配置路径：系统设置 > 网络 > 防火墙"
+
+msgid "Installed and enabled"
+msgstr "已安装并启用"
+
+msgid "Installed but not enabled"
+msgstr "已安装但未启用"
+
+msgid "Installed and the service is running (degraded detection)"
+msgstr "已安装且服务运行中（降级检测）"
+
+msgid "Installed (sudo unavailable, degraded detection)"
+msgstr "已安装（sudo 不可用，降级检测）"
+
+msgid "Installed (the detailed status cannot be read)"
+msgstr "已安装（无法读取详细状态）"
+
+msgid ""
+"Install and enable the UFW firewall (set the default policy and allow SSH)"
+msgstr "安装并启用 UFW 防火墙（配置默认策略 + 放行 SSH）"
+
+msgid "Disable and uninstall UFW"
+msgstr "禁用并卸载 UFW"
+
+msgid "View the firewall status and rules"
+msgstr "查看防火墙状态和规则"
+
+msgid "Show the help"
+msgstr "显示帮助"
+
+msgid ""
+"⚠️  Security note: SSH (port 22) is allowed automatically before the firewall "
+"is enabled, so remote access is not locked out."
+msgstr ""
+"⚠️  安全提示：启用防火墙前会自动放行 SSH（22 端口），防止远程连接被锁定。"
 
 msgid "📂 Installing upftp (a lightweight FTP file sharing tool)"
 msgstr "📂 安装 upftp（轻量级 FTP 文件分享工具）"
@@ -3627,10 +3866,6 @@ msgstr "后台服务模式"
 
 msgid "Open http://<your IP>:8080 in a browser to reach the web interface"
 msgstr "浏览器打开 http://<你的IP>:8080 访问 Web 界面"
-
-#, sh-printf-format
-msgid "Docs: https://github.com/%s"
-msgstr "文档：https://github.com/%s"
 
 msgid "Install upftp (the FTP file sharing tool, default action)"
 msgstr "安装 upftp（FTP 文件分享工具，默认动作）"

@@ -23,8 +23,8 @@ source "$SCRIPT_DIR/../../lib/common.sh"
 preflight() {
     detect_os
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        info "macOS 自带应用程序防火墙，UFW 不适用。"
-        info "如需配置 macOS 防火墙：系统设置 > 网络 > 防火墙"
+        info "macOS $(_t 'macOS ships with an application firewall, so UFW does not apply.')"
+        info "$(_t 'To configure the macOS firewall: System Settings > Network > Firewall')"
         exit 0
     fi
 }
@@ -33,98 +33,98 @@ install_ufw() {
     preflight
     require_sudo
     detect_pkg_manager
-    info "开始安装 UFW 防火墙（包管理器：${PKG_MANAGER}）"
+    info "$(_tf 'Starting the UFW firewall installation (package manager: %s)' "${PKG_MANAGER}")"
 
     if command_exists ufw; then
         local cur
-        cur=$(ufw version 2>/dev/null | head -1 || echo "未知版本")
-        warn "检测到已安装 UFW（${cur}）"
-        if ! yes_no "是否继续并重新配置默认规则？"; then
-            info "已取消"
+        cur=$(ufw version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Unknown version')")
+        warn "$(_tf 'UFW detected (%s)' "${cur}")"
+        if ! yes_no "$(_t 'Continue and reconfigure the default rules?')"; then
+            info "$(_t 'Cancelled')"
             return 0
         fi
     fi
 
-    info "安装 ufw..."
+    info "$(_t 'Installing ufw...')"
     if ! pkg_install ufw; then
-        error "ufw 安装失败（包管理器：${PKG_MANAGER}）"
+        error "ufw $(_tf 'Installation failed (package manager: %s)' "${PKG_MANAGER}")"
         exit 1
     fi
 
     if ! command_exists ufw; then
-        error "安装失败：找不到 ufw 命令"
+        error "$(_t 'Installation failed: the ufw command was not found')"
         exit 1
     fi
 
     # 配置默认策略
-    info "配置默认策略..."
+    info "$(_t 'Configuring the default policy...')"
     sudo ufw default deny incoming
     sudo ufw default allow outgoing
 
     # 放行 SSH —— 关键步骤，防止锁定
-    warn "【关键】放行 SSH（22 端口），防止启用防火墙后无法远程连接"
+    warn "$(_t '[IMPORTANT] Allow SSH (port 22) so remote access is not lost once the firewall is enabled')"
     sudo ufw allow ssh
 
     # 可选：放行 HTTP / HTTPS
     echo
-    info "可选：放行常用 Web 端口"
-    if yes_no "是否放行 HTTP（80）和 HTTPS（443）？"; then
+    info "$(_t 'Optional: allow the common web ports')"
+    if yes_no "$(_t 'Allow HTTP (80) and HTTPS (443)?')"; then
         sudo ufw allow 80/tcp
         sudo ufw allow 443/tcp
-        info "已放行 80/tcp 和 443/tcp"
+        info "$(_t 'Allowed 80/tcp and 443/tcp')"
     else
-        info "跳过 Web 端口放行（后续可手动添加：sudo ufw allow 80/tcp）"
+        info "$(_t 'Skipped allowing the web ports (add them later with: sudo ufw allow 80/tcp)')"
     fi
 
     # 启用防火墙
     echo
-    info "启用 UFW 防火墙..."
+    info "$(_t 'Enabling the UFW firewall...')"
     sudo ufw --force enable
 
-    success "UFW 防火墙已启用"
+    success "UFW $(_t 'The firewall has been enabled')"
     echo
-    info "当前规则："
+    info "$(_t 'Current rules:')"
     sudo ufw status verbose
     echo
-    info "常用管理命令："
-    echo "  sudo ufw status              # 查看状态"
-    echo "  sudo ufw status verbose      # 详细状态（含规则）"
-    echo "  sudo ufw allow <port>/tcp    # 放行端口"
-    echo "  sudo ufw deny <port>/tcp     # 拒绝端口"
-    echo "  sudo ufw delete allow <port> # 删除规则"
-    echo "  sudo ufw reload              # 重新加载规则"
+    info "$(_t 'Common management commands:')"
+    echo "  sudo ufw status              # $(_t 'View the status')"
+    echo "  sudo ufw status verbose      # $(_t 'Detailed status (including the rules)')"
+    echo "  sudo ufw allow <port>/tcp    # $(_t 'Allow a port')"
+    echo "  sudo ufw deny <port>/tcp     # $(_t 'Deny a port')"
+    echo "  sudo ufw delete allow <port> # $(_t 'Delete a rule')"
+    echo "  sudo ufw reload              # $(_t 'Reload the rules')"
 }
 
 uninstall_ufw() {
     preflight
     require_sudo
     detect_pkg_manager
-    if ! yes_no "确认卸载 UFW 防火墙？卸载后防火墙规则将全部失效。"; then
-        info "已取消"
+    if ! yes_no "$(_t 'Uninstall the UFW firewall? All firewall rules will be lost afterwards.')"; then
+        info "$(_t 'Cancelled')"
         return 0
     fi
 
-    info "禁用 UFW..."
+    info "$(_t 'Disabling UFW...')"
     sudo ufw disable 2>/dev/null || true
 
-    info "卸载 ufw 包..."
-    pkg_remove ufw 2>/dev/null || warn "ufw 包移除失败，请手动卸载"
+    info "$(_t 'Removing the ufw package...')"
+    pkg_remove ufw 2>/dev/null || warn "ufw $(_t 'Failed to remove the package, uninstall it manually')"
 
-    success "UFW 防火墙已卸载并禁用。"
-    warn "注意：卸载后系统将不再有防火墙保护，请确保有其他安全措施。"
+    success "UFW $(_t 'The firewall has been uninstalled and disabled.')"
+    warn "$(_t 'Note: after the uninstall the system has no firewall protection, make sure you have other safeguards.')"
 }
 
 status_ufw() {
     detect_os
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        emit_status "n/a" "${YELLOW}不适用（macOS 自带应用程序防火墙）${NC}"
+        emit_status "n/a" "${YELLOW}$(_t 'Not applicable (macOS ships with an application firewall)')${NC}"
         if ! uxs_is_machine_mode; then
-            echo "配置路径：系统设置 > 网络 > 防火墙"
+            printf '%s\n' "$(_t 'Configuration path: System Settings > Network > Firewall')"
         fi
         return
     fi
     if ! command_exists ufw; then
-        emit_status "not_installed" "${RED}未安装${NC}"
+        emit_status "not_installed" "${RED}$(_t 'Not installed')${NC}"
         return
     fi
     # 三级降级：sudo -n ufw status → systemctl is-active ufw → 兜底 installed。
@@ -134,39 +134,39 @@ status_ufw() {
     if ufw_status=$(sudo -n ufw status 2>/dev/null | head -1 || true) && [[ -n "$ufw_status" ]]; then
         # 精确匹配 active（排除 inactive 子串误匹配——"Status: inactive" 含 "active"）
         if [[ "$ufw_status" == *"active"* && "$ufw_status" != *"inactive"* ]]; then
-            emit_status "configured" "${GREEN}已安装并启用${NC}"
+            emit_status "configured" "${GREEN}$(_t 'Installed and enabled')${NC}"
             if ! uxs_is_machine_mode; then
                 echo
                 sudo -n ufw status verbose 2>/dev/null || sudo ufw status verbose
             fi
         else
-            emit_status "not_configured" "${YELLOW}已安装但未启用${NC}"
+            emit_status "not_configured" "${YELLOW}$(_t 'Installed but not enabled')${NC}"
         fi
         return
     fi
     # sudo 不可用（无凭据/无 TTY）：降级 systemd 单元状态
     if command_exists systemctl && sysd=$(systemctl is-active ufw 2>/dev/null || true); then
         if [[ "$sysd" == "active" ]]; then
-            emit_status "installed:running" "${GREEN}已安装且服务运行中（降级检测）${NC}"
+            emit_status "installed:running" "${GREEN}$(_t 'Installed and the service is running (degraded detection)')${NC}"
         else
-            emit_status "installed" "${YELLOW}已安装（sudo 不可用，降级检测）${NC}"
+            emit_status "installed" "${YELLOW}$(_t 'Installed (sudo unavailable, degraded detection)')${NC}"
         fi
         return
     fi
     # systemctl 也没有：命令存在即视为已装
-    emit_status "installed" "${YELLOW}已安装（无法读取详细状态）${NC}"
+    emit_status "installed" "${YELLOW}$(_t 'Installed (the detailed status cannot be read)')${NC}"
 }
 
 usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装并启用 UFW 防火墙（配置默认策略 + 放行 SSH）
-  uninstall   禁用并卸载 UFW
-  status      查看防火墙状态和规则
-  help        显示帮助
+  install     $(_t 'Install and enable the UFW firewall (set the default policy and allow SSH)')
+  uninstall   $(_t 'Disable and uninstall UFW')
+  status      $(_t 'View the firewall status and rules')
+  help        $(_t 'Show the help')
 
-⚠️  安全提示：启用防火墙前会自动放行 SSH（22 端口），防止远程连接被锁定。
+$(_t '⚠️  Security note: SSH (port 22) is allowed automatically before the firewall is enabled, so remote access is not locked out.')
 EOF
 }
 
@@ -178,7 +178,7 @@ main() {
         uninstall) uninstall_ufw ;;
         status)    status_ufw ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

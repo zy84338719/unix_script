@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 16:57+0800\n"
+"POT-Creation-Date: 2026-11-11 17:02+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3314,6 +3314,114 @@ msgid "Configure auto-start on boot (legacy name kept)"
 msgstr ""
 
 #, sh-printf-format
+msgid ""
+"Download failed, check the network or download it manually: https://"
+"github.com/%s/releases"
+msgstr ""
+
+msgid "Installing into /Applications ..."
+msgstr ""
+
+msgid "k7s.app has been installed into /Applications"
+msgstr ""
+
+msgid "k7s.app has been installed into /Applications (sudo)"
+msgstr ""
+
+msgid "k7s.app was not found in the mounted DMG"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing %s ..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Installed (%s)"
+msgstr ""
+
+msgid "Download failed, trying AppImage..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Downloading the AppImage: %s ..."
+msgstr ""
+
+#, sh-printf-format
+msgid "The k7s AppImage has been installed into %s"
+msgstr ""
+
+msgid "Not in PATH, add it to your shell configuration:"
+msgstr ""
+
+msgid "🚀 Installing k7s (the Kubernetes desktop monitoring tool)"
+msgstr ""
+
+msgid "Cannot fetch the latest version, check the network"
+msgstr ""
+
+#, sh-printf-format
+msgid "k7s detected (%s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Continue installing v%s?"
+msgstr ""
+
+msgid "🎉 k7s installation complete!"
+msgstr ""
+
+msgid "How to launch it:"
+msgstr ""
+
+msgid "Open k7s from Launchpad or Applications"
+msgstr ""
+
+msgid "Or run it in a terminal: open -a k7s"
+msgstr ""
+
+msgid "Run it in a terminal: k7s"
+msgstr ""
+
+#, sh-printf-format
+msgid "Docs: https://github.com/%s"
+msgstr ""
+
+msgid "Uninstalling k7s ..."
+msgstr ""
+
+msgid "Delete /Applications/k7s.app?"
+msgstr ""
+
+#, sh-printf-format
+msgid "Delete %s/.local/bin/k7s?"
+msgstr ""
+
+msgid "No k7s installation was found"
+msgstr ""
+
+msgid "✅ Installed"
+msgstr ""
+
+msgid "package)"
+msgstr ""
+
+msgid "Install k7s (the Kubernetes desktop monitoring tool, default action)"
+msgstr ""
+
+msgid "Uninstall k7s"
+msgstr ""
+
+msgid "View the installation status"
+msgstr ""
+
+msgid "Display this help"
+msgstr ""
+
+#, sh-printf-format
+msgid "Project home: https://github.com/%s"
+msgstr ""
+
+#, sh-printf-format
 msgid "Linux only. Current: %s"
 msgstr ""
 
@@ -3543,13 +3651,143 @@ msgstr ""
 msgid "About to uninstall Restic."
 msgstr ""
 
-msgid "✅ Installed"
-msgstr ""
-
 msgid "Install or update Restic (default action)"
 msgstr ""
 
 msgid "Uninstall Restic"
+msgstr ""
+
+msgid "macOS ships with an application firewall, so UFW does not apply."
+msgstr ""
+
+msgid "To configure the macOS firewall: System Settings > Network > Firewall"
+msgstr ""
+
+#, sh-printf-format
+msgid "Starting the UFW firewall installation (package manager: %s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "UFW detected (%s)"
+msgstr ""
+
+msgid "Continue and reconfigure the default rules?"
+msgstr ""
+
+msgid "Installing ufw..."
+msgstr ""
+
+msgid "Installation failed: the ufw command was not found"
+msgstr ""
+
+msgid "Configuring the default policy..."
+msgstr ""
+
+msgid ""
+"[IMPORTANT] Allow SSH (port 22) so remote access is not lost once the "
+"firewall is enabled"
+msgstr ""
+
+msgid "Optional: allow the common web ports"
+msgstr ""
+
+msgid "Allow HTTP (80) and HTTPS (443)?"
+msgstr ""
+
+msgid "Allowed 80/tcp and 443/tcp"
+msgstr ""
+
+msgid ""
+"Skipped allowing the web ports (add them later with: sudo ufw allow 80/tcp)"
+msgstr ""
+
+msgid "Enabling the UFW firewall..."
+msgstr ""
+
+msgid "The firewall has been enabled"
+msgstr ""
+
+msgid "Current rules:"
+msgstr ""
+
+msgid "Common management commands:"
+msgstr ""
+
+msgid "View the status"
+msgstr ""
+
+msgid "Detailed status (including the rules)"
+msgstr ""
+
+msgid "Allow a port"
+msgstr ""
+
+msgid "Deny a port"
+msgstr ""
+
+msgid "Delete a rule"
+msgstr ""
+
+msgid "Reload the rules"
+msgstr ""
+
+msgid "Uninstall the UFW firewall? All firewall rules will be lost afterwards."
+msgstr ""
+
+msgid "Disabling UFW..."
+msgstr ""
+
+msgid "Removing the ufw package..."
+msgstr ""
+
+msgid "Failed to remove the package, uninstall it manually"
+msgstr ""
+
+msgid "The firewall has been uninstalled and disabled."
+msgstr ""
+
+msgid ""
+"Note: after the uninstall the system has no firewall protection, make sure "
+"you have other safeguards."
+msgstr ""
+
+msgid "Not applicable (macOS ships with an application firewall)"
+msgstr ""
+
+msgid "Configuration path: System Settings > Network > Firewall"
+msgstr ""
+
+msgid "Installed and enabled"
+msgstr ""
+
+msgid "Installed but not enabled"
+msgstr ""
+
+msgid "Installed and the service is running (degraded detection)"
+msgstr ""
+
+msgid "Installed (sudo unavailable, degraded detection)"
+msgstr ""
+
+msgid "Installed (the detailed status cannot be read)"
+msgstr ""
+
+msgid ""
+"Install and enable the UFW firewall (set the default policy and allow SSH)"
+msgstr ""
+
+msgid "Disable and uninstall UFW"
+msgstr ""
+
+msgid "View the firewall status and rules"
+msgstr ""
+
+msgid "Show the help"
+msgstr ""
+
+msgid ""
+"⚠️  Security note: SSH (port 22) is allowed automatically before the firewall "
+"is enabled, so remote access is not locked out."
 msgstr ""
 
 msgid "📂 Installing upftp (a lightweight FTP file sharing tool)"
@@ -3597,10 +3835,6 @@ msgid "Background service mode"
 msgstr ""
 
 msgid "Open http://<your IP>:8080 in a browser to reach the web interface"
-msgstr ""
-
-#, sh-printf-format
-msgid "Docs: https://github.com/%s"
 msgstr ""
 
 msgid "Install upftp (the FTP file sharing tool, default action)"
