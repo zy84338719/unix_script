@@ -131,10 +131,14 @@ def main():
         return 0
     pot_path = os.path.join(ROOT, "uxs_check_extract.pot")
     rel = [os.path.relpath(p, ROOT) for p in sources]
+    # ★ 这条命令必须与 po/messages.sh 的抽取参数**逐字一致**（flag/keyword 都算）。
+    #   两边一旦漂移，门禁核对的 pot 就不是真实产物那份 —— 门禁会替漂移背书。
+    #   flag 用 c-format：sh-printf-format 是 gettext 0.23+ 才有的名字，
+    #   旧版 xgettext（CI 矩阵里的 0.19/0.21/0.22）会直接报错退出。
     r = subprocess.run(
         ["xgettext", "--language=Shell", "--keyword=_t", "--keyword=_tf:1",
          "--from-code=UTF-8", "--no-location",
-         "--flag=_tf:1:sh-printf-format", "-o", pot_path] + rel,
+         "--flag=_tf:1:c-format", "-o", pot_path] + rel,
         cwd=ROOT, capture_output=True, text=True)
     if r.returncode != 0:
         print("i18n-extract: xgettext failed: " + r.stderr.strip()[:500], file=sys.stderr)

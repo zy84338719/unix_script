@@ -821,9 +821,9 @@ phase_routing() {
         osr="$(mktemp)"
         printf 'ID="kylin"\nVERSION_ID=V10\nPRETTY_NAME="Kylin Linux Advanced Server V10"\n' > "$osr"
         # shellcheck disable=SC2016 # $1/$2 故意交给内层 bash -c 求值
-        assert "发行版: _osr_field 解析带引号/无引号字段" bash -c '
+        assert "发行版: os_release_field 解析带引号/无引号字段" bash -c '
             source "$1/lib/common.sh"
-            [ "$(_osr_field "$2" ID)" = "kylin" ] && [ "$(_osr_field "$2" VERSION_ID)" = "V10" ]' _ "$REPO_DIR" "$osr"
+            [ "$(os_release_field ID "$2")" = "kylin" ] && [ "$(os_release_field VERSION_ID "$2")" = "V10" ]' _ "$REPO_DIR" "$osr"
         # shellcheck disable=SC2016
         assert "发行版: detect_distro(fixture) ID/版本/名称齐全" bash -c '
             source "$1/lib/common.sh" && detect_distro "$2"
@@ -880,7 +880,7 @@ phase_routing() {
         # shellcheck disable=SC2016
         assert "发行版: DISTRO_ID 与 os-release 一致（小写）" bash -c '
             source "$1/lib/common.sh" && detect_distro
-            want=$(_osr_field /etc/os-release ID | tr "[:upper:]" "[:lower:]")
+            want=$(os_release_field ID /etc/os-release | tr "[:upper:]" "[:lower:]")
             [ -n "$want" ] && [ "$DISTRO_ID" = "$want" ]' _ "$REPO_DIR"
         # shellcheck disable=SC2016
         assert "发行版: DISTRO_FAMILY 在有限集" bash -c '

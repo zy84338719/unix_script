@@ -78,10 +78,18 @@ if [ "$HAVE_XGETTEXT" = "1" ]; then
     --package-name=unix_script --package-version="$(tr -d '[:space:]' <VERSION)"
   )
   # _tf 的第 1 个参数是 msgid，其余是 printf 的实参 —— 只抽第 1 个。
-  # --flag 把带占位符的 msgid 标成 sh-printf-format，msgfmt --check 据此校验
+  # --flag 把带占位符的 msgid 标成 c-format，msgfmt --check 据此校验
   # 「译文的占位符与原文一致」：漏掉 %s 会在编译期就红，而不是上线后
   # 打印出「未知操作: 」这种缺了变量的文案。
-  XGETTEXT_FLAGS=(--flag=_tf:1:sh-printf-format)
+  #
+  # ★ 必须用 c-format，不能用 sh-printf-format：
+  #   sh-printf-format 是 gettext 0.23+ 才引入的 flag 名。gettext 0.19/0.21/0.22
+  #   （CI 的 ubuntu/debian/centos/almalinux 矩阵都还在这区间）见到它会直接报
+  #   「A --flag argument doesn't have the <keyword>:<argnum>:[pass-]<flag> syntax」
+  #   并以非 0 退出 —— 抽取整体失败，门禁红。
+  #   c-format 就是 printf 占位符语义，且 gettext 0.19 → 1.0 全都认。
+  #   （sh-format 不行：它的语义是 shell 的 $var 替换，不是 printf 占位符。）
+  XGETTEXT_FLAGS=(--flag=_tf:1:c-format)
 
   if [ "$CHECK_ONLY" = "1" ]; then
     TMP_CLEAN="$(mktemp -d "${TMPDIR:-/tmp}/uxs-po.XXXXXX")"

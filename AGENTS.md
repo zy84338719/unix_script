@@ -248,6 +248,28 @@ CLI 一次性切换到分组子命令面，旧扁平写法**全部删除**。命
     ★ 同理，`po/messages.sh` 的抽取范围与 `check_i18n_drift.sh` 的扫描范围
     都必须覆盖**所有层级**（`find "$dir" -type f -name '*.sh'`）——
     只扫一层会漏掉 zsh_setup 的 `lib/`、`frameworks/` 与 sys-setup 的 `platform/`。
+15. **xgettext 的 `--flag` 名必须全版本通用 —— 本机 gettext 新 ≠ CI 能跑**
+    CI 矩阵里跑的是 gettext 0.19 / 0.21 / 0.22（ubuntu / debian / centos /
+    almalinux），本机常常是 1.0 ⇒ **本地门禁全绿也证明不了 CI 能跑**。
+    `sh-printf-format` 是 gettext 0.23+ 才引入的 flag 名，旧版 xgettext 见到它
+    直接报「A --flag argument doesn't have the <keyword>:<argnum>:[pass-]`flag` syntax」
+    并以非 0 退出 ⇒ 抽取整体失败 ⇒ 静态检查**全矩阵**判红。
+    只用全版本都认的名字：`c-format`（printf 占位符语义，0.19 → 1.0 全有）。
+    ⚠️ `sh-format` 不行：它的语义是 shell 的 `$var` 替换，不是 printf 占位符 ——
+    名字看着像，校验的却是另一件事（校验错了等于没校验）。
+    ⚠️ flag 写进 `--keyword=` 的第三段（`--keyword=_tf:1:c-format`）会被**整条丢弃**：
+    那个 keyword 悄悄不再被抽取，pot 里直接少条目 —— 比报错更坏。
+    ★ 门禁脚本（`tools/check_i18n_extract.py`）与 `po/messages.sh` 的抽取参数
+    必须**逐字一致**：两边一旦漂移，门禁核对的 pot 就不是真实产物那份，
+    门禁会替漂移背书。
+16. **CI 里有「只在 Linux 跑」的断言块 —— macOS 全绿不代表 CI 全绿**
+    `tests/ci_run.sh` 的发行版 / 包管理断言被 `uname -s` 包着，
+    macOS 上整块跳过（本机没有 `/etc/os-release`）⇒ 本地门禁绿，
+    Linux 侧照样可能恒红（2026-11-11：`_osr_field` 早在 Stage 1 被删，
+    断言还在引用，Linux 上两条恒红）。
+    改到那些块涉及的函数时，必须去容器里跑同一段断言：
+    `docker run --rm -v "$PWD:/repo" -w /repo docker.m.daocloud.io/library/debian:12 bash -c '…'`
+    （本地 apt 装不了工具，但断言本身只要 bash + awk。）
 
 ### 改完必须做的两件事
 

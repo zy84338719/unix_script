@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 19:00+0800\n"
+"POT-Creation-Date: 2026-11-11 21:31+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
@@ -6266,7 +6266,6 @@ msgstr "搜索包含 'node' 的进程"
 msgid "Search the process with PID 1234"
 msgstr "搜索 PID 为 1234 的进程"
 
-#, sh-printf-format
 msgid "2. Interactive mode:"
 msgstr "2. 交互式模式："
 
