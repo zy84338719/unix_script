@@ -332,8 +332,30 @@ jobs:
           if grep -q "release 7" /etc/centos-release 2>/dev/null; then
             sed -i 's|^mirrorlist|#mirrorlist|g; s|^#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*.repo
           fi
-          # 带重试 + apt 备用镜像（容器里的 apt 同样会 DNS 抖动）
-          sh tools/ci_install_deps.sh auto bash git curl sudo which
+          # 这里**不能**调用 tools/ci_install_deps.sh：这一步跑在 checkout 之前
+          # （国产化容器连 git 都没有，仓库脚本还不存在）⇒ 逻辑内联 + 同样带重试。
+          install_deps() {
+            if command -v apt-get >/dev/null 2>&1; then
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update && apt-get install -y bash git curl sudo which
+            elif command -v dnf >/dev/null 2>&1; then
+              dnf install -y --allowerasing bash git curl sudo which
+            elif command -v yum >/dev/null 2>&1; then
+              yum install -y --allowerasing bash git curl sudo which
+            else
+              return 1
+            fi
+          }
+          n=0
+          until install_deps; do
+            n=$((n + 1))
+            [ "$n" -ge 3 ] && {
+              echo "装基础工具连续 3 次失败"
+              exit 1
+            }
+            echo "第 $n 次失败，$((n * 15))s 后重试"
+            sleep $((n * 15))
+          done
 
       - name: Checkout（容器内原生 git fetch，规避 actions/checkout 的 node20/glibc 要求）
         shell: bash

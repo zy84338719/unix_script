@@ -106,12 +106,14 @@ install_apt() {
 install_dnf() {
   # 这个静态检查工具在 EPEL 仓库里：先把 epel-release 装上（没有就跳过，不致命）
   dnf install -y epel-release >/dev/null 2>&1 || true
-  dnf install -y "$@"
+  # --allowerasing：RHEL 系默认装的是 curl-minimal，与 curl 冲突
+  #（不给这个开关 dnf 直接报「cannot install the best candidate for the job」）
+  dnf install -y --allowerasing "$@"
 }
 
 install_yum() {
   yum install -y epel-release >/dev/null 2>&1 || true
-  yum install -y "$@"
+  yum install -y --allowerasing "$@"
 }
 
 install_zypper() {
