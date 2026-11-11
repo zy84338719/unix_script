@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 09:46+0800\n"
+"POT-Creation-Date: 2026-11-11 09:51+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
@@ -115,7 +115,7 @@ msgstr "检测到既有 Web/数据库环境在运行："
 msgid ""
 "BT Panel officially requires a clean system (it installs its own Nginx/"
 "Apache/MySQL/PHP, which may conflict with existing services)."
-msgstr ""
+msgstr "宝塔官方要求在纯净系统上安装（会自建 Nginx/Apache/MySQL/PHP，易端口冲突）。"
 
 msgid "Still continue installing BT Panel?"
 msgstr "仍要继续安装宝塔面板？"
@@ -163,7 +163,7 @@ msgstr "宝塔面板未安装，无需卸载。"
 msgid ""
 "Will stop the panel and delete: /etc/init.d/bt, bt command, /www/server/"
 "panel (panel and software environment)."
-msgstr ""
+msgstr "将停止面板并删除：/etc/init.d/bt、bt 命令、/www/server/panel（面板与软件环境）。"
 
 msgid ""
 "Site data /www/wwwroot, logs /www/wwwlogs and database directories are kept "
@@ -398,7 +398,7 @@ msgstr "检测到 CasaOS 已安装"
 msgid ""
 "Port 80 is already in use (nginx/caddy/other Web services), CasaOS uses port "
 "80 by default, which may conflict."
-msgstr ""
+msgstr "80 端口已被占用（nginx/caddy/其他 Web 服务），CasaOS 默认使用 80 端口，可能冲突。"
 "80 端口已被占用（nginx/caddy/其他 Web 服务），CasaOS 默认使用 80 端口，可能冲"
 "突。"
 
@@ -432,7 +432,7 @@ msgstr "CasaOS 未安装，无需卸载。"
 msgid ""
 "The official uninstall script will stop and remove all casaos services; "
 "created apps (Docker containers) and data are kept by default."
-msgstr ""
+msgstr "官方卸载脚本会停止并移除 casaos 全家桶服务；已创建的应用（Docker 容器）与数据默认保留。"
 "官方卸载脚本会停止并移除 casaos 全家桶服务；已创建的应用（Docker 容器）与数据"
 "默认保留。"
 
@@ -447,6 +447,191 @@ msgstr "安装 CasaOS（家庭云/NAS 面板，默认 80 端口，仅 Linux）"
 
 msgid "Uninstall CasaOS (Docker apps and data kept)"
 msgstr "卸载 CasaOS（Docker 应用与数据保留）"
+
+#, fuzzy
+msgid "Detected Certbot installed ("
+msgstr "检测到 1Panel 已安装（"
+
+#, fuzzy
+msgid "Installing Certbot (package manager: "
+msgstr "当前包管理器（"
+
+#, fuzzy
+msgid "Certbot install failed (package manager: "
+msgstr "当前包管理器（"
+
+msgid "Install failed: certbot command not found"
+msgstr "安装失败：找不到 certbot 命令"
+
+msgid ""
+"Nginx detected, installing the certbot nginx plugin for automatic SSL is "
+"recommended."
+msgstr "检测到已安装 Nginx，建议安装 certbot nginx 插件以自动配置 SSL。"
+
+msgid "Install python3-certbot-nginx?"
+msgstr "是否安装 python3-certbot-nginx？"
+
+#, fuzzy
+msgid "python3-certbot-nginx install failed, install it manually"
+msgstr "1pctl uninstall 失败，请手动检查。"
+
+msgid "Checking certificate auto-renewal..."
+msgstr "检查证书自动续期..."
+
+msgid "certbot.timer is active, certificates will auto-renew"
+msgstr "certbot.timer 已激活，证书将自动续期"
+
+msgid "certbot.timer exists but is not enabled, enabling..."
+msgstr "certbot.timer 存在但未启用，正在启用..."
+
+msgid "Failed to enable certbot.timer"
+msgstr "启用 certbot.timer 失败"
+
+msgid "certbot-renew.timer is active, certificates will auto-renew"
+msgstr "certbot-renew.timer 已激活，证书将自动续期"
+
+msgid "No certbot renewal timer detected."
+msgstr "未检测到 certbot 续期定时器。"
+
+msgid "Manually test renewal: certbot renew --dry-run"
+msgstr "可手动测试续期：certbot renew --dry-run"
+
+msgid "Setting up cron or a systemd timer for auto-renewal is recommended."
+msgstr "推荐设置 cron 或 systemd timer 进行自动续期。"
+
+msgid ""
+"On macOS, setting up a cron job for certificate auto-renewal is recommended."
+msgstr "macOS 上建议配置 cron 定时任务进行证书自动续期。"
+
+msgid "Example (attempt renewal daily at 2 AM):"
+msgstr "示例（每天凌晨 2 点尝试续期）："
+
+msgid "Check if a certbot renewal task already exists in the current crontab?"
+msgstr "是否查看当前 crontab 中是否已有 certbot 续期任务？"
+
+msgid "A certbot renewal task already exists in crontab"
+msgstr "crontab 中已存在 certbot 续期任务"
+
+msgid "No certbot renewal task found in crontab"
+msgstr "crontab 中未找到 certbot 续期任务"
+
+msgid "Add a certbot renew cron job (daily at 2 AM)?"
+msgstr "是否添加 certbot renew cron 任务（每天凌晨 2 点）？"
+
+msgid "cron renewal task added"
+msgstr "cron 续期任务已添加"
+
+#, fuzzy
+msgid "Certbot installation complete!"
+msgstr "🎉 1Panel 安装完成！"
+
+#, fuzzy
+msgid "Version: "
+msgstr "版本信息："
+
+msgid "Nginx plugin mode (auto-modifies nginx config)"
+msgstr "Nginx 插件模式（自动修改 nginx 配置）"
+
+msgid "Standalone mode (temporarily listens on port 80, stop nginx first)"
+msgstr "Standalone 模式（临时监听 80 端口，需先停止 nginx）"
+
+msgid "Webroot mode (works with existing web server)"
+msgstr "Webroot 模式（配合现有 web 服务器）"
+
+msgid "Manual renewal test"
+msgstr "手动续期测试"
+
+msgid "View issued certificates"
+msgstr "查看已申请的证书"
+
+msgid "Revoke certificate"
+msgstr "撤销证书"
+
+msgid "Certificate storage location:"
+msgstr "证书存放位置："
+
+msgid "certificate files"
+msgstr "证书文件"
+
+msgid "full certificate chain"
+msgstr "完整证书链"
+
+msgid "private key"
+msgstr "私钥"
+
+msgid "server certificate"
+msgstr "服务器证书"
+
+msgid "intermediate certificate"
+msgstr "中间证书"
+
+#, fuzzy
+msgid "Confirm uninstall of Certbot?"
+msgstr "确认卸载 CasaOS？"
+
+msgid "Failed to remove certbot package, uninstall it manually"
+msgstr "certbot 包移除失败，请手动卸载"
+
+msgid "Remove the certbot renewal task from crontab?"
+msgstr "是否移除 crontab 中的 certbot 续期任务？"
+
+msgid "certbot cron task removed"
+msgstr "certbot cron 任务已移除"
+
+msgid "Existing certificates are stored in /etc/letsencrypt/"
+msgstr "已有证书存放在 /etc/letsencrypt/"
+
+msgid ""
+"Delete all certificates and configuration (/etc/letsencrypt)? This is "
+"irreversible!"
+msgstr "是否删除所有证书和配置（/etc/letsencrypt）？此操作不可逆！"
+
+#, fuzzy
+msgid "Certificate directory deleted."
+msgstr "数据目录已删除。"
+
+msgid "Certificate directory kept: /etc/letsencrypt"
+msgstr "证书目录已保留：/etc/letsencrypt"
+
+msgid "To delete manually: sudo rm -rf /etc/letsencrypt"
+msgstr "如需手动删除：sudo rm -rf /etc/letsencrypt"
+
+#, fuzzy
+msgid "Certbot uninstalled."
+msgstr "Docker 已卸载。"
+
+msgid "Renewal timer running"
+msgstr "续期定时器运行中"
+
+msgid "No renewal timer detected"
+msgstr "未检测到续期定时器"
+
+msgid "cron renewal task configured"
+msgstr "cron 续期任务已配置"
+
+msgid "Auto-renewal not configured"
+msgstr "未配置自动续期"
+
+#, fuzzy
+msgid "Installed"
+msgstr "安装失败"
+
+msgid "Auto-renewal: "
+msgstr "自动续期: "
+
+#, sh-printf-format
+msgid "Certificates issued: %s"
+msgstr "已申请证书: %s 个"
+
+msgid "Install Certbot and configure auto-renewal"
+msgstr "安装 Certbot 并配置自动续期"
+
+msgid "Uninstall Certbot (optionally delete certificates)"
+msgstr "卸载 Certbot（可选删除证书）"
+
+#, fuzzy
+msgid "View install and renewal status"
+msgstr "查看安装与运行状态"
 
 msgid "Detected installed Docker"
 msgstr "检测到已安装 Docker"
@@ -553,7 +738,7 @@ msgstr "确认卸载 Docker Engine？"
 msgid ""
 "Also delete all images/containers/volumes (/var/lib/docker, /var/lib/"
 "containerd)? This is irreversible!"
-msgstr ""
+msgstr "是否同时删除所有镜像/容器/卷（/var/lib/docker, /var/lib/containerd）？此操作不可逆！"
 
 msgid "Data directory deleted."
 msgstr "数据目录已删除。"
@@ -571,7 +756,7 @@ msgstr "镜像加速器换源（linuxmirrors）仅支持 Linux。当前："
 msgid ""
 "Docker not detected. The registry mirror configuration will only take effect "
 "after Docker is installed and started."
-msgstr ""
+msgstr "未检测到 Docker。镜像加速器配置写入 /etc/docker/daemon.json 后需安装并启动 Docker 才会生效。"
 
 msgid "Still continue?"
 msgstr "仍然继续？"

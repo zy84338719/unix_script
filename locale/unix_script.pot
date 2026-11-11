@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 09:46+0800\n"
+"POT-Creation-Date: 2026-11-11 09:51+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -453,6 +453,180 @@ msgid "Install CasaOS (home cloud/NAS panel, default port 80, Linux only)"
 msgstr ""
 
 msgid "Uninstall CasaOS (Docker apps and data kept)"
+msgstr ""
+
+msgid "Detected Certbot installed ("
+msgstr ""
+
+msgid "Installing Certbot (package manager: "
+msgstr ""
+
+msgid "Certbot install failed (package manager: "
+msgstr ""
+
+msgid "Install failed: certbot command not found"
+msgstr ""
+
+msgid ""
+"Nginx detected, installing the certbot nginx plugin for automatic SSL is "
+"recommended."
+msgstr ""
+
+msgid "Install python3-certbot-nginx?"
+msgstr ""
+
+msgid "python3-certbot-nginx install failed, install it manually"
+msgstr ""
+
+msgid "Checking certificate auto-renewal..."
+msgstr ""
+
+msgid "certbot.timer is active, certificates will auto-renew"
+msgstr ""
+
+msgid "certbot.timer exists but is not enabled, enabling..."
+msgstr ""
+
+msgid "Failed to enable certbot.timer"
+msgstr ""
+
+msgid "certbot-renew.timer is active, certificates will auto-renew"
+msgstr ""
+
+msgid "No certbot renewal timer detected."
+msgstr ""
+
+msgid "Manually test renewal: certbot renew --dry-run"
+msgstr ""
+
+msgid "Setting up cron or a systemd timer for auto-renewal is recommended."
+msgstr ""
+
+msgid ""
+"On macOS, setting up a cron job for certificate auto-renewal is recommended."
+msgstr ""
+
+msgid "Example (attempt renewal daily at 2 AM):"
+msgstr ""
+
+msgid "Check if a certbot renewal task already exists in the current crontab?"
+msgstr ""
+
+msgid "A certbot renewal task already exists in crontab"
+msgstr ""
+
+msgid "No certbot renewal task found in crontab"
+msgstr ""
+
+msgid "Add a certbot renew cron job (daily at 2 AM)?"
+msgstr ""
+
+msgid "cron renewal task added"
+msgstr ""
+
+msgid "Certbot installation complete!"
+msgstr ""
+
+msgid "Version: "
+msgstr ""
+
+msgid "Nginx plugin mode (auto-modifies nginx config)"
+msgstr ""
+
+msgid "Standalone mode (temporarily listens on port 80, stop nginx first)"
+msgstr ""
+
+msgid "Webroot mode (works with existing web server)"
+msgstr ""
+
+msgid "Manual renewal test"
+msgstr ""
+
+msgid "View issued certificates"
+msgstr ""
+
+msgid "Revoke certificate"
+msgstr ""
+
+msgid "Certificate storage location:"
+msgstr ""
+
+msgid "certificate files"
+msgstr ""
+
+msgid "full certificate chain"
+msgstr ""
+
+msgid "private key"
+msgstr ""
+
+msgid "server certificate"
+msgstr ""
+
+msgid "intermediate certificate"
+msgstr ""
+
+msgid "Confirm uninstall of Certbot?"
+msgstr ""
+
+msgid "Failed to remove certbot package, uninstall it manually"
+msgstr ""
+
+msgid "Remove the certbot renewal task from crontab?"
+msgstr ""
+
+msgid "certbot cron task removed"
+msgstr ""
+
+msgid "Existing certificates are stored in /etc/letsencrypt/"
+msgstr ""
+
+msgid ""
+"Delete all certificates and configuration (/etc/letsencrypt)? This is "
+"irreversible!"
+msgstr ""
+
+msgid "Certificate directory deleted."
+msgstr ""
+
+msgid "Certificate directory kept: /etc/letsencrypt"
+msgstr ""
+
+msgid "To delete manually: sudo rm -rf /etc/letsencrypt"
+msgstr ""
+
+msgid "Certbot uninstalled."
+msgstr ""
+
+msgid "Renewal timer running"
+msgstr ""
+
+msgid "No renewal timer detected"
+msgstr ""
+
+msgid "cron renewal task configured"
+msgstr ""
+
+msgid "Auto-renewal not configured"
+msgstr ""
+
+msgid "Installed"
+msgstr ""
+
+msgid "Auto-renewal: "
+msgstr ""
+
+#, sh-printf-format
+msgid "Certificates issued: %s"
+msgstr ""
+
+msgid "Install Certbot and configure auto-renewal"
+msgstr ""
+
+msgid "Uninstall Certbot (optionally delete certificates)"
+msgstr ""
+
+msgid "View install and renewal status"
 msgstr ""
 
 msgid "Detected installed Docker"
