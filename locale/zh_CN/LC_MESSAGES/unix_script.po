@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 09:22+0800\n"
+"POT-Creation-Date: 2026-11-11 09:32+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
@@ -63,19 +63,19 @@ msgstr "1Panel 未安装，无需卸载。"
 msgid ""
 "Uninstalling does not delete the panel data directory (default /opt/1panel), "
 "site and image data will be kept."
-msgstr ""
+msgstr "卸载不会删除面板数据目录（默认 /opt/1panel），站点与镜像数据将保留。"
 
 msgid "Confirm uninstall of 1Panel?"
 msgstr "确认卸载 1Panel？"
 
 msgid "1pctl uninstall failed, please check manually."
-msgstr ""
+msgstr "1pctl uninstall 失败，请手动检查。"
 
 msgid "1Panel uninstalled."
 msgstr "1Panel 已卸载。"
 
 msgid "Not applicable (Linux only)"
-msgstr ""
+msgstr "不适用（仅 Linux）"
 
 msgid "Not installed"
 msgstr "未安装"
@@ -84,15 +84,15 @@ msgid "Installed and running"
 msgstr "已安装并运行"
 
 msgid "Installed (service not running)"
-msgstr ""
+msgstr "已安装（服务未运行）"
 
 msgid ""
 "Install 1Panel (official v2 script, interactive/pass PANEL_* for non-"
 "interactive, Linux only)"
-msgstr ""
+msgstr "安装 1Panel（官方 v2 脚本，交互/透传 PANEL_* 非交互，仅 Linux）"
 
 msgid "View panel address, security entry and account (1pctl user-info)"
-msgstr ""
+msgstr "查看面板地址、安全入口与账号（1pctl user-info）"
 
 msgid "Upgrade 1Panel (1pctl update)"
 msgstr "升级 1Panel（1pctl update）"
@@ -201,6 +201,79 @@ msgid ""
 "confirmation)"
 msgstr "卸载面板（站点数据默认保留，二次确认后可选删除 /www）"
 
+#, sh-printf-format
+msgid "buildah %s is already installed, reinstall?"
+msgstr "已检测到 buildah %s，是否重新安装？"
+
+msgid "Installing buildah via system repositories..."
+msgstr "通过系统仓库安装 buildah..."
+
+msgid "buildah install failed (package not in system repos?)"
+msgstr "buildah 安装失败（系统仓库无该包？）"
+
+msgid "buildah installed. Try: buildah from alpine:latest"
+msgstr "buildah 安装完成。试一下：buildah from alpine:latest"
+
+msgid "Companion image tool: ./install.sh skopeo"
+msgstr "配套镜像搬运工具：./install.sh skopeo"
+
+msgid "buildah not installed"
+msgstr "buildah 未安装"
+
+msgid "Confirm uninstall of buildah?"
+msgstr "确认卸载 buildah？"
+
+msgid "Uninstall failed"
+msgstr "安装失败"
+
+msgid "buildah uninstalled"
+msgstr "buildah 已卸载"
+
+#, sh-printf-format
+msgid "Delete user container storage %s (images/layers, irreversible)?"
+msgstr "是否删除用户容器存储 %s（镜像/层，不可恢复）？"
+
+msgid "Storage deleted"
+msgstr "存储已删除"
+
+msgid "Storage kept"
+msgstr "保留存储"
+
+msgid "buildah installed"
+msgstr "未安装"
+
+msgid "(unknown version)"
+msgstr "未知版本"
+
+msgid "buildah - OCI image build tool (Linux only)"
+msgstr "buildah —— OCI 镜像构建工具（仅 Linux）"
+
+msgid "Install buildah via system repositories"
+msgstr "通过系统仓库安装 buildah"
+
+msgid ""
+"Uninstall (user container storage kept by default, deletion needs second "
+"confirmation)"
+msgstr "卸载面板（站点数据默认保留，二次确认后可选删除 /www）"
+
+msgid "View install status (supports UXS_STATUS_MODE=machine)"
+msgstr "查看安装状态（支持 UXS_STATUS_MODE=machine）"
+
+msgid "This help"
+msgstr "本帮助"
+
+msgid ""
+"Note: no local container storage on macOS, buildah is unavailable, this "
+"module is hidden on macOS."
+msgstr "说明：macOS 上无本地容器存储，buildah 不可用，本模块在 macOS 隐藏。"
+
+msgid "You can also build images with podman build (Dockerfile compatible)."
+msgstr "构建镜像也可用 podman build（Dockerfile 兼容）。"
+
+#, fuzzy, sh-printf-format
+msgid "Unknown subcommand: %s"
+msgstr "未知操作: "
+
 msgid "Detected installed Docker"
 msgstr "检测到已安装 Docker"
 
@@ -210,7 +283,7 @@ msgstr "是否继续并尝试更新？"
 msgid ""
 "Install from a domestic mirror (linuxmirrors.cn, includes registry "
 "acceleration, recommended for China network)?"
-msgstr ""
+msgstr "是否使用国内镜像源安装（linuxmirrors.cn，含镜像加速，国内网络推荐）？"
 
 msgid "Installing Docker via domestic mirror script (linuxmirrors.cn)..."
 msgstr "使用国内镜像源一键脚本（linuxmirrors.cn）安装/换源 Docker..."
@@ -250,12 +323,12 @@ msgstr "加入 docker 组（免 sudo 使用 docker，需重新登录生效）？
 
 msgid ""
 "Log out and back in (or run newgrp docker) for the change to take effect."
-msgstr ""
+msgstr "请注销并重新登录（或执行 newgrp docker）后生效。"
 
 msgid ""
 "docker compose subcommand not detected. Recent Docker includes the compose "
 "plugin."
-msgstr ""
+msgstr "未检测到 docker compose 子命令。新版 Docker 已内置 compose 插件；"
 
 msgid "For standalone docker-compose, see:"
 msgstr "如需独立 docker-compose，请参考:"
@@ -290,7 +363,7 @@ msgstr "测试运行（首次拉取镜像较慢）"
 msgid ""
 "Docker Desktop may not have been installed via brew, please uninstall "
 "manually."
-msgstr ""
+msgstr "Docker Desktop 可能未通过 brew 安装，请手动卸载。"
 
 msgid "Please uninstall Docker Desktop manually."
 msgstr "请手动卸载 Docker Desktop。"
@@ -301,7 +374,7 @@ msgstr "卸载将停止 docker 服务并移除软件包。"
 msgid ""
 "Image/container/volume data is kept in /var/lib/docker, please clean it up "
 "manually."
-msgstr ""
+msgstr "镜像/容器/卷数据保留在 /var/lib/docker，需另行手动清理。"
 
 msgid "Confirm uninstall of Docker Engine?"
 msgstr "确认卸载 Docker Engine？"
@@ -310,6 +383,8 @@ msgid ""
 "Also delete all images/containers/volumes (/var/lib/docker, /var/lib/"
 "containerd)? This is irreversible!"
 msgstr ""
+"是否同时删除所有镜像/容器/卷（/var/lib/docker, /var/lib/containerd）？此操作"
+"不可逆！"
 
 msgid "Data directory deleted."
 msgstr "数据目录已删除。"
@@ -322,7 +397,7 @@ msgstr "已安装但服务未运行"
 
 msgid ""
 "Installed, but the Docker daemon is not running (please start Docker Desktop)"
-msgstr ""
+msgstr "已安装，但 Docker 守护进程未运行（请启动 Docker Desktop）"
 
 msgid "Registry mirror configuration (linuxmirrors) is Linux-only. Current: "
 msgstr "镜像加速器换源（linuxmirrors）仅支持 Linux。当前："
@@ -331,6 +406,8 @@ msgid ""
 "Docker not detected. The registry mirror configuration will only take effect "
 "after Docker is installed and started."
 msgstr ""
+"未检测到 Docker。镜像加速器配置写入 /etc/docker/daemon.json 后需安装并启动 "
+"Docker 才会生效。"
 
 msgid "Still continue?"
 msgstr "仍然继续？"
@@ -338,16 +415,16 @@ msgstr "仍然继续？"
 msgid ""
 "Calling linuxmirrors script to configure registry mirror only (--only-"
 "registry)..."
-msgstr ""
+msgstr "调用 linuxmirrors 官方脚本仅更换镜像加速器（--only-registry）..."
 
 msgid ""
 "(The script will back up daemon.json and write a domestic mirror address)"
-msgstr ""
+msgstr "（脚本会备份现有 daemon.json 并写入国内加速地址）"
 
 msgid ""
 "Registry mirror configuration failed, check the network or configure "
 "manually:"
-msgstr ""
+msgstr "镜像加速器换源失败，请检查网络或参考以下链接手动配置："
 
 msgid "Registry mirror configuration complete."
 msgstr "镜像加速器换源完成。"
@@ -361,7 +438,7 @@ msgstr "国内镜像源安装（linuxmirrors）仅支持 Linux。当前："
 msgid ""
 "Calling linuxmirrors script to install/replace Docker mirror (includes "
 "registry acceleration)..."
-msgstr ""
+msgstr "调用 linuxmirrors 官方脚本安装/换源 Docker（含国内镜像加速）..."
 
 msgid "Domestic mirror script failed, check the network"
 msgstr "国内镜像源安装脚本执行失败，请检查网络"
@@ -381,7 +458,7 @@ msgstr "安装或更新 Docker（可选国内镜像源）"
 msgid ""
 "Install/replace Docker via domestic mirror (linuxmirrors.cn), includes "
 "registry acceleration"
-msgstr ""
+msgstr "使用国内镜像源（linuxmirrors.cn）安装/换源 Docker，含镜像加速"
 
 msgid "Configure registry mirror only (no reinstall, Linux only)"
 msgstr "仅更换 Docker 镜像加速器（不重装 Docker，仅 Linux）"

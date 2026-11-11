@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 09:22+0800\n"
+"POT-Creation-Date: 2026-11-11 09:32+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -207,6 +207,79 @@ msgstr ""
 msgid ""
 "Uninstall panel (site data kept by default, /www can be deleted after second "
 "confirmation)"
+msgstr ""
+
+#, sh-printf-format
+msgid "buildah %s is already installed, reinstall?"
+msgstr ""
+
+msgid "Installing buildah via system repositories..."
+msgstr ""
+
+msgid "buildah install failed (package not in system repos?)"
+msgstr ""
+
+msgid "buildah installed. Try: buildah from alpine:latest"
+msgstr ""
+
+msgid "Companion image tool: ./install.sh skopeo"
+msgstr ""
+
+msgid "buildah not installed"
+msgstr ""
+
+msgid "Confirm uninstall of buildah?"
+msgstr ""
+
+msgid "Uninstall failed"
+msgstr ""
+
+msgid "buildah uninstalled"
+msgstr ""
+
+#, sh-printf-format
+msgid "Delete user container storage %s (images/layers, irreversible)?"
+msgstr ""
+
+msgid "Storage deleted"
+msgstr ""
+
+msgid "Storage kept"
+msgstr ""
+
+msgid "buildah installed"
+msgstr ""
+
+msgid "(unknown version)"
+msgstr ""
+
+msgid "buildah - OCI image build tool (Linux only)"
+msgstr ""
+
+msgid "Install buildah via system repositories"
+msgstr ""
+
+msgid ""
+"Uninstall (user container storage kept by default, deletion needs second "
+"confirmation)"
+msgstr ""
+
+msgid "View install status (supports UXS_STATUS_MODE=machine)"
+msgstr ""
+
+msgid "This help"
+msgstr ""
+
+msgid ""
+"Note: no local container storage on macOS, buildah is unavailable, this "
+"module is hidden on macOS."
+msgstr ""
+
+msgid "You can also build images with podman build (Dockerfile compatible)."
+msgstr ""
+
+#, sh-printf-format
+msgid "Unknown subcommand: %s"
 msgstr ""
 
 msgid "Detected installed Docker"
