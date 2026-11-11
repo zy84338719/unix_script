@@ -72,7 +72,7 @@ install_caddy_rpm() {
 # --- 安装 Caddy ---
 install_caddy() {
     detect_os
-    info "$(_t 'Rocket Caddy Web server install script')"
+    info "$(_t 'Caddy Web server install script')"
     echo "=========================================="
 
     if command_exists caddy; then
@@ -123,7 +123,7 @@ install_caddy() {
 
     echo
     echo "=========================================="
-    success "$(_t 'Party popper Caddy installation complete!')"
+    success "$(_t 'Caddy installation complete!')"
     echo
     info "$(_t 'Version info: ')$version"
     echo

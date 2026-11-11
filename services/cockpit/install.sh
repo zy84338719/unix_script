@@ -32,7 +32,7 @@ install_cockpit() {
     preflight
     require_sudo
     detect_pkg_manager
-    info "$(_t 'Rocket Starting Cockpit installation (package manager: ')${PKG_MANAGER}$(_t ')')"
+    info "$(_t 'Starting Cockpit installation (package manager: ')${PKG_MANAGER}$(_t ')')"
 
     if command_exists cockpit-bridge 2>/dev/null || rpm -q cockpit >/dev/null 2>&1 || dpkg -s cockpit >/dev/null 2>&1; then
         warn "$(_t 'Detected Cockpit installed')"
@@ -77,7 +77,7 @@ install_cockpit() {
     local ip_addr
     ip_addr=$(get_local_ip)
     echo
-    success "$(_t 'Party popper Cockpit installation complete!')"
+    success "$(_t 'Cockpit installation complete!')"
     info "$(_tf 'Access URL: https://%s:%s' "${ip_addr}" "${COCKPIT_PORT}")"
     warn "$(_t 'Log in with a system user account (the user needs sudo privileges for management operations).')"
     info "$(_t 'Common commands:')"

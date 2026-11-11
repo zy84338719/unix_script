@@ -180,7 +180,7 @@ CLI 一次性切换到分组子命令面，旧扁平写法**全部删除**。命
 | `_t 'msgid'` | `_t 'Cancelled'` | 查译文；查不到就原样输出 msgid（英文） |
 | `_tf 'msgid' ARG...` | `_tf 'Unknown action: %s' "$action"` | **带变量时用这个** —— 译文当 printf 格式串，占位符按参数填 |
 
-### 三条硬规则
+### 五条硬规则
 
 1. **带变量的文案用 `_tf`，不要写 `printf "$(_t '...%s...')" "$x"`**
    后者会被 shellcheck 判成 SC2059（格式串是变量）。`_tf` 把这件事收口到一处。
@@ -190,6 +190,13 @@ CLI 一次性切换到分组子命令面，旧扁平写法**全部删除**。命
 3. **`||` 分支里不能直接放 `$(...)`**
    `cmd || $(_t 'x')` 里的命令替换会被当**命令执行**（SC2091，真 bug）。
    写 `cmd || printf '%s' "$(_t 'x')"`。
+4. **`echo "$(_t ...)"` 改成 `printf '%s\n' "$(_t ...)"`**
+   shellcheck 判 SC2005（style 级，门禁不看 `-S`，所以会红）；
+   而且 echo 会误处理内容（`-n` 被当选项、开头是反斜杠时各 shell 行为不同）。
+5. **emoji 不要写进 msgid**
+   emoji 是装饰，留在译文里（`msgstr`）或留在 `_t` 外面（`"🚀 $(_t '...')"`）都行，
+   但**不要**把它音译成 `Rocket` / `Party popper` 塞进英文 msgid —— 那是重复，
+   译文灌错时用户看到的就是「Rocket 开始安装」而不是 🚀。
 
 ### 改完必须做的两件事
 
@@ -200,8 +207,19 @@ CLI 一次性切换到分组子命令面，旧扁平写法**全部删除**。命
   # 同样的命令、同样的 locale，两边跑，diff —— 只该差 $0 的路径
   ```
   这类缺陷（变量被转义、译文串到别的模块）肉眼扫代码看不出来，只有比对能发现。
-- **跑门禁**：`bash tools/check_i18n_drift.sh <分类>`（无残留中文）、
-  `bash tools/check_i18n_cross.sh`（译文没串味）、`bash tests/unit_i18n.sh`（占位符个数一致）。
+- **跑门禁**：
+  | 门禁 | 查什么 |
+  |------|--------|
+  | `bash tools/check_i18n_drift.sh <分类>` | 源码里没有残留硬编码中文 |
+  | `bash tools/check_i18n_cross.sh` | 译文没串到别的模块 |
+  | `bash tools/check_i18n_equiv.sh` | **译文与迁移前原文对得上**（不漏字、不吞 emoji） |
+  | `bash tests/unit_i18n.sh` | 占位符个数一致 |
+
+  `check_i18n_equiv.sh` 是后加的，抓到过三类真缺陷：
+  msgid 写对了但 msgstr 被灌成别的模块的说法（caddy 的「服务状态：」显示成「查看状态」）、
+  msgstr 少了字（docker 丢「当前」）、批量包装时把 🚀/🎉 当噪声删掉。
+  ⚠️ 只比 help/status 不够：只在 **install 路径**上出现的文案（emoji、
+  「服务状态：」这类）比对不到，得靠这道门禁兜底。
 
 ### 灌译文的规矩
 

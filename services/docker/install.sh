@@ -116,7 +116,7 @@ install_macos() {
 
 install_docker() {
     preflight
-    info "$(_t 'Rocket Starting Docker installation')"
+    info "$(_t 'Starting Docker installation')"
     if [[ "$OS_TYPE" == "linux" ]]; then
         install_linux
     else
@@ -124,7 +124,7 @@ install_docker() {
     fi
 
     echo
-    success "$(_t 'Party popper Docker installation flow complete')"
+    success "$(_t 'Docker installation flow complete')"
     info "$(_t 'Verify:')"
     echo "  docker --version"
     if [[ "$OS_TYPE" == "linux" ]]; then

@@ -23,11 +23,11 @@ JAIL_LOCAL="/etc/fail2ban/jail.local"
 preflight() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        error "Fail2ban 仅支持 Linux（依赖 iptables/systemd）。当前系统：$OS_TYPE"
+        error "$(_tf 'Fail2ban is Linux-only (depends on iptables/systemd). Current system: %s' "$OS_TYPE")"
         exit 1
     fi
     if ! command_exists systemctl; then
-        error "需要 systemctl（systemd）。当前系统可能不支持。"
+        error "$(_t 'systemctl (systemd) is required. The current system may not support it.')"
         exit 1
     fi
 }
@@ -58,62 +58,62 @@ install_fail2ban() {
     preflight
     require_sudo
     detect_pkg_manager
-    info "🚀 开始安装 Fail2ban（包管理器：${PKG_MANAGER}）"
+    info "🚀 $(_tf 'Starting the Fail2ban installation (package manager: %s)' "$PKG_MANAGER")"
 
     if command_exists fail2ban-client; then
         local cur
-        cur=$(fail2ban-client --version 2>/dev/null | head -1 || echo "未知版本")
-        warn "检测到已安装 Fail2ban（${cur}）"
-        if ! yes_no "是否继续并重新写入默认 jail.local？"; then
-            info "已取消"
+        cur=$(fail2ban-client --version 2>/dev/null | head -1 || printf '%s\n' "$(_t 'Unknown version')")
+        warn "$(_tf 'Detected Fail2ban installed (%s)' "$cur")"
+        if ! yes_no "$(_t 'Continue and rewrite the default jail.local?')"; then
+            info "$(_t 'Cancelled')"
             return 0
         fi
     fi
 
-    info "安装 fail2ban..."
+    info "$(_t 'Installing fail2ban...')"
     ensure_epel
     if ! pkg_install fail2ban; then
-        error "fail2ban 安装失败（包管理器：${PKG_MANAGER}）"
+        error "$(_tf 'fail2ban install failed (package manager: %s)' "$PKG_MANAGER")"
         exit 1
     fi
 
     if ! command_exists fail2ban-client; then
-        error "安装失败：找不到 fail2ban-client"
+        error "$(_t 'Install failed: fail2ban-client not found')"
         exit 1
     fi
 
     # 写入默认 jail.local（如已存在则备份）
     if [[ -f "$JAIL_LOCAL" ]]; then
         sudo cp -a "$JAIL_LOCAL" "$JAIL_LOCAL.bak.$(date +%s)"
-        warn "已备份现有 $JAIL_LOCAL 为 .bak.*"
+        warn "$(_tf 'Backed up the existing %s to .bak.*' "$JAIL_LOCAL")"
     fi
-    info "写入默认 ${JAIL_LOCAL}（保护 sshd）..."
+    info "$(_tf 'Writing the default %s (it protects sshd)...' "$JAIL_LOCAL")"
     gen_jail_local | sudo tee "$JAIL_LOCAL" >/dev/null
 
-    info "启用并启动 fail2ban..."
+    info "$(_t 'Enabling and starting fail2ban...')"
     uxs_svc enable-now fail2ban
     uxs_svc restart fail2ban
 
     # 验证
-    info "验证..."
+    info "$(_t 'Verifying...')"
     sleep 2
     if uxs_svc is-active fail2ban; then
-        success "fail2ban 服务运行正常"
+        success "$(_t 'The fail2ban service is running normally')"
     else
-        error "fail2ban 服务未正常运行，请检查日志："
+        error "$(_t 'The fail2ban service is not running normally; check the logs:')"
         echo "  sudo systemctl status fail2ban"
         echo "  sudo journalctl -u fail2ban -f"
         return 1
     fi
 
     echo
-    success "🎉 Fail2ban 安装完成！"
-    info "查看封禁状态："
+    success "🎉 $(_t 'Fail2ban installation complete!')"
+    info "$(_t 'View the ban status:')"
     echo "  sudo fail2ban-client status"
     echo "  sudo fail2ban-client status sshd"
     echo "  sudo tail -f /var/log/fail2ban.log"
     echo
-    info "调整策略请编辑：${JAIL_LOCAL}，然后："
+    info "$(_tf 'To tune the policy, edit %s, then:' "$JAIL_LOCAL")"
     echo "  sudo systemctl restart fail2ban"
 }
 
@@ -121,37 +121,37 @@ uninstall_fail2ban() {
     preflight
     require_sudo
     detect_pkg_manager
-    if ! yes_no "确认卸载 Fail2ban？"; then
-        info "已取消"
+    if ! yes_no "$(_t 'Confirm uninstall of Fail2ban?')"; then
+        info "$(_t 'Cancelled')"
         return 0
     fi
 
     uxs_svc disable-now fail2ban 2>/dev/null || true
-    pkg_remove fail2ban 2>/dev/null || warn "fail2ban 包移除失败，请手动卸载"
+    pkg_remove fail2ban 2>/dev/null || warn "$(_t 'Failed to remove the fail2ban package, uninstall it manually')"
 
     if [[ -f "$JAIL_LOCAL" ]]; then
-        if yes_no "是否删除 ${JAIL_LOCAL}（保留 .bak.* 备份）？"; then
+        if yes_no "$(_tf 'Delete %s (the .bak.* backup is kept)?' "$JAIL_LOCAL")"; then
             sudo rm -f "$JAIL_LOCAL"
-            success "$JAIL_LOCAL 已删除。"
+            success "$(_tf '%s deleted.' "$JAIL_LOCAL")"
         fi
     fi
-    success "Fail2ban 已卸载。"
+    success "$(_t 'Fail2ban uninstalled.')"
 }
 
 status_fail2ban() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}⚠️  不适用（仅 Linux）${NC}"
+        emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"
         return
     fi
     if ! command_exists fail2ban-client; then
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"
+        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"
         return
     fi
     if uxs_svc is-active fail2ban 2>/dev/null; then
-        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
+        emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC}"
+        emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but service not running')${NC}"
     fi
 }
 
@@ -159,9 +159,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装 Fail2ban 并写入保护 sshd 的默认配置
-  uninstall   卸载 Fail2ban
-  status      查看状态
+  install     $(_t 'Install Fail2ban and write the default config that protects sshd')
+  uninstall   $(_t 'Uninstall Fail2ban')
+  status      $(_t 'View status')
 EOF
 }
 
@@ -173,7 +173,7 @@ main() {
         uninstall) uninstall_fail2ban ;;
         status)    status_fail2ban ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

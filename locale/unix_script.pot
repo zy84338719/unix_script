@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 12:22+0800\n"
+"POT-Creation-Date: 2026-11-11 16:18+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -51,7 +51,7 @@ msgid ""
 "Running official installer (non-interactive if PANEL_* env vars are set)..."
 msgstr ""
 
-msgid "Party popper 1Panel installation complete!"
+msgid "1Panel installation complete!"
 msgstr ""
 
 msgid "View panel address/security entry/account: sudo 1pctl user-info"
@@ -137,7 +137,7 @@ msgstr ""
 msgid "Detected BT Panel installed"
 msgstr ""
 
-msgid "Party popper BT Panel installation complete!"
+msgid "BT Panel installation complete!"
 msgstr ""
 
 msgid "View panel address/security entry/default password: sudo bt default"
@@ -159,7 +159,7 @@ msgstr ""
 msgid "Continue and reinstall?"
 msgstr ""
 
-msgid "Party popper aaPanel installation complete!"
+msgid "aaPanel installation complete!"
 msgstr ""
 
 msgid "View panel address/entry/default password: sudo bt default"
@@ -297,7 +297,7 @@ msgstr ""
 msgid "COPR method failed, please add the Caddy repository manually"
 msgstr ""
 
-msgid "Rocket Caddy Web server install script"
+msgid "Caddy Web server install script"
 msgstr ""
 
 msgid "Detected Caddy installed ("
@@ -327,7 +327,7 @@ msgstr ""
 msgid "Unknown"
 msgstr ""
 
-msgid "Party popper Caddy installation complete!"
+msgid "Caddy installation complete!"
 msgstr ""
 
 msgid "Version info: "
@@ -419,7 +419,7 @@ msgid ""
 "minutes)..."
 msgstr ""
 
-msgid "Party popper CasaOS installation complete!"
+msgid "CasaOS installation complete!"
 msgstr ""
 
 #, sh-printf-format
@@ -633,7 +633,7 @@ msgstr ""
 msgid "Cockpit is Linux-only (requires systemd). Current: %s"
 msgstr ""
 
-msgid "Rocket Starting Cockpit installation (package manager: "
+msgid "Starting Cockpit installation (package manager: "
 msgstr ""
 
 msgid "Detected Cockpit installed"
@@ -670,7 +670,7 @@ msgid ""
 "Cockpit service not running (normal in socket mode, activates on first visit)"
 msgstr ""
 
-msgid "Party popper Cockpit installation complete!"
+msgid "Cockpit installation complete!"
 msgstr ""
 
 #, sh-printf-format
@@ -856,7 +856,7 @@ msgstr ""
 msgid "Stopping and uninstalling existing service..."
 msgstr ""
 
-msgid "Rocket ddns-go cross-platform install script"
+msgid "ddns-go cross-platform install script"
 msgstr ""
 
 msgid "Fetching latest version info..."
@@ -955,7 +955,7 @@ msgid "Service not running normally"
 msgstr ""
 
 #, sh-printf-format
-msgid "Party popper ddns-go %s installation complete!"
+msgid "ddns-go %s installation complete!"
 msgstr ""
 
 msgid "Install directory:"
@@ -1057,10 +1057,10 @@ msgstr ""
 msgid "Please download and install manually:"
 msgstr ""
 
-msgid "Rocket Starting Docker installation"
+msgid "Starting Docker installation"
 msgstr ""
 
-msgid "Party popper Docker installation flow complete"
+msgid "Docker installation flow complete"
 msgstr ""
 
 msgid "Verify:"
@@ -1166,6 +1166,85 @@ msgid "Uninstall Docker"
 msgstr ""
 
 msgid "View installation and running status"
+msgstr ""
+
+#, sh-printf-format
+msgid ""
+"Fail2ban is Linux-only (depends on iptables/systemd). Current system: %s"
+msgstr ""
+
+msgid "systemctl (systemd) is required. The current system may not support it."
+msgstr ""
+
+#, sh-printf-format
+msgid "Starting the Fail2ban installation (package manager: %s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Detected Fail2ban installed (%s)"
+msgstr ""
+
+msgid "Continue and rewrite the default jail.local?"
+msgstr ""
+
+msgid "Installing fail2ban..."
+msgstr ""
+
+#, sh-printf-format
+msgid "fail2ban install failed (package manager: %s)"
+msgstr ""
+
+msgid "Install failed: fail2ban-client not found"
+msgstr ""
+
+#, sh-printf-format
+msgid "Backed up the existing %s to .bak.*"
+msgstr ""
+
+#, sh-printf-format
+msgid "Writing the default %s (it protects sshd)..."
+msgstr ""
+
+msgid "Enabling and starting fail2ban..."
+msgstr ""
+
+msgid "The fail2ban service is running normally"
+msgstr ""
+
+msgid "The fail2ban service is not running normally; check the logs:"
+msgstr ""
+
+msgid "Fail2ban installation complete!"
+msgstr ""
+
+msgid "View the ban status:"
+msgstr ""
+
+#, sh-printf-format
+msgid "To tune the policy, edit %s, then:"
+msgstr ""
+
+msgid "Confirm uninstall of Fail2ban?"
+msgstr ""
+
+msgid "Failed to remove the fail2ban package, uninstall it manually"
+msgstr ""
+
+#, sh-printf-format
+msgid "Delete %s (the .bak.* backup is kept)?"
+msgstr ""
+
+#, sh-printf-format
+msgid "%s deleted."
+msgstr ""
+
+msgid "Fail2ban uninstalled."
+msgstr ""
+
+msgid "Install Fail2ban and write the default config that protects sshd"
+msgstr ""
+
+msgid "Uninstall Fail2ban"
 msgstr ""
 
 #, sh-printf-format
@@ -1301,6 +1380,102 @@ msgid ""
 "container runtime setup uses podman — ./install.sh podman"
 msgstr ""
 
+msgid "Unable to detect the package manager"
+msgstr ""
+
+#, sh-printf-format
+msgid "Installing Redis (in-memory database, default port %s)"
+msgstr ""
+
+msgid "installed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Detected Redis installed (%s)"
+msgstr ""
+
+msgid "Continue and reinstall or update?"
+msgstr ""
+
+msgid "Installing redis via Homebrew..."
+msgstr ""
+
+msgid "Starting the Redis service..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Using %s to install %s ..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Enabling and starting the %s service..."
+msgstr ""
+
+msgid "redis-cli still not found after the install; check PATH"
+msgstr ""
+
+msgid "Redis installation complete, the service is running normally"
+msgstr ""
+
+msgid ""
+"Redis is installed, but redis-cli ping did not return PONG; the service may "
+"still be starting"
+msgstr ""
+
+msgid "Installation summary:"
+msgstr ""
+
+#, sh-printf-format
+msgid "  Port: %s"
+msgstr ""
+
+#, sh-printf-format
+msgid "  Config file: %s"
+msgstr ""
+
+msgid "  Connection test: redis-cli ping"
+msgstr ""
+
+msgid "  redis-cli                    # Enter the interactive command line"
+msgstr ""
+
+msgid "  redis-cli ping               # Test the connection"
+msgstr ""
+
+msgid "  redis-cli info               # Show the server info"
+msgstr ""
+
+msgid ""
+"  redis-cli shutdown           # Stop the service (use -a <password> when a "
+"password is set)"
+msgstr ""
+
+msgid "Redis not installed"
+msgstr ""
+
+msgid "Confirm uninstall of Redis?"
+msgstr ""
+
+msgid "Redis uninstalled (macOS)"
+msgstr ""
+
+msgid "Redis uninstalled"
+msgstr ""
+
+#, sh-printf-format
+msgid "(%s, port %s)"
+msgstr ""
+
+#, sh-printf-format
+msgid "Install Redis (in-memory database, default port %s)"
+msgstr ""
+
+msgid "Uninstall Redis"
+msgstr ""
+
+msgid "View install and run status"
+msgstr ""
+
 #, sh-printf-format
 msgid "Detected skopeo %s installed, reinstall?"
 msgstr ""
@@ -1343,6 +1518,79 @@ msgid ""
 msgstr ""
 
 #, sh-printf-format
+msgid "Webmin is Linux-only. Current: %s"
+msgstr ""
+
+msgid "Either curl or wget is required; please install one of them first."
+msgstr ""
+
+msgid "Installing gnupg (needed to import the repository signing key)..."
+msgstr ""
+
+msgid "Importing the Webmin official signing key..."
+msgstr ""
+
+msgid "Refreshing the apt index..."
+msgstr ""
+
+msgid "Installing webmin (with the recommended dependencies)..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Writing the repository file %s/webmin-stable.repo ..."
+msgstr ""
+
+msgid "Installing webmin..."
+msgstr ""
+
+#, sh-printf-format
+msgid "Allowed firewalld %s/tcp"
+msgstr ""
+
+msgid "Detected Webmin installed"
+msgstr ""
+
+#, sh-printf-format
+msgid "Configuring the Webmin official repository (package manager: %s)"
+msgstr ""
+
+msgid "Install failed: /etc/webmin not found; check the output above."
+msgstr ""
+
+msgid "Webmin installation complete!"
+msgstr ""
+
+msgid ""
+"Log in with the system root account and the root password (the browser "
+"warning about the self-signed certificate can be ignored)."
+msgstr ""
+
+msgid "Webmin is not installed, nothing to uninstall."
+msgstr ""
+
+msgid "Confirm uninstall of Webmin (including the /etc/webmin configuration)?"
+msgstr ""
+
+msgid "Failed to remove the webmin package, uninstall it manually"
+msgstr ""
+
+msgid ""
+"Delete the /etc/webmin configuration directory (it holds the panel accounts "
+"and certificates)?"
+msgstr ""
+
+msgid "Webmin uninstalled."
+msgstr ""
+
+msgid ""
+"Install Webmin from the official repository (web management panel, Linux "
+"only, default port 10000)"
+msgstr ""
+
+msgid "Uninstall Webmin"
+msgstr ""
+
+#, sh-printf-format
 msgid "wireguard-tools install failed (%s)"
 msgstr ""
 
@@ -1371,9 +1619,6 @@ msgstr ""
 
 msgid ""
 "Uninstall the service and ask about deleting .conf files (full uninstall)"
-msgstr ""
-
-msgid "View install and run status"
 msgstr ""
 
 msgid "Configure auto-start on boot (legacy name kept)"

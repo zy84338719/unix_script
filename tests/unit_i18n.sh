@@ -34,7 +34,7 @@ t_translate "Cancelled" "已取消"
 
 # 1panel 的关键 msgid
 t_translate "1Panel is Linux-only. Current: " "1Panel 仅支持 Linux。当前："
-t_translate "Party popper 1Panel installation complete!" "🎉 1Panel 安装完成！"
+t_translate "1Panel installation complete!" "🎉 1Panel 安装完成！"
 
 # ---------------------------------------------------------------------------
 # 占位符一致性：译文的 %s 数量必须与原文一致。

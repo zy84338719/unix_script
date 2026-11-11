@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 12:22+0800\n"
+"POT-Creation-Date: 2026-11-11 16:18+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
@@ -40,7 +40,7 @@ msgid ""
 "Running official installer (non-interactive if PANEL_* env vars are set)..."
 msgstr "执行官方安装脚本（如已设置 PANEL_* 环境变量则按其非交互安装）..."
 
-msgid "Party popper 1Panel installation complete!"
+msgid "1Panel installation complete!"
 msgstr "🎉 1Panel 安装完成！"
 
 msgid "View panel address/security entry/account: sudo 1pctl user-info"
@@ -127,7 +127,7 @@ msgstr "执行官方安装脚本（耗时约 2 分钟）..."
 msgid "Detected BT Panel installed"
 msgstr "检测到宝塔面板已安装"
 
-msgid "Party popper BT Panel installation complete!"
+msgid "BT Panel installation complete!"
 msgstr "🎉 宝塔面板安装完成！"
 
 msgid "View panel address/security entry/default password: sudo bt default"
@@ -149,7 +149,7 @@ msgstr "检测到宝塔/aaPanel 已安装，两者不能共存。"
 msgid "Continue and reinstall?"
 msgstr "是否继续并重装？"
 
-msgid "Party popper aaPanel installation complete!"
+msgid "aaPanel installation complete!"
 msgstr "🎉 aaPanel 安装完成！"
 
 msgid "View panel address/entry/default password: sudo bt default"
@@ -289,7 +289,7 @@ msgstr "COPR 方式失败，尝试直接安装 caddy..."
 msgid "COPR method failed, please add the Caddy repository manually"
 msgstr "COPR 方式失败，请手动添加 Caddy 仓库"
 
-msgid "Rocket Caddy Web server install script"
+msgid "Caddy Web server install script"
 msgstr "🚀 Caddy Web 服务器安装脚本"
 
 msgid "Detected Caddy installed ("
@@ -317,9 +317,9 @@ msgid "caddy command not found after install, check PATH"
 msgstr "安装后找不到 caddy 命令，请检查 PATH"
 
 msgid "Unknown"
-msgstr "未知版本"
+msgstr "未知"
 
-msgid "Party popper Caddy installation complete!"
+msgid "Caddy installation complete!"
 msgstr "🎉 Caddy 安装完成！"
 
 msgid "Version info: "
@@ -353,7 +353,7 @@ msgid "Common commands:"
 msgstr "常用命令:"
 
 msgid "Service status:"
-msgstr "查看状态"
+msgstr "服务状态："
 
 msgid "View logs:"
 msgstr "查看日志："
@@ -368,7 +368,7 @@ msgid "About to uninstall Caddy."
 msgstr "即将卸载 Caddy。"
 
 msgid "Confirm uninstall?"
-msgstr "确认卸载 1Panel？"
+msgstr "确认卸载？"
 
 msgid "Caddy uninstalled."
 msgstr "Caddy 已卸载。"
@@ -413,7 +413,7 @@ msgid ""
 "minutes)..."
 msgstr "执行官方安装脚本（会安装 Docker 相关依赖，耗时数分钟）..."
 
-msgid "Party popper CasaOS installation complete!"
+msgid "CasaOS installation complete!"
 msgstr "🎉 CasaOS 安装完成！"
 
 #, sh-printf-format
@@ -629,7 +629,7 @@ msgstr "查看安装与续期状态"
 msgid "Cockpit is Linux-only (requires systemd). Current: %s"
 msgstr "Cockpit 仅支持 Linux（依赖 systemd）。当前：%s"
 
-msgid "Rocket Starting Cockpit installation (package manager: "
+msgid "Starting Cockpit installation (package manager: "
 msgstr "🚀 开始安装 Cockpit（包管理器："
 
 msgid "Detected Cockpit installed"
@@ -666,7 +666,7 @@ msgid ""
 "Cockpit service not running (normal in socket mode, activates on first visit)"
 msgstr "Cockpit 服务未运行（socket 模式下首次访问才激活，属正常）"
 
-msgid "Party popper Cockpit installation complete!"
+msgid "Cockpit installation complete!"
 msgstr "🎉 Cockpit 安装完成！"
 
 #, sh-printf-format
@@ -858,7 +858,7 @@ msgstr "安装已取消"
 msgid "Stopping and uninstalling existing service..."
 msgstr "正在停止并卸载现有服务..."
 
-msgid "Rocket ddns-go cross-platform install script"
+msgid "ddns-go cross-platform install script"
 msgstr "🚀 ddns-go 跨平台安装脚本"
 
 msgid "Fetching latest version info..."
@@ -957,7 +957,7 @@ msgid "Service not running normally"
 msgstr "服务未正常运行"
 
 #, sh-printf-format
-msgid "Party popper ddns-go %s installation complete!"
+msgid "ddns-go %s installation complete!"
 msgstr "🎉 ddns-go %s 安装完成！"
 
 msgid "Install directory:"
@@ -1027,7 +1027,7 @@ msgid "Current user is already in the docker group"
 msgstr "当前用户已在 docker 组中"
 
 msgid "Add user"
-msgstr "是否将用户"
+msgstr "是否将当前用户"
 
 msgid "to the docker group (passwordless docker, requires re-login)?"
 msgstr "加入 docker 组（免 sudo 使用 docker，需重新登录生效）？"
@@ -1059,10 +1059,10 @@ msgstr "安装完成，请启动 Docker Desktop 应用以完成初始化。"
 msgid "Please download and install manually:"
 msgstr "请手动下载安装:"
 
-msgid "Rocket Starting Docker installation"
+msgid "Starting Docker installation"
 msgstr "🚀 开始安装 Docker"
 
-msgid "Party popper Docker installation flow complete"
+msgid "Docker installation flow complete"
 msgstr "🎉 Docker 安装流程结束"
 
 msgid "Verify:"
@@ -1175,6 +1175,85 @@ msgid "View installation and running status"
 msgstr "查看安装与运行状态"
 
 #, sh-printf-format
+msgid ""
+"Fail2ban is Linux-only (depends on iptables/systemd). Current system: %s"
+msgstr "Fail2ban 仅支持 Linux（依赖 iptables/systemd）。当前系统：%s"
+
+msgid "systemctl (systemd) is required. The current system may not support it."
+msgstr "需要 systemctl（systemd）。当前系统可能不支持。"
+
+#, sh-printf-format
+msgid "Starting the Fail2ban installation (package manager: %s)"
+msgstr "开始安装 Fail2ban（包管理器：%s）"
+
+#, sh-printf-format
+msgid "Detected Fail2ban installed (%s)"
+msgstr "检测到已安装 Fail2ban（%s）"
+
+msgid "Continue and rewrite the default jail.local?"
+msgstr "是否继续并重新写入默认 jail.local？"
+
+msgid "Installing fail2ban..."
+msgstr "安装 fail2ban..."
+
+#, sh-printf-format
+msgid "fail2ban install failed (package manager: %s)"
+msgstr "fail2ban 安装失败（包管理器：%s）"
+
+msgid "Install failed: fail2ban-client not found"
+msgstr "安装失败：找不到 fail2ban-client"
+
+#, sh-printf-format
+msgid "Backed up the existing %s to .bak.*"
+msgstr "已备份现有 %s 为 .bak.*"
+
+#, sh-printf-format
+msgid "Writing the default %s (it protects sshd)..."
+msgstr "写入默认 %s（保护 sshd）..."
+
+msgid "Enabling and starting fail2ban..."
+msgstr "启用并启动 fail2ban..."
+
+msgid "The fail2ban service is running normally"
+msgstr "fail2ban 服务运行正常"
+
+msgid "The fail2ban service is not running normally; check the logs:"
+msgstr "fail2ban 服务未正常运行，请检查日志："
+
+msgid "Fail2ban installation complete!"
+msgstr "Fail2ban 安装完成！"
+
+msgid "View the ban status:"
+msgstr "查看封禁状态："
+
+#, sh-printf-format
+msgid "To tune the policy, edit %s, then:"
+msgstr "调整策略请编辑：%s，然后："
+
+msgid "Confirm uninstall of Fail2ban?"
+msgstr "确认卸载 Fail2ban？"
+
+msgid "Failed to remove the fail2ban package, uninstall it manually"
+msgstr "fail2ban 包移除失败，请手动卸载"
+
+#, sh-printf-format
+msgid "Delete %s (the .bak.* backup is kept)?"
+msgstr "是否删除 %s（保留 .bak.* 备份）？"
+
+#, sh-printf-format
+msgid "%s deleted."
+msgstr "%s 已删除。"
+
+msgid "Fail2ban uninstalled."
+msgstr "Fail2ban 已卸载。"
+
+msgid "Install Fail2ban and write the default config that protects sshd"
+msgstr "安装 Fail2ban 并写入保护 sshd 的默认配置"
+
+msgid "Uninstall Fail2ban"
+msgstr "卸载 Fail2ban"
+
+#, sh-printf-format
 msgid "Detected k3s %s installed, reinstall?"
 msgstr "已检测到 k3s %s，是否重新安装？"
 
@@ -1237,7 +1316,9 @@ msgid ""
 "Notes: kubeconfig is at /etc/rancher/k3s/k3s.yaml; terminal management uses "
 "k9s,\n"
 "package management uses helm — ./install.sh k9s / ./install.sh helm"
-msgstr "说明：kubeconfig 在 /etc/rancher/k3s/k3s.yaml；终端管理配 k9s，\n包管理配 helm——./install.sh k9s / ./install.sh helm"
+msgstr ""
+"说明：kubeconfig 在 /etc/rancher/k3s/k3s.yaml；终端管理配 k9s，\n"
+"包管理配 helm——./install.sh k9s / ./install.sh helm"
 
 msgid "Detected Podman Desktop, reinstall?"
 msgstr "已检测到 Podman Desktop，是否重新安装？"
@@ -1257,7 +1338,9 @@ msgstr "容器运行时配 podman machine：./install.sh podman"
 msgid ""
 "On Linux, Podman Desktop is distributed via Flatpak; please install flatpak "
 "(apt/dnf install flatpak) and add the flathub remote first"
-msgstr "Linux 上 Podman Desktop 经 Flatpak 分发，请先安装 flatpak（apt/dnf install flatpak）并添加 flathub 远程"
+msgstr ""
+"Linux 上 Podman Desktop 经 Flatpak 分发，请先安装 flatpak（apt/dnf install "
+"flatpak）并添加 flathub 远程"
 
 msgid "Detected Podman Desktop (Flatpak), reinstall?"
 msgstr "已检测到 Podman Desktop（Flatpak），是否重新安装？"
@@ -1305,7 +1388,105 @@ msgid ""
 "Notes: the GUI manages containers and K8s contexts; on Linux install flatpak "
 "and add flathub first;\n"
 "container runtime setup uses podman — ./install.sh podman"
-msgstr "说明：GUI 管理容器与 K8s 上下文；Linux 需先装 flatpak 并添加 flathub；\n容器运行时配 podman——./install.sh podman"
+msgstr ""
+"说明：GUI 管理容器与 K8s 上下文；Linux 需先装 flatpak 并添加 flathub；\n"
+"容器运行时配 podman——./install.sh podman"
+
+msgid "Unable to detect the package manager"
+msgstr "无法识别包管理器"
+
+#, sh-printf-format
+msgid "Installing Redis (in-memory database, default port %s)"
+msgstr "安装 Redis（内存数据库，默认端口 %s）"
+
+msgid "installed"
+msgstr "已安装"
+
+#, sh-printf-format
+msgid "Detected Redis installed (%s)"
+msgstr "检测到已安装 Redis（%s）"
+
+msgid "Continue and reinstall or update?"
+msgstr "是否继续并重新安装/更新？"
+
+msgid "Installing redis via Homebrew..."
+msgstr "通过 Homebrew 安装 redis..."
+
+msgid "Starting the Redis service..."
+msgstr "启动 Redis 服务..."
+
+#, sh-printf-format
+msgid "Using %s to install %s ..."
+msgstr "通过 %s 安装 %s..."
+
+#, sh-printf-format
+msgid "Enabling and starting the %s service..."
+msgstr "启用并启动 %s 服务..."
+
+msgid "redis-cli still not found after the install; check PATH"
+msgstr "安装后仍找不到 redis-cli，请检查 PATH"
+
+msgid "Redis installation complete, the service is running normally"
+msgstr "Redis 安装完成，服务运行正常"
+
+msgid ""
+"Redis is installed, but redis-cli ping did not return PONG; the service may "
+"still be starting"
+msgstr "Redis 已安装，但 redis-cli ping 未返回 PONG，服务可能还在启动中"
+
+msgid "Installation summary:"
+msgstr "安装摘要："
+
+#, sh-printf-format
+msgid "  Port: %s"
+msgstr "  端口：%s"
+
+#, sh-printf-format
+msgid "  Config file: %s"
+msgstr "  配置文件：%s"
+
+msgid "  Connection test: redis-cli ping"
+msgstr "  连接测试：redis-cli ping"
+
+msgid "  redis-cli                    # Enter the interactive command line"
+msgstr "  redis-cli                    # 进入交互式命令行"
+
+msgid "  redis-cli ping               # Test the connection"
+msgstr "  redis-cli ping               # 测试连接"
+
+msgid "  redis-cli info               # Show the server info"
+msgstr "  redis-cli info               # 查看服务器信息"
+
+msgid ""
+"  redis-cli shutdown           # Stop the service (use -a <password> when a "
+"password is set)"
+msgstr "  redis-cli shutdown           # 停止服务（需密码时用 -a <password>）"
+
+msgid "Redis not installed"
+msgstr "Redis 未安装"
+
+msgid "Confirm uninstall of Redis?"
+msgstr "确认卸载 Redis？"
+
+msgid "Redis uninstalled (macOS)"
+msgstr "Redis 已卸载（macOS）"
+
+msgid "Redis uninstalled"
+msgstr "Redis 已卸载"
+
+#, sh-printf-format
+msgid "(%s, port %s)"
+msgstr "(%s, 端口 %s)"
+
+#, sh-printf-format
+msgid "Install Redis (in-memory database, default port %s)"
+msgstr "安装 Redis（内存数据库，默认端口 %s）"
+
+msgid "Uninstall Redis"
+msgstr "卸载 Redis"
+
+msgid "View install and run status"
+msgstr "查看安装与运行状态"
 
 #, sh-printf-format
 msgid "Detected skopeo %s installed, reinstall?"
@@ -1351,6 +1532,79 @@ msgid ""
 msgstr "常用：skopeo inspect/copy docker://<镜像>（跨仓库镜像搬运、离线同步）"
 
 #, sh-printf-format
+msgid "Webmin is Linux-only. Current: %s"
+msgstr "Webmin 仅支持 Linux。当前：%s"
+
+msgid "Either curl or wget is required; please install one of them first."
+msgstr "需要 curl 或 wget 之一，请先安装。"
+
+msgid "Installing gnupg (needed to import the repository signing key)..."
+msgstr "安装 gnupg（导入仓库签名密钥需要）..."
+
+msgid "Importing the Webmin official signing key..."
+msgstr "导入 Webmin 官方签名密钥..."
+
+msgid "Refreshing the apt index..."
+msgstr "刷新 apt 索引..."
+
+msgid "Installing webmin (with the recommended dependencies)..."
+msgstr "安装 webmin（含推荐依赖）..."
+
+#, sh-printf-format
+msgid "Writing the repository file %s/webmin-stable.repo ..."
+msgstr "写入仓库文件 %s/webmin-stable.repo ..."
+
+msgid "Installing webmin..."
+msgstr "安装 webmin..."
+
+#, sh-printf-format
+msgid "Allowed firewalld %s/tcp"
+msgstr "已放行 firewalld %s/tcp"
+
+msgid "Detected Webmin installed"
+msgstr "检测到 Webmin 已安装"
+
+#, sh-printf-format
+msgid "Configuring the Webmin official repository (package manager: %s)"
+msgstr "配置 Webmin 官方仓库（包管理器：%s）"
+
+msgid "Install failed: /etc/webmin not found; check the output above."
+msgstr "安装失败：未找到 /etc/webmin，请检查上方输出。"
+
+msgid "Webmin installation complete!"
+msgstr "Webmin 安装完成！"
+
+msgid ""
+"Log in with the system root account and the root password (the browser "
+"warning about the self-signed certificate can be ignored)."
+msgstr "使用系统 root 账号与 root 密码登录（自签证书浏览器告警可忽略）。"
+
+msgid "Webmin is not installed, nothing to uninstall."
+msgstr "Webmin 未安装，无需卸载。"
+
+msgid "Confirm uninstall of Webmin (including the /etc/webmin configuration)?"
+msgstr "确认卸载 Webmin（含 /etc/webmin 配置）？"
+
+msgid "Failed to remove the webmin package, uninstall it manually"
+msgstr "webmin 包移除失败，请手动卸载"
+
+msgid ""
+"Delete the /etc/webmin configuration directory (it holds the panel accounts "
+"and certificates)?"
+msgstr "是否删除 /etc/webmin 配置目录（含面板账号/证书）？"
+
+msgid "Webmin uninstalled."
+msgstr "Webmin 已卸载。"
+
+msgid ""
+"Install Webmin from the official repository (web management panel, Linux "
+"only, default port 10000)"
+msgstr "通过官方仓库安装 Webmin（Web 管理面板，仅 Linux，默认端口 10000）"
+
+msgid "Uninstall Webmin"
+msgstr "卸载 Webmin"
+
+#, sh-printf-format
 msgid "wireguard-tools install failed (%s)"
 msgstr "wireguard-tools 安装失败（%s）"
 
@@ -1366,7 +1620,9 @@ msgstr "配置文件已删除。"
 msgid ""
 "Service removed. To fully uninstall, remove wireguard-tools manually with "
 "the package manager (apt/brew, etc.)."
-msgstr "服务已移除。要完全卸载，请使用包管理器 (apt/brew 等) 手动移除 wireguard-tools。"
+msgstr ""
+"服务已移除。要完全卸载，请使用包管理器 (apt/brew 等) 手动移除 wireguard-"
+"tools。"
 
 msgid "WireGuard uninstall complete!"
 msgstr "WireGuard 卸载完成！"
@@ -1381,8 +1637,42 @@ msgid ""
 "Uninstall the service and ask about deleting .conf files (full uninstall)"
 msgstr "卸载服务 + 询问删除 .conf（完整卸载）"
 
-msgid "View install and run status"
-msgstr "查看安装与运行状态"
-
 msgid "Configure auto-start on boot (legacy name kept)"
 msgstr "配置开机自启（保留旧名）"
+
+#~ msgid "Party popper 1Panel installation complete!"
+#~ msgstr "🎉 1Panel 安装完成！"
+
+#~ msgid "Party popper BT Panel installation complete!"
+#~ msgstr "🎉 宝塔面板安装完成！"
+
+#~ msgid "Party popper aaPanel installation complete!"
+#~ msgstr "🎉 aaPanel 安装完成！"
+
+#~ msgid "Rocket Caddy Web server install script"
+#~ msgstr "🚀 Caddy Web 服务器安装脚本"
+
+#~ msgid "Party popper Caddy installation complete!"
+#~ msgstr "🎉 Caddy 安装完成！"
+
+#~ msgid "Party popper CasaOS installation complete!"
+#~ msgstr "🎉 CasaOS 安装完成！"
+
+#~ msgid "Rocket Starting Cockpit installation (package manager: "
+#~ msgstr "🚀 开始安装 Cockpit（包管理器："
+
+#~ msgid "Party popper Cockpit installation complete!"
+#~ msgstr "🎉 Cockpit 安装完成！"
+
+#~ msgid "Rocket ddns-go cross-platform install script"
+#~ msgstr "🚀 ddns-go 跨平台安装脚本"
+
+#, sh-printf-format
+#~ msgid "Party popper ddns-go %s installation complete!"
+#~ msgstr "🎉 ddns-go %s 安装完成！"
+
+#~ msgid "Rocket Starting Docker installation"
+#~ msgstr "🚀 开始安装 Docker"
+
+#~ msgid "Party popper Docker installation flow complete"
+#~ msgstr "🎉 Docker 安装流程结束"

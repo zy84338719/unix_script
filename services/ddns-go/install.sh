@@ -46,7 +46,7 @@ install_ddns_go() {
     check_dependencies
     check_existing_installation
 
-    info "$(_t 'Rocket ddns-go cross-platform install script')"
+    info "$(_t 'ddns-go cross-platform install script')"
     echo "=========================================="
 
     info "$(_t 'Fetching latest version info...')"
@@ -170,7 +170,7 @@ install_ddns_go() {
     ip_addr=$(get_local_ip)
     echo
     echo "=========================================="
-    success "$(_tf 'Party popper ddns-go %s installation complete!' "$latest_tag")"
+    success "$(_tf 'ddns-go %s installation complete!' "$latest_tag")"
     echo
     info "$(_t 'Service info:')"
     echo "  - $(_t 'Access URL:') http://${ip_addr}:9876"

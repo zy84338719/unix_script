@@ -85,7 +85,7 @@ install_casaos() {
 
     echo
     if is_installed; then
-        success "$(_t 'Party popper CasaOS installation complete!')"
+        success "$(_t 'CasaOS installation complete!')"
         local ip_addr
         ip_addr=$(get_local_ip)
         info "$(_tf 'Access URL: http://%s:%s (create local admin account on first visit)' "${ip_addr}" "${CASAOS_PORT}")"

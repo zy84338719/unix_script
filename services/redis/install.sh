@@ -24,7 +24,7 @@ preflight() {
 
 # 根据包管理器返回包名和 systemd 服务名
 redis_pkg_name() {
-    detect_pkg_manager || { error "无法识别包管理器"; return 1; }
+    detect_pkg_manager || { error "$(_t 'Unable to detect the package manager')"; return 1; }
     case "$PKG_MANAGER" in
         apt-get) echo "redis-server" ;;
         *)       echo "redis" ;;
@@ -32,7 +32,7 @@ redis_pkg_name() {
 }
 
 redis_service_name() {
-    detect_pkg_manager || { error "无法识别包管理器"; return 1; }
+    detect_pkg_manager || { error "$(_t 'Unable to detect the package manager')"; return 1; }
     case "$PKG_MANAGER" in
         apt-get) echo "redis-server" ;;
         *)       echo "redis" ;;
@@ -40,7 +40,7 @@ redis_service_name() {
 }
 
 redis_config_path() {
-    detect_pkg_manager || { error "无法识别包管理器"; return 1; }
+    detect_pkg_manager || { error "$(_t 'Unable to detect the package manager')"; return 1; }
     if [[ "$OS_TYPE" == "darwin" ]]; then
         echo "/usr/local/etc/redis.conf"
     else
@@ -53,14 +53,14 @@ redis_config_path() {
 
 install_redis() {
     preflight
-    info "安装 Redis（内存数据库，默认端口 ${REDIS_PORT}）"
+    info "$(_tf 'Installing Redis (in-memory database, default port %s)' "$REDIS_PORT")"
 
     if command_exists redis-cli; then
         local cur
-        cur=$(redis-cli --version 2>/dev/null || echo "已安装")
-        warn "检测到已安装 Redis（${cur}）"
-        if ! yes_no "是否继续并重新安装/更新？"; then
-            info "已取消"; return 0
+        cur=$(redis-cli --version 2>/dev/null || printf '%s\n' "$(_t 'installed')")
+        warn "$(_tf 'Detected Redis installed (%s)' "$cur")"
+        if ! yes_no "$(_t 'Continue and reinstall or update?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
     fi
 
@@ -68,25 +68,25 @@ install_redis() {
     pkg=$(redis_pkg_name)
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
-        info "通过 Homebrew 安装 redis..."
+        info "$(_t 'Installing redis via Homebrew...')"
         pkg_install redis
-        info "启动 Redis 服务..."
+        info "$(_t 'Starting the Redis service...')"
         brew services start redis
     else
         require_sudo
-        info "通过 $PKG_MANAGER 安装 $pkg..."
+        info "$(_tf 'Using %s to install %s ...' "$PKG_MANAGER" "$pkg")"
         pkg_update
         pkg_install "$pkg"
 
         local svc
         svc=$(redis_service_name)
-        info "启用并启动 $svc 服务..."
+        info "$(_tf 'Enabling and starting the %s service...' "$svc")"
         uxs_svc enable-now "$svc"
     fi
 
     # 验证安装
     if ! command_exists redis-cli; then
-        error "安装后仍找不到 redis-cli，请检查 PATH"
+        error "$(_t 'redis-cli still not found after the install; check PATH')"
         exit 1
     fi
 
@@ -95,40 +95,40 @@ install_redis() {
     local pong
     pong=$(redis-cli ping 2>/dev/null || echo "")
     if [[ "$pong" == "PONG" ]]; then
-        success "Redis 安装完成，服务运行正常"
+        success "$(_t 'Redis installation complete, the service is running normally')"
     else
-        warn "Redis 已安装，但 redis-cli ping 未返回 PONG，服务可能还在启动中"
+        warn "$(_t 'Redis is installed, but redis-cli ping did not return PONG; the service may still be starting')"
     fi
 
     echo
     local cfg
     cfg=$(redis_config_path)
-    info "安装摘要："
-    echo "  端口：$REDIS_PORT"
-    echo "  配置文件：$cfg"
-    echo "  连接测试：redis-cli ping"
+    info "$(_t 'Installation summary:')"
+    printf '%s\n' "$(_tf '  Port: %s' "$REDIS_PORT")"
+    printf '%s\n' "$(_tf '  Config file: %s' "$cfg")"
+    printf '%s\n' "$(_t '  Connection test: redis-cli ping')"
     echo
-    info "常用命令："
-    echo "  redis-cli                    # 进入交互式命令行"
-    echo "  redis-cli ping               # 测试连接"
-    echo "  redis-cli info               # 查看服务器信息"
-    echo "  redis-cli shutdown           # 停止服务（需密码时用 -a <password>）"
+    info "$(_t 'Common commands:')"
+    printf '%s\n' "$(_t '  redis-cli                    # Enter the interactive command line')"
+    printf '%s\n' "$(_t '  redis-cli ping               # Test the connection')"
+    printf '%s\n' "$(_t '  redis-cli info               # Show the server info')"
+    printf '%s\n' "$(_t '  redis-cli shutdown           # Stop the service (use -a <password> when a password is set)')"
 }
 
 uninstall_redis() {
     preflight
     if ! command_exists redis-cli && ! pkg_installed "$(redis_pkg_name)" 2>/dev/null; then
-        warn "Redis 未安装"; return 0
+        warn "$(_t 'Redis not installed')"; return 0
     fi
 
-    if ! yes_no "确认卸载 Redis？"; then
-        info "已取消"; return 0
+    if ! yes_no "$(_t 'Confirm uninstall of Redis?')"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
 
     if [[ "$OS_TYPE" == "darwin" ]]; then
         brew services stop redis 2>/dev/null || true
         brew uninstall redis 2>/dev/null || true
-        success "Redis 已卸载（macOS）"
+        success "$(_t 'Redis uninstalled (macOS)')"
     else
         require_sudo
         local svc
@@ -138,17 +138,17 @@ uninstall_redis() {
         local pkg
         pkg=$(redis_pkg_name)
         pkg_remove "$pkg"
-        success "Redis 已卸载"
+        success "$(_t 'Redis uninstalled')"
     fi
 }
 
 status_redis() {
     if ! command_exists redis-cli; then
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
+        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
     fi
 
     local ver
-    ver=$(redis-cli --version 2>/dev/null || echo "未知版本")
+    ver=$(redis-cli --version 2>/dev/null || printf '%s\n' "$(_t 'Unknown version')")
     local running=false
 
     if [[ "$OS_TYPE" == "linux" ]]; then
@@ -160,10 +160,10 @@ status_redis() {
     fi
 
     if $running; then
-        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC} ($ver, 端口 $REDIS_PORT)"
+        emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC} $(_tf '(%s, port %s)' "$ver" "$REDIS_PORT")"
         emit_extra "port=$REDIS_PORT"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  已安装但服务未运行${NC} ($ver)"
+        emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed but service not running')${NC} ($ver)"
     fi
     emit_version "$ver"
 }
@@ -172,9 +172,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install      安装 Redis（内存数据库，默认端口 ${REDIS_PORT}）
-  uninstall    卸载 Redis
-  status       查看安装与运行状态
+  install      $(_tf 'Install Redis (in-memory database, default port %s)' "$REDIS_PORT")
+  uninstall    $(_t 'Uninstall Redis')
+  status       $(_t 'View install and run status')
 EOF
 }
 
@@ -186,7 +186,7 @@ main() {
         uninstall)  uninstall_redis ;;
         status)     status_redis ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: $action"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

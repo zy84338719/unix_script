@@ -74,7 +74,7 @@ install_1panel() {
 
     echo
     if is_installed; then
-        success "$(_t 'Party popper 1Panel installation complete!')"
+        success "$(_t '1Panel installation complete!')"
         info "$(_t 'View panel address/security entry/account: sudo 1pctl user-info')"
         info "$(_t 'Common commands: 1pctl status | 1pctl restart | 1pctl update')"
     else

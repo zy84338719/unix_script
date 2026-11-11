@@ -104,7 +104,7 @@ install_btpanel() {
 
     echo
     if is_installed; then
-        success "$(_t 'Party popper BT Panel installation complete!')"
+        success "$(_t 'BT Panel installation complete!')"
         info "$(_t 'View panel address/security entry/default password: sudo bt default')"
         warn "$(_t 'Make sure to open the panel port (default 8888, check bt default output) before accessing.')"
     else
@@ -129,7 +129,7 @@ install_aapanel() {
 
     echo
     if is_installed; then
-        success "$(_t 'Party popper aaPanel installation complete!')"
+        success "$(_t 'aaPanel installation complete!')"
         info "$(_t 'View panel address/entry/default password: sudo bt default')"
     else
         warn "$(_t 'Installer ran but bt was not detected — check the output above to confirm the result.')"

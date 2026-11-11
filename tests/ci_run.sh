@@ -541,6 +541,11 @@ phase_routing() {
     # 译文表里留着「看着像对、其实属于别的模块」的句子 —— 用户直接看到别人的文案。
     assert "i18n: 占位符一致性单测全过" bash "$REPO_DIR/tests/unit_i18n.sh"
     assert "i18n: 译文无串味" bash "$REPO_DIR/tools/check_i18n_cross.sh"
+    # 文案保真：译文必须与迁移前的原文对得上（不许漏字、不许吞 emoji）。
+    # 这条门禁抓到过三类真缺陷：msgid 写对了但 msgstr 被灌成别的模块的说法
+    # （caddy 的「服务状态：」显示成「查看状态」）、msgstr 少了字（docker 丢「当前」）、
+    # 批量包装时把 🚀/🎉 当噪声删掉 —— 后者只在 install 路径上出现，help/status 比对查不到。
+    assert "i18n: 文案保真（译文与原文对得上）" bash "$REPO_DIR/tools/check_i18n_equiv.sh"
 
     # CLI v2 的核心判据：旧扁平写法必须失败（退出码 2 = 用法错），且给迁移指引。
     # 没有这条断言，删旧 flag 这件事就没有判据能力 —— 旧写法悄悄还能用也没人知道。
