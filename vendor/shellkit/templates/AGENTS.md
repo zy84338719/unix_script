@@ -79,10 +79,11 @@ shellkit 是一个 Bash 库加脚手架：日志、配置、下载校验、重�
 | 失败就退出并给退出码 | `die` / `fail` / `require_cmd` / `require_root` / `require_file` |
 | 读配置，环境变量优先 | `conf_init` 之后用 `conf_get_any KEY DEFAULT` |
 | 改配置且要幂等 | `conf_set`；改任意文件用 `fs_ensure_line` / `fs_ensure_block` |
-| 写文件不想写坏 | `fs_atomic_write`；备份用 `fs_backup` |
+| 写文件不想写坏 | `fs_atomic_write`（写内容）；搬文件用 `fs_atomic_copy`（逐字节一致）；备份用 `fs_backup` |
 | 下载并校验 | `net_download URL DEST [SHA256]`，镜像回退已内置 |
 | 等端口 / 等 HTTP | `net_wait_port` / `net_wait_http` |
 | 跑命令，失败即停 | `run systemctl restart nginx`；`SHELLKIT_DRY_RUN=1` 只打印 |
+| 命令行里有口令/令牌 | `run` 的日志自动脱敏；启发式认不出来的用 `run --secret-arg N` / `run --redact-value V` 显式声明 |
 | 跑命令但要自己判成败 | `run --no-die cmd`（默认的 `run` 失败即 `die`，`die` 的 `exit` 不受 `if`/`||` 约束） |
 | 失败重试几次 | `retry 5 curl -fsS "$url" -o x` |
 | 保证同时只跑一个实例 | `lock_acquire deploy 30`，拿到即入清理栈 |

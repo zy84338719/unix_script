@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: shellkit 0.11.0\n"
+"Project-Id-Version: shellkit 0.16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 19:59+0800\n"
+"POT-Creation-Date: 2026-11-11 20:14+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -114,6 +114,9 @@ msgid "This action must be run as root"
 msgstr ""
 
 msgid "Bash version is too old"
+msgstr ""
+
+msgid "source file does not exist"
 msgstr ""
 
 msgid "invalid keep count"
@@ -269,6 +272,9 @@ msgstr ""
 msgid "circular dependency detected"
 msgstr ""
 
+msgid "missing dependency"
+msgstr ""
+
 msgid "usage: retry ATTEMPTS COMMAND..."
 msgstr ""
 
@@ -282,6 +288,9 @@ msgid "giving up after retries"
 msgstr ""
 
 msgid "run requires a command"
+msgstr ""
+
+msgid "invalid secret argument index"
 msgstr ""
 
 msgid "command failed"
@@ -323,6 +332,9 @@ msgstr ""
 msgid "some items failed"
 msgstr ""
 
+msgid "the template variable value must not contain a newline"
+msgstr ""
+
 msgid "invalid template variable name"
 msgstr ""
 
@@ -354,6 +366,9 @@ msgid "reserved variable name"
 msgstr ""
 
 msgid "This action requires systemd"
+msgstr ""
+
+msgid "invalid unit name"
 msgstr ""
 
 msgid "trap_push requires a command"
@@ -393,6 +408,9 @@ msgid "project generation"
 msgstr ""
 
 msgid "create a new project skeleton"
+msgstr ""
+
+msgid "generate a demo project and walk through it"
 msgstr ""
 
 msgid "update a generated project to the current template"
@@ -437,7 +455,22 @@ msgstr ""
 msgid "update an installed shellkit"
 msgstr ""
 
+msgid "AI clients"
+msgstr ""
+
+msgid "install the AI skill into an AI client"
+msgstr ""
+
 msgid "usage"
+msgstr ""
+
+msgid "the vendor directory is a symlink, refusing to install"
+msgstr ""
+
+msgid "the vendored library is a symlink, refusing to install"
+msgstr ""
+
+msgid "recovering the vendored library after an interrupted swap"
 msgstr ""
 
 msgid "path exists and is not a directory"
@@ -458,6 +491,47 @@ msgstr ""
 msgid "generated file is not executable"
 msgstr ""
 
+msgid "run all tests"
+msgstr ""
+
+msgid "shellcheck static analysis"
+msgstr ""
+
+msgid "shfmt format check (check only)"
+msgstr ""
+
+msgid "upgrade the project to the current template"
+msgstr ""
+
+msgid "print the bash completion script"
+msgstr ""
+
+msgid "print the library version used by the project"
+msgstr ""
+
+msgid "mirror the library into vendor/shellkit"
+msgstr ""
+
+msgid ""
+"shellkit not found: install one first (shellkit install-self), or keep "
+"vendor/shellkit/shellkit in this project"
+msgstr ""
+
+msgid ""
+"cannot generate the completion script: bin/@NAME@ is missing and no shellkit "
+"is available"
+msgstr ""
+
+msgid "install to /etc/bash_completion.d/@NAME@ (system-wide)"
+msgstr ""
+
+msgid ""
+"or ~/.local/share/bash-completion/completions/@NAME@ (current user only)"
+msgstr ""
+
+msgid "no library copy in this project: run make vendor first"
+msgstr ""
+
 msgid "only one target directory is allowed"
 msgstr ""
 
@@ -474,6 +548,9 @@ msgid "--set expects KEY=VALUE"
 msgstr ""
 
 msgid "value for"
+msgstr ""
+
+msgid "variable left empty"
 msgstr ""
 
 msgid "creating"
@@ -506,6 +583,12 @@ msgstr ""
 msgid "the manifest does not record a project name"
 msgstr ""
 
+msgid "the project name in the manifest is not a valid name"
+msgstr ""
+
+msgid "cannot resolve the target directory"
+msgstr ""
+
 msgid "upgrading"
 msgstr ""
 
@@ -517,10 +600,19 @@ msgid ""
 "verified are left alone"
 msgstr ""
 
-msgid "would add"
+msgid "refusing to write outside the project directory"
 msgstr ""
 
-msgid "added"
+msgid "the target is a symlink, left alone"
+msgstr ""
+
+msgid "the target path is blocked by a file"
+msgstr ""
+
+msgid "the target is a directory, refusing to overwrite"
+msgstr ""
+
+msgid "recovered from an interrupted upgrade"
 msgstr ""
 
 msgid "modified locally, left alone"
@@ -532,7 +624,22 @@ msgstr ""
 msgid "cannot be verified against the old template, left alone"
 msgstr ""
 
+msgid "the target directory is not writable"
+msgstr ""
+
+msgid "failed to write the upgrade journal"
+msgstr ""
+
+msgid "would add"
+msgstr ""
+
 msgid "would update"
+msgstr ""
+
+msgid "failed to write the file"
+msgstr ""
+
+msgid "added"
 msgstr ""
 
 msgid "updated"
@@ -676,12 +783,6 @@ msgstr ""
 msgid "public function has no doc comment"
 msgstr ""
 
-msgid "this copy has no documentation sources"
-msgstr ""
-
-msgid "run it from a shellkit source tree"
-msgstr ""
-
 msgid "failed to render"
 msgstr ""
 
@@ -694,13 +795,89 @@ msgstr ""
 msgid "run to regenerate"
 msgstr ""
 
+msgid "this copy has no documentation sources"
+msgstr ""
+
+msgid "run it from a shellkit source tree"
+msgstr ""
+
 msgid "documentation is up to date"
 msgstr ""
 
 msgid "wrote"
 msgstr ""
 
+msgid "the demo project tests failed"
+msgstr ""
+
+msgid "what just happened"
+msgstr ""
+
+msgid "a project skeleton was generated"
+msgstr ""
+
+msgid "the library travels with the project"
+msgstr ""
+
+msgid "the project tests ran on the real binary"
+msgstr ""
+
+msgid "what is in the project"
+msgstr ""
+
+msgid "what to try next"
+msgstr ""
+
+msgid "where to read more"
+msgstr ""
+
+msgid "the target exists and is not a directory"
+msgstr ""
+
+msgid "the skill package is incomplete"
+msgstr ""
+
+msgid "known AI clients"
+msgstr ""
+
+msgid "installed"
+msgstr ""
+
+msgid "older version"
+msgstr ""
+
+msgid "not installed"
+msgstr ""
+
+msgid ""
+"the client directory is a convention of each client; use --dir if it is wrong"
+msgstr ""
+
+msgid "installed the skill into"
+msgstr ""
+
+msgid "unknown AI client"
+msgstr ""
+
+msgid "no AI client directory found; use --dir"
+msgstr ""
+
+msgid "removed the skill from"
+msgstr ""
+
+msgid "this copy has no skill package"
+msgstr ""
+
+msgid "only one action is allowed"
+msgstr ""
+
+msgid "only one client is allowed"
+msgstr ""
+
 msgid "try a writable prefix"
+msgstr ""
+
+msgid "recovering the installed copy after an interrupted swap"
 msgstr ""
 
 msgid "installing"
@@ -710,9 +887,6 @@ msgid "failed to write the install manifest"
 msgstr ""
 
 msgid "failed to create symlink"
-msgstr ""
-
-msgid "installed"
 msgstr ""
 
 msgid "no install manifest under"
@@ -758,9 +932,6 @@ msgid "already up to date"
 msgstr ""
 
 msgid "current version"
-msgstr ""
-
-msgid "not installed"
 msgstr ""
 
 msgid "latest version"

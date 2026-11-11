@@ -25,6 +25,15 @@ SK_MANIFEST_FORMAT=""
 # _sk_scaffold_store_set KEY VALUE —— 在变量表里写一个键
 _sk_scaffold_store_set() {
   local __key=$1 __value=$2 __out="" __line __rest="$SK_SCAFFOLD_VARS" __found=0
+  # 值里不能有换行：变量装在一个「换行分隔」的容器里（SK_SCAFFOLD_VARS），
+  # 值里的换行会被当成容器自己的分隔符 —— 值的后半截变成一行垃圾，
+  # 渲染时整段被丢掉，**静默截断**。所以这里直接拒绝，不让它走到那一步。
+  case "$__value" in
+    *$'\n'*)
+      log_error "$(_t 'the template variable value must not contain a newline'): $__key"
+      return "$SK_USAGE"
+      ;;
+  esac
   while [ -n "$__rest" ]; do
     __line=${__rest%%$'\n'*}
     if [ "$__line" = "$__rest" ]; then
@@ -73,14 +82,16 @@ _sk_scaffold_store_get() {
 
 # scaffold_vars_set KEY VALUE —— 设一个模板变量
 # @exitcode 0 设置成功
-# @exitcode 2 变量名非法
+# @exitcode 2 变量名非法，或值里有换行（变量表一行一个，装不下多行值）
 scaffold_vars_set() {
   local __key=${1:-} __value=${2:-}
   if ! validate_key "$__key"; then
     log_error "$(_t 'invalid template variable name'): $__key"
     return "$SK_USAGE"
   fi
-  _sk_scaffold_store_set "$__key" "$__value"
+  # 存储失败要往上带：写死 return 0 会把「值不合法」这类错误吃掉，
+  # 调用方以为设好了，实际值根本没进去。
+  _sk_scaffold_store_set "$__key" "$__value" || return $?
   return 0
 }
 
@@ -148,14 +159,26 @@ scaffold_config_load() {
   return 0
 }
 
-# _sk_sed_repl_escape TEXT —— 转义 sed 替换侧的元字符
+# _sk_sed_repl_escape VAR TEXT —— 把转义后的文本写进变量 VAR
+#
 # 顺序要紧：先转义反斜杠，再转义 & 与分隔符 |。
+#
+# 出参形式（printf -v）而不是 "$(...)"：渲染每个模板文件都要对每个变量调一次，
+# 一次命令替换就是一次 fork（本机 ~80ms）—— 8 个文件 × 6 个变量就是 48 次 fork，
+# 光这一项就把 shellkit new 拖到 6~8 秒。
 _sk_sed_repl_escape() {
-  local __s=${1:-}
+  local __var=${1:-} __s=${2:-}
+  _sk_need_args "$#" 2 "_sk_sed_repl_escape VAR TEXT" || return $?
+  if ! _sk_is_name "$__var"; then
+    log_error "$(_t 'invalid variable name'): $__var"
+    return "$SK_USAGE"
+  fi
+  _sk_check_out_name "$__var" || return $?
   __s=${__s//\\/\\\\}
   __s=${__s//&/\\&}
   __s=${__s//|/\\|}
-  printf '%s' "$__s"
+  printf -v "$__var" '%s' "$__s"
+  return 0
 }
 
 # scaffold_render SRC DST —— 用当前模板变量渲染文件
@@ -166,13 +189,15 @@ _sk_sed_repl_escape() {
 # @exitcode 2 参数错
 # @exitcode 1 渲染失败
 scaffold_render() {
-  local __src=${1:-} __dst=${2:-} __sedfile __rc=0 __line __key __value __esc
+  local __src=${1:-} __dst=${2:-} __rc=0 __line __key __value __esc
+  local __args=()
   _sk_need_args "$#" 2 "scaffold_render SRC DST" || return $?
   if [ ! -f "$__src" ]; then
     log_error "$(_t 'template is missing'): $__src"
     return 1
   fi
-  __sedfile=$(mktemp "${TMPDIR:-/tmp}/shellkit-scaffold.XXXXXX") || return 1
+  # 替换规则直接交给 sed 的 -e，不再落临时脚本文件 ——
+  # 落文件要 mktemp 再 rm，渲染每个文件就多两次 fork。
   while IFS= read -r __line || [ -n "$__line" ]; do
     case "$__line" in
       *=*) ;;
@@ -180,20 +205,19 @@ scaffold_render() {
     esac
     __key=${__line%%=*}
     __value=${__line#*=}
-    __esc=$(_sk_sed_repl_escape "$__value")
-    printf 's|{{%s}}|%s|g\n' "$__key" "$__esc" >>"$__sedfile" || __rc=1
+    _sk_sed_repl_escape __esc "$__value" || __rc=1
+    [ "$__rc" -eq 0 ] || continue
+    __args[${#__args[@]}]="-e"
+    __args[${#__args[@]}]="s|{{$__key}}|$__esc|g"
   done <<EOF
 $SK_SCAFFOLD_VARS
 EOF
   if [ "$__rc" -ne 0 ]; then
-    rm -f "$__sedfile"
     return 1
   fi
-  if ! sed -f "$__sedfile" "$__src" >"$__dst"; then
-    rm -f "$__sedfile"
+  if ! sed ${__args[@]+"${__args[@]}"} "$__src" >"$__dst"; then
     return 1
   fi
-  rm -f "$__sedfile"
   return 0
 }
 

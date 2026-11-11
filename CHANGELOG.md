@@ -23,6 +23,9 @@
 - **删掉 `lib/uxs_compat.sh` 转发门面**：Stage 1 为「模块还没迁完」留的过渡层（旧函数名转发给 shellkit）随 78 个模块迁完一并删除。模块里 12 处纯转发的调用点直接改用 shellkit 的 API：`command_exists`→`os_has_cmd`、`emit_status`/`emit_version`/`emit_extra`→`uxs_emit_status`/`uxs_emit_version`/`uxs_emit_extra`、`github_latest_tag`→`http_github_latest_tag`、`github_release_asset_url`→`http_github_release_asset`、`uxs_os_release`→`os_release_field`、`verify_sha256`→`net_verify`、`version_gt`→`ver_gt`、`uxs_with_timeout`/`uxs_func_with_timeout`→`run_timeout`/`run_func_timeout`。**输出与退出码逐字未变**（转发本来就是逐字等价的）
 - lib 层只剩两个文件、且都不实现能力：`lib/uxs_platform.sh`（shellkit 的平台/架构/包管理能力 → unix_script 的全局变量口径，以及 unix_script 自己的文案与退出码）、`lib/uxs_status.sh`（状态输出转发到 shellkit 的 `status_*`，只做旋钮名映射 `UXS_STATUS_MODE`→`SHELLKIT_STATUS_MODE`）
 - `uxs list --full` 的子命令列改准了：`sys-cmd`/`clash`/`multi-net` 现在报的是模块**真实**支持的子命令（此前报的是启发式兜底列表，例如 `sys-cmd` 的 `all status uninstall`）。起因是 i18n 迁移把几处中文「用法: …」错误文案译成了英文，`module_subcommands` 的锚点匹配（取第一行含 `用法:` 的行）因此命中了真正的用法行而不是错误提示行。行为基线已按新输出重采并更新登记（Linux 基线另用 `debian:12` 容器重采核对，逐字节一致）
+- `vendor/shellkit/` 刷新到 **0.16.0**（原副本停在 Stage 1 的快照，落后上游 74 个提交），入库清单 `vendor/shellkit.sha256` 同步重生成（52 个文件）。随副本带进来两处**行为修正**，unix_script 直接受益：
+  - `http_github_release_asset` 在「既无 jq 也无 python3」的兜底路径上，原来用贪婪的 `.*` 抓 `browser_download_url`，抓到的是**最后一个**资产的 URL（要 x86_64 却可能给 arm64）⇒ 改为先按逗号拆成一条条资产、再取第一条匹配的
+  - `ver_cmp`/`ver_gt` 对非法版本串原来返回 0（等于「判相等」，`ver_gt "invalid" "1.0"` 会判真 ⇒ `check_for_update` 误报「有更新」）⇒ 改为返回 2（用法错），布尔谓词仍判否
 
 ## [1.21.0] - 2026-09-20
 

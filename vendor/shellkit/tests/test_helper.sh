@@ -5,6 +5,14 @@ TEST_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." &>/dev/null && pwd)"
 TEST_TMP_ROOT="${TEST_TMP_ROOT:-$(mktemp -d "${TMPDIR:-/tmp}/shellkit-tests.XXXXXX")}"
 export TEST_ROOT TEST_TMP_ROOT
 
+# 输出语言固定成英文：断言里写的是英文文案（msgid 本身就是英文），
+# 而输出会被本地化 —— 中文 locale 的机器上，168 条文案断言会整片炸红
+#（国产系统默认 zh_CN.UTF-8，正是批次 4.2 要上的流水线）。
+# SHELLKIT_LANG 的优先级最高（SHELLKIT_LANG → LC_ALL → LC_MESSAGES → LANG → en），
+# 设成 en 就与系统 locale、gettext 在不在都无关了。
+# 要测本地化行为的用例自己写 SHELLKIT_LANG=zh_CN 覆盖掉这一行。
+export SHELLKIT_LANG=en
+
 _fail() {
   printf 'FAIL: %s\n' "$*" >&2
   exit 1
@@ -42,6 +50,12 @@ assert_not_contains() {
   return 0
 }
 
+# assert_true / assert_false —— 断言一条命令的成败
+#
+# ⚠️ **只能传命令，不能带提示文案**：这两个断言把**全部**参数交给被测命令，
+# 多一个字符串就是多一个参数 —— assert_true test -d "$p" "说明" 会变成
+# `test -d "$p" "说明"`，test 报 "binary operator expected"。
+# 要带说明就自己写断言（_fail "expected ..."），或者用 assert_eq / assert_contains。
 assert_true() {
   if ! "$@"; then
     _fail "expected success: $*"
@@ -159,11 +173,26 @@ stub() {
   printf '%s' "$__err" >"$__errf"
   : >"$__log"
 
+  # body 必须在**子 shell 里的函数**中执行，两层都缺一不可：
+  #   - 子 shell：body 里的 exit 只退出子 shell —— 否则 exit 会把整个测试脚本
+  #     干掉，而退出码恰好是 0 ⇒ runner 判「全过」，后面所有断言都没跑过
+  #     （这个假绿真的发生过：test_svc.sh 后半段从来没执行过）；
+  #   - 函数：body 里的 return N 是「让 stub 返回 N」的既有写法，
+  #     直接放进子 shell 会变成「不是函数里不能 return」的报错。
+  # 末尾补一句 return 0：body 自然走完时落回 --exit 指定的退出码，
+  # 显式 return / exit 的短路行为不变。
   __fn="$__name() {
   printf '%s\n' \"\$*\" >>'$__log'
   if [ -s '$__outf' ]; then cat '$__outf'; fi
   if [ -s '$__errf' ]; then cat '$__errf' >&2; fi
+  _sk_stub_body__() {
   $__body
+  return 0
+  }
+  ( _sk_stub_body__ \"\$@\" )
+  __brc=\$?
+  unset -f _sk_stub_body__
+  if [ \"\$__brc\" -ne 0 ]; then return \"\$__brc\"; fi
   return $__exit
 }"
   eval "$__fn"

@@ -71,7 +71,7 @@ registry_scan() {
 # registry_scan_multi PATTERN ROOT... —— 扫描**多个**根目录的清单文件，建立一个索引
 # @brief 与 registry_scan 的区别：registry_scan 每次调用都重建索引（一个工程一个根目录）；
 # @brief 本函数一次扫多个根目录 —— 给「清单分散在多个目录」的工程用
-# @brief （如 unix_script 的 <分类>/<模块>/.manifest 布局：每个分类目录各扫一次）。
+# @brief （如 unix_script 的 `<分类>`/`<模块>`/.manifest 布局：每个分类目录各扫一次）。
 # @param PATTERN 清单文件名模式（如 .manifest）
 # @param ROOT 清单根目录，可给多个
 # @exitcode 0 总是成功
@@ -170,6 +170,15 @@ _registry_deps_visit() {
   _REGISTRY_PATH="$_REGISTRY_PATH $__name"
   while IFS= read -r __dep; do
     [ -n "$__dep" ] || continue
+    # 依赖必须在注册表里：缺失的依赖不是「一个普通节点」——
+    # 把它混进排序结果，照着结果执行的安装顺序/任务编排就是错的（评审 P2）。
+    case " $_REGISTRY_ENTRIES " in
+      *" $__dep "*) ;;
+      *)
+        log_error "$(_t 'missing dependency'): $__name -> $__dep"
+        return 1
+        ;;
+    esac
     if ! _registry_deps_visit "$__dep" "$__field"; then
       return 1
     fi

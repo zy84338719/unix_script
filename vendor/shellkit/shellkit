@@ -50,6 +50,12 @@ _sk_preflight_modules() {
   return 0
 }
 
+# SHELLKIT_MODULES 是「直接用库」的按需加载开关（lib/bootstrap.sh 据此裁模块集），
+# 只该影响用户自己的脚本。CLI 需要完整模块集：环境里带着它跑 doctor，os 模块
+# 没被加载，os_has_cmd 全部 command not found —— 「缺工具」的假诊断比没有诊断
+# 更糟（issue #32）。在 source bootstrap 之前清掉，CLI 恒定全量加载。
+unset SHELLKIT_MODULES
+
 # 加载库。模块缺失或损坏时 bootstrap 会当场中止整个脚本 ——
 # 但 doctor 的职责之一正是报出「少了哪个模块」，所以这里容错：
 # 失败就记下来，转入只做自检的降级路径。
@@ -102,6 +108,7 @@ if [ "$SK_BOOTSTRAP_OK" -eq 1 ]; then
 
   cli_group "$(_t 'project generation')"
   cli_cmd new "$(_t 'create a new project skeleton')" "new <dir> [--name NAME] [--cmd NAME]... [--template DIR] [--set K=V] [--yes]"
+  cli_cmd demo "$(_t 'generate a demo project and walk through it')" "demo [DIR] [--no-test]"
   cli_cmd upgrade "$(_t 'update a generated project to the current template')" "upgrade <dir> [--check] [--force]"
   cli_group "$(_t 'environment')"
   cli_cmd doctor "$(_t 'check the runtime environment')" "doctor [--dir DIR]"
@@ -116,6 +123,8 @@ if [ "$SK_BOOTSTRAP_OK" -eq 1 ]; then
   cli_cmd install-self "$(_t 'install shellkit into PATH')" "install-self [--prefix DIR]"
   cli_cmd uninstall-self "$(_t 'remove an installed shellkit')" "uninstall-self [--prefix DIR]"
   cli_cmd update "$(_t 'update an installed shellkit')" "update [--check] [--from FILE] [--sha256 SUM] [--prefix DIR]"
+  cli_group "$(_t 'AI clients')"
+  cli_cmd skill "$(_t 'install the AI skill into an AI client')" "skill <list|install|uninstall|print> [--client NAME] [--dir DIR]"
 fi
 
 # _sk_render SRC DST —— 用当前模板变量渲染文件（薄封装，逻辑在 scaffold 模块）
@@ -224,35 +233,136 @@ _sk_copy_legal() {
   return 0
 }
 
-# _sk_vendor_install DIR —— 把库整目录同步进 DIR/vendor/shellkit。
-# 用"整目录替换"而不是逐文件覆盖：模块被删掉时不会留残骸。
-_sk_vendor_install() {
-  local __dir=$1 __dest
-  __dest="$__dir/vendor/shellkit"
-  fs_ensure_dir "$__dest" 755 || return 1
-  # ${__dest:?} 是安全阀：万一变量异常为空，绝不让 rm 落到 /lib 上
+# _sk_vendor_stage STAGE —— 把整份库副本铺到候选目录里
+#
+# 只管铺，不管换：铺失败由调用方清候选目录，原来的副本一个字节都不动。
+_sk_vendor_stage() {
+  local __stage=$1
+  # ${__stage:?} 是安全阀：万一变量异常为空，绝不让 rm 落到 /lib 上
   # tools/ 与 docs/ 是 shellkit 仓库自己的门禁输入，**不进副本**：
   # 副本的职责是「库能跟着工程走 + 工程能自己升级」，不是把仓库整套搬过去。
   # 少了它们，副本里的 shellkit docs 会明确报前置条件错（见 cmd_docs）。
-  rm -rf "${__dest:?}/lib" "${__dest:?}/locale" "${__dest:?}/templates" || return 1
-  cp -R "$SELF_DIR/lib" "$__dest/lib" || return 1
-  cp -R "$SELF_DIR/locale" "$__dest/locale" || return 1
-  cp -R "$SELF_DIR/templates" "$__dest/templates" || return 1
+  rm -rf "${__stage:?}/lib" "${__stage:?}/locale" "${__stage:?}/templates" "${__stage:?}/tests" || return 1
+  _sk_copy_tree "$SELF_DIR/lib" "$__stage/lib" || return 1
+  _sk_copy_tree "$SELF_DIR/locale" "$__stage/locale" || return 1
+  _sk_copy_tree "$SELF_DIR/templates" "$__stage/templates" || return 1
   # 只拷测试基建的两份文件：副本要能跑「渲染模板 → 生成工程」这条链，
   # 而渲染要 tests/test_helper.sh 与 tests/run.sh。整份 tests/ 有几十个
   # 仓库自测文件，工程用不上，不该进 vendor。
-  rm -rf "${__dest:?}/tests"
-  fs_ensure_dir "$__dest/tests" 755 || return 1
-  cp -f "$SELF_DIR/tests/test_helper.sh" "$__dest/tests/test_helper.sh" || return 1
-  cp -f "$SELF_DIR/tests/run.sh" "$__dest/tests/run.sh" || return 1
-  chmod 755 "$__dest/tests/run.sh" || return 1
-  cp "$SELF_DIR/VERSION" "$__dest/VERSION" || return 1
+  fs_ensure_dir "$__stage/tests" 755 || return 1
+  cp -f "$SELF_DIR/tests/test_helper.sh" "$__stage/tests/test_helper.sh" || return 1
+  cp -f "$SELF_DIR/tests/run.sh" "$__stage/tests/run.sh" || return 1
+  chmod 755 "$__stage/tests/run.sh" || return 1
+  cp "$SELF_DIR/VERSION" "$__stage/VERSION" || return 1
   # 副本必须自带 CLI：工程被 vendor 到别的机器时，PATH 上不一定有 shellkit。
   # 没有 CLI，副本就永远升不了级 —— 而升级正是 vendor 这套机制存在的理由。
-  cp -f "$SELF_DIR/shellkit" "$__dest/shellkit" || return 1
-  chmod 755 "$__dest/shellkit" || return 1
+  cp -f "$SELF_DIR/shellkit" "$__stage/shellkit" || return 1
+  chmod 755 "$__stage/shellkit" || return 1
+  # 修复脚本也要跟着走：副本自己被中断时 CLI 起不来，
+  # 唯一还能救它的就是同目录下那份不依赖任何库的 repair.sh。
+  if [ -f "$SELF_DIR/repair.sh" ]; then
+    cp -f "$SELF_DIR/repair.sh" "$__stage/repair.sh" || return 1
+    chmod 755 "$__stage/repair.sh" || return 1
+  fi
   # MIT 许可证要求「副本里带上版权声明」，所以 vendor 出来的副本必须带 LICENSE 与 NOTICE
-  _sk_copy_legal "$__dest" || return 1
+  _sk_copy_legal "$__stage" || return 1
+  return 0
+}
+
+# _sk_proj_lock_name DIR —— 由工程绝对路径算出锁名：同一个工程一把锁。
+# 锁名只收 [A-Za-z0-9_.-]，路径过不了名字校验，用 cksum 收成数字；
+# 不同路径撞同一个和的概率极低，撞了也只是多一次串行，不影响正确性。
+_sk_proj_lock_name() {
+  local __p="" __crc=""
+  __p=$(cd "$1" 2>/dev/null && pwd -P) || __p=$1
+  __crc=$(printf '%s' "$__p" | cksum) || return 1
+  printf 'proj-%s' "${__crc%% *}"
+}
+
+# _sk_proj_lock_acquire NAME —— 拿工程锁；本进程已经持有就不再抢。
+# mkdir 锁不可重入：upgrade 全程持锁、末尾调 vendor 会再走到这里，
+# 抢自己就会死锁。锁的回收由 lock 模块的 trap 兜底（进程退出即释放）。
+_sk_proj_lock_acquire() {
+  local __name=$1 __held=""
+  if __held=$(lock_held "$__name" 2>/dev/null) && [ "$__held" = "$$" ]; then
+    return 0
+  fi
+  lock_acquire "$__name" 0
+}
+
+# _sk_vendor_install DIR —— 把库整目录同步进 DIR/vendor/shellkit。
+#
+# 用「整目录替换」而不是逐文件覆盖：模块被删掉时不会留残骸。
+#
+# 同步不是就地改：先把整份副本铺到 vendor/.shellkit-new，再整体换上去。
+# 就地改（先 rm -rf 再 cp -R）中途失败会留下半份库 —— 工程的脚本当场就找不到
+# vendor/shellkit/lib/bootstrap.sh，整套东西都坏了。
+# 换的动作是两次 rename（旧的挪开、新的挪进来），中间有一个极短的窗口；
+# 窗口里被打断会留下 vendor/.shellkit-old，下次同步会把它清掉。
+#
+# 旧副本里用户自己加的文件要留着：候选目录先把旧内容原样搬进去，
+# 再在上面做同样的替换动作 —— 与旧行为一致，只是不再就地改。
+_sk_vendor_install() {
+  local __dir=$1 __dest __stage __old __lock
+  __dest="$__dir/vendor/shellkit"
+  __stage="$__dir/vendor/.shellkit-new"
+  __old="$__dir/vendor/.shellkit-old"
+  # vendor/ 必须是工程里的真目录：
+  # 它要是指向别处的符号链接，后面的 rm -rf + cp -R 就写到工程之外去了。
+  if [ -L "$__dir/vendor" ]; then
+    log_error "$(_t 'the vendor directory is a symlink, refusing to install'): $__dir/vendor"
+    return 1
+  fi
+  # vendor/shellkit 本身也不能是符号链接：
+  # 顺着它删会删到工程外面去。
+  if [ -L "$__dest" ]; then
+    log_error "$(_t 'the vendored library is a symlink, refusing to install'): $__dest"
+    return 1
+  fi
+  # 并发互斥：vendor 的暂存目录名是固定的（.shellkit-new / .shellkit-old），
+  # 两个进程同时换会互相踩。upgrade 全程持着这把锁走到这里，自持就不再抢。
+  __lock=$(_sk_proj_lock_name "$__dir") || return 1
+  _sk_proj_lock_acquire "$__lock" || return $?
+  # 中断恢复：两次 rename 之间被杀（SIGKILL / 断电）时 vendor/shellkit 不见了，
+  # 而 .shellkit-old 里是唯一完整的旧副本 —— 先把它挪回去。
+  # 不先恢复的话，下面那句清理会把唯一的好副本删掉，工程从此没有库可用。
+  if [ -e "$__old" ] || [ -L "$__old" ]; then
+    if [ ! -f "$__dest/lib/bootstrap.sh" ]; then
+      log_warn "$(_t 'recovering the vendored library after an interrupted swap'): $__old"
+      rm -rf "$__dest" 2>/dev/null || true
+      mv "$__old" "$__dest" || return 1
+    fi
+  fi
+  # 残骸清理：恢复完成后 dest 是完整的（或本来就没有），这时候才安全
+  rm -rf "$__stage" "$__old" 2>/dev/null || true
+  fs_ensure_dir "$__stage" 755 || return 1
+  # 旧副本里可能有用户自己加的文件：先原样搬进候选目录，别顺手删掉
+  if [ -d "$__dest" ]; then
+    cp -R "$__dest/." "$__stage/" || {
+      rm -rf "$__stage" 2>/dev/null || true
+      return 1
+    }
+  fi
+  _sk_vendor_stage "$__stage" || {
+    rm -rf "$__stage" 2>/dev/null || true
+    return 1
+  }
+  # 换上去：旧的挪开、新的挪进来。两次 rename 都在同一个文件系统里。
+  if [ -e "$__dest" ] || [ -L "$__dest" ]; then
+    if ! mv "$__dest" "$__old"; then
+      rm -rf "$__stage" 2>/dev/null || true
+      return 1
+    fi
+  fi
+  if ! mv "$__stage" "$__dest"; then
+    # 换不上去就把旧的挪回去，别让工程变成「没有库」的状态
+    if [ -e "$__old" ]; then
+      mv "$__old" "$__dest" 2>/dev/null || true
+    fi
+    rm -rf "$__stage" 2>/dev/null || true
+    return 1
+  fi
+  rm -rf "$__old" 2>/dev/null || true
   return 0
 }
 
@@ -387,11 +497,40 @@ _sk_new_verify() {
   return 0
 }
 
+_sk_new_msg_vars() {
+  local __name=${1:-} __msg
+  # 帮助行：模板里保留列对齐，变量值只是描述文字
+  scaffold_vars_set MSG_HELP_TEST "$(_t 'run all tests')" || return "$SK_USAGE"
+  scaffold_vars_set MSG_HELP_LINT "$(_t 'shellcheck static analysis')" || return "$SK_USAGE"
+  scaffold_vars_set MSG_HELP_FMT "$(_t 'shfmt format check (check only)')" || return "$SK_USAGE"
+  scaffold_vars_set MSG_HELP_UPGRADE "$(_t 'upgrade the project to the current template')" || return "$SK_USAGE"
+  scaffold_vars_set MSG_HELP_COMPLETION "$(_t 'print the bash completion script')" || return "$SK_USAGE"
+  scaffold_vars_set MSG_HELP_VERSION "$(_t 'print the library version used by the project')" || return "$SK_USAGE"
+  scaffold_vars_set MSG_HELP_VENDOR "$(_t 'mirror the library into vendor/shellkit')" || return "$SK_USAGE"
+  # 报错行：整条消息一个变量；带工程名的用 @NAME@ 占位，译完再替换
+  # （工程名校验过字符集，替换值里不可能有 / 之类的模式字符）。
+  # 注意这些 Makefile 报错恰恰可能在库不可用时打印 —— 运行期没有 _t 可用，
+  # 文案只能在生成工程这一刻由生成器的语言定下来。
+  scaffold_vars_set MSG_NO_SHELLKIT "$(_t 'shellkit not found: install one first (shellkit install-self), or keep vendor/shellkit/shellkit in this project')" || return "$SK_USAGE"
+  __msg=$(_t 'cannot generate the completion script: bin/@NAME@ is missing and no shellkit is available')
+  __msg=${__msg//@NAME@/$__name}
+  scaffold_vars_set MSG_NO_COMPLETION "$__msg" || return "$SK_USAGE"
+  __msg=$(_t 'install to /etc/bash_completion.d/@NAME@ (system-wide)')
+  __msg=${__msg//@NAME@/$__name}
+  scaffold_vars_set MSG_COMPLETION_SYSTEM "$__msg" || return "$SK_USAGE"
+  __msg=$(_t 'or ~/.local/share/bash-completion/completions/@NAME@ (current user only)')
+  __msg=${__msg//@NAME@/$__name}
+  scaffold_vars_set MSG_COMPLETION_USER "$__msg" || return "$SK_USAGE"
+  scaffold_vars_set MSG_NO_VENDOR "$(_t 'no library copy in this project: run make vendor first')" || return "$SK_USAGE"
+  return 0
+}
+
 cmd_new() {
   local __dir="" __name="" __tpl="" __opt="" __val="" __yes=0
-  local __line __key __val2 __ans __setv __cmds_csv
+  local __line __key __val2 __ans __setv __cmds_csv __ask_result
   local -a __cmds=()
   local -a __sets=()
+  local -a __ask_keys=()
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -487,6 +626,8 @@ cmd_new() {
   if [ -f "$__tpl/template.config" ]; then
     scaffold_config_load "$__tpl/template.config" || return "$SK_PRECOND"
   fi
+  # 内置文案变量在 --set 之前注入，用户 --set MSG_*=... 仍然可以覆盖
+  _sk_new_msg_vars "$__name" || return "$SK_USAGE"
   for __setv in ${__sets[@]+"${__sets[@]}"}; do
     case "$__setv" in
       *=*) ;;
@@ -504,7 +645,11 @@ cmd_new() {
   scaffold_vars_set NAME "$__name" || return "$SK_USAGE"
   scaffold_vars_set SHELLKIT_VERSION "$SK_VERSION" || return "$SK_USAGE"
 
-  # 还没值的变量问一次；非交互（--yes 或 SHELLKIT_NONINTERACTIVE=1）就留空
+  # 还没值的变量问一次；非交互（--yes 或 SHELLKIT_NONINTERACTIVE=1）就留空。
+  # 两阶段：先把要问的键快照进数组，再在没有重定向的循环里提问。
+  # ask 靠 [ -t 0 ] 判断交互与否 —— 提问循环一旦挂在 heredoc/管道上，fd 0 被
+  # 输入源抢走，真终端里 ask 也判成非交互，变量静默留空而命令照常 rc=0（issue #31）。
+  __ask_keys=()
   if [ "$__yes" -eq 0 ] && [ "${SHELLKIT_NONINTERACTIVE:-0}" != "1" ]; then
     while IFS= read -r __line; do
       case "$__line" in
@@ -517,13 +662,20 @@ cmd_new() {
       case "$__key" in
         NAME | SHELLKIT_VERSION) continue ;;
       esac
-      __ask_result=""
-      if ask __ask_result "$(_t 'value for') $__key" ""; then
-        scaffold_vars_set "$__key" "$__ask_result" || return "$SK_USAGE"
-      fi
+      __ask_keys[${#__ask_keys[@]}]="$__key"
     done <<EOF
 $SK_SCAFFOLD_VARS
 EOF
+    for __key in ${__ask_keys[@]+"${__ask_keys[@]}"}; do
+      __ask_result=""
+      if ask __ask_result "$(_t 'value for') $__key" ""; then
+        scaffold_vars_set "$__key" "$__ask_result" || return "$SK_USAGE"
+      else
+        # ask 失败（非交互且没有默认值）已由它自己报过错；这里点名哪个变量
+        # 因此留空 —— 静默留空比失败更糟：生成物缺内容，命令却报成功。
+        log_warn "$(_t 'variable left empty'): $__key"
+      fi
+    done
   fi
 
   if ! _sk_check_dir "$__dir"; then
@@ -599,11 +751,238 @@ _sk_upgrade_save_manifest() {
     "$__filelist" "$__baselines"
 }
 
+# _sk_upgrade_cleanup TMP OLDTMP —— 清掉升级过程留下的临时目录
+#
+# 失败路径也要清：崩在 rm 之前就会在临时目录里留下一整份工程副本
+# （一次升级渲染出来的模板全量拷一份）。所以清理收在一个函数里，
+# 免得哪条 return 路径忘了写。
+_sk_upgrade_cleanup() {
+  local __t=${1:-} __o=${2:-}
+  if [ -n "$__t" ]; then
+    rm -rf "${__t:?}" 2>/dev/null || true
+  fi
+  if [ -n "$__o" ]; then
+    rm -rf "${__o:?}" 2>/dev/null || true
+  fi
+  return 0
+}
+
+# _sk_upgrade_rel_safe REL —— 这个相对路径能不能安全地写进工程目录
+#
+# 两个不变量：不是绝对路径，且不含 .. 组件。
+# 清单里的项目名会被拼进 bin/<name> —— 名字里带 ../ 就能把文件写到工程之外。
+_sk_upgrade_rel_safe() {
+  local __rel=${1:-}
+  case "$__rel" in
+    '' | /*) return 1 ;;
+  esac
+  case "/$__rel/" in
+    */../*) return 1 ;;
+  esac
+  return 0
+}
+
+# _sk_upgrade_in_dir BASE TARGET —— TARGET 是否落在 BASE 之内
+#
+# BASE 必须是解析过的绝对路径（pwd -P），中间目录的符号链接也要解析：
+# 工程里有个 tests/ 指向工程外，那不是「工程内的路径」。
+# 目标所在的目录还不存在时，向上找到第一个存在的祖先再判。
+_sk_upgrade_in_dir() {
+  local __base=${1:-} __tgt=${2:-} __dir __parent
+  if [ -z "$__base" ] || [ -z "$__tgt" ]; then
+    return 1
+  fi
+  __dir=$(dirname "$__tgt")
+  while [ ! -d "$__dir" ]; do
+    __parent=$(dirname "$__dir")
+    if [ "$__parent" = "$__dir" ]; then
+      return 1
+    fi
+    __dir=$__parent
+  done
+  __parent=$(cd "$__dir" 2>/dev/null && pwd -P) || return 1
+  case "$__parent" in
+    "$__base") return 0 ;;
+    "$__base"/*) return 0 ;;
+  esac
+  return 1
+}
+
+# _sk_upgrade_path_ok BASE REL —— 目标的父路径每一级都建得出来吗
+#
+# 相对路径的目录部分要逐级看：中间哪一级已经是个普通文件，后面就建不出来
+# （fs_ensure_dir 会失败）—— 而那已经是半路上了。
+# 哪一级还不存在就停：剩下的由 fs_ensure_dir 建，它要的是上级的写权限。
+_sk_upgrade_path_ok() {
+  local __base=${1:-} __rel=${2:-} __rest __part
+  local __dir=$__base
+  if [ -z "$__base" ] || [ -z "$__rel" ]; then
+    return 1
+  fi
+  __rest=$(dirname "$__rel")
+  if [ "$__rest" = "." ]; then
+    return 0
+  fi
+  while [ -n "$__rest" ] && [ "$__rest" != "." ]; do
+    __part=${__rest%%/*}
+    if [ "$__rest" = "$__part" ]; then
+      __rest=""
+    else
+      __rest=${__rest#*/}
+    fi
+    __dir="$__dir/$__part"
+    if [ -e "$__dir" ] || [ -L "$__dir" ]; then
+      [ -d "$__dir" ] || return 1
+      continue
+    fi
+    break
+  done
+  return 0
+}
+# _sk_upgrade_writable TARGET —— 这个目标写得进去吗
+#
+# 写文件靠的是「目录可写」（rename 要的是目录的写权限），不是文件自己的权限。
+# 目标所在的目录还不存在就向上找到第一个存在的祖先，判它可写 ——
+# 中间目录由 fs_ensure_dir 建出来，建目录要的是它上级的写权限。
+#
+# 为什么要在动文件之前查：不可写却硬写，就会停在半路 ——
+# 前几个文件已是新版，这个文件写不进去，清单也落不下去。
+# 提前查出来直接退出，工程一个字节都不动。
+_sk_upgrade_writable() {
+  local __tgt=${1:-} __dir __parent
+  if [ -z "$__tgt" ]; then
+    return 1
+  fi
+  __dir=$(dirname "$__tgt")
+  while [ ! -d "$__dir" ]; do
+    __parent=$(dirname "$__dir")
+    if [ "$__parent" = "$__dir" ]; then
+      return 1
+    fi
+    __dir=$__parent
+  done
+  [ -w "$__dir" ] || return 1
+  return 0
+}
+
+# ---------- 升级日志（崩溃一致性）----------
+#
+# 升级是「换文件」和「改清单」两件事。清单记的是每个文件的基线指纹，
+# 下次升级靠它判断「这个文件还是模板原样吗」。
+#
+# 崩溃窗口就夹在这两件事中间：文件已经换成新版、清单还没提交时进程被 SIGKILL，
+# 下次升级看到「磁盘上的指纹 != 清单里的基线」，就把它当成「用户改过」——
+# 于是这个文件从此再也拿不到模板更新（冻结）。
+#
+# 升级日志就是为这个窗口写的：动第一个文件之前，把「这个文件该换成什么指纹」
+# 落盘；清单提交成功后再把日志删掉。
+# 下次升级读到日志就知道「磁盘上这个指纹是上一轮升级换上去的」，
+# 于是把基线推进到它 —— 文件解冻，升级继续。
+#
+# 日志格式：每行一条记录，三个字段用 TAB 分隔 —— 相对路径、旧基线、目标指纹。
+# 空的旧基线写成 -：TAB 分隔时空字段会被 read 当成连续的定界符吞掉，位置会串。
+# 同一个相对路径可以出现多次：上一轮的记录要留着 ——
+# 这一轮同样可能在提交清单之前崩掉，那时上一轮换过的文件还得靠它恢复。
+
+# _sk_upgrade_journal_file DIR —— 升级日志的位置
+_sk_upgrade_journal_file() {
+  printf '%s/.shellkit-upgrade-journal\n' "${1:-}"
+}
+
+# _sk_upgrade_journal_read DIR —— 读出上一次没跑完的升级留下的日志
+#
+# 读不出来（文件不在 / 行格式不对）就当没有日志：日志只是恢复的辅助信息，
+# 它坏了不该把升级卡死 —— 最坏的结果退回升级前的样子。
+_sk_upgrade_journal_read() {
+  local __dir=${1:-} __file __rel __old __new
+  _SK_UPGRADE_JRELS=()
+  _SK_UPGRADE_JOLDS=()
+  _SK_UPGRADE_JNEWS=()
+  __file=$(_sk_upgrade_journal_file "$__dir")
+  [ -f "$__file" ] || return 0
+  while IFS=$'\t' read -r __rel __old __new || [ -n "$__rel" ]; do
+    [ -n "$__rel" ] || continue
+    [ -n "$__old" ] || continue
+    [ -n "$__new" ] || continue
+    _SK_UPGRADE_JRELS[${#_SK_UPGRADE_JRELS[@]}]=$__rel
+    _SK_UPGRADE_JOLDS[${#_SK_UPGRADE_JOLDS[@]}]=$__old
+    _SK_UPGRADE_JNEWS[${#_SK_UPGRADE_JNEWS[@]}]=$__new
+  done <"$__file"
+  return 0
+}
+
+# _sk_upgrade_journal_match REL CUR —— 这个指纹是不是上一轮升级换上去的
+#
+# 返回匹配到的目标指纹（空 = 没匹配上）。
+# 同一个文件可能有多条记录（上一轮的 + 这一轮的），取最后一条匹配的 ——
+# 越靠后的记录越新。
+_sk_upgrade_journal_match() {
+  local __rel=${1:-} __cur=${2:-} __i=0 __hit=""
+  [ -n "$__rel" ] || return 0
+  [ -n "$__cur" ] || return 0
+  while [ "$__i" -lt "${#_SK_UPGRADE_JRELS[@]}" ]; do
+    if [ "${_SK_UPGRADE_JRELS[$__i]}" = "$__rel" ] && [ "${_SK_UPGRADE_JNEWS[$__i]}" = "$__cur" ]; then
+      __hit=$__cur
+    fi
+    __i=$((__i + 1))
+  done
+  printf '%s' "$__hit"
+}
+
+# _sk_upgrade_journal_write DIR —— 把这一轮要替换的文件写进升级日志
+#
+# 必须在动第一个文件之前落盘。崩了也要知道「哪些文件本来该换成什么」，
+# 否则已经换新的文件会被当成用户改过的，永远冻结在旧模板上。
+#
+# 上一轮的记录原样带上：这一轮同样可能在提交清单之前崩掉，
+# 那时上一轮换过的文件还得靠这些记录来恢复。
+_sk_upgrade_journal_write() {
+  local __dir=${1:-} __tpl=${2:-} __i=0 __rel __act __old __new __txt="" __file
+  __file=$(_sk_upgrade_journal_file "$__dir")
+  while [ "$__i" -lt "${#_SK_UPGRADE_JRELS[@]}" ]; do
+    __txt="${__txt}${_SK_UPGRADE_JRELS[$__i]}"$'\t'"${_SK_UPGRADE_JOLDS[$__i]}"$'\t'"${_SK_UPGRADE_JNEWS[$__i]}"$'\n'
+    __i=$((__i + 1))
+  done
+  __i=0
+  while [ "$__i" -lt "${#_SK_UPGRADE_RELS[@]}" ]; do
+    __act=${_SK_UPGRADE_ACTS[$__i]}
+    if [ "$__act" = "A" ] || [ "$__act" = "U" ]; then
+      __rel=${_SK_UPGRADE_RELS[$__i]}
+      # 目标指纹就是模板渲染出来的那个文件的指纹
+      __new=$(os_sha256 "$__tpl/$__rel" 2>/dev/null) || __new=""
+      if [ -n "$__new" ]; then
+        __old=${_SK_UPGRADE_BASES[$__i]}
+        [ -n "$__old" ] || __old="-"
+        __txt="${__txt}${__rel}"$'\t'"${__old}"$'\t'"${__new}"$'\n'
+      fi
+    fi
+    __i=$((__i + 1))
+  done
+  if [ -z "$__txt" ]; then
+    # 这一轮没有任何文件要换、也没有上一轮的记录 —— 不留空日志
+    rm -f "$__file" 2>/dev/null || true
+    return 0
+  fi
+  fs_atomic_write "$__file" "$__txt" 600 || return 1
+  return 0
+}
+
+# _sk_upgrade_journal_clear DIR —— 清单提交成功，日志没有用了
+_sk_upgrade_journal_clear() {
+  local __dir=${1:-} __file
+  __file=$(_sk_upgrade_journal_file "$__dir")
+  [ -e "$__file" ] || return 0
+  rm -f "$__file" || return 1
+  return 0
+}
+
 cmd_upgrade() {
   local __dir="" __tpl="$SK_TPL_DIR" __check=0 __force=0
-  local __name __rel __old __cur __new __tmp __cmds_csv __vdir
-  local __updated=0 __skipped=0 __added=0
-  local __baselines="" __legacy=0 __oldtpl="" __oldtpl_hash=""
+  local __name __rel __old __cur __new __tmp __cmds_csv __vdir __act
+  local __dirabs="" __target=""
+  local __updated=0 __skipped=0 __added=0 __vsync=0
+  local __baselines="" __legacy=0 __oldtpl="" __oldtpl_hash="" __lock=""
+  local __jrec="" __recovered=0 __legacy_ok=0
 
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -671,6 +1050,28 @@ cmd_upgrade() {
     log_error "$(_t 'the manifest does not record a project name'): $__dir"
     return "$SK_VERIFY"
   fi
+  # 清单里的项目名会被拼进 bin/<name> 这样的相对路径。名字不合法
+  # （带 ../ 、带路径分隔符）就能让升级把文件写到工程目录之外 —— 必须在这里挡住。
+  if ! _sk_valid_name "$__name"; then
+    log_error "$(_t 'the project name in the manifest is not a valid name'): $__name"
+    return "$SK_VERIFY"
+  fi
+  # commands 先存下来：写盘失败的分支也要拿它落盘基线，不能等到正常收尾
+  # 才赋值 —— 否则那条路径会撞上 set -u 的 unbound variable，
+  # 于是「失败时把清单写成与磁盘一致」这个修复一次都没执行过。
+  __cmds_csv="$SK_MANIFEST_COMMANDS"
+  # 工程目录解析成真实绝对路径，后面每个目标路径都要跟它比。
+  __dirabs=$(cd "$__dir" 2>/dev/null && pwd -P) || __dirabs=""
+  if [ -z "$__dirabs" ]; then
+    log_error "$(_t 'cannot resolve the target directory'): $__dir"
+    return "$SK_PRECOND"
+  fi
+  # 并发互斥：同一工程同时只有一个升级能动手 —— 清单与文件的一致性依赖
+  # 「读-改-写」不被打断。--check 只读，不抢锁。
+  if [ "$__check" != "1" ]; then
+    __lock=$(_sk_proj_lock_name "$__dir") || return "$SK_ERR"
+    _sk_proj_lock_acquire "$__lock" || return $?
+  fi
 
   log_section "$(_t 'upgrading'): $__dir"
   log_info "$(_t 'template version'): ${SK_MANIFEST_TEMPLATE_VERSION:-unknown} -> $SK_VERSION"
@@ -678,10 +1079,12 @@ cmd_upgrade() {
   # 变量从清单里读回来，再用当前的工程名与模板版本覆盖
   scaffold_vars_set NAME "$__name" || return "$SK_USAGE"
   scaffold_vars_set SHELLKIT_VERSION "$SK_VERSION" || return "$SK_USAGE"
+  # 模板文案按当前语言重新注入（老工程升级后 Makefile 文案跟上当前语言）
+  _sk_new_msg_vars "$__name" || return "$SK_USAGE"
 
   __tmp=$(mktemp -d "${TMPDIR:-/tmp}/shellkit-upgrade.XXXXXX") || return "$SK_ERR"
   if ! _sk_new_render_owned "$__tpl" "$__tmp" "$__name"; then
-    rm -rf "${__tmp:?}"
+    _sk_upgrade_cleanup "$__tmp" ""
     return "$SK_ERR"
   fi
 
@@ -696,7 +1099,7 @@ cmd_upgrade() {
   esac
   if [ "$__legacy" = "1" ]; then
     __oldtpl=$(mktemp -d "${TMPDIR:-/tmp}/shellkit-upgrade-old.XXXXXX") || {
-      rm -rf "${__tmp:?}"
+      _sk_upgrade_cleanup "$__tmp" ""
       return "$SK_ERR"
     }
     if [ -n "${SK_MANIFEST_TEMPLATE_VERSION:-}" ]; then
@@ -704,7 +1107,7 @@ cmd_upgrade() {
     fi
     if ! _sk_new_render_owned "$__tpl" "$__oldtpl" "$__name"; then
       scaffold_vars_set SHELLKIT_VERSION "$SK_VERSION" || true
-      rm -rf "${__tmp:?}" "${__oldtpl:?}"
+      _sk_upgrade_cleanup "$__tmp" "$__oldtpl"
       return "$SK_ERR"
     fi
     scaffold_vars_set SHELLKIT_VERSION "$SK_VERSION" || true
@@ -729,10 +1132,64 @@ cmd_upgrade() {
 $(_sk_new_owned_list "$__name")
 EOF
 
+  # 上一轮升级可能崩在「文件已换新、清单还没提交」的窗口里 ——
+  # 升级日志记着那些文件当时该换成什么指纹，据此能把基线推进到正确值。
+  _sk_upgrade_journal_read "$__dir"
+
+  # ---------- 阶段一：决策与校验（一个文件都不动）----------
+  #
+  # 升级是事务：先把新模板渲染到候选目录，再对每个目标决定「新增 / 更新 /
+  # 跳过」，并把能提前发现的问题全部发现完，然后才动工程里的文件。
+  #
+  # 这一阶段撞上致命问题必须在动文件之前退出 —— 否则工程会停在半升状态：
+  # 前几个文件已是新版、后几个还是旧版，清单也对不上磁盘。
+  #
+  # 动作表 _SK_UPGRADE_ACTS[i] 与 _SK_UPGRADE_RELS[i] 一一对应：
+  #   A = 新增（工程里没有，模板里有）
+  #   U = 更新（工程里是模板原样，要用新版盖回去）
+  #   S = 跳过（用户改过 / 没有指纹 / 目标是符号链接 / 模板里已经没有这个文件）
+  _SK_UPGRADE_ACTS=()
   __i=0
   while [ "$__i" -lt "${#_SK_UPGRADE_RELS[@]}" ]; do
     __rel=${_SK_UPGRADE_RELS[$__i]}
     __old=${_SK_UPGRADE_BASES[$__i]}
+    __act="S"
+    __jrec=""
+
+    # 目标路径的三个不变量：
+    #   1) 相对路径里没有 .. 组件，也不是绝对路径
+    #   2) 解析之后落在工程目录之内（中间目录是符号链接也不行）
+    #   3) 目标本身不是符号链接 —— 跟着它写会把内容写到工程之外
+    # 前两条不满足是清单有问题（不可信输入），直接报错退出；
+    # 第三条不满足是工程里本来就这么摆着的，跳过并提示，用户的东西不动。
+    __target="$__dirabs/$__rel"
+    if ! _sk_upgrade_rel_safe "$__rel" || ! _sk_upgrade_in_dir "$__dirabs" "$__target"; then
+      log_error "$(_t 'refusing to write outside the project directory'): $__rel"
+      _sk_upgrade_cleanup "$__tmp" "$__oldtpl"
+      return "$SK_VERIFY"
+    fi
+    if [ -L "$__target" ]; then
+      log_warn "$(_t 'the target is a symlink, left alone'): $__rel"
+      __skipped=$((__skipped + 1))
+      _SK_UPGRADE_ACTS[${#_SK_UPGRADE_ACTS[@]}]="S"
+      __i=$((__i + 1))
+      continue
+    fi
+    # 目标的父路径建不出来（中间某一级是个普通文件）：同样是「等走到那一步才炸」。
+    if ! _sk_upgrade_path_ok "$__dirabs" "$__rel"; then
+      log_error "$(_t 'the target path is blocked by a file'): $__rel"
+      _sk_upgrade_cleanup "$__tmp" "$__oldtpl"
+      return "$SK_VERIFY"
+    fi
+    # 目标位置已经是个目录：文件写不进去，等走到那一步才炸就晚了。
+    # 这属于「工程坏了」，不是「这个文件跳过就行」—— 所以在这里退出，
+    # 一个文件都不改。
+    if [ -d "$__dir/$__rel" ]; then
+      log_error "$(_t 'the target is a directory, refusing to overwrite'): $__rel"
+      _sk_upgrade_cleanup "$__tmp" "$__oldtpl"
+      return "$SK_VERIFY"
+    fi
+
     __cur=""
     if [ -f "$__dir/$__rel" ]; then
       __cur=$(os_sha256 "$__dir/$__rel" 2>/dev/null) || __cur=""
@@ -742,109 +1199,210 @@ EOF
       __new=$(os_sha256 "$__tmp/$__rel" 2>/dev/null) || __new=""
     fi
 
+    # 崩溃恢复：上一轮升级崩在「文件已换新、清单还没提交」的窗口里。
+    # 升级日志记着那个文件当时该换成什么指纹 —— 磁盘上正好是那个指纹，
+    # 就说明它确实是上一轮换上去的、不是用户改的：基线推进到它。
+    # 不推进的话，它会被当成「用户改过」，从此再也拿不到模板更新（冻结）。
+    __jrec=$(_sk_upgrade_journal_match "$__rel" "$__cur")
+    if [ -n "$__jrec" ]; then
+      __old=$__jrec
+      _SK_UPGRADE_BASES[$__i]=$__jrec
+      __recovered=$((__recovered + 1))
+      log_warn "$(_t 'recovered from an interrupted upgrade'): $__rel"
+    fi
+
     if [ ! -f "$__dir/$__rel" ]; then
       # 工程里没有这个文件：模板里有就补回去
       if [ -z "$__new" ]; then
+        _SK_UPGRADE_ACTS[${#_SK_UPGRADE_ACTS[@]}]="S"
+        __i=$((__i + 1))
         continue
       fi
-      if [ "$__check" = "1" ]; then
-        log_info "$(_t 'would add'): $__rel"
-        continue
-      fi
-      fs_ensure_dir "$(dirname "$__dir/$__rel")" 755 || {
-        rm -rf "${__tmp:?}" ${__oldtpl:+"$__oldtpl"}
-        return "$SK_ERR"
-      }
-      cp -f "$__tmp/$__rel" "$__dir/$__rel" || {
-        rm -rf "${__tmp:?}" ${__oldtpl:+"$__oldtpl"}
-        return "$SK_ERR"
-      }
-      log_ok "$(_t 'added'): $__rel"
-      __added=$((__added + 1))
-      _SK_UPGRADE_BASES[$__i]=$__new
-      __i=$((__i + 1))
-      continue
-    fi
-
-    if [ "$__force" != "1" ] && [ -n "$__old" ] && [ "$__cur" != "$__old" ]; then
+      __act="A"
+    elif [ "$__force" != "1" ] && [ -n "$__old" ] && [ "$__cur" != "$__old" ]; then
       # 用户改过：留着不动，基线也不推进
       log_warn "$(_t 'modified locally, left alone'): $__rel"
       __skipped=$((__skipped + 1))
+      _SK_UPGRADE_ACTS[${#_SK_UPGRADE_ACTS[@]}]="S"
       __i=$((__i + 1))
       continue
-    fi
-    if [ -z "$__old" ] && [ "$__force" != "1" ]; then
+    elif [ -z "$__old" ] && [ "$__force" != "1" ]; then
       log_warn "$(_t 'no recorded fingerprint, left alone'): $__rel"
       __skipped=$((__skipped + 1))
+      _SK_UPGRADE_ACTS[${#_SK_UPGRADE_ACTS[@]}]="S"
       __i=$((__i + 1))
       continue
-    fi
-    if [ -z "$__new" ]; then
+    elif [ -z "$__new" ]; then
       # 模板里已经没有这个文件了：保持现状，基线不动
+      _SK_UPGRADE_ACTS[${#_SK_UPGRADE_ACTS[@]}]="S"
       __i=$((__i + 1))
       continue
-    fi
-    if [ "$__legacy" = "1" ] && [ "$__force" != "1" ]; then
+    elif [ "$__legacy" = "1" ] && [ "$__force" != "1" ]; then
       # 旧清单：这个文件是不是模板原样，说不准（指纹可能被旧版升级写成了
       # 用户改过的内容）。用「旧版本号渲染的模板」当对照：对不上就不能覆盖。
       __oldtpl_hash=""
       if [ -f "$__oldtpl/$__rel" ]; then
         __oldtpl_hash=$(os_sha256 "$__oldtpl/$__rel" 2>/dev/null) || __oldtpl_hash=""
       fi
-      if [ -n "$__oldtpl_hash" ] && [ "$__oldtpl_hash" != "$__cur" ]; then
+      # 升级日志能证明这个文件是上一轮升级换上去的 —— 不用再跟旧模板对照。
+      __legacy_ok=0
+      if [ -n "$__jrec" ]; then
+        __legacy_ok=1
+      elif [ -n "$__oldtpl_hash" ] && [ "$__oldtpl_hash" = "$__cur" ]; then
+        __legacy_ok=1
+      fi
+      if [ "$__legacy_ok" != "1" ]; then
+        # 对不上（或旧模板渲染不出对照）：说不准这个文件是不是用户改过 ——
+        # 一律不动，基线留空：宁可永远不覆盖，也不要覆盖掉用户改过的东西。
+        # 基线不清的话，清单会升成新版格式并带着旧指纹，下一次升级就把它
+        # 当成「没动过」而覆盖掉 —— 恰恰是最想避免的事。
         log_warn "$(_t 'cannot be verified against the old template, left alone'): $__rel"
         __skipped=$((__skipped + 1))
-        # 基线留空：宁可永远不覆盖，也不要覆盖掉用户改过的东西
         _SK_UPGRADE_BASES[$__i]=""
+        _SK_UPGRADE_ACTS[${#_SK_UPGRADE_ACTS[@]}]="S"
         __i=$((__i + 1))
         continue
       fi
-    fi
-    if [ "$__new" = "$__cur" ]; then
+      # 校验通过：文件就是旧模板原样，可以安全更新。
+      # 整条 elif 链已经命中本分支，落不到下面的 __new==__cur 与 else ——
+      # 「相同就跳、不同就 U」的判定要在自己这里做完。
+      # （历史缺陷：命中这里之后 act 一直是 S ⇒ 第一次升级不更新文件、
+      #   却把清单升成新版格式，第二次升级才真正更新。）
+      if [ "$__new" = "$__cur" ]; then
+        _SK_UPGRADE_BASES[$__i]=$__new
+        _SK_UPGRADE_ACTS[${#_SK_UPGRADE_ACTS[@]}]="S"
+        __i=$((__i + 1))
+        continue
+      fi
+      __act="U"
+    elif [ "$__new" = "$__cur" ]; then
       _SK_UPGRADE_BASES[$__i]=$__new
+      _SK_UPGRADE_ACTS[${#_SK_UPGRADE_ACTS[@]}]="S"
+      __i=$((__i + 1))
+      continue
+    else
+      __act="U"
+    fi
+
+    # 要写的目标：所在目录必须可写。不可写却硬写，就会停在半路 ——
+    # 前面的文件已是新版，这个文件写不进去，清单也落不下去。
+    # 这里查出来就退出：工程一个字节都不动。
+    # --check 也照同样的口径报：这次升级能不能做成，是同一个问题。
+    if ! _sk_upgrade_writable "$__target"; then
+      log_error "$(_t 'the target directory is not writable'): $__rel"
+      _sk_upgrade_cleanup "$__tmp" "$__oldtpl"
+      return "$SK_VERIFY"
+    fi
+
+    _SK_UPGRADE_ACTS[${#_SK_UPGRADE_ACTS[@]}]=$__act
+    __i=$((__i + 1))
+  done
+
+  # 动第一个文件之前先把升级日志落盘：崩了也要知道「哪些文件本来该换成什么」。
+  # 否则已经换新的文件会被当成用户改过的，从此冻结在旧模板上。
+  if [ "$__check" != "1" ]; then
+    if ! _sk_upgrade_journal_write "$__dir" "$__tmp"; then
+      log_error "$(_t 'failed to write the upgrade journal'): $__dir"
+      _sk_upgrade_cleanup "$__tmp" "$__oldtpl"
+      return "$SK_ERR"
+    fi
+  fi
+
+  # ---------- 阶段二：切换（逐个原子替换）----------
+  #
+  # 每个文件都是「临时文件 + rename」：失败要么什么都没发生、要么整体换新，
+  # 不会留下半截文件。中途失败时，已经换新的保持新版、没换的保持旧版，
+  # 清单按磁盘的实际状态落盘 —— 不假装成功，也不假装没改过。
+  __i=0
+  while [ "$__i" -lt "${#_SK_UPGRADE_RELS[@]}" ]; do
+    __rel=${_SK_UPGRADE_RELS[$__i]}
+    __act=${_SK_UPGRADE_ACTS[$__i]}
+    if [ "$__act" != "A" ] && [ "$__act" != "U" ]; then
       __i=$((__i + 1))
       continue
     fi
     if [ "$__check" = "1" ]; then
-      log_info "$(_t 'would update'): $__rel"
-      __updated=$((__updated + 1))
-      _SK_UPGRADE_BASES[$__i]=$__new
+      if [ "$__act" = "A" ]; then
+        log_info "$(_t 'would add'): $__rel"
+      else
+        log_info "$(_t 'would update'): $__rel"
+        __updated=$((__updated + 1))
+      fi
       __i=$((__i + 1))
       continue
     fi
-    if ! cp -f "$__tmp/$__rel" "$__dir/$__rel"; then
+    if [ "$__act" = "A" ]; then
+      fs_ensure_dir "$(dirname "$__dir/$__rel")" 755 || {
+        # 清单落盘 = 这一轮的账结了：磁盘与基线对上了，日志可以删。
+        # 清单写失败时日志必须留着 —— 那是下次恢复的唯一依据。
+        if _sk_upgrade_save_manifest "$__dir" "$__name" "$__cmds_csv" "$(_sk_new_owned_list "$__name")"; then
+          _sk_upgrade_journal_clear "$__dir" || true
+        fi
+        _sk_upgrade_cleanup "$__tmp" "$__oldtpl"
+        return "$SK_ERR"
+      }
+    fi
+    # 原子写：临时文件 + rename。写盘被打断时目标仍是旧内容（完整），
+    # 不是半截文件；目标要是符号链接，替换的是链接本身，不会写穿到别处。
+    if ! fs_atomic_copy "$__tmp/$__rel" "$__dir/$__rel"; then
       # 写失败：先把已经推进的基线落盘，让清单与磁盘状态对得上，
       # 再报错退出。已经改过的文件不会再被当成「用户改过」而永远冻结。
-      _sk_upgrade_save_manifest "$__dir" "$__name" "$__cmds_csv" "$(_sk_new_owned_list "$__name")" || true
-      rm -rf "${__tmp:?}" ${__oldtpl:+"$__oldtpl"}
+      # （基线要在这里落盘，commands 就必须提前存好 —— 否则这条路径会
+      #   因为 set -u 的 unbound variable 先崩掉，「落盘」一次都执行不到。）
+      log_error "$(_t 'failed to write the file'): $__rel"
+      # 清单落盘 = 这一轮的账结了：磁盘与基线对上了，日志可以删。
+      # 清单写失败时日志必须留着 —— 那是下次恢复的唯一依据。
+      if _sk_upgrade_save_manifest "$__dir" "$__name" "$__cmds_csv" "$(_sk_new_owned_list "$__name")"; then
+        _sk_upgrade_journal_clear "$__dir" || true
+      fi
+      _sk_upgrade_cleanup "$__tmp" "$__oldtpl"
       return "$SK_ERR"
     fi
-    log_ok "$(_t 'updated'): $__rel"
-    __updated=$((__updated + 1))
+    if [ "$__act" = "A" ]; then
+      log_ok "$(_t 'added'): $__rel"
+      __added=$((__added + 1))
+    else
+      log_ok "$(_t 'updated'): $__rel"
+      __updated=$((__updated + 1))
+    fi
+    __new=$(os_sha256 "$__tmp/$__rel" 2>/dev/null) || __new=""
     _SK_UPGRADE_BASES[$__i]=$__new
     __i=$((__i + 1))
   done
 
-  rm -rf "${__tmp:?}" ${__oldtpl:+"$__oldtpl"}
+  _sk_upgrade_cleanup "$__tmp" "$__oldtpl"
 
   if [ "$__check" != "1" ]; then
     # 正在用副本自己的 CLI 升级它自己时不能再去同步：同步会先删掉副本里的
     # lib/ 再从它自己拷回去（源没了），而且 CLI 会往自己身上 cp。
     __vdir="$__dir/vendor/shellkit"
     __vdir=$(cd "$__vdir" 2>/dev/null && pwd -P) || __vdir="$__dir/vendor/shellkit"
+    __vsync=0
     if [ "$__vdir" = "$SELF_DIR" ]; then
       log_info "$(_t 'already running from the vendored copy'): $SELF_DIR"
     elif ! _sk_vendor_install "$__dir"; then
       log_error "$(_t 'failed to sync the vendored library')"
-      return "$SK_ERR"
+      __vsync=1
     fi
     __cmds_csv="$SK_MANIFEST_COMMANDS"
+    # 清单必须落盘，而且必须与磁盘上的实际状态一致 ——
+    # vendor 同步失败不回滚已经写好的文件，那清单就不能停在旧基线上：
+    # 停在旧基线上，这些文件在下次升级里会被判成「用户改过」，永远冻结。
     if ! _sk_upgrade_save_manifest "$__dir" "$__name" "$__cmds_csv" "$(_sk_new_owned_list "$__name")"; then
+      # 清单没落盘 = 这一轮的账没结清：升级日志必须留着 ——
+      # 它记着哪些文件已经换成新版，下次升级靠它把基线推进到正确值。
       log_error "$(_t 'failed to write the project manifest'): $__dir"
+      return "$SK_ERR"
+    fi
+    _sk_upgrade_journal_clear "$__dir" || true
+    if [ "$__vsync" = "1" ]; then
       return "$SK_ERR"
     fi
   fi
 
+  if [ "$__recovered" -gt 0 ]; then
+    log_info "$(_t 'recovered from an interrupted upgrade'): $__recovered"
+  fi
   printf '\n'
   log_ok "$(_t 'upgrade finished'): $__updated updated, $__added added, $__skipped left alone"
   return "$SK_OK"
@@ -1421,7 +1979,16 @@ _sk_docs_coverage() {
 
 # _sk_docs_artifacts —— 需要生成与校验的文档产物，一行一个
 _sk_docs_artifacts() {
-  printf '%s\n' REFERENCE AGENTS TEMPLATES_AGENTS SKILL
+  printf '%s\n' REFERENCE AGENTS TEMPLATES_AGENTS SKILL_PACK
+}
+
+# _sk_docs_kind NAME —— 产物是单文件还是整目录
+# skill 是整目录：它带 references/（渐进披露的细节），不是单个文件。
+_sk_docs_kind() {
+  case "$1" in
+    SKILL_PACK) printf 'dir' ;;
+    *) printf 'file' ;;
+  esac
 }
 
 # _sk_docs_path NAME —— 产物相对仓库根的路径
@@ -1430,7 +1997,7 @@ _sk_docs_path() {
     REFERENCE) printf 'docs/REFERENCE.md' ;;
     AGENTS) printf 'AGENTS.md' ;;
     TEMPLATES_AGENTS) printf 'templates/AGENTS.md' ;;
-    SKILL) printf 'skills/shellkit/SKILL.md' ;;
+    SKILL_PACK) printf 'skills/shellkit' ;;
   esac
 }
 
@@ -1440,12 +2007,89 @@ _sk_docs_render() {
     REFERENCE) bash "$SELF_DIR/tools/shdoc.sh" ;;
     AGENTS) bash "$SELF_DIR/tools/ai_doc.sh" repo ;;
     TEMPLATES_AGENTS) bash "$SELF_DIR/tools/ai_doc.sh" project ;;
-    SKILL) bash "$SELF_DIR/tools/ai_doc.sh" skill ;;
   esac
 }
 
+# _sk_docs_render_dir REL —— 把目录型产物渲染到临时目录，输出临时目录路径
+#
+# 目录产物没法渲染到 stdout（那是一坨文本），得整目录生成再比对。
+# 临时目录放在仓库根：这样最后那步 rename 是同文件系统内的改名，是原子的。
+_sk_docs_render_dir() {
+  local __rel=$1 __tmp
+  __tmp=$(mktemp -d "$SELF_DIR/.DOCS.XXXXXX") || return 1
+  case "$__rel" in
+    skills/shellkit)
+      if ! bash "$SELF_DIR/tools/skill_pack.sh" "$__tmp"; then
+        rm -rf "$__tmp"
+        return 1
+      fi
+      ;;
+    *)
+      rm -rf "$__tmp"
+      return 1
+      ;;
+  esac
+  printf '%s' "$__tmp"
+  return 0
+}
+
+# _sk_docs_check_dir REL —— 校验目录型产物与渲染结果是否一致
+_sk_docs_check_dir() {
+  local __rel=$1 __tmp __rc=0
+  __tmp=$(_sk_docs_render_dir "$__rel") || {
+    log_error "$(_t 'failed to render'): $__rel"
+    return 1
+  }
+  if [ ! -d "$SELF_DIR/$__rel" ]; then
+    log_error "$(_t 'document is missing'): $__rel"
+    __rc=1
+  elif ! diff -r "$__tmp" "$SELF_DIR/$__rel" >/dev/null 2>&1; then
+    log_error "$(_t 'document is out of date'): $__rel"
+    # 截取前 20 行用 sed 而不是 head：head 读够就退，diff 会被 SIGPIPE 打死（141），
+    # 调用方一开 pipefail，整条管道就被误判成失败（坑 5）。
+    diff -r "$__tmp" "$SELF_DIR/$__rel" 2>&1 | sed -n '1,20p' >&2
+    log_info "$(_t 'run to regenerate'): shellkit docs"
+    __rc=1
+  fi
+  rm -rf "$__tmp"
+  return "$__rc"
+}
+
+# _sk_docs_write_dir REL —— 把目录型产物整目录换上去
+#
+# 换的动作是两次 rename，中间不留半份产物：就地改（先删后拷）中途失败会留下
+# 半份 skill 包 —— 装进 AI 客户端的就是一个缺 references/ 的残包。
+_sk_docs_write_dir() {
+  local __rel=$1 __tmp __old
+  __tmp=$(_sk_docs_render_dir "$__rel") || {
+    log_error "$(_t 'failed to render'): $__rel"
+    return 1
+  }
+  fs_ensure_dir "$SELF_DIR/$(dirname "$__rel")" 755 || {
+    rm -rf "$__tmp"
+    return 1
+  }
+  __old="$SELF_DIR/$(dirname "$__rel")/.$(basename "$__rel").old"
+  rm -rf "$__old" 2>/dev/null || true
+  if [ -e "$SELF_DIR/$__rel" ]; then
+    if ! mv "$SELF_DIR/$__rel" "$__old"; then
+      rm -rf "$__tmp"
+      return 1
+    fi
+  fi
+  if ! mv "$__tmp" "$SELF_DIR/$__rel"; then
+    if [ -d "$__old" ]; then
+      mv "$__old" "$SELF_DIR/$__rel" 2>/dev/null || true
+    fi
+    rm -rf "$__tmp"
+    return 1
+  fi
+  rm -rf "$__old" 2>/dev/null || true
+  return 0
+}
+
 cmd_docs() {
-  local __check=0 __name __rel __tmp __rc=0
+  local __check=0 __name __rel __tmp __rc=0 __kind
 
   # 文档生成是仓库维护者的事：它要 docs/ 里的源与 tools/ 里的生成器。
   # vendor 出来的副本不带这两样（副本的职责是「库跟着走 + 工程能自己升级」），
@@ -1477,6 +2121,11 @@ cmd_docs() {
     _sk_docs_coverage || __rc=$SK_VERIFY
     for __name in $(_sk_docs_artifacts); do
       __rel=$(_sk_docs_path "$__name")
+      __kind=$(_sk_docs_kind "$__name")
+      if [ "$__kind" = "dir" ]; then
+        _sk_docs_check_dir "$__rel" || __rc=$SK_VERIFY
+        continue
+      fi
       __tmp=$(mktemp "$SELF_DIR/.DOCS.XXXXXX") || return "$SK_ERR"
       if ! _sk_docs_render "$__name" >"$__tmp"; then
         rm -f "$__tmp"
@@ -1501,6 +2150,14 @@ cmd_docs() {
 
   for __name in $(_sk_docs_artifacts); do
     __rel=$(_sk_docs_path "$__name")
+    __kind=$(_sk_docs_kind "$__name")
+    if [ "$__kind" = "dir" ]; then
+      if ! _sk_docs_write_dir "$__rel"; then
+        return "$SK_ERR"
+      fi
+      log_ok "$(_t 'wrote'): $__rel"
+      continue
+    fi
     __tmp=$(mktemp "$SELF_DIR/.DOCS.XXXXXX") || return "$SK_ERR"
     if ! _sk_docs_render "$__name" >"$__tmp"; then
       rm -f "$__tmp"
@@ -1518,6 +2175,423 @@ cmd_docs() {
     log_ok "$(_t 'wrote'): $__rel"
   done
   return "$SK_OK"
+}
+
+# ---------- demo ----------
+#
+# 五分钟上手：生成一个工程、跑它自己的测试、把导览打出来。
+#
+# 目标不是再讲一遍文档，而是让人在两分钟内看到一条完整的链路：
+# 生成 → 库随工程一起 vendor 进去 → 真跑一次命令 → 真跑一次测试。
+# 所以这里跑的是真二进制，不做「示意输出」。
+
+# cmd_demo —— demo [DIR]
+cmd_demo() {
+  local __dir="" __name="" __run=1 __tmp
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      -h | --help)
+        cli_usage_cmd demo
+        return "$SK_OK"
+        ;;
+      --no-test)
+        __run=0
+        ;;
+      -*)
+        log_error "$(_t 'unknown option'): $1"
+        return "$SK_USAGE"
+        ;;
+      *)
+        if [ -n "$__dir" ]; then
+          log_error "$(_t 'only one target directory is allowed'): $1"
+          return "$SK_USAGE"
+        fi
+        __dir=$1
+        ;;
+    esac
+    shift
+  done
+
+  if [ -z "$__dir" ]; then
+    __dir="shellkit-demo"
+  fi
+  if [ -e "$__dir" ]; then
+    if [ ! -d "$__dir" ]; then
+      log_error "$(_t 'path exists and is not a directory'): $__dir"
+      return "$SK_PRECOND"
+    fi
+    log_error "$(_t 'target directory is not empty'): $__dir"
+    return "$SK_PRECOND"
+  fi
+  __name=$(basename "$__dir")
+  if ! _sk_valid_name "$__name"; then
+    log_error "$(_t 'invalid project name'): $__name"
+    return "$SK_USAGE"
+  fi
+
+  # 两个命令：让「加一个子命令 = 复制一个文件」这件事看得见
+  cmd_new "$__dir" --name "$__name" --cmd run --cmd status --yes || return $?
+
+  if [ "$__run" = "1" ]; then
+    __tmp=$(mktemp -d "${TMPDIR:-/tmp}/shellkit-demo.XXXXXX") || return "$SK_ERR"
+    if (cd "$__dir" && bash tests/run.sh) >"$__tmp/out" 2>&1; then
+      :
+    else
+      log_error "$(_t 'the demo project tests failed'): $__dir"
+      sed 's/^/    /' "$__tmp/out" >&2
+      rm -rf "$__tmp"
+      return "$SK_ERR"
+    fi
+    rm -rf "$__tmp"
+  fi
+
+  printf '\n'
+  printf '%s\n' "$(_t 'what just happened')"
+  printf '  %s\n' "$(_t 'a project skeleton was generated')"
+  printf '  %s\n' "$(_t 'the library travels with the project')"
+  if [ "$__run" = "1" ]; then
+    printf '  %s\n' "$(_t 'the project tests ran on the real binary')"
+  fi
+
+  printf '\n%s\n' "$(_t 'what is in the project')"
+  printf '  bin/%s\n' "$__name"
+  printf '  commands/run.sh\n'
+  printf '  commands/status.sh\n'
+  printf '  lib/app.sh\n'
+  printf '  vendor/shellkit/\n'
+  printf '  tests/run.sh\n'
+  printf '  Makefile\n'
+  printf '  AGENTS.md\n'
+
+  printf '\n%s\n' "$(_t 'what to try next')"
+  printf '  cd %s\n' "$__dir"
+  printf '  ./bin/%s --help\n' "$__name"
+  printf '  ./bin/%s run\n' "$__name"
+  printf '  make test\n'
+  printf '  shellkit upgrade %s\n' "$__dir"
+
+  printf '\n%s\n' "$(_t 'where to read more')"
+  printf '  https://yi-nology.github.io/shellkit/\n'
+  printf '  docs/REFERENCE.md\n'
+  printf '  skills/shellkit/SKILL.md\n'
+  return "$SK_OK"
+}
+
+# ---------- skill ----------
+#
+# 把 shellkit 的 AI skill 装进客户端的 skills 目录。
+#
+# 客户端的目录约定不是 shellkit 能定的，所以：
+#   - 已知的那几家走一张表（表随版本加，不影响别人）
+#   - 表里没有的用 --dir 指定
+#   - 位置仍然不确定就用 print 打印出来手动贴
+#
+# 只往**已经存在**的客户端根目录里装：不替用户凭空造一个 ~/.cursor。
+# 目标已经是软链就放过它 —— 跟着软链写会写到别处去（坑 8）。
+
+# _sk_skill_clients —— 已知客户端：名字 空格 目录
+# 解析时用 read -r 名字 目录：最后一个变量拿到整行剩余部分，路径里带空格也不会散。
+_sk_skill_clients() {
+  printf '%s %s\n' claude "$HOME/.claude/skills"
+  printf '%s %s\n' codex "$HOME/.codex/skills"
+  printf '%s %s\n' mcode "$HOME/.minimax/skills"
+  printf '%s %s\n' opencode "$HOME/.config/opencode/skill"
+  printf '%s %s\n' cursor "$HOME/.cursor/skills"
+  printf '%s %s\n' gemini "$HOME/.gemini/skills"
+  printf '%s %s\n' windsurf "$HOME/.codeium/windsurf/skills"
+}
+
+# _sk_skill_client_known NAME —— 这个客户端在表里吗
+_sk_skill_client_known() {
+  local __want=$1 __name __c
+  while read -r __name __c || [ -n "$__name" ]; do
+    if [ "$__name" = "$__want" ]; then
+      return 0
+    fi
+  done < <(_sk_skill_clients)
+  return 1
+}
+
+# _sk_skill_src —— skill 包所在目录；没有就返回 1
+_sk_skill_src() {
+  if [ -d "$SELF_DIR/skills/shellkit" ]; then
+    printf '%s' "$SELF_DIR/skills/shellkit"
+    return 0
+  fi
+  return 1
+}
+
+# _sk_skill_version —— 当前 shellkit 的版本号（装好的副本里也有 VERSION）
+_sk_skill_version() {
+  if [ -r "$SELF_DIR/VERSION" ]; then
+    tr -d '[:space:]' <"$SELF_DIR/VERSION"
+    return 0
+  fi
+  return 1
+}
+
+# _sk_skill_install_into DIR —— 把 skill 包装进 DIR/shellkit
+#   0 = 装好了；1 = 没装成
+_sk_skill_install_into() {
+  local __dir=$1 __src __dst __f
+  __src=$(_sk_skill_src) || return 1
+  __dst="$__dir/shellkit"
+
+  # 目标已经是软链：既不跟着写穿，也不替换它（cp 会顺着软链写穿 —— 坑 8）
+  if [ -L "$__dst" ]; then
+    log_warn "$(_t 'the target is a symlink, left alone'): $__dst"
+    return 1
+  fi
+  if [ -e "$__dst" ] && [ ! -d "$__dst" ]; then
+    log_warn "$(_t 'the target exists and is not a directory'): $__dst"
+    return 1
+  fi
+  if [ ! -f "$__src/SKILL.md" ]; then
+    log_warn "$(_t 'the skill package is incomplete'): $__src"
+    return 1
+  fi
+
+  fs_ensure_dir "$__dst/references" 755 || return 1
+  # 逐字节搬，且是原子替换：rename 换掉的是软链本身，不会顺着链接写到别处
+  fs_atomic_copy "$__src/SKILL.md" "$__dst/SKILL.md" 644 || return 1
+  for __f in "$__src"/references/*; do
+    [ -f "$__f" ] || continue
+    fs_atomic_copy "$__f" "$__dst/references/$(basename "$__f")" 644 || return 1
+  done
+  # 版本号跟着走：list 才知道装的是哪一版
+  if [ -f "$SELF_DIR/VERSION" ]; then
+    fs_atomic_copy "$SELF_DIR/VERSION" "$__dst/VERSION" 644 || return 1
+  fi
+  return 0
+}
+
+# _sk_skill_uninstall_from DIR —— 卸掉 DIR/shellkit 里我们装的那些文件
+#   0 = 卸干净了（或本来就没装）；1 = 没卸成
+_sk_skill_uninstall_from() {
+  local __dir=$1 __dst __f
+  __dst="$__dir/shellkit"
+  [ -e "$__dst" ] || return 0
+  if [ -L "$__dst" ]; then
+    log_warn "$(_t 'the target is a symlink, left alone'): $__dst"
+    return 1
+  fi
+  [ -d "$__dst" ] || return 1
+  # 只删我们装过的那些文件：目录里可能是用户自己加的东西
+  rm -f "$__dst/SKILL.md" "$__dst/VERSION" || return 1
+  if [ -L "$__dst/references" ]; then
+    log_warn "$(_t 'the target is a symlink, left alone'): $__dst/references"
+  else
+    for __f in "$__dst"/references/*; do
+      [ -f "$__f" ] || continue
+      rm -f "$__f" || return 1
+    done
+    rmdir "$__dst/references" 2>/dev/null || true
+  fi
+  rmdir "$__dst" 2>/dev/null || true
+  return 0
+}
+
+# _sk_skill_list —— 列出已知客户端与当前状态
+_sk_skill_list() {
+  local __name __c __v __cur
+  __cur=$(_sk_skill_version 2>/dev/null || true)
+  printf '%s:\n' "$(_t 'known AI clients')"
+  while read -r __name __c || [ -n "$__name" ]; do
+    [ -n "$__name" ] || continue
+    __v=""
+    if [ -f "$__c/shellkit/VERSION" ]; then
+      __v=$(tr -d '[:space:]' <"$__c/shellkit/VERSION" 2>/dev/null || true)
+    fi
+    if [ -n "$__v" ]; then
+      if [ -n "$__cur" ] && [ "$__v" != "$__cur" ]; then
+        printf '  %-10s %-44s %s\n' "$__name" "$__c" "$(_t 'installed') $__v ($(_t 'older version'))"
+      else
+        printf '  %-10s %-44s %s\n' "$__name" "$__c" "$(_t 'installed') $__v"
+      fi
+    elif [ -d "$__c/shellkit" ]; then
+      printf '  %-10s %-44s %s\n' "$__name" "$__c" "$(_t 'installed')"
+    else
+      printf '  %-10s %-44s %s\n' "$__name" "$__c" "$(_t 'not installed')"
+    fi
+  done < <(_sk_skill_clients)
+  printf '\n%s\n' "$(_t 'the client directory is a convention of each client; use --dir if it is wrong')"
+}
+
+# _sk_skill_install CLIENT DIR —— 装到目标目录
+_sk_skill_install() {
+  local __client=$1 __dir=$2
+  local __name __c __n=0 __ok=0
+
+  if [ -n "$__dir" ]; then
+    if ! _sk_skill_install_into "$__dir"; then
+      return "$SK_PRECOND"
+    fi
+    log_ok "$(_t 'installed the skill into'): $__dir/shellkit"
+    return "$SK_OK"
+  fi
+
+  if [ -n "$__client" ] && ! _sk_skill_client_known "$__client"; then
+    log_error "$(_t 'unknown AI client'): $__client"
+    return "$SK_USAGE"
+  fi
+
+  while read -r __name __c || [ -n "$__name" ]; do
+    [ -n "$__name" ] || continue
+    if [ -n "$__client" ] && [ "$__name" != "$__client" ]; then
+      continue
+    fi
+    # 客户端根目录都不在，就不替用户凭空造一个
+    if [ ! -d "$(dirname "$__c")" ]; then
+      continue
+    fi
+    __n=$((__n + 1))
+    if _sk_skill_install_into "$__c"; then
+      __ok=$((__ok + 1))
+      log_ok "$(_t 'installed the skill into'): $__c/shellkit"
+    fi
+  done < <(_sk_skill_clients)
+
+  if [ "$__n" -eq 0 ]; then
+    log_error "$(_t 'no AI client directory found; use --dir')"
+    return "$SK_PRECOND"
+  fi
+  if [ "$__ok" -eq 0 ]; then
+    return "$SK_PRECOND"
+  fi
+  return "$SK_OK"
+}
+
+# _sk_skill_uninstall CLIENT DIR —— 从目标目录卸掉
+_sk_skill_uninstall() {
+  local __client=$1 __dir=$2
+  local __name __c __n=0 __ok=0
+
+  if [ -n "$__dir" ]; then
+    if ! _sk_skill_uninstall_from "$__dir"; then
+      return "$SK_PRECOND"
+    fi
+    log_ok "$(_t 'removed the skill from'): $__dir/shellkit"
+    return "$SK_OK"
+  fi
+
+  if [ -n "$__client" ] && ! _sk_skill_client_known "$__client"; then
+    log_error "$(_t 'unknown AI client'): $__client"
+    return "$SK_USAGE"
+  fi
+
+  while read -r __name __c || [ -n "$__name" ]; do
+    [ -n "$__name" ] || continue
+    if [ -n "$__client" ] && [ "$__name" != "$__client" ]; then
+      continue
+    fi
+    [ -d "$__c" ] || continue
+    __n=$((__n + 1))
+    if _sk_skill_uninstall_from "$__c"; then
+      __ok=$((__ok + 1))
+      log_ok "$(_t 'removed the skill from'): $__c/shellkit"
+    fi
+  done < <(_sk_skill_clients)
+
+  if [ "$__n" -eq 0 ]; then
+    log_error "$(_t 'no AI client directory found; use --dir')"
+    return "$SK_PRECOND"
+  fi
+  if [ "$__ok" -eq 0 ]; then
+    return "$SK_PRECOND"
+  fi
+  return "$SK_OK"
+}
+
+# _sk_skill_print —— 把 SKILL.md 打到 stdout（stdout 只给数据）
+_sk_skill_print() {
+  local __src
+  __src=$(_sk_skill_src) || {
+    log_error "$(_t 'this copy has no skill package'): $SELF_DIR"
+    return "$SK_PRECOND"
+  }
+  if [ ! -f "$__src/SKILL.md" ]; then
+    log_error "$(_t 'the skill package is incomplete'): $__src"
+    return "$SK_PRECOND"
+  fi
+  cat "$__src/SKILL.md"
+}
+
+# cmd_skill —— skill list|install|uninstall|print
+cmd_skill() {
+  local __action="" __dir="" __client=""
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      -h | --help)
+        cli_usage_cmd skill
+        return "$SK_OK"
+        ;;
+      --dir)
+        shift
+        if [ "$#" -eq 0 ]; then
+          log_error "$(_t 'option requires a value'): --dir"
+          return "$SK_USAGE"
+        fi
+        __dir=$1
+        ;;
+      --dir=*)
+        __dir="${1#*=}"
+        ;;
+      --client)
+        shift
+        if [ "$#" -eq 0 ]; then
+          log_error "$(_t 'option requires a value'): --client"
+          return "$SK_USAGE"
+        fi
+        __client=$1
+        ;;
+      --client=*)
+        __client="${1#*=}"
+        ;;
+      list | install | uninstall | print)
+        if [ -n "$__action" ]; then
+          log_error "$(_t 'only one action is allowed'): $1"
+          return "$SK_USAGE"
+        fi
+        __action=$1
+        ;;
+      -*)
+        log_error "$(_t 'unknown option'): $1"
+        return "$SK_USAGE"
+        ;;
+      *)
+        if [ -n "$__client" ]; then
+          log_error "$(_t 'only one client is allowed'): $1"
+          return "$SK_USAGE"
+        fi
+        __client=$1
+        ;;
+    esac
+    shift
+  done
+
+  [ -n "$__action" ] || __action=list
+
+  case "$__action" in
+    list)
+      _sk_skill_list
+      return "$SK_OK"
+      ;;
+    install)
+      _sk_skill_install "$__client" "$__dir"
+      return $?
+      ;;
+    uninstall)
+      _sk_skill_uninstall "$__client" "$__dir"
+      return $?
+      ;;
+    print)
+      _sk_skill_print
+      return $?
+      ;;
+  esac
+  return "$SK_USAGE"
 }
 
 # ---------- 安装 / 卸载 / 更新 ----------
@@ -1540,8 +2614,17 @@ _sk_running_prefix() {
 # _sk_copy_tree SRC DST —— 整目录替换
 # cp -R 的坑：DST 已存在时会把 SRC 塞成 DST/SRC（二次安装就多一层 lib/lib），
 # 所以先删。${__dst:?} 是安全阀：变量异常为空时绝不让 rm 落到 /lib 上。
+# 同一性护栏：SRC 与 DST 解析后是同一个目录时直接返回 —— 「先删后拷」删掉的
+# 正是运行中的源，cp 必然失败，安装当场半残（issue #30）。
 _sk_copy_tree() {
-  local __src=$1 __dst=$2
+  local __src=$1 __dst=$2 __src_real __dst_real
+  if [ -d "$__src" ] && [ -d "$__dst" ]; then
+    __src_real=$(cd -P "$__src" 2>/dev/null && pwd) || return 1
+    __dst_real=$(cd -P "$__dst" 2>/dev/null && pwd) || return 1
+    if [ "$__src_real" = "$__dst_real" ]; then
+      return 0
+    fi
+  fi
   if [ -e "$__dst" ]; then
     rm -rf "${__dst:?}" || return 1
   fi
@@ -1598,7 +2681,7 @@ _sk_tree_version() {
 }
 
 cmd_install_self() {
-  local __prefix="/usr/local" __dest __bin
+  local __prefix="/usr/local" __dest __bin __stage __old __rbin
   while [ "$#" -gt 0 ]; do
     case "$1" in
       --prefix)
@@ -1636,51 +2719,159 @@ cmd_install_self() {
     return "$SK_PRECOND"
   fi
 
+  # 安装不是就地改：整份副本先铺进 stage，再用两次 rename 整体换上去 ——
+  # 与 _sk_vendor_install 同一套做法（写文件必原子）。就地逐棵树「先删后拷」
+  # 有两类自毁场景（issue #30）：
+  #   - 「从装好的副本重装同一个 prefix」时，被删的正是正在运行的源，cp 必然失败；
+  #   - 中途失败（磁盘满、权限）留下半份库，没有任何回滚。
+  # 换上去的动作是 rename，旧副本在新的完整就位之前一个字节都不会动；
+  # 失败时把旧的挪回去，安装保持可用。
+  __stage="$__dest.new"
+  __old="$__dest.old"
+  # 中断恢复 + 残骸清理：与 _sk_vendor_install 同一族洞 —— 两次 rename
+  # 之间被杀时 $__old 是唯一完整的旧副本，先恢复再清理，别把好副本删掉。
+  if [ -e "$__old" ]; then
+    if [ ! -f "$__dest/lib/bootstrap.sh" ]; then
+      log_warn "$(_t 'recovering the installed copy after an interrupted swap'): $__old"
+      rm -rf "$__dest" 2>/dev/null || true
+      mv "$__old" "$__dest" || return "$SK_ERR"
+    fi
+  fi
+  rm -rf "$__stage" "$__old" 2>/dev/null || true
+  fs_ensure_dir "$__stage" 755 || return "$SK_PRECOND"
+
   log_section "$(_t 'installing'): $__dest"
-  _sk_copy_tree "$SELF_DIR/lib" "$__dest/lib" || return "$SK_ERR"
-  _sk_copy_tree "$SELF_DIR/templates" "$__dest/templates" || return "$SK_ERR"
-  _sk_copy_tree "$SELF_DIR/locale" "$__dest/locale" || return "$SK_ERR"
+  _sk_copy_tree "$SELF_DIR/lib" "$__stage/lib" || {
+    rm -rf "$__stage" 2>/dev/null || true
+    return "$SK_ERR"
+  }
+  _sk_copy_tree "$SELF_DIR/templates" "$__stage/templates" || {
+    rm -rf "$__stage" 2>/dev/null || true
+    return "$SK_ERR"
+  }
+  _sk_copy_tree "$SELF_DIR/locale" "$__stage/locale" || {
+    rm -rf "$__stage" 2>/dev/null || true
+    return "$SK_ERR"
+  }
   # 只装得进源码树里真有的东西：vendor 出来的副本可能没有 skills/
   if [ -d "$SELF_DIR/skills" ]; then
-    _sk_copy_tree "$SELF_DIR/skills" "$__dest/skills" || return "$SK_ERR"
+    _sk_copy_tree "$SELF_DIR/skills" "$__stage/skills" || {
+      rm -rf "$__stage" 2>/dev/null || true
+      return "$SK_ERR"
+    }
   fi
   # tools/ 与 docs/ 是文档门禁的输入：少了它们，装完的副本第一次跑 docs 就会崩
   if [ -d "$SELF_DIR/tools" ]; then
-    _sk_copy_tree "$SELF_DIR/tools" "$__dest/tools" || return "$SK_ERR"
+    _sk_copy_tree "$SELF_DIR/tools" "$__stage/tools" || {
+      rm -rf "$__stage" 2>/dev/null || true
+      return "$SK_ERR"
+    }
   fi
   if [ -d "$SELF_DIR/docs" ]; then
-    _sk_copy_tree "$SELF_DIR/docs" "$__dest/docs" || return "$SK_ERR"
+    _sk_copy_tree "$SELF_DIR/docs" "$__stage/docs" || {
+      rm -rf "$__stage" 2>/dev/null || true
+      return "$SK_ERR"
+    }
   fi
   # tests/ 必须一起装：`shellkit new` 会把 tests/test_helper.sh 与 tests/run.sh
   # 拷进新工程，装好的副本里没有它们，新工程 make test 必然 127（issue #28）。
   if [ -d "$SELF_DIR/tests" ]; then
-    _sk_copy_tree "$SELF_DIR/tests" "$__dest/tests" || return "$SK_ERR"
+    _sk_copy_tree "$SELF_DIR/tests" "$__stage/tests" || {
+      rm -rf "$__stage" 2>/dev/null || true
+      return "$SK_ERR"
+    }
   fi
   if [ -f "$SELF_DIR/AGENTS.md" ]; then
-    cp -f "$SELF_DIR/AGENTS.md" "$__dest/AGENTS.md" || return "$SK_ERR"
+    cp -f "$SELF_DIR/AGENTS.md" "$__stage/AGENTS.md" || {
+      rm -rf "$__stage" 2>/dev/null || true
+      return "$SK_ERR"
+    }
   fi
-  cp -f "$SELF_DIR/VERSION" "$__dest/VERSION" || return "$SK_ERR"
+  cp -f "$SELF_DIR/VERSION" "$__stage/VERSION" || {
+    rm -rf "$__stage" 2>/dev/null || true
+    return "$SK_ERR"
+  }
   # MIT 许可证要求「副本里带上版权声明」：装出来的副本也必须带 LICENSE 与 NOTICE
-  _sk_copy_legal "$__dest" || return "$SK_ERR"
-  cp -f "$SELF_DIR/shellkit" "$__dest/shellkit" || return "$SK_ERR"
-  chmod 755 "$__dest/shellkit" || return "$SK_ERR"
+  _sk_copy_legal "$__stage" || {
+    rm -rf "$__stage" 2>/dev/null || true
+    return "$SK_ERR"
+  }
+  cp -f "$SELF_DIR/shellkit" "$__stage/shellkit" || {
+    rm -rf "$__stage" 2>/dev/null || true
+    return "$SK_ERR"
+  }
+  chmod 755 "$__stage/shellkit" || {
+    rm -rf "$__stage" 2>/dev/null || true
+    return "$SK_ERR"
+  }
+  # 修复脚本随安装一起落地：装到一半被打断时 CLI 起不来，
+  # 唯一还能救它的就是这份不依赖任何库的 repair.sh ——
+  # 它也在 .old 副本里（那次 rename 之前它已经就位了）。
+  if [ -f "$SELF_DIR/repair.sh" ]; then
+    cp -f "$SELF_DIR/repair.sh" "$__stage/repair.sh" || {
+      rm -rf "$__stage" 2>/dev/null || true
+      return "$SK_ERR"
+    }
+    chmod 755 "$__stage/repair.sh" || {
+      rm -rf "$__stage" 2>/dev/null || true
+      return "$SK_ERR"
+    }
+  fi
 
-  if ! _sk_manifest_write "$__dest"; then
+  if ! _sk_manifest_write "$__stage"; then
     log_error "$(_t 'failed to write the install manifest'): $__dest/MANIFEST"
+    rm -rf "$__stage" 2>/dev/null || true
     return "$SK_ERR"
   fi
 
-  rm -f "$__bin"
-  if ! ln -s "$__dest/shellkit" "$__bin"; then
+  # 换上去：旧的挪开、新的挪进来。两次 rename 都在同一个文件系统里。
+  # 正跑在装好的副本上时（SELF_DIR == __dest），被挪开的正是运行中的目录 ——
+  # 脚本靠已打开的 fd 继续执行，rename 不影响它；这正是 vendor 自同步已验证过的路径。
+  if [ -e "$__dest" ] || [ -L "$__dest" ]; then
+    if ! mv "$__dest" "$__old"; then
+      rm -rf "$__stage" 2>/dev/null || true
+      return "$SK_ERR"
+    fi
+  fi
+  if ! mv "$__stage" "$__dest"; then
+    # 换不上去就把旧的挪回去，别让机器变成「没有 shellkit」的状态
+    if [ -e "$__old" ]; then
+      mv "$__old" "$__dest" 2>/dev/null || true
+    fi
+    rm -rf "$__stage" 2>/dev/null || true
+    return "$SK_ERR"
+  fi
+  rm -rf "$__old" 2>/dev/null || true
+
+  # 软链也走临时名 + rename：rm 再 ln 中间有个「bin 里没有 shellkit」的窗口
+  rm -f "$__bin.tmp.$$" 2>/dev/null || true
+  if ! ln -s "$__dest/shellkit" "$__bin.tmp.$$"; then
+    rm -f "$__bin.tmp.$$" 2>/dev/null || true
     log_error "$(_t 'failed to create symlink'): $__bin"
     return "$SK_ERR"
   fi
+  mv -f "$__bin.tmp.$$" "$__bin" || {
+    rm -f "$__bin.tmp.$$" 2>/dev/null || true
+    log_error "$(_t 'failed to create symlink'): $__bin"
+    return "$SK_ERR"
+  }
   log_ok "$(_t 'installed'): $__bin"
+  # 修复入口也挂一个：CLI 坏掉时它指向的那份副本可能已经没了，
+  # 但 $PREFIX/share/shellkit.old/repair.sh 一定还在（见 repair.sh 自己的说明）。
+  if [ -f "$__dest/repair.sh" ]; then
+    __rbin="$__prefix/bin/shellkit-repair"
+    rm -f "$__rbin.tmp.$$" 2>/dev/null || true
+    if ln -s "$__dest/repair.sh" "$__rbin.tmp.$$"; then
+      mv -f "$__rbin.tmp.$$" "$__rbin" 2>/dev/null || rm -f "$__rbin.tmp.$$" 2>/dev/null || true
+    else
+      rm -f "$__rbin.tmp.$$" 2>/dev/null || true
+    fi
+  fi
   return "$SK_OK"
 }
 
 cmd_uninstall_self() {
-  local __prefix __run __dest __bin __line __path __n=0 __fail=0 __link
+  local __prefix __run __dest __bin __line __path __n=0 __fail=0 __link __rbin
   __run=$(_sk_running_prefix)
   __prefix=${__run:-/usr/local}
   while [ "$#" -gt 0 ]; do
@@ -1756,6 +2947,16 @@ cmd_uninstall_self() {
     esac
   elif [ -e "$__bin" ]; then
     log_warn "$(_t 'left the file alone, it is not a symlink'): $__bin"
+  fi
+
+  # 修复入口的软链同样要收掉
+  __rbin="$__prefix/bin/shellkit-repair"
+  if [ -L "$__rbin" ]; then
+    __link=$(readlink "$__rbin")
+    case "$__link" in
+      "$__dest" | "$__dest"/*) rm -f "$__rbin" ;;
+      *) log_warn "$(_t 'left the symlink alone, it points elsewhere'): $__rbin" ;;
+    esac
   fi
 
   log_ok "$(_t 'removed'): $__n $(_t 'files')"
