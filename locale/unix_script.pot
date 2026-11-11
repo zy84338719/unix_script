@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 09:42+0800\n"
+"POT-Creation-Date: 2026-11-11 09:46+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -398,6 +398,61 @@ msgstr ""
 
 #, sh-printf-format
 msgid "Unknown action: %s"
+msgstr ""
+
+msgid "CasaOS is Linux-only. Current: "
+msgstr ""
+
+msgid "Detected CasaOS installed"
+msgstr ""
+
+msgid ""
+"Port 80 is already in use (nginx/caddy/other Web services), CasaOS uses port "
+"80 by default, which may conflict."
+msgstr ""
+
+msgid "Still continue installing?"
+msgstr ""
+
+msgid ""
+"Running official installer (installs Docker dependencies, takes several "
+"minutes)..."
+msgstr ""
+
+msgid "Party popper CasaOS installation complete!"
+msgstr ""
+
+#, sh-printf-format
+msgid "Access URL: http://%s:%s (create local admin account on first visit)"
+msgstr ""
+
+msgid ""
+"If port 80 is occupied by another Web service, change it in CasaOS settings."
+msgstr ""
+
+msgid ""
+"Installer ran but casaos was not detected — check the output above to "
+"confirm the result."
+msgstr ""
+
+msgid "CasaOS is not installed, nothing to uninstall."
+msgstr ""
+
+msgid ""
+"The official uninstall script will stop and remove all casaos services; "
+"created apps (Docker containers) and data are kept by default."
+msgstr ""
+
+msgid "Confirm uninstall of CasaOS?"
+msgstr ""
+
+msgid "CasaOS uninstalled."
+msgstr ""
+
+msgid "Install CasaOS (home cloud/NAS panel, default port 80, Linux only)"
+msgstr ""
+
+msgid "Uninstall CasaOS (Docker apps and data kept)"
 msgstr ""
 
 msgid "Detected installed Docker"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 09:42+0800\n"
+"POT-Creation-Date: 2026-11-11 09:46+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
@@ -116,7 +116,6 @@ msgid ""
 "BT Panel officially requires a clean system (it installs its own Nginx/"
 "Apache/MySQL/PHP, which may conflict with existing services)."
 msgstr ""
-"宝塔官方要求在纯净系统上安装（会自建 Nginx/Apache/MySQL/PHP，易端口冲突）。"
 
 msgid "Still continue installing BT Panel?"
 msgstr "仍要继续安装宝塔面板？"
@@ -165,8 +164,6 @@ msgid ""
 "Will stop the panel and delete: /etc/init.d/bt, bt command, /www/server/"
 "panel (panel and software environment)."
 msgstr ""
-"将停止面板并删除：/etc/init.d/bt、bt 命令、/www/server/panel（面板与软件环"
-"境）。"
 
 msgid ""
 "Site data /www/wwwroot, logs /www/wwwlogs and database directories are kept "
@@ -392,6 +389,65 @@ msgstr "显示本帮助"
 msgid "Unknown action: %s"
 msgstr "未知操作: "
 
+msgid "CasaOS is Linux-only. Current: "
+msgstr "CasaOS 仅支持 Linux。当前："
+
+msgid "Detected CasaOS installed"
+msgstr "检测到 CasaOS 已安装"
+
+msgid ""
+"Port 80 is already in use (nginx/caddy/other Web services), CasaOS uses port "
+"80 by default, which may conflict."
+msgstr ""
+"80 端口已被占用（nginx/caddy/其他 Web 服务），CasaOS 默认使用 80 端口，可能冲"
+"突。"
+
+msgid "Still continue installing?"
+msgstr "仍要继续安装？"
+
+msgid ""
+"Running official installer (installs Docker dependencies, takes several "
+"minutes)..."
+msgstr "执行官方安装脚本（会安装 Docker 相关依赖，耗时数分钟）..."
+
+msgid "Party popper CasaOS installation complete!"
+msgstr "🎉 CasaOS 安装完成！"
+
+#, sh-printf-format
+msgid "Access URL: http://%s:%s (create local admin account on first visit)"
+msgstr "访问地址：http://%s:%s（首次访问创建本地管理员账号）"
+
+msgid ""
+"If port 80 is occupied by another Web service, change it in CasaOS settings."
+msgstr "若 80 端口被其他 Web 服务占用，请在 CasaOS 设置中修改端口。"
+
+msgid ""
+"Installer ran but casaos was not detected — check the output above to "
+"confirm the result."
+msgstr "安装脚本已执行，但未检测到 casaos——请检查上方输出确认安装结果。"
+
+msgid "CasaOS is not installed, nothing to uninstall."
+msgstr "CasaOS 未安装，无需卸载。"
+
+msgid ""
+"The official uninstall script will stop and remove all casaos services; "
+"created apps (Docker containers) and data are kept by default."
+msgstr ""
+"官方卸载脚本会停止并移除 casaos 全家桶服务；已创建的应用（Docker 容器）与数据"
+"默认保留。"
+
+msgid "Confirm uninstall of CasaOS?"
+msgstr "确认卸载 CasaOS？"
+
+msgid "CasaOS uninstalled."
+msgstr "CasaOS 已卸载。"
+
+msgid "Install CasaOS (home cloud/NAS panel, default port 80, Linux only)"
+msgstr "安装 CasaOS（家庭云/NAS 面板，默认 80 端口，仅 Linux）"
+
+msgid "Uninstall CasaOS (Docker apps and data kept)"
+msgstr "卸载 CasaOS（Docker 应用与数据保留）"
+
 msgid "Detected installed Docker"
 msgstr "检测到已安装 Docker"
 
@@ -498,8 +554,6 @@ msgid ""
 "Also delete all images/containers/volumes (/var/lib/docker, /var/lib/"
 "containerd)? This is irreversible!"
 msgstr ""
-"是否同时删除所有镜像/容器/卷（/var/lib/docker, /var/lib/containerd）？此操作"
-"不可逆！"
 
 msgid "Data directory deleted."
 msgstr "数据目录已删除。"
@@ -518,8 +572,6 @@ msgid ""
 "Docker not detected. The registry mirror configuration will only take effect "
 "after Docker is installed and started."
 msgstr ""
-"未检测到 Docker。镜像加速器配置写入 /etc/docker/daemon.json 后需安装并启动 "
-"Docker 才会生效。"
 
 msgid "Still continue?"
 msgstr "仍然继续？"

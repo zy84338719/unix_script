@@ -24,11 +24,11 @@ CASAOS_PORT=80
 preflight() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        error "CasaOS 仅支持 Linux。当前：${OS_TYPE}"
+        error "$(_t 'CasaOS is Linux-only. Current: ')\${OS_TYPE}"
         exit 1
     fi
     if ! command_exists systemctl; then
-        error "需要 systemctl（systemd）。"
+        error "$(_t 'systemctl (systemd) is required.')"
         exit 1
     fi
 }
@@ -50,7 +50,7 @@ fetch_to() {
     elif command_exists wget; then
         wget -qO "$out" "$url"
     else
-        error "需要 curl 或 wget 之一，请先安装。"
+        error "$(_t 'Either curl or wget is required, please install one first.')"
         return 1
     fi
 }
@@ -60,16 +60,16 @@ install_casaos() {
     require_sudo
 
     if is_installed; then
-        warn "检测到 CasaOS 已安装"
-        if ! yes_no "是否继续并重装/更新？"; then
-            info "已取消"; return 0
+        warn "$(_t 'Detected CasaOS installed')"
+        if ! yes_no "$(_t 'Continue and reinstall/update?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
     fi
 
     if port_in_use "${CASAOS_PORT}"; then
-        warn "80 端口已被占用（nginx/caddy/其他 Web 服务），CasaOS 默认使用 80 端口，可能冲突。"
-        if ! yes_no "仍要继续安装？"; then
-            info "已取消"; return 0
+        warn "$(_t 'Port 80 is already in use (nginx/caddy/other Web services), CasaOS uses port 80 by default, which may conflict.')"
+        if ! yes_no "$(_t 'Still continue installing?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
     fi
 
@@ -78,20 +78,20 @@ install_casaos() {
     # shellcheck disable=SC2064  # tmp 在本函数内不再变，展开一次即可
     trap "rm -f '$tmp'" RETURN
 
-    info "下载官方安装脚本（${CASAOS_INSTALL_URL}）..."
+    info "$(_t 'Downloading official installer (')\${CASAOS_INSTALL_URL}$(_t ')...')"
     fetch_to "${CASAOS_INSTALL_URL}" "$tmp"
-    info "执行官方安装脚本（会安装 Docker 相关依赖，耗时数分钟）..."
+    info "$(_t 'Running official installer (installs Docker dependencies, takes several minutes)...')"
     sudo bash "$tmp"
 
     echo
     if is_installed; then
-        success "🎉 CasaOS 安装完成！"
+        success "$(_t 'Party popper CasaOS installation complete!')"
         local ip_addr
         ip_addr=$(get_local_ip)
-        info "访问地址：http://${ip_addr}:${CASAOS_PORT}（首次访问创建本地管理员账号）"
-        warn "若 80 端口被其他 Web 服务占用，请在 CasaOS 设置中修改端口。"
+        info "$(printf "$(_t 'Access URL: http://%s:%s (create local admin account on first visit)')" "${ip_addr}" "${CASAOS_PORT}")"
+        warn "$(_t 'If port 80 is occupied by another Web service, change it in CasaOS settings.')"
     else
-        warn "安装脚本已执行，但未检测到 casaos——请检查上方输出确认安装结果。"
+        warn "$(_t 'Installer ran but casaos was not detected — check the output above to confirm the result.')"
     fi
 }
 
@@ -99,12 +99,12 @@ uninstall_casaos() {
     preflight
     require_sudo
     if ! is_installed; then
-        warn "CasaOS 未安装，无需卸载。"
+        warn "$(_t 'CasaOS is not installed, nothing to uninstall.')"
         return 0
     fi
-    warn "官方卸载脚本会停止并移除 casaos 全家桶服务；已创建的应用（Docker 容器）与数据默认保留。"
-    if ! yes_no "确认卸载 CasaOS？"; then
-        info "已取消"; return 0
+    warn "$(_t 'The official uninstall script will stop and remove all casaos services; created apps (Docker containers) and data are kept by default.')"
+    if ! yes_no "$(_t 'Confirm uninstall of CasaOS?')"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
     local tmp
     tmp=$(mktemp /tmp/casaos_uninstall.XXXXXX.sh)
@@ -112,22 +112,22 @@ uninstall_casaos() {
     trap "rm -f '$tmp'" RETURN
     fetch_to "${CASAOS_UNINSTALL_URL}" "$tmp"
     sudo bash "$tmp"
-    success "CasaOS 已卸载。"
+    success "$(_t 'CasaOS uninstalled.')"
 }
 
 status_casaos() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return
+        emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"; return
     fi
     if ! is_installed; then
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
+        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
     fi
     if uxs_svc is-active casaos 2>/dev/null; then
-        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
+        emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
         emit_extra "port=${CASAOS_PORT}"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  已安装（服务未运行）${NC}"
+        emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed (service not running)')${NC}"
     fi
 }
 
@@ -135,9 +135,9 @@ usage() {
     cat <<EOF
 用法: $0 {install|uninstall|status|help}
 
-  install     安装 CasaOS（家庭云/NAS 面板，默认 80 端口，仅 Linux）
-  uninstall   卸载 CasaOS（Docker 应用与数据保留）
-  status      查看状态
+  install     $(_t 'Install CasaOS (home cloud/NAS panel, default port 80, Linux only)')
+  uninstall   $(_t 'Uninstall CasaOS (Docker apps and data kept)')
+  status      $(_t 'View status')
 EOF
 }
 
@@ -149,7 +149,7 @@ main() {
         uninstall) uninstall_casaos ;;
         status)    status_casaos ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: ${action}"; usage; exit 1 ;;
+        *) error "$(printf "$(_t 'Unknown action: %s')" "${action}")"; usage; exit 1 ;;
     esac
 }
 
