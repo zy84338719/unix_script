@@ -37,9 +37,7 @@ die() {
 # ubuntu 走 ubuntu 源、debian 走 debian 源；组件各 distro 不同
 #（ubuntu 有 universe/multiverse，debian 是 contrib/non-free）。
 apt_setup_mirrors() {
-  [ -w /etc/apt/sources.list.d ] || return 0
-  _f=/etc/apt/sources.list.d/uxs-fallback.list
-  [ -f "$_f" ] && return 0
+  [ -d /etc/apt ] || return 0
 
   _id=""
   _codename=""
@@ -63,11 +61,28 @@ apt_setup_mirrors() {
       ;;
   esac
 
-  {
-    printf 'deb http://mirrors.aliyun.com/%s/ %s %s\n' "$_suite" "$_codename" "$_comps"
-    printf 'deb http://mirrors.tuna.tsinghua.edu.cn/%s/ %s %s\n' "$_suite" "$_codename" "$_comps"
-  } >"$_f" 2>/dev/null || true
-  [ -f "$_f" ] && log "已挂上 apt 备用镜像（$_suite $_codename）"
+  # ① 把**指不到的源直接换掉**（只加不减是不行的）：
+  #    apt 会对解析失败的源反复重试（Ign → Ign → …），整个 update 拖到超时，
+  #    备用源明明有货也轮不到它（2026-11-11 实录：aliyun 的 InRelease 明明
+  #    拉下来了，update 还是超时）。
+  for _f in /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+    [ -f "$_f" ] || continue
+    sed -i \
+      -e 's|http://azure.archive.ubuntu.com/ubuntu/|http://mirrors.aliyun.com/ubuntu/|g' \
+      -e 's|https://azure.archive.ubuntu.com/ubuntu/|http://mirrors.aliyun.com/ubuntu/|g' \
+      -e 's|http://archive.ubuntu.com/ubuntu/|http://mirrors.aliyun.com/ubuntu/|g' \
+      -e 's|http://security.ubuntu.com/ubuntu/|http://mirrors.aliyun.com/ubuntu/|g' \
+      -e 's|http://deb.debian.org/debian/|http://mirrors.aliyun.com/debian/|g' \
+      -e 's|https://deb.debian.org/debian/|http://mirrors.aliyun.com/debian/|g' \
+      "$_f" 2>/dev/null || true
+  done
+
+  # ★ 只**替换 URL**，不新增源文件：
+  #   同一个 suite 再加一个经典格式的 .list（哪怕 URL 相同）会撞
+  #   「Conflicting values set for option Signed-By」—— deb822 的 .sources
+  #   已经给这个 suite 定了 Signed-By，.list 没有 ⇒ apt 直接拒绝读源列表。
+  #   替换 URL 则把原来的 Signed-By / Components 一并保留。
+  log "apt 源已指向备用镜像（$_suite $_codename）"
   return 0
 }
 
