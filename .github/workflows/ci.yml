@@ -32,9 +32,13 @@ jobs:
       - name: 安装 shellcheck
         shell: bash
         run: |
+          # gettext（xgettext/msgfmt）是「抽取完整性」门禁的硬依赖：没装它那道门禁
+          # 会跳过而不是判失败 ⇒ 覆盖率悄悄少一截。Linux 侧直接装上。
+          # macOS 的 gettext 是 keg-only（不进 PATH），装它也没用，那道门禁在 macOS 上
+          # 按设计跳过（Linux 侧才有真实覆盖）。
           if [ "${{ runner.os }}" = "Linux" ]; then
             sudo apt-get update
-            sudo apt-get install -y shellcheck
+            sudo apt-get install -y shellcheck gettext
           else
             brew install shellcheck
           fi
@@ -125,16 +129,22 @@ jobs:
         shell: sh
         run: |
           # RHEL 系：shellcheck 在 EPEL 仓库，先装 epel-release；Debian 系：apt 直装
+          #
+          # python3 / git / gettext 也是 static 阶段的硬依赖 —— 容器镜像里这三个默认都没有：
+          #   python3 —— 三道 i18n 门禁（串味 / 保真 / 抽取完整性）是 python 脚本
+          #   git     —— 保真门禁要 git show 读「迁移前」的基线提交
+          #   gettext —— xgettext/msgfmt，抽取完整性门禁拿它核对 pot 与译文
+          # 少装任何一个，那道门禁就不是「通过」而是「没跑」—— 容器里必须全装。
           if command -v dnf >/dev/null 2>&1; then
             dnf install -y -q epel-release
-            dnf install -y -q shellcheck bash
+            dnf install -y -q shellcheck bash python3 git gettext
           elif command -v yum >/dev/null 2>&1; then
             yum install -y -q epel-release
-            yum install -y -q shellcheck bash
+            yum install -y -q shellcheck bash python3 git gettext
           elif command -v apt-get >/dev/null 2>&1; then
             export DEBIAN_FRONTEND=noninteractive
             apt-get update -q
-            apt-get install -y -q shellcheck bash
+            apt-get install -y -q shellcheck bash python3 git gettext
           fi
 
       - name: 运行静态检查并生成报告

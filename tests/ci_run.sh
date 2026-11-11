@@ -79,6 +79,40 @@ assert() {
     fi
 }
 
+# assert_optional —— 允许「工具没装 ⇒ 这条没跑」的断言
+#
+# 退出码约定：0 = 通过；3 = 工具没装（本门禁没跑，记 skip）；其他 = 真有问题（记 fail）。
+#
+# 为什么要有它：有些门禁要 python3 / git 这类外部工具，而 CI 的容器矩阵用的是
+# 精简镜像（debian / alpine / centos… 默认都没有 python3）。没有它，那些 job 会被
+# 「工具没装」判红 —— 但那是环境缺件，不是代码有问题。
+#
+# ⚠️ skip 不等于通过：报告里记的是 ⏭️，一眼能看出「这条没跑」。真要保覆盖率，
+# 就在 CI 里把工具装上（static-container job 已装 python3 / git / gettext）。
+assert_optional() {
+    local name="$1"; shift
+    local log rc
+    log=$("$@" 2>&1) && rc=0 || rc=$?
+    case "$rc" in
+        0)
+            report_row "$name" pass
+            return 0
+            ;;
+        3)
+            local short
+            short=$(printf '%s' "$log" | tail -2 | tr '\n' ' ' | cut -c1-160)
+            report_row "$name" skip "${short:-工具没装，本门禁没跑}"
+            return 0
+            ;;
+        *)
+            local short
+            short=$(printf '%s' "$log" | tail -3 | tr '\n' ' ' | cut -c1-160)
+            report_row "$name" fail "$short"
+            return 1
+            ;;
+    esac
+}
+
 # 写报告头
 report_header() {
     local title="$1"
@@ -140,9 +174,9 @@ phase_static() {
     # 文案是 Stage 3 之后的硬约束：硬编码中文、译文串味、译文与原文对不上、
     # gettext 漏抽（静默回落英文）、占位符个数不一致 —— 五类都要在 CI 里拦。
     assert "i18n: 漂移（源码里无硬编码中文）" bash "$REPO_DIR/tools/check_i18n_drift.sh"
-    assert "i18n: 串味（译文没串到别的模块）" bash "$REPO_DIR/tools/check_i18n_cross.sh"
-    assert "i18n: 保真（译文与迁移前原文逐字对得上）" bash "$REPO_DIR/tools/check_i18n_equiv.sh"
-    assert "i18n: 抽取完整性（每条 msgid 都进了 pot 且有译文）" bash "$REPO_DIR/tools/check_i18n_extract.sh"
+    assert_optional "i18n: 串味（译文没串到别的模块）" bash "$REPO_DIR/tools/check_i18n_cross.sh"
+    assert_optional "i18n: 保真（译文与迁移前原文逐字对得上）" bash "$REPO_DIR/tools/check_i18n_equiv.sh"
+    assert_optional "i18n: 抽取完整性（每条 msgid 都进了 pot 且有译文）" bash "$REPO_DIR/tools/check_i18n_extract.sh"
     assert "i18n: 占位符个数一致" bash "$REPO_DIR/tests/unit_i18n.sh"
 
     report_footer
@@ -554,12 +588,12 @@ phase_routing() {
     # 串味是 msgmerge 的模糊匹配留下的：新增 msgid 被猜匹配到别的模块的旧条目上，
     # 译文表里留着「看着像对、其实属于别的模块」的句子 —— 用户直接看到别人的文案。
     assert "i18n: 占位符一致性单测全过" bash "$REPO_DIR/tests/unit_i18n.sh"
-    assert "i18n: 译文无串味" bash "$REPO_DIR/tools/check_i18n_cross.sh"
+    assert_optional "i18n: 译文无串味" bash "$REPO_DIR/tools/check_i18n_cross.sh"
     # 文案保真：译文必须与迁移前的原文对得上（不许漏字、不许吞 emoji）。
     # 这条门禁抓到过三类真缺陷：msgid 写对了但 msgstr 被灌成别的模块的说法
     # （caddy 的「服务状态：」显示成「查看状态」）、msgstr 少了字（docker 丢「当前」）、
     # 批量包装时把 🚀/🎉 当噪声删掉 —— 后者只在 install 路径上出现，help/status 比对查不到。
-    assert "i18n: 文案保真（译文与原文对得上）" bash "$REPO_DIR/tools/check_i18n_equiv.sh"
+    assert_optional "i18n: 文案保真（译文与原文对得上）" bash "$REPO_DIR/tools/check_i18n_equiv.sh"
 
     # CLI v2 的核心判据：旧扁平写法必须失败（退出码 2 = 用法错），且给迁移指引。
     # 没有这条断言，删旧 flag 这件事就没有判据能力 —— 旧写法悄悄还能用也没人知道。

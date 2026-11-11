@@ -14,6 +14,7 @@
 - `nvm` 卸载时用中文「nvm 配置」做 `sed` 匹配标记 ⇒ 中文 locale 的用户卸载后 rc 残留永远删不掉。改为只匹配语言无关标识（`NVM_DIR`/`nvm.sh`/`bash_completion`）
 - 9 处 `echo "$(_t …)"` 触发 shellcheck SC2005（CI 会红）⇒ 全改 `printf '%s\n'`；另有 4 处跨模块 msgid 撞车（同 msgid 对应不同中文，必有一错）⇒ msgid 改得更具体
 - macOS 上 CI routing 有一道断言恒红：正则是 ERE，源码里的字面 `||`（短路符）在 ERE 里是「空分支」—— BSD grep（macOS）直接报 `empty (sub)expression` 退出 2，GNU grep（Linux）却收下 ⇒ 同一份断言在两个平台判据能力不同。改成字符类写法（`[(]…[])` / `[|][|]`），两边行为一致
+- **CI 容器矩阵因三道 i18n 门禁判红**（新增门禁要 python3，而 debian / alpine / centos 等精简镜像默认没有）：容器 job 现在装上 `python3` / `git` / `gettext`（`gettext` 供 xgettext/msgfmt 核对 pot 与译文）；同时把「工具没装 ⇒ 本门禁没跑」从**失败**改成**可见的跳过**（门禁退出码 3 + 报告里记 ⏭️ 并写明原因），不让「没跑」冒充「通过」。这条同样覆盖最小镜像的 routing job（那里也跑串味/保真两道门禁）
 - `node_exporter` 停止旧服务可能漏掉 brew 装的那份：它在 `/opt/homebrew/bin`，非交互 shell 或别的账号下不在 PATH，原来的 `if ! command -v node_exporter; then return 0` 早返回会直接跳过停服，brew 服务的 9100 与新装进程冲突。改为独立探测 brew 服务状态；且改为**先问「是否继续」再停**，取消安装不会先把服务停了
 - `node_exporter` brew 路径读完版本后打印实际装上的版本，并在 brew 落后于官方最新 tag 时显式告警具体差距（`官方最新 vX / brew 当前提供 vY`）——Homebrew Core 同步上游有延迟，不报出来的话「已装到最新版」就是句空头承诺
 
