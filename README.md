@@ -428,10 +428,10 @@ source completions/uxs.zsh        # 或手动 source（zsh）
 
 | 分类 | 系统 | 镜像 / 版本 | 包管理 | CI |
 |------|------|-------------|--------|:--:|
-| 实机 | Ubuntu（runner 内置） | ubuntu-latest | apt | ❌ |
+| 实机 | Ubuntu（runner 内置） | ubuntu-latest | apt | ✅ |
 | 实机 | macOS（runner 内置） | macos-latest | brew | ✅ |
-| 容器 | Ubuntu 26.04 | `ubuntu:26.04` | apt | ❌ |
-| 容器 | Ubuntu 24.04 | `ubuntu:24.04` | apt | ❌ |
+| 容器 | Ubuntu 26.04 | `ubuntu:26.04` | apt | ✅ |
+| 容器 | Ubuntu 24.04 | `ubuntu:24.04` | apt | ✅ |
 | 容器 | Debian 12 | `debian:12` | apt | ✅ |
 | 容器 | Debian 13 | `debian:13` | apt | ✅ |
 | 容器 | Fedora | `fedora:latest` | dnf/yum | ✅ |
@@ -439,7 +439,7 @@ source completions/uxs.zsh        # 或手动 source（zsh）
 | 容器 | AlmaLinux 9 | `almalinux:9` | dnf/yum | ✅ |
 | 容器 | Rocky Linux 9 | `rockylinux:9` | dnf/yum | ✅ |
 | 容器 | openSUSE Leap 15.6 | `opensuse/leap:15.6` | zypper | ✅ |
-| 容器 | Arch Linux | `archlinux:latest` | pacman | ❌ |
+| 容器 | Arch Linux | `archlinux:latest` | pacman | ✅ |
 | 容器 | Alpine Linux | `alpine:latest` | apk | ✅ |
 | 国产化* | 银河麒麟 V10 SP3 | `docker.io/macrosan/kylin:v10-sp3-2403` | dnf/yum | ✅ |
 | 国产化* | 统信 UOS V20 | `docker.io/macrosan/uos:v20-1070` | dnf/yum | ✅ |
