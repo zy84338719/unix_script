@@ -332,8 +332,10 @@ phase_routing() {
 
     # 9c+. sys-setup：platform 拆分 + 换源矩阵（platform-abstraction 2026-08-28）
     assert "sys-setup: platform 五文件齐全" bash -c "for f in debian rhel suse arch alpine; do test -f \"$REPO_DIR/$ss_path/platform/\$f.sh\"; done"
-    assert "sys-setup: do_mirror 含预览确认" bash -c "grep -q '换源预览' \"$REPO_DIR/$ss_path/install.sh\""
-    assert "sys-setup: 非交互跳过逻辑" bash -c "grep -q '非交互环境' \"$REPO_DIR/$ss_path/install.sh\""
+    # 判据是「有预览步骤」与「有非交互跳过分支」，不是具体文案 ——
+    # 文案是本地化产物，i18n 迁移后源码里是英文 msgid（译文在 po 里）。
+    assert "sys-setup: do_mirror 含预览确认" bash -c "grep -qE 'do_mirror\(\)|_mirror_preview' \"$REPO_DIR/$ss_path/install.sh\""
+    assert "sys-setup: 非交互跳过逻辑" bash -c "grep -qE '\[\[ ! -t 0 \]\]' \"$REPO_DIR/$ss_path/install.sh\""
     assert "sys-setup: alma/rocky/fedora 模板指向实测可用站" bash -c "grep -q 'mirrors.aliyun.com/almalinux' \"$REPO_DIR/$ss_path/platform/rhel.sh\" && grep -q 'mirrors.ustc.edu.cn/rocky' \"$REPO_DIR/$ss_path/platform/rhel.sh\" && grep -q 'mirrors.tuna.tsinghua.edu.cn/fedora' \"$REPO_DIR/$ss_path/platform/rhel.sh\""
     assert "sys-setup: openEuler/Anolis sed 存在" bash -c "grep -q 'mirror.openeuler.org' \"$REPO_DIR/$ss_path/platform/rhel.sh\" && grep -q 'openanolis' \"$REPO_DIR/$ss_path/platform/rhel.sh\""
     assert "sys-setup: arch 分支含 archlinuxarm 与 uname -m" bash -c "grep -q 'archlinuxarm' \"$REPO_DIR/$ss_path/platform/arch.sh\" && grep -q 'uname -m' \"$REPO_DIR/$ss_path/platform/arch.sh\""
@@ -345,7 +347,9 @@ phase_routing() {
     assert "disk: .manifest 含 HAS_SUBMENU=disk" bash -c "grep -q '^HAS_SUBMENU=disk$' \"$REPO_DIR/$disk_path/.manifest\""
     assert "disk: DEFAULT_ACTION=list（非交互默认最安全）" bash -c "grep -q '^DEFAULT_ACTION=list$' \"$REPO_DIR/$disk_path/.manifest\""
     assert "disk: 系统盘硬拒绝护栏存在" bash -c "grep -q '_disk_is_protected()' \"$REPO_DIR/$disk_path/install.sh\""
-    assert "disk: 护栏拒绝非交互终端" bash -c "grep -qF '仅允许在交互终端执行' \"$REPO_DIR/$disk_path/install.sh\""
+    # 护栏的判据是「有非交互终端检查」，不是那句提示文案 —— 文案是本地化
+    # 产物，i18n 迁移后源码里是英文 msgid（译文在 po 里），按中文匹配会假红。
+    assert "disk: 护栏拒绝非交互终端" bash -c "grep -qE '\[\[ ! -t 0 \]\]' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: usage 子命令枚举完整（供 list --full/补全解析）" bash -c "grep -qF '{list|wizard|partition|format|mount|umount|fstab|smart|scan|wipe|install|uninstall|status|help}' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: smart 判定纯函数存在（可单测）" bash -c "grep -q '_smart_verdict()' \"$REPO_DIR/$disk_path/install.sh\""
     assert "disk: smart 判定单测全过" bash "$REPO_DIR/tests/unit_disk_smart.sh"
@@ -478,7 +482,7 @@ phase_routing() {
     assert "ops-kit: .manifest DEFAULT_ACTION=inspect（只读默认）" bash -c "grep -q '^DEFAULT_ACTION=inspect$' \"$REPO_DIR/$ops_path/.manifest\""
     assert "ops-kit: 子命令枚举完整（供 list --full/补全解析）" bash -c "grep -qF '{inspect|log|svc|audit|install|uninstall|status|help}' \"$REPO_DIR/$ops_path/install.sh\""
     assert "ops-kit: vacuum 无参数护栏存在" bash -c "grep -qF '用法: ops-kit log vacuum' \"$REPO_DIR/$ops_path/install.sh\""
-    assert "ops-kit: 写操作交互终端护栏存在" bash -c "grep -qF '仅允许在交互终端执行' \"$REPO_DIR/$ops_path/install.sh\""
+    assert "ops-kit: 写操作交互终端护栏存在" bash -c "grep -qE '\[\[ ! -t 0 \]\]' \"$REPO_DIR/$ops_path/install.sh\""
     assert "ops-kit: source 守护存在（单测可复用纯函数）" bash -c "grep -q 'BASH_SOURCE\[0\]' \"$REPO_DIR/$ops_path/install.sh\""
     assert "ops-kit: 纯函数单测全过" bash "$REPO_DIR/tests/unit_ops_kit.sh"
     assert "ops-kit: 子菜单入口存在" bash -c "grep -q 'manage_ops-kit()' \"$REPO_DIR/lib/submenus.sh\""
@@ -500,9 +504,13 @@ phase_routing() {
     assert "casaos: 用法行枚举完整" bash -c "grep -qF '{install|uninstall|status|help}' \"$REPO_DIR/services/casaos/install.sh\""
     # 平台护栏与预检
     # shellcheck disable=SC2016 # $1 故意不在外层展开（交给内层 bash -c 求值）
+    # 护栏的判据是「有平台判断」，不是某句文案 —— 文案是本地化产物，
+    # 会随语言变（i18n 迁移后源码里是英文 msgid，译文在 po 里）。
+    # 按中文文案匹配，等于把断言绑死在一份语言上。
     assert "面板: 4 模块均含 Linux 护栏" bash -c '
         for m in 1panel btpanel webmin casaos; do
-            grep -q "仅支持 Linux" "$1/services/$m/install.sh" || { echo "$m 缺 Linux 护栏"; exit 1; }
+            grep -qE "(is Linux-only|Linux only|仅支持 Linux)" "$1/services/$m/install.sh" \
+                || { echo "$m 缺 Linux 护栏"; exit 1; }
         done' _ "$REPO_DIR"
     assert "casaos: 80 端口占用预检存在" bash -c "grep -q 'port_in_use' \"$REPO_DIR/services/casaos/install.sh\""
     assert "btpanel: 纯净系统预检存在" bash -c "grep -q 'check_purity' \"$REPO_DIR/services/btpanel/install.sh\""
@@ -527,6 +535,12 @@ phase_routing() {
     # 4d. 平台可见性过滤：PLATFORMS 解析 / 出口过滤 / 护栏单测
     assert "platform-filter: 平台可见性单测全过" bash "$REPO_DIR/tests/unit_platform_filter.sh"
     assert "cli-v2: CLI v2 命令面单测全过" bash "$REPO_DIR/tests/unit_cli_v2.sh"
+
+    # i18n：占位符一致性（单测）+ 译文串味（门禁）。
+    # 串味是 msgmerge 的模糊匹配留下的：新增 msgid 被猜匹配到别的模块的旧条目上，
+    # 译文表里留着「看着像对、其实属于别的模块」的句子 —— 用户直接看到别人的文案。
+    assert "i18n: 占位符一致性单测全过" bash "$REPO_DIR/tests/unit_i18n.sh"
+    assert "i18n: 译文无串味" bash "$REPO_DIR/tools/check_i18n_cross.sh"
 
     # CLI v2 的核心判据：旧扁平写法必须失败（退出码 2 = 用法错），且给迁移指引。
     # 没有这条断言，删旧 flag 这件事就没有判据能力 —— 旧写法悄悄还能用也没人知道。

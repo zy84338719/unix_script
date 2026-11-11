@@ -24,7 +24,7 @@ CASAOS_PORT=80
 preflight() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        error "$(_t 'CasaOS is Linux-only. Current: ')\${OS_TYPE}"
+        error "$(_t 'CasaOS is Linux-only. Current: ')${OS_TYPE}"
         exit 1
     fi
     if ! command_exists systemctl; then
@@ -78,7 +78,7 @@ install_casaos() {
     # shellcheck disable=SC2064  # tmp 在本函数内不再变，展开一次即可
     trap "rm -f '$tmp'" RETURN
 
-    info "$(_t 'Downloading official installer (')\${CASAOS_INSTALL_URL}$(_t ')...')"
+    info "$(_t 'Downloading official installer (')${CASAOS_INSTALL_URL}$(_t ')...')"
     fetch_to "${CASAOS_INSTALL_URL}" "$tmp"
     info "$(_t 'Running official installer (installs Docker dependencies, takes several minutes)...')"
     sudo bash "$tmp"
@@ -88,7 +88,7 @@ install_casaos() {
         success "$(_t 'Party popper CasaOS installation complete!')"
         local ip_addr
         ip_addr=$(get_local_ip)
-        info "$(printf "$(_t 'Access URL: http://%s:%s (create local admin account on first visit)')" "${ip_addr}" "${CASAOS_PORT}")"
+        info "$(_tf 'Access URL: http://%s:%s (create local admin account on first visit)' "${ip_addr}" "${CASAOS_PORT}")"
         warn "$(_t 'If port 80 is occupied by another Web service, change it in CasaOS settings.')"
     else
         warn "$(_t 'Installer ran but casaos was not detected — check the output above to confirm the result.')"
@@ -149,7 +149,7 @@ main() {
         uninstall) uninstall_casaos ;;
         status)    status_casaos ;;
         help|--help|-h) usage ;;
-        *) error "$(printf "$(_t 'Unknown action: %s')" "${action}")"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "${action}")"; usage; exit 1 ;;
     esac
 }
 

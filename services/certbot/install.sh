@@ -26,7 +26,7 @@ do_install() {
 
     if command_exists certbot; then
         local cur
-        cur=$(certbot --version 2>&1 || echo "$(_t 'Unknown version')")
+        cur=$(certbot --version 2>&1 || printf '%s' "$(_t 'Unknown version')")
         warn "$(_t 'Detected Certbot installed (')${cur}$(_t ')')"
         if ! yes_no "$(_t 'Continue and try to update?')"; then
             info "$(_t 'Cancelled')"
@@ -214,7 +214,7 @@ do_status() {
         if [[ "$cert_count" -gt 0 ]]; then
             emit_extra "certs=$cert_count"
             if ! uxs_is_machine_mode; then
-                echo "  $(printf "$(_t 'Certificates issued: %s')" "${cert_count}")"
+                echo "  $(_tf 'Certificates issued: %s' "${cert_count}")"
             fi
         fi
     fi
@@ -238,7 +238,7 @@ main() {
         uninstall)  do_uninstall ;;
         status)     do_status ;;
         help|--help|-h) usage ;;
-        *) error "$(printf "$(_t 'Unknown action: %s')" "$action")"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

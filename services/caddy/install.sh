@@ -77,7 +77,7 @@ install_caddy() {
 
     if command_exists caddy; then
         local cur
-        cur=$(caddy version 2>/dev/null | head -1 || echo "$(_t 'Unknown version')")
+        cur=$(caddy version 2>/dev/null | head -1 || printf '%s' "$(_t 'Unknown version')")
         warn "$(_t 'Detected Caddy installed (')${cur}$(_t ')')"
         if ! yes_no "$(_t 'Continue and try to update?')"; then
             info "$(_t 'Cancelled')"
@@ -115,7 +115,7 @@ install_caddy() {
     fi
 
     local version
-    version=$(caddy version 2>/dev/null | head -1 || echo "$(_t 'Unknown')")
+    version=$(caddy version 2>/dev/null | head -1 || printf '%s' "$(_t 'Unknown')")
     local caddyfile
     caddyfile=$(get_caddyfile_path)
     local ip_addr
@@ -193,7 +193,7 @@ status_caddy() {
         return
     fi
     local version
-    version=$(caddy version 2>/dev/null | head -1 || echo "$(_t 'Unknown version')")
+    version=$(caddy version 2>/dev/null | head -1 || printf '%s' "$(_t 'Unknown version')")
     local running=false
     if service_is_active caddy "$CADDY_PLIST_LABEL"; then
         running=true
@@ -226,7 +226,7 @@ main() {
         uninstall) uninstall_caddy ;;
         status)    status_caddy ;;
         help|--help|-h) usage ;;
-        *) error "$(printf "$(_t 'Unknown action: %s')" "$action")"; usage; exit 1 ;;
+        *) error "$(_tf 'Unknown action: %s' "$action")"; usage; exit 1 ;;
     esac
 }
 

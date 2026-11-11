@@ -171,6 +171,45 @@ CLI 一次性切换到分组子命令面，旧扁平写法**全部删除**。命
 
 新增：`uxs info <模块>`（模块明细：标签/分类/依赖/子命令/适用平台）、`uxs --list-all`（全量 TSV 清单，含平台不适用）。
 
+## 文案国际化（i18n）
+
+面向用户的中文文案一律用 `_t` 包装；msgid 一律英文，译文在 `locale/zh_CN/LC_MESSAGES/unix_script.po`。
+
+| Helper | 用法 | 说明 |
+|--------|------|------|
+| `_t 'msgid'` | `_t 'Cancelled'` | 查译文；查不到就原样输出 msgid（英文） |
+| `_tf 'msgid' ARG...` | `_tf 'Unknown action: %s' "$action"` | **带变量时用这个** —— 译文当 printf 格式串，占位符按参数填 |
+
+### 三条硬规则
+
+1. **带变量的文案用 `_tf`，不要写 `printf "$(_t '...%s...')" "$x"`**
+   后者会被 shellcheck 判成 SC2059（格式串是变量）。`_tf` 把这件事收口到一处。
+2. **变量前面不要加反斜杠**
+   双引号里的 `\${VAR}` 输出的是字面量，不是变量值 —— 错误消息会变成「未知操作: ${action}」，
+   状态色码 `\${YELLOW}` 也不生效。同理 heredoc 里的 `$0` 不要转义（那是脚本路径）。
+3. **`||` 分支里不能直接放 `$(...)`**
+   `cmd || $(_t 'x')` 里的命令替换会被当**命令执行**（SC2091，真 bug）。
+   写 `cmd || printf '%s' "$(_t 'x')"`。
+
+### 改完必须做的两件事
+
+- **与迁移前的输出逐字比对**：
+  ```bash
+  git show <base>:services/<mod>/install.sh > /tmp/base/services/<mod>/install.sh
+  cp -R lib vendor /tmp/base/          # 让旧版能跑起来
+  # 同样的命令、同样的 locale，两边跑，diff —— 只该差 $0 的路径
+  ```
+  这类缺陷（变量被转义、译文串到别的模块）肉眼扫代码看不出来，只有比对能发现。
+- **跑门禁**：`bash tools/check_i18n_drift.sh <分类>`（无残留中文）、
+  `bash tools/check_i18n_cross.sh`（译文没串味）、`bash tests/unit_i18n.sh`（占位符个数一致）。
+
+### 灌译文的规矩
+
+- 用「**只填空 msgstr、保留原格式**」的脚本；**重建 po 会丢旧译文**。
+- 译文的占位符个数必须与 msgid 一致 —— `msgfmt --check` 会校验（编译期就红）。
+- `msgmerge` 已加 `-N`（--no-fuzzy-matching）：新增 msgid 一律留空，**绝不猜译文**。
+  必须确认 `grep -c '^#, fuzzy' locale/*/LC_MESSAGES/*.po` 是 0。
+
 ## 模块子命令约定
 
 所有可执行模块遵循统一接口：

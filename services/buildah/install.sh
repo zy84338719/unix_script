@@ -24,7 +24,7 @@ do_install() {
     if command_exists buildah; then
         local cur
         cur=$(buildah --version 2>/dev/null | grep -m1 -oE '[0-9]+(\.[0-9]+)+' || true)
-        yes_no "$(printf "$(_t 'buildah %s is already installed, reinstall?')" "${cur:-}")" || { info "$(_t 'Cancelled')"; exit 0; }
+        yes_no "$(_tf 'buildah %s is already installed, reinstall?' "${cur:-}")" || { info "$(_t 'Cancelled')"; exit 0; }
     fi
     info "$(_t 'Installing buildah via system repositories...')"
     pkg_update || true
@@ -43,7 +43,7 @@ do_uninstall() {
     pkg_remove buildah || { error "$(_t 'Uninstall failed')"; exit 1; }
     success "$(_t 'buildah uninstalled')"
     if [[ -d "$HOME/.local/share/containers" ]]; then
-        if yes_no "$(printf "$(_t 'Delete user container storage %s (images/layers, irreversible)?')" "$HOME/.local/share/containers")"; then
+        if yes_no "$(_tf 'Delete user container storage %s (images/layers, irreversible)?' "$HOME/.local/share/containers")"; then
             rm -rf "$HOME/.local/share/containers" && success "$(_t 'Storage deleted')"
         else
             info "$(_t 'Storage kept')"
@@ -85,5 +85,5 @@ case "${1:-install}" in
     uninstall)      do_uninstall ;;
     status)         do_status ;;
     help|--help|-h) do_help ;;
-    *)              error "$(printf "$(_t 'Unknown subcommand: %s')" "$1")"; do_help; exit 1 ;;
+    *)              error "$(_tf 'Unknown subcommand: %s' "$1")"; do_help; exit 1 ;;
 esac

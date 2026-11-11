@@ -248,7 +248,7 @@ install_via_mirror() {
 
 usage() {
     cat <<EOF
-用法: \$0 {install|mirror|registry|uninstall|status|help}
+用法: $0 {install|mirror|registry|uninstall|status|help}
 
   install     $(_t 'Install or update Docker (optional domestic mirror)')
   mirror      $(_t 'Install/replace Docker via domestic mirror (linuxmirrors.cn), includes registry acceleration')

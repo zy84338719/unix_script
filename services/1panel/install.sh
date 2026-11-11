@@ -25,7 +25,7 @@ readonly ONEPANEL_SCRIPT_URL="https://resource.fit2cloud.com/1panel/package/v2/q
 preflight() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        error "$(_t '1Panel is Linux-only. Current: ')\${OS_TYPE}"
+        error "$(_t '1Panel is Linux-only. Current: ')${OS_TYPE}"
         exit 1
     fi
     if ! command_exists systemctl; then
@@ -55,7 +55,7 @@ install_1panel() {
     require_sudo
 
     if is_installed; then
-        warn "$(_t 'Detected 1Panel installed (')$(1pctl version 2>/dev/null || echo "$(_t 'Unknown version')")$(_t ')')"
+        warn "$(_t 'Detected 1Panel installed (')$(1pctl version 2>/dev/null || printf '%s' "$(_t 'Unknown version')")$(_t ')')"
         if ! yes_no "$(_t 'Continue and reinstall/update?')"; then
             info "$(_t 'Cancelled')"; return 0
         fi
@@ -66,7 +66,7 @@ install_1panel() {
     # shellcheck disable=SC2064  # tmp 在本函数内不再变，展开一次即可
     trap "rm -f '$tmp'" RETURN
 
-    info "$(_t 'Downloading official installer (')\${ONEPANEL_SCRIPT_URL}$(_t ')...')"
+    info "$(_t 'Downloading official installer (')${ONEPANEL_SCRIPT_URL}$(_t ')...')"
     fetch_to "$ONEPANEL_SCRIPT_URL" "$tmp"
 
     info "$(_t 'Running official installer (non-interactive if PANEL_* env vars are set)...')"
@@ -118,10 +118,10 @@ uninstall_1panel() {
 status_1panel() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "\${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')\${NC}"; return
+        emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"; return
     fi
     if ! is_installed; then
-        emit_status "not_installed" "\${RED}❌ $(_t 'Not installed')\${NC}"; return
+        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
     fi
     local ver
     ver=$(1pctl version 2>/dev/null | head -n1 || true)
@@ -129,9 +129,9 @@ status_1panel() {
         emit_version "${ver}"
     fi
     if uxs_svc is-active 1panel 2>/dev/null; then
-        emit_status "installed:running" "\${GREEN}✅ $(_t 'Installed and running')\${NC}"
+        emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "\${YELLOW}⚠️  $(_t 'Installed (service not running)')\${NC}"
+        emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed (service not running)')${NC}"
     fi
 }
 
@@ -157,7 +157,7 @@ main() {
         uninstall) uninstall_1panel ;;
         status)    status_1panel ;;
         help|--help|-h) usage ;;
-        *) error "$(_t 'Unknown action: ')\${action}"; usage; exit 1 ;;
+        *) error "$(_t 'Unknown action: ')${action}"; usage; exit 1 ;;
     esac
 }
 

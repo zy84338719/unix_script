@@ -25,7 +25,7 @@ readonly AAPANEL_SCRIPT_URL="https://www.aapanel.com/script/install_7.0_en.sh"
 preflight() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        error "$(_t 'BT Panel is Linux-only. Current: ')\${OS_TYPE}"
+        error "$(_t 'BT Panel is Linux-only. Current: ')${OS_TYPE}"
         exit 1
     fi
     if ! command_exists systemctl; then
@@ -60,7 +60,7 @@ check_purity() {
         fi
     done
     if [[ -n "${hit}" ]]; then
-        warn "$(_t 'Detected existing Web/database environment running: ')\${hit}"
+        warn "$(_t 'Detected existing Web/database environment running: ')${hit}"
         warn "$(_t 'BT Panel officially requires a clean system (it installs its own Nginx/Apache/MySQL/PHP, which may conflict with existing services).')"
         if ! yes_no "$(_t 'Still continue installing BT Panel?')"; then
             info "$(_t 'Cancelled')"; return 1
@@ -76,7 +76,7 @@ run_bt_installer() {
     # shellcheck disable=SC2064  # tmp 在本函数内不再变，展开一次即可
     trap "rm -f '$tmp'" RETURN
 
-    info "$(_t 'Downloading official installer (')\${script_url}$(_t ')...')"
+    info "$(_t 'Downloading official installer (')${script_url}$(_t ')...')"
     fetch_to "$script_url" "$tmp"
     chmod +x "$tmp"
 
@@ -170,16 +170,16 @@ uninstall_btpanel() {
 status_btpanel() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "\${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')\${NC}"; return
+        emit_status "n/a" "${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')${NC}"; return
     fi
     if ! is_installed; then
-        emit_status "not_installed" "\${RED}❌ $(_t 'Not installed')\${NC}"; return
+        emit_status "not_installed" "${RED}❌ $(_t 'Not installed')${NC}"; return
     fi
     # 面板主进程 BT-Panel；无特权即可探测，init 脚本作兜底（需 sudo -n 免密）
     if pgrep -f "BT-Panel" >/dev/null 2>&1 || sudo -n /etc/init.d/bt status >/dev/null 2>&1; then
-        emit_status "installed:running" "\${GREEN}✅ $(_t 'Installed and running')\${NC}"
+        emit_status "installed:running" "${GREEN}✅ $(_t 'Installed and running')${NC}"
     else
-        emit_status "installed:stopped" "\${YELLOW}⚠️  $(_t 'Installed (service not running)')\${NC}"
+        emit_status "installed:stopped" "${YELLOW}⚠️  $(_t 'Installed (service not running)')${NC}"
     fi
 }
 
@@ -205,7 +205,7 @@ main() {
         uninstall) uninstall_btpanel ;;
         status)    status_btpanel ;;
         help|--help|-h) usage ;;
-        *) error "$(_t 'Unknown action: ')\${action}"; usage; exit 1 ;;
+        *) error "$(_t 'Unknown action: ')${action}"; usage; exit 1 ;;
     esac
 }
 

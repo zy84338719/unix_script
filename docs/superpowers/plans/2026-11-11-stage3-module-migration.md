@@ -26,6 +26,85 @@
 
 ---
 
+## 模块迁移的写法约定（2026-11-11 补：三个真坑）
+
+前面 13 个模块踩出来的。后面 68 个模块照着做，别再犯。
+
+### 1. 带变量的文案用 `_tf`，不要用 `printf "$(_t ...)"`
+
+`_tf` 是 shellkit i18n 模块的新函数（译文当 printf 格式串，占位符按参数填）。
+
+```bash
+# 对：_tf 收口了 SC2059，SC2059 只在 shellkit 里出现一次
+error "$(_tf 'Unknown action: %s' "$action")"
+
+# 错：SC2059（格式串是变量）—— gettext 的标准用法，但 shellcheck 判它
+error "$(printf "$(_t 'Unknown action: %s')" "$action")"
+```
+
+### 2. 变量前面不要加反斜杠
+
+双引号里 `\${VAR}` 输出的是**字面量**，不是变量值。
+
+```bash
+# 错：输出「未知操作: ${action}」，且状态色码 ${YELLOW} 不生效
+error "$(_t 'Unknown action: ')\${action}"
+
+# 对
+error "$(_t 'Unknown action: ')${action}"
+```
+
+迁移后必须与迁移前**逐字比对**（同命令、同 locale、只差路径）：
+
+```bash
+git show 7729437:services/<mod>/install.sh > /tmp/old/services/<mod>/install.sh
+cp -R lib vendor /tmp/old/          # 让旧版能跑起来
+bash /tmp/old/services/<mod>/install.sh help > /tmp/old.txt
+bash services/<mod>/install.sh help > /tmp/new.txt
+diff /tmp/old.txt /tmp/new.txt        # 只该差 $0 的路径
+```
+
+### 3. `||` 分支里不能直接放 `$(...)`
+
+```bash
+# 错：SC2091 —— 命令替换会被当命令执行（真 bug，不是风格问题）
+cur=$(certbot --version 2>&1 || $(_t 'Unknown version'))
+
+# 对
+cur=$(certbot --version 2>&1 || printf '%s' "$(_t 'Unknown version')")
+```
+
+同理 `echo "$(_t 'x')"` 的 echo 是多余的（SC2005），但**去掉 echo 与改写 `||` 分支要一起做** ——
+去掉 echo 后 SC2091 才暴露出来。
+
+### 4. 抽 msgid 与灌译文
+
+```bash
+bash po/messages.sh services        # 抽 msgid（参数是**分类名**，不认模块名）
+# 用「只填空 msgstr、保留原格式」的脚本灌译文 —— 重建 po 会丢旧译文
+bash po/messages.sh services        # 重新编译 .mo + 兜底表
+bash tools/check_i18n_drift.sh services
+```
+
+- msgmerge 已加 `-N`（--no-fuzzy-matching）：新增 msgid 一律留空，**绝不猜译文**。
+  必须确认 `grep -c '^#, fuzzy' locale/*/LC_MESSAGES/*.po` 是 0 —— fuzzy 条目会被 msgfmt 排除，
+  运行时静默回落英文，而 po 里还留着一条看着像对的错译文。
+- 译文里的占位符个数必须与原文一致 —— `msgfmt --check` 会校验（编译期就红）。
+
+### 5. 断言不能绑死本地化文案
+
+`grep -q '仅支持 Linux'` 这类断言，在文案改成英文 msgid 后必然假红。
+断言要认**结构事实**（`[[ ! -t 0 ]]`、函数名、枚举串），而不是某句文案。
+改完断言做**负对照**：把被测结构去掉，断言必须变红；不变红 ⇒ 它没有判据能力。
+
+### 6. 跑门禁前先冻结工作树
+
+**在 `tests/ci_run.sh` 或模块脚本被编辑的过程中跑的验收结果不可信** ——
+测试跑到一半文件变了，会报出「-eq: command not found」这类语法错误。
+改完 → 确认 `bash -n` 通过 → 再跑门禁，期间不要动被测文件。
+
+---
+
 ## 命令矩阵（5 批的顺序）
 
 | 批次 | 分类 | 模块数 | 代码行数 | 备注 |
@@ -41,7 +120,12 @@
 2. `tests/ci_run.sh --phase routing`：模块 status 输出与基线逐字一致；状态形状判据通过。
 3. `tests/ci_run.sh --phase install`：实装测试（若有 systemd 依赖则走 CI 的 Linux 容器）。
 4. `tests/snapshot.sh` + `--approve`：改了 status 输出的模块要重新生成基线。
-5. **新断言**：`bash tools/check_i18n_drift.sh` —— 校验「模块里没有残留的硬编码中文」（允许清单制，先把存量注释放白名单）。
+5. **新断言**：
+   - `bash tools/check_i18n_drift.sh <分类>` —— 校验「模块里没有残留的硬编码中文」（允许清单制，先把存量注释放白名单）。
+   - `bash tools/check_i18n_cross.sh` —— 校验「译文没串味」（msgid 说的是 A 模块、译文却写着 B 模块的文案）。
+   - `bash tests/unit_i18n.sh` —— 校验「译文的占位符个数与 msgid 一致」。
+   - **与迁移前的输出逐字比对** —— 见上面「模块迁移的写法约定」第 2 条。
+     这条最重要：变量被转义、译文串味这类缺陷，扫代码看不出来，只有比对能发现。
 
 ---
 
