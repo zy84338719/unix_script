@@ -4,6 +4,62 @@
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-11
+
+本版把 1.22.0 起引入的破坏性变更正式按 **major** 标记（1.22.0 / 1.22.1 当时按 minor 发布；
+已发布的 tag 与 Release 保留不动，不删不改历史），并修掉 CI 全矩阵判红。
+
+### 破坏性变更
+
+- **CLI v2：旧扁平写法全部删除，无兼容期**。命中旧写法即报错退出 **2**（用法错）并给一行迁移指引：
+
+  | 旧写法 | 新写法 |
+  |--------|--------|
+  | `--list` | `uxs list` |
+  | `--list-modules` | `uxs list --full` |
+  | `--list-categories` | `uxs list --grouped` |
+  | `--status` / `--status-json` | `uxs status` / `uxs status --json` |
+  | `--dry-run` / `--no-deps` | `uxs install <模块> --dry-run` / `uxs install <模块> --no-deps` |
+  | `check-update` | `uxs update --check` |
+  | `export` / `apply` | `uxs export [--out 文件]` / `uxs apply <profile>` |
+  | `cli` / `uninstall-cli` | `uxs cli install` / `uxs cli uninstall` |
+  | `completions` | `uxs completions [shell]` |
+  | `scaffold` / `doctor` / `update` | `uxs scaffold` / `uxs doctor` / `uxs update`（同名分组命令） |
+
+- **删除 `lib/uxs_compat.sh` 转发门面**：12 处纯转发调用点直接改用 shellkit API ——
+  `command_exists`→`os_has_cmd`、`emit_status`/`emit_version`/`emit_extra`→`uxs_emit_status`/`uxs_emit_version`/`uxs_emit_extra`、
+  `github_latest_tag`→`http_github_latest_tag`、`github_release_asset_url`→`http_github_release_asset`、
+  `uxs_os_release`→`os_release_field`、`verify_sha256`→`net_verify`、`version_gt`→`ver_gt`、
+  `uxs_with_timeout`/`uxs_func_with_timeout`→`run_timeout`/`run_func_timeout`。**输出与退出码逐字未变**
+- **退出码分类统一到 shellkit 口径**：缺命令 / 平台不适用 → `3`，用法错 → `2`，网络失败 → `4`，
+  校验失败 → `5`，一般错误 → `1`。**输出文案逐字未变**，变的是脚本里判失败原因的方式
+
+### 修复
+
+- **CI 静态检查全矩阵判红**（ubuntu-latest + debian-12 / centos-stream9 / almalinux-9）：
+  `po/messages.sh` 与 `tools/check_i18n_extract.py` 用了 `--flag=_tf:1:sh-printf-format`，
+  而 `sh-printf-format` 是 gettext **0.23+** 才有的 flag 名；CI 矩阵里的 gettext 是 0.19 / 0.21 / 0.22，
+  见到它直接报「A --flag argument doesn't have the <keyword>:<argnum>:[pass-]<flag> syntax」
+  并以非 0 退出 ⇒ 抽取整体失败。改用 `c-format`（printf 占位符语义，gettext 0.19 → 1.0 全版本可用）
+- **CI 路由 / 实装 / 国产化矩阵恒红 2 条**：`tests/ci_run.sh` 仍引用 Stage 1 已删除的私有函数
+  `_osr_field` ⇒ 「command not found」。改用 shellkit 的 `os_release_field KEY [FILE]`
+  （注意参数顺序：KEY 在前）。macOS 会跳过整个发行版块 ⇒ 本地看不出来
+- **CI 装依赖三连坑**（都会让整批 job 变红，而与代码无关）：
+  - Ubuntu 归档站 DNS 解析不了（`azure.archive.ubuntu.com` / `archive.ubuntu.com`）⇒
+    `apt-get update` 拿到不完整索引 ⇒ install 报「Unable to fetch some archives」。
+    新增 `tools/ci_install_deps.sh`：**把指不到的源直接换成备用镜像**（只加不减不行 ——
+    apt 会对着坏源反复重试、拖到超时；换 URL 则保留原有 Signed-By 与组件配置）
+    + 整段重试 3 次 + 给 apt 加超时
+  - `pacman -Sy` 是**部分升级**：只同步数据库不升级系统 ⇒ 装包时把 openssl 升到 4.x，
+    系统包还依赖 `libcrypto.so=3` ⇒ 「could not satisfy dependencies」。改用 `pacman -Syu`
+  - RHEL 系 `curl-minimal` 与 `curl` 冲突 ⇒ dnf 需要 `--allowerasing`
+
+### 其它
+
+- `locale/unix_script.pot` 头部的 `Project-Id-Version` 之前停在 1.21.0，现随版本同步
+- AGENTS.md 补两条硬规则：xgettext 的 `--flag` 名必须全版本通用；
+  CI 的 Linux 专属断言块，macOS 全绿不代表 CI 全绿
+
 ## [1.22.1] - 2026-11-11
 
 ### 修复
