@@ -25,11 +25,11 @@ readonly AAPANEL_SCRIPT_URL="https://www.aapanel.com/script/install_7.0_en.sh"
 preflight() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        error "宝塔面板仅支持 Linux。当前：${OS_TYPE}"
+        error "$(_t 'BT Panel is Linux-only. Current: ')\${OS_TYPE}"
         exit 1
     fi
     if ! command_exists systemctl; then
-        error "需要 systemctl（systemd）。"
+        error "$(_t 'systemctl (systemd) is required.')"
         exit 1
     fi
 }
@@ -41,7 +41,7 @@ fetch_to() {
     elif command_exists wget; then
         wget -qO "$out" "$url"
     else
-        error "需要 curl 或 wget 之一，请先安装。"
+        error "$(_t 'Either curl or wget is required, please install one first.')"
         return 1
     fi
 }
@@ -60,10 +60,10 @@ check_purity() {
         fi
     done
     if [[ -n "${hit}" ]]; then
-        warn "检测到既有 Web/数据库环境在运行：${hit}"
-        warn "宝塔官方要求在纯净系统上安装（会自建 Nginx/Apache/MySQL/PHP，易端口冲突）。"
-        if ! yes_no "仍要继续安装宝塔面板？"; then
-            info "已取消"; return 1
+        warn "$(_t 'Detected existing Web/database environment running: ')\${hit}"
+        warn "$(_t 'BT Panel officially requires a clean system (it installs its own Nginx/Apache/MySQL/PHP, which may conflict with existing services).')"
+        if ! yes_no "$(_t 'Still continue installing BT Panel?')"; then
+            info "$(_t 'Cancelled')"; return 1
         fi
     fi
     return 0
@@ -76,11 +76,11 @@ run_bt_installer() {
     # shellcheck disable=SC2064  # tmp 在本函数内不再变，展开一次即可
     trap "rm -f '$tmp'" RETURN
 
-    info "下载官方安装脚本（${script_url}）..."
+    info "$(_t 'Downloading official installer (')\${script_url}$(_t ')...')"
     fetch_to "$script_url" "$tmp"
     chmod +x "$tmp"
 
-    info "执行官方安装脚本（耗时约 2 分钟）..."
+    info "$(_t 'Running official installer (takes about 2 minutes)...')"
     if [[ -t 0 ]]; then
         sudo bash "$tmp" "${script_arg}"
     else
@@ -93,9 +93,9 @@ install_btpanel() {
     require_sudo
 
     if is_installed; then
-        warn "检测到宝塔面板已安装"
-        if ! yes_no "是否继续并重装/更新？"; then
-            info "已取消"; return 0
+        warn "$(_t 'Detected BT Panel installed')"
+        if ! yes_no "$(_t 'Continue and reinstall/update?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
     fi
     check_purity || return 0
@@ -104,11 +104,11 @@ install_btpanel() {
 
     echo
     if is_installed; then
-        success "🎉 宝塔面板安装完成！"
-        info "查看面板地址/安全入口/默认密码：sudo bt default"
-        warn "请务必放行面板端口（默认 8888，实际以 bt default 输出为准）后访问。"
+        success "$(_t 'Party popper BT Panel installation complete!')"
+        info "$(_t 'View panel address/security entry/default password: sudo bt default')"
+        warn "$(_t 'Make sure to open the panel port (default 8888, check bt default output) before accessing.')"
     else
-        warn "安装脚本已执行，但未检测到 bt——请检查上方输出确认安装结果。"
+        warn "$(_t 'Installer ran but bt was not detected — check the output above to confirm the result.')"
     fi
 }
 
@@ -118,9 +118,9 @@ install_aapanel() {
     require_sudo
 
     if is_installed; then
-        warn "检测到宝塔/aaPanel 已安装，两者不能共存。"
-        if ! yes_no "是否继续并重装？"; then
-            info "已取消"; return 0
+        warn "$(_t 'Detected BT Panel/aaPanel installed, they cannot coexist.')"
+        if ! yes_no "$(_t 'Continue and reinstall?')"; then
+            info "$(_t 'Cancelled')"; return 0
         fi
     fi
     check_purity || return 0
@@ -129,17 +129,17 @@ install_aapanel() {
 
     echo
     if is_installed; then
-        success "🎉 aaPanel 安装完成！"
-        info "查看面板地址/入口/默认密码：sudo bt default"
+        success "$(_t 'Party popper aaPanel installation complete!')"
+        info "$(_t 'View panel address/entry/default password: sudo bt default')"
     else
-        warn "安装脚本已执行，但未检测到 bt——请检查上方输出确认安装结果。"
+        warn "$(_t 'Installer ran but bt was not detected — check the output above to confirm the result.')"
     fi
 }
 
 info_btpanel() {
     preflight
     if ! is_installed; then
-        error "宝塔面板未安装。"
+        error "$(_t 'BT Panel is not installed.')"
         exit 1
     fi
     sudo bt default
@@ -149,37 +149,37 @@ uninstall_btpanel() {
     preflight
     require_sudo
     if ! is_installed; then
-        warn "宝塔面板未安装，无需卸载。"
+        warn "$(_t 'BT Panel is not installed, nothing to uninstall.')"
         return 0
     fi
-    warn "将停止面板并删除：/etc/init.d/bt、bt 命令、/www/server/panel（面板与软件环境）。"
-    warn "站点数据 /www/wwwroot、日志 /www/wwwlogs 与数据库目录默认保留。"
-    if ! yes_no "确认卸载宝塔面板？"; then
-        info "已取消"; return 0
+    warn "$(_t 'Will stop the panel and delete: /etc/init.d/bt, bt command, /www/server/panel (panel and software environment).')"
+    warn "$(_t 'Site data /www/wwwroot, logs /www/wwwlogs and database directories are kept by default.')"
+    if ! yes_no "$(_t 'Confirm uninstall of BT Panel?')"; then
+        info "$(_t 'Cancelled')"; return 0
     fi
     sudo /etc/init.d/bt stop 2>/dev/null || true
     sudo rm -f /etc/init.d/bt /usr/bin/bt
     sudo rm -rf /www/server/panel
-    if yes_no "是否连站点/数据库数据一并删除（rm -rf /www，不可恢复）？"; then
+    if yes_no "$(_t 'Also delete site/database data (rm -rf /www, irreversible)?')"; then
         sudo rm -rf /www
-        warn "已删除 /www 全部数据。"
+        warn "$(_t 'All data in /www has been deleted.')"
     fi
-    success "宝塔面板已卸载。"
+    success "$(_t 'BT Panel uninstalled.')"
 }
 
 status_btpanel() {
     detect_os
     if [[ "$OS_TYPE" != "linux" ]]; then
-        emit_status "n/a" "${YELLOW}⚠️  不适用（仅 Linux）${NC}"; return
+        emit_status "n/a" "\${YELLOW}⚠️  $(_t 'Not applicable (Linux only)')\${NC}"; return
     fi
     if ! is_installed; then
-        emit_status "not_installed" "${RED}❌ 未安装${NC}"; return
+        emit_status "not_installed" "\${RED}❌ $(_t 'Not installed')\${NC}"; return
     fi
     # 面板主进程 BT-Panel；无特权即可探测，init 脚本作兜底（需 sudo -n 免密）
     if pgrep -f "BT-Panel" >/dev/null 2>&1 || sudo -n /etc/init.d/bt status >/dev/null 2>&1; then
-        emit_status "installed:running" "${GREEN}✅ 已安装并运行${NC}"
+        emit_status "installed:running" "\${GREEN}✅ $(_t 'Installed and running')\${NC}"
     else
-        emit_status "installed:stopped" "${YELLOW}⚠️  已安装（服务未运行）${NC}"
+        emit_status "installed:stopped" "\${YELLOW}⚠️  $(_t 'Installed (service not running)')\${NC}"
     fi
 }
 
@@ -187,11 +187,11 @@ usage() {
     cat <<EOF
 用法: $0 {install|en|info|uninstall|status|help}
 
-  install     安装宝塔面板（国内版，download.bt.cn 官方脚本，仅 Linux）
-  en          安装国际版 aaPanel（英文界面）
-  info        查看面板地址/安全入口/默认密码（bt default）
-  uninstall   卸载面板（站点数据默认保留，二次确认后可选删除 /www）
-  status      查看状态
+  install     $(_t 'Install BT Panel (domestic version, download.bt.cn official script, Linux only)')
+  en          $(_t 'Install international version aaPanel (English UI)')
+  info        $(_t 'View panel address/security entry/default password (bt default)')
+  uninstall   $(_t 'Uninstall panel (site data kept by default, /www can be deleted after second confirmation)')
+  status      $(_t 'View status')
 EOF
 }
 
@@ -205,7 +205,7 @@ main() {
         uninstall) uninstall_btpanel ;;
         status)    status_btpanel ;;
         help|--help|-h) usage ;;
-        *) error "未知操作: ${action}"; usage; exit 1 ;;
+        *) error "$(_t 'Unknown action: ')\${action}"; usage; exit 1 ;;
     esac
 }
 

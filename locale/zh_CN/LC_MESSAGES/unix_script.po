@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.22.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 09:02+0800\n"
+"POT-Creation-Date: 2026-11-11 09:22+0800\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
@@ -101,10 +101,105 @@ msgid "Uninstall 1Panel (keep data directory)"
 msgstr "卸载 1Panel（保留数据目录）"
 
 msgid "View status"
-msgstr ""
+msgstr "查看状态"
 
 msgid "Unknown action: "
 msgstr "未知操作: "
+
+msgid "BT Panel is Linux-only. Current: "
+msgstr "宝塔面板仅支持 Linux。当前："
+
+msgid "Detected existing Web/database environment running: "
+msgstr "检测到既有 Web/数据库环境在运行："
+
+msgid ""
+"BT Panel officially requires a clean system (it installs its own Nginx/"
+"Apache/MySQL/PHP, which may conflict with existing services)."
+msgstr ""
+"宝塔官方要求在纯净系统上安装（会自建 Nginx/Apache/MySQL/PHP，易端口冲突）。"
+
+msgid "Still continue installing BT Panel?"
+msgstr "仍要继续安装宝塔面板？"
+
+msgid "Running official installer (takes about 2 minutes)..."
+msgstr "执行官方安装脚本（耗时约 2 分钟）..."
+
+msgid "Detected BT Panel installed"
+msgstr "检测到宝塔面板已安装"
+
+msgid "Party popper BT Panel installation complete!"
+msgstr "🎉 宝塔面板安装完成！"
+
+msgid "View panel address/security entry/default password: sudo bt default"
+msgstr "查看面板地址/安全入口/默认密码：sudo bt default"
+
+msgid ""
+"Make sure to open the panel port (default 8888, check bt default output) "
+"before accessing."
+msgstr "请务必放行面板端口（默认 8888，实际以 bt default 输出为准）后访问。"
+
+msgid ""
+"Installer ran but bt was not detected — check the output above to confirm "
+"the result."
+msgstr "安装脚本已执行，但未检测到 bt——请检查上方输出确认安装结果。"
+
+msgid "Detected BT Panel/aaPanel installed, they cannot coexist."
+msgstr "检测到宝塔/aaPanel 已安装，两者不能共存。"
+
+msgid "Continue and reinstall?"
+msgstr "是否继续并重装？"
+
+msgid "Party popper aaPanel installation complete!"
+msgstr "🎉 aaPanel 安装完成！"
+
+msgid "View panel address/entry/default password: sudo bt default"
+msgstr "查看面板地址/入口/默认密码：sudo bt default"
+
+msgid "BT Panel is not installed."
+msgstr "宝塔面板未安装。"
+
+msgid "BT Panel is not installed, nothing to uninstall."
+msgstr "宝塔面板未安装，无需卸载。"
+
+msgid ""
+"Will stop the panel and delete: /etc/init.d/bt, bt command, /www/server/"
+"panel (panel and software environment)."
+msgstr ""
+"将停止面板并删除：/etc/init.d/bt、bt 命令、/www/server/panel（面板与软件环"
+"境）。"
+
+msgid ""
+"Site data /www/wwwroot, logs /www/wwwlogs and database directories are kept "
+"by default."
+msgstr "站点数据 /www/wwwroot、日志 /www/wwwlogs 与数据库目录默认保留。"
+
+msgid "Confirm uninstall of BT Panel?"
+msgstr "确认卸载宝塔面板？"
+
+msgid "Also delete site/database data (rm -rf /www, irreversible)?"
+msgstr "是否连站点/数据库数据一并删除（rm -rf /www，不可恢复）？"
+
+msgid "All data in /www has been deleted."
+msgstr "已删除 /www 全部数据。"
+
+msgid "BT Panel uninstalled."
+msgstr "宝塔面板已卸载。"
+
+msgid ""
+"Install BT Panel (domestic version, download.bt.cn official script, Linux "
+"only)"
+msgstr "安装宝塔面板（国内版，download.bt.cn 官方脚本，仅 Linux）"
+
+msgid "Install international version aaPanel (English UI)"
+msgstr "安装国际版 aaPanel（英文界面）"
+
+msgid "View panel address/security entry/default password (bt default)"
+msgstr "查看面板地址/安全入口/默认密码（bt default）"
+
+msgid ""
+"Uninstall panel (site data kept by default, /www can be deleted after second "
+"confirmation)"
+msgstr "卸载面板（站点数据默认保留，二次确认后可选删除 /www）"
 
 msgid "Detected installed Docker"
 msgstr "检测到已安装 Docker"

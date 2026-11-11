@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: unix_script 1.21.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 09:02+0800\n"
+"POT-Creation-Date: 2026-11-11 09:22+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -115,6 +115,98 @@ msgid "View status"
 msgstr ""
 
 msgid "Unknown action: "
+msgstr ""
+
+msgid "BT Panel is Linux-only. Current: "
+msgstr ""
+
+msgid "Detected existing Web/database environment running: "
+msgstr ""
+
+msgid ""
+"BT Panel officially requires a clean system (it installs its own Nginx/"
+"Apache/MySQL/PHP, which may conflict with existing services)."
+msgstr ""
+
+msgid "Still continue installing BT Panel?"
+msgstr ""
+
+msgid "Running official installer (takes about 2 minutes)..."
+msgstr ""
+
+msgid "Detected BT Panel installed"
+msgstr ""
+
+msgid "Party popper BT Panel installation complete!"
+msgstr ""
+
+msgid "View panel address/security entry/default password: sudo bt default"
+msgstr ""
+
+msgid ""
+"Make sure to open the panel port (default 8888, check bt default output) "
+"before accessing."
+msgstr ""
+
+msgid ""
+"Installer ran but bt was not detected — check the output above to confirm "
+"the result."
+msgstr ""
+
+msgid "Detected BT Panel/aaPanel installed, they cannot coexist."
+msgstr ""
+
+msgid "Continue and reinstall?"
+msgstr ""
+
+msgid "Party popper aaPanel installation complete!"
+msgstr ""
+
+msgid "View panel address/entry/default password: sudo bt default"
+msgstr ""
+
+msgid "BT Panel is not installed."
+msgstr ""
+
+msgid "BT Panel is not installed, nothing to uninstall."
+msgstr ""
+
+msgid ""
+"Will stop the panel and delete: /etc/init.d/bt, bt command, /www/server/"
+"panel (panel and software environment)."
+msgstr ""
+
+msgid ""
+"Site data /www/wwwroot, logs /www/wwwlogs and database directories are kept "
+"by default."
+msgstr ""
+
+msgid "Confirm uninstall of BT Panel?"
+msgstr ""
+
+msgid "Also delete site/database data (rm -rf /www, irreversible)?"
+msgstr ""
+
+msgid "All data in /www has been deleted."
+msgstr ""
+
+msgid "BT Panel uninstalled."
+msgstr ""
+
+msgid ""
+"Install BT Panel (domestic version, download.bt.cn official script, Linux "
+"only)"
+msgstr ""
+
+msgid "Install international version aaPanel (English UI)"
+msgstr ""
+
+msgid "View panel address/security entry/default password (bt default)"
+msgstr ""
+
+msgid ""
+"Uninstall panel (site data kept by default, /www can be deleted after second "
+"confirmation)"
 msgstr ""
 
 msgid "Detected installed Docker"
