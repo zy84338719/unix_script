@@ -72,7 +72,7 @@ menu_fzf_main() {
     # preview 子 shell 需要仓库绝对路径
     export UXS_REPO_DIR="$SCRIPT_DIR"
 
-    local -a fzf_args=(--multi --header="TAB 多选 · 回车执行默认动作 · ESC 退出" --delimiter=$'\t' --with-nth=1..5)
+    local -a fzf_args=(--multi --header="TAB 多选 · 回车执行默认动作 · ESC 退出（顶部四项：状态总览 / 卸载 / 更新 / 刷新）" --delimiter=$'\t' --with-nth=1..5)
     if _fzf_preview_supported; then
         # shellcheck disable=SC2016  # $UXS_REPO_DIR 由 fzf preview 子 shell 展开，非本 shell
         fzf_args+=(
