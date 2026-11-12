@@ -807,16 +807,16 @@ phase_routing() {
         declare -F menu_check_update >/dev/null &&
         declare -F menu_refresh_status_cache >/dev/null' _ "$REPO_DIR"
     # shellcheck disable=SC2016
-    assert "fzf 菜单: 列表前 4 行是管理项、模块行在其后" bash -c '
+    assert "fzf 菜单: 列表前 4 行是管理项、其后是分类入口与模块行" bash -c '
         cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
         detect_os; registry_scan
         list=$(menu_fzf_build_list)
         # 前 4 行第 6 段必须是管理键
         printf "%s\n" "$list" | head -4 | awk -F"\t" "\$6 !~ /^__uxs_admin_/ {exit 1}"
-        # 第 5 行起是模块行：第 6 段（动作键）必须为空
-        printf "%s\n" "$list" | tail -n +5 | awk -F"\t" "\$6 != \"\" {exit 1}"
+        # 其余行只有两种：分类入口（__uxs_cat_*）或模块行（动作键为空）
+        printf "%s\n" "$list" | tail -n +5 | awk -F"\t" "\$6 != \"\" && \$6 !~ /^__uxs_cat_/ {exit 1}"
         # 模块行不能为空（注册表没扫上就是没接上）
-        [ "$(printf "%s\n" "$list" | tail -n +5 | grep -c .)" -gt 0 ]' _ "$REPO_DIR"
+        [ "$(printf "%s\n" "$list" | tail -n +5 | awk -F"\t" "\$6 == \"\" && \$2 != \"\" {n++} END{print n+0}")" -gt 0 ]' _ "$REPO_DIR"
 
     # 18c. CLI 契约：install / remove 不带模块名时，
     #      交互环境（TTY）进菜单、非交互仍是用法错（退出码 2 不变）。
@@ -828,6 +828,74 @@ phase_routing() {
         out=$("$1/install.sh" remove </dev/null 2>&1); rc=$?
         [ "$rc" = "2" ] || exit 1
         printf "%s\n" "$out" | grep -q "用法: uxs remove" || exit 1' _ "$REPO_DIR"
+
+    # 18d. 分类导航：老版 bash 菜单是「先选分类、再选模块」，fzf 也必须能走这条路。
+    #      列表顶部补分类入口（__uxs_cat_<分类>）⇒ 选中后弹第二个 fzf 列该分类的模块。
+    #      一维模糊搜索保留 ⇒ 平铺模块行仍在列表里，两级导航是并行入口不是替代。
+    # shellcheck disable=SC2016
+    assert "fzf 菜单: 分类入口齐全（每个有可见模块的分类都有 __uxs_cat_ 入口）" bash -c '
+        cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
+        detect_os; registry_scan
+        rows=$(menu_fzf_category_rows)
+        want=0
+        for cat in $(registry_categories); do
+            [ -n "$(category_items "$cat" "")" ] || continue
+            want=$((want + 1))
+            printf "%s\n" "$rows" | awk -F"\t" -v k="__uxs_cat_$cat" "\$6 == k {found=1} END{exit found?0:1}" || exit 1
+        done
+        [ "$want" -gt 0 ] || exit 1
+        got=$(printf "%s\n" "$rows" | awk -F"\t" "\$6 ~ /^__uxs_cat_/ {n++} END{print n+0}")
+        [ "$got" = "$want" ]' _ "$REPO_DIR"
+    # shellcheck disable=SC2016
+    assert "fzf 菜单: 列表布局 = 管理项 → 分类入口 → 模块行" bash -c '
+        cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
+        detect_os; registry_scan
+        list=$(menu_fzf_build_list)
+        admin=$(printf "%s\n" "$list" | awk -F"\t" "\$6 ~ /^__uxs_admin_/ {n++} END{print n+0}")
+        cats=$(printf "%s\n" "$list" | awk -F"\t" "\$6 ~ /^__uxs_cat_/ {n++} END{print n+0}")
+        mods=$(printf "%s\n" "$list" | awk -F"\t" "\$6 == \"\" && \$2 != \"\" {n++} END{print n+0}")
+        nvis=$(registry_visible_modules | wc -w | tr -d " ")
+        [ "$admin" = "4" ] || exit 1
+        [ "$cats" -gt 0 ] || exit 1
+        [ "$mods" = "$nvis" ] || exit 1
+        # 顺序：前 4 行管理键，接着 cats 行分类键，其余模块行动作键为空
+        printf "%s\n" "$list" | head -4 | awk -F"\t" "\$6 !~ /^__uxs_admin_/ {exit 1}" || exit 1
+        printf "%s\n" "$list" | tail -n +5 | head -n "$cats" | awk -F"\t" "\$6 !~ /^__uxs_cat_/ {exit 1}" || exit 1
+        printf "%s\n" "$list" | tail -n +$((5 + cats)) | awk -F"\t" "\$6 != \"\" {exit 1}" || exit 1' _ "$REPO_DIR"
+    # shellcheck disable=SC2016
+    assert "fzf 菜单: 动作键分派（admin / category / module / unknown）" bash -c '
+        cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
+        [ "$(menu_fzf_key_kind __uxs_admin_status__)" = "admin" ] || exit 1
+        [ "$(menu_fzf_key_kind __uxs_cat_服务)" = "category" ] || exit 1
+        [ "$(menu_fzf_key_kind "")" = "module" ] || exit 1
+        [ "$(menu_fzf_key_kind 垃圾键)" = "unknown" ] || exit 1' _ "$REPO_DIR"
+    # shellcheck disable=SC2016
+    assert "fzf 菜单: 分类入口 → 二级列表 → 执行选中模块（假 fzf 端到端）" bash -c '
+        cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
+        detect_os; registry_scan
+        # 挑一个「有可见模块」的分类（不同平台可见模块不同 ⇒ 动态挑，避免空列表）
+        cat=""
+        for c in $(registry_categories); do
+            if [ -n "$(category_items "$c" "")" ]; then cat="$c"; break; fi
+        done
+        [ -n "$cat" ] || exit 1
+        first=$(category_items "$cat" "" | awk "{print \$1}")
+        tmp=$(mktemp -d)
+        trap "rm -rf $tmp" EXIT
+        # 假 fzf：--version 走版本分支；其余回显 stdin 首行（= 列表第一行）
+        printf "%s\n" "#!/usr/bin/env bash" "if [ \"\$1\" = \"--version\" ]; then echo \"0.74.4 (fake)\"; exit 0; fi" "IFS= read -r line" "printf \"%s\\n\" \"\$line\"" > "$tmp/fzf"
+        chmod +x "$tmp/fzf"
+        got=$(PATH="$tmp:$PATH" menu_fzf_pick_category "$cat")
+        [ "$got" = "$first" ] || exit 1
+        # 选中的模块必须真的被交给执行层
+        menu_exec_actions() { echo "EXEC:$*"; }
+        out=$(PATH="$tmp:$PATH" menu_fzf_run_category "$cat")
+        [ "$out" = "EXEC:$first" ] || exit 1
+        # ESC（fzf 非 0 退出）⇒ 不执行任何动作
+        printf "%s\n" "#!/usr/bin/env bash" "if [ \"\$1\" = \"--version\" ]; then echo \"0.74.4 (fake)\"; exit 0; fi" "exit 1" > "$tmp/fzf"
+        chmod +x "$tmp/fzf"
+        out=$(PATH="$tmp:$PATH" menu_fzf_run_category "$cat")
+        [ -z "$out" ]' _ "$REPO_DIR"
 
     # 19. 补全：注册表驱动（与 list 同源）
     # shellcheck disable=SC2016
