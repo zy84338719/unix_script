@@ -4,6 +4,27 @@
 
 ## [Unreleased]
 
+### 性能
+- **状态缓存过期不再卡菜单（stale-while-revalidate）**：缓存每 300s 过期一次，
+  原来一过期下次开菜单就阻塞重查 10~15s（每隔几分钟卡一次）。现在过期但有旧数据时
+  **先拿旧数据开菜单**（图标略旧但不空），后台静默补查（脱离终端、带刷新锁防重复起），
+  下一次打开就是新鲜的；**首查**（无缓存）仍诚实阻塞一次。TTL=0（明确关缓存）语义不变。
+  配套：缓存落盘改原子写（临时文件 + rename），后台刷新与前台读/单行更新并发时
+  读者不会读到写了一半的缓存
+- 判据（做过变异自检：去掉 stale 分支 / 忽略锁，对应断言各自变红）：
+  stale 灌入 + 后台补查被拉起、刷新锁在不重复起、TTL=0 仍同步阻塞
+
+### 变更
+- **vendor/shellkit 全量同步 0.16.0 → 0.17.0**（上游 yi-nology/shellkit@609b1c1，
+  含 registry 内存化、fs.sh 所有权清单、CLI --force/--json、i18n locale 批次）；
+  新增 `vendor/shellkit.upstream` 钉扎同步点，**CI 新增 vendor 一致性 job（L2）**：
+  每次 push 校验副本 == 钉扎的上游提交（钉扎而非 main，上游前进不无故变红）
+- **两条环境敏感测试做隔离**（Pi 真机 routing 曾红）：桌面负例改「先 source 再空 PATH
+  调 detect_desktop」（os_desktop_env 还把会话二进制当线索，光 unset 环境变量不够）；
+  terminal 的 modern-cli 断言按宿主前提分流（该模块部分安装也判 installed）
+- 新增 `tools/pi_sync.sh`：Pi 部署副本 git 化（bundle 走 ssh stdin + 远端 checkout -f），
+  替代被烂网络卡死的逐文件 scp
+
 ## [2.5.0] - 2026-11-12
 
 本版把 fzf 主菜单改成分层导航：导航（搜索/管理/分类）与模块列表不再混在

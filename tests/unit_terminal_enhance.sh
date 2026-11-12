@@ -96,7 +96,21 @@ t_eq "terminal: EXCLUDE 全排除 install rc=0" "0" "$?"
 
 out=$(PATH="$CLEAN_PATH" HOME="$FAKE_TERM/home" UXS_STATUS_MODE=machine bash "$TERM_SH" status </dev/null 2>/dev/null)
 t_eq "terminal: 全缺 → STATE=not_installed" "not_installed" "$(printf '%s' "$out" | sed -n 's/^STATE=//p' | head -1)"
-t_true "terminal: EXTRA=missing 含 modern-cli（净 PATH 无该工具）" "printf '%s' \"\$out\" | grep -q 'missing=.*modern-cli'"
+# modern-cli 模块语义：部分安装（found>0）也判 installed（见 status_modern_cli），全缺才
+# not_installed ⇒ terminal 的 step_ready(modern-cli) 为真时不会进 missing。
+# 宿主在净 PATH 下若已有任一成员工具（如 Pi 的 /usr/bin/fzf），前提就变了 —— 断言分流，
+# 两个分支各自有判据：有成员 ⇒ 不误报 missing；全缺 ⇒ 必须报 missing。
+mc_present=0
+for t in bat eza rg fd fzf zoxide starship tldr direnv; do
+    if PATH="$CLEAN_PATH" command -v "$t" >/dev/null 2>&1; then mc_present=1; break; fi
+done
+if [ "$mc_present" -eq 1 ]; then
+    t_true "terminal: 宿主有 modern-cli 成员 → 不误报 missing（partial 判 installed）" \
+        "! printf '%s' \"\$out\" | grep -q 'missing=.*modern-cli'"
+else
+    t_true "terminal: EXTRA=missing 含 modern-cli（净 PATH 无该工具）" \
+        "printf '%s' \"\$out\" | grep -q 'missing=.*modern-cli'"
+fi
 
 # zsh 本体在（桩假 zsh）但框架未配 → zsh_setup 环节必须视为未就绪（防跳过框架安装）
 out=$(PATH="$FAKE:$CLEAN_PATH" HOME="$FAKE_TERM/home" UXS_STATUS_MODE=machine bash "$TERM_SH" status </dev/null 2>/dev/null)

@@ -454,6 +454,29 @@ jobs:
           if-no-files-found: error
 
   # ============================================================
+  # Job: vendor 副本与上游一致性（L2）
+  # vendor/shellkit 是上游 yi-nology/shellkit 的副本：L1（副本==sha256 清单）
+  # 在各门禁里查，这里补 L2 —— 副本必须等于 vendor/shellkit.upstream 钉扎的
+  # 上游提交。钉扎而非 main：上游前进不无故变红；每次 vendor 同步 bump 钉扎。
+  # ============================================================
+  vendor_l2:
+    name: vendor 一致性 / 上游钉扎
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 读钉扎的上游提交
+        id: pin
+        run: echo "sha=$(tr -d '[:space:]' < vendor/shellkit.upstream)" >> "$GITHUB_OUTPUT"
+
+      - name: 克隆上游并检出钉扎提交
+        run: |
+          git clone --no-checkout https://github.com/yi-nology/shellkit.git /tmp/shellkit-upstream
+          git -C /tmp/shellkit-upstream checkout -q "${{ steps.pin.outputs.sha }}"
+
+      - name: L2 比对（副本 == 上游钉扎提交）
+        run: SHELLKIT_UPSTREAM=/tmp/shellkit-upstream bash tools/check_vendor.sh
+  # ============================================================
   # Job 4: 汇总报告 —— 聚合所有矩阵腿的报告为单一 ci-report.md
   # ============================================================
   report:

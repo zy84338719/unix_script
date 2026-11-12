@@ -199,27 +199,53 @@ status_cache_load() {
     now=$(date +%s)
     [[ "$ts" =~ ^[0-9]+$ ]] || return 1
     if (( now - ts > ttl )); then return 1; fi
+    _uxs_cache_fill "$file"
+    return 0
+}
+
+# _uxs_cache_fill FILE —— 缓存行灌进内存态（load 与 stale 共用）
+_uxs_cache_fill() {
     local mod state
     while IFS=$'\t' read -r mod state; do
         if [[ -z "$mod" || "$mod" == \#* ]]; then continue; fi
         _uxs_state_set "$mod" "$state"
-    done < "$file"
+    done < "$1"
+}
+
+# _uxs_cache_load_stale —— 过期也灌进内存（stale-while-revalidate 的 stale 侧）。
+# 背景：过期缓存走原 load 会返回 1 ⇒ menu_status_ensure 阻塞重查 10~15s，
+# 而缓存每 300s 过期一次 —— 用户每隔几分钟开菜单就每隔几分钟卡一次。
+# 现在过期先拿旧数据开菜单（图标略旧但不空），后台补查（见 _uxs_status_refresh_bg）。
+# TTL=0（明确关缓存）不 stale；ts 必须是数字（损坏文件不灌）。
+_uxs_cache_load_stale() {
+    local ttl="${UXS_STATUS_CACHE_TTL:-300}"
+    [[ "$ttl" == "0" ]] && return 1
+    local file ts
+    file=$(_uxs_cache_file)
+    [[ -f "$file" ]] || return 1
+    ts=$(sed -n 's/^#ts=//p' "$file")
+    ts="${ts%%$'\n'*}"
+    [[ "$ts" =~ ^[0-9]+$ ]] || return 1
+    _uxs_cache_fill "$file"
     return 0
 }
 
 status_cache_save() {
     local ttl="${UXS_STATUS_CACHE_TTL:-300}"
     if [[ "$ttl" == "0" ]]; then return 0; fi
-    local dir file mod
+    local dir file mod st txt
     dir=$(_uxs_cache_dir)
     mkdir -p "$dir" 2>/dev/null || return 0
     file="$dir/cache"
-    {
-        echo "#ts=$(date +%s)"
-        for mod in ${_UXS_STATE_KNOWN:-}; do
-            printf '%s\t%s\n' "$mod" "$(status_state_get "$mod")"
-        done
-    } > "$file" 2>/dev/null || true
+    txt="#ts=$(date +%s)"$'\n'
+    for mod in ${_UXS_STATE_KNOWN:-}; do
+        st=""
+        _uxs_state_out "$mod" st
+        txt+="${mod}"$'\t'"${st}"$'\n'
+    done
+    # 原子写（临时文件 + rename）：后台刷新与前台读/单行更新并发时，
+    # 读者永远看到旧版或新版，不会读到写了一半的缓存。
+    fs_atomic_write "$file" "$txt" 644 || true
 }
 
 # 单模块状态变更后更新缓存行（缓存不存在则不做任何事）
@@ -309,8 +335,43 @@ status_icon() {
 }
 
 # 菜单入口：优先吃缓存，否则并行批查全量并落盘
+# _uxs_status_refresh_bg —— 后台补查（stale-while-revalidate 的 revalidate 侧）。
+# 锁：cache 目录下 refresh.lock（内含时间戳）。锁还活着（≤10 分钟）⇒ 不重复起；
+# 超时的锁视为持有者已死 ⇒ 接管。完全脱离终端：stdin/stdout/stderr 全 /dev/null，
+# 不打扰 fzf 的 tty，也不往用户屏幕上漏批查日志。
+_uxs_status_refresh_bg() {
+    local dir lock old now
+    dir=$(_uxs_cache_dir)
+    lock="$dir/refresh.lock"
+    if [ -d "$lock" ]; then
+        old=$(cat "$lock/ts" 2>/dev/null || true)
+        now=$(date +%s)
+        if [[ "$old" =~ ^[0-9]+$ ]] && (( now - old <= 600 )); then
+            return 0    # 已有刷新在跑
+        fi
+        rm -rf "$lock" 2>/dev/null || return 0
+    fi
+    mkdir "$lock" 2>/dev/null || return 0
+    printf '%s\n' "$(date +%s)" > "$lock/ts" 2>/dev/null || { rm -rf "$lock"; return 0; }
+    (
+        trap 'rm -rf "$lock" 2>/dev/null' EXIT
+        # shellcheck disable=SC2086  # $_REGISTRY_MODULES 为受控模块名列表，需要分词
+        status_batch_query $_REGISTRY_MODULES
+        status_cache_save
+    ) </dev/null >/dev/null 2>&1 &
+    disown 2>/dev/null || true
+    return 0
+}
+
 menu_status_ensure() {
     if status_cache_load; then
+        return 0
+    fi
+    # 过期但有旧数据：stale-while-revalidate —— 先拿旧数据开菜单（图标略旧但不空），
+    # 后台补查，下一次打开就是新鲜的。只有**首查**（无缓存）才阻塞（诚实：首次约数秒）。
+    # TTL=0（明确关缓存）时 stale 侧也返回 1 ⇒ 仍走下面的同步阻塞路径，语义不变。
+    if _uxs_cache_load_stale; then
+        _uxs_status_refresh_bg
         return 0
     fi
     info "正在检查各模块安装状态（首次约数秒；UXS_STATUS_CACHE_TTL=0 可关闭缓存）..."

@@ -756,6 +756,41 @@ phase_routing() {
     assert "状态: TTL=0 禁用缓存（load 必 miss）" bash -c \
         'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/status.sh
          if UXS_STATUS_CACHE_DIR="$2" UXS_STATUS_CACHE_TTL=0 status_cache_load; then exit 1; else exit 0; fi' _ "$REPO_DIR" "$sc_dir"
+    # ---- E: stale-while-revalidate（过期先开菜单 + 后台补查）----
+    # shellcheck disable=SC2016
+    assert "状态缓存: 过期缓存 stale 灌入且后台补查被拉起" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/status.sh
+         export UXS_STATUS_CACHE_DIR="$2/stale" UXS_STATUS_CACHE_TTL=60
+         real=$(_uxs_cache_dir); mkdir -p "$real"   # 缓存路径带 cksum 子目录，别手写平铺路径
+         printf "#ts=1\ndocker\tinstalled:running\n" > "$real/cache"
+         status_batch_query() { touch "$UXS_STATUS_CACHE_DIR/batch_ran"; }   # 后台批查用桩
+         menu_status_ensure
+         [ "$(status_state_get docker)" = "installed:running" ] || exit 1   # stale 已灌进内存
+         i=0
+         while [ $i -lt 20 ] && [ ! -f "$UXS_STATUS_CACHE_DIR/batch_ran" ]; do sleep 0.1; i=$((i+1)); done
+         [ -f "$UXS_STATUS_CACHE_DIR/batch_ran" ] || exit 1' _ "$REPO_DIR" "$sc_dir"
+    # shellcheck disable=SC2016
+    assert "状态缓存: 刷新锁在 ⇒ 不重复起后台补查" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/status.sh
+         export UXS_STATUS_CACHE_DIR="$2/lock" UXS_STATUS_CACHE_TTL=60
+         real=$(_uxs_cache_dir); mkdir -p "$real/refresh.lock"
+         printf "%s\n" "$(date +%s)" > "$real/refresh.lock/ts"
+         printf "#ts=1\ndocker\tinstalled\n" > "$real/cache"
+         status_batch_query() { touch "$UXS_STATUS_CACHE_DIR/batch_ran"; }
+         menu_status_ensure
+         sleep 1
+         [ ! -f "$UXS_STATUS_CACHE_DIR/batch_ran" ] || exit 1   # 锁活着 ⇒ 后台桩一次都不该跑
+         [ "$(status_state_get docker)" = "installed" ]' _ "$REPO_DIR" "$sc_dir"
+    # shellcheck disable=SC2016
+    assert "状态缓存: TTL=0 不走 stale，仍同步阻塞批查" bash -c \
+        'cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/status.sh
+         export UXS_STATUS_CACHE_DIR="$2/ttl0" UXS_STATUS_CACHE_TTL=0
+         real=$(_uxs_cache_dir); mkdir -p "$real"
+         printf "#ts=1\ndocker\tinstalled:running\n" > "$real/cache"
+         status_batch_query() { touch "$UXS_STATUS_CACHE_DIR/batch_ran"; _uxs_state_set docker not_installed; }
+         menu_status_ensure
+         [ -f "$UXS_STATUS_CACHE_DIR/batch_ran" ] || exit 1                          # 同步跑过批查
+         [ "$(status_state_get docker)" = "not_installed" ]' _ "$REPO_DIR" "$sc_dir"   # 状态来自批查而非 stale 文件
     rm -rf "$sc_dir"
 
     # 17. 菜单：模式解析与渲染纯函数（交互循环不自动化）
@@ -1058,10 +1093,21 @@ phase_routing() {
             source "$1/lib/common.sh"
             XDG_CURRENT_DESKTOP=ubuntu:GNOME detect_desktop
             [ "$DESKTOP_ENV" = "gnome" ] && [ "$IS_DESKTOP" = 1 ]' _ "$REPO_DIR"
+        # 负例必须隔离**全部**线索：os_desktop_env 除了 3 个环境变量，还把会话二进制
+        # （lxsession/gnome-session/plasmashell…，command -v 在 PATH 里找）当线索 ——
+        # 桌面机（如 Pi 装着 X 会话）只 unset 环境变量仍会判出桌面。
+        # 手法：正常 PATH 下先 source（common.sh 源码期就要用 dirname 等外部命令），
+        # 再用**空 PATH** 只包住 detect_desktop 调用 —— 线索搜索发生在调用期，二进制
+        # 线索全灭，任何宿主上「无线索 ⇒ none」都成立。
         # shellcheck disable=SC2016
-        assert "桌面环境: 无桌面时 IS_DESKTOP=0" bash -c '
-            env -u XDG_CURRENT_DESKTOP -u XDG_SESSION_DESKTOP -u DESKTOP_SESSION \
-                bash -c "source \"$1/lib/common.sh\" && detect_desktop; [ \"\$DESKTOP_ENV\" = none ] && [ \"\$IS_DESKTOP\" = 0 ]"' _ "$REPO_DIR"
+        assert "桌面环境: 无桌面时 IS_DESKTOP=0（空 PATH 隔离会话二进制线索）" bash -c '
+            negbin=$(mktemp -d)
+            unset XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP DESKTOP_SESSION
+            source "$1/lib/common.sh"
+            PATH="$negbin" detect_desktop
+            rc=$?
+            rm -rf "$negbin"
+            [ $rc -eq 0 ] && [ "$DESKTOP_ENV" = none ] && [ "$IS_DESKTOP" = 0 ]' _ "$REPO_DIR"
         # 20b. 当前环境自洽校验
         # shellcheck disable=SC2016
         assert "发行版: DISTRO_ID 与 os-release 一致（小写）" bash -c '
