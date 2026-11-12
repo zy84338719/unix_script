@@ -4,6 +4,15 @@
 
 ## [Unreleased]
 
+### 性能
+- **进菜单的等待从 20+ 秒降到 3~5 秒**（根治第一步）：shellkit 的 `registry_get` 原本
+  **每次查询 fork 一个 awk**（实测 48ms/次），而一个菜单要读几百次字段 —— `category_items`
+  还要每个分类全表扫一遍，build_list 本机实测 **21.7s**、Pi 7s，用户进一次菜单要干等半分钟到一分半。
+  现在 vendor 同步 shellkit 的 registry 内存化（扫描时一次 `$(<file)` 读进内存、查询零 fork，
+  shellkit 上游 commit d83bd06，quality CI 全绿），本机 build_list 实测 **21.7s → 3.3s**。
+  残余的 3~5s 是调用方 `$( )` 命令替换的结构性 fork —— 要进到亚秒需在 UI 层做一次批量预取（后续）
+- 顺带：`registry_visible` 的 `$(os_name)` 进程内缓存、平台列表改纯 bash 分词（原 `tr` 也 fork）
+
 ## [2.2.0] - 2026-11-12
 
 修掉两个**从老版交互起就一直存在、但一直没人看出来**的问题：fzf 的 README 预览面板
