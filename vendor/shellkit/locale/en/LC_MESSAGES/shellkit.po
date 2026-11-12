@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: shellkit\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 18:42+0800\n"
+"POT-Creation-Date: 2026-11-12 16:29+0800\n"
 "PO-Revision-Date: 2026-11-08 00:00+0800\n"
 "Last-Translator: shellkit contributors\n"
 "Language-Team: shellkit contributors\n"
@@ -117,6 +117,9 @@ msgid "source file does not exist"
 msgstr ""
 
 msgid "invalid keep count"
+msgstr ""
+
+msgid "the ownership manifest is damaged; entries were ignored"
 msgstr ""
 
 msgid "line must not be empty"
@@ -461,6 +464,15 @@ msgstr ""
 msgid "usage"
 msgstr ""
 
+msgid "the target is a symlink, left alone"
+msgstr ""
+
+msgid "modified locally, left alone"
+msgstr ""
+
+msgid "syncing"
+msgstr ""
+
 msgid "the vendor directory is a symlink, refusing to install"
 msgstr ""
 
@@ -468,6 +480,9 @@ msgid "the vendored library is a symlink, refusing to install"
 msgstr ""
 
 msgid "recovering the vendored library after an interrupted swap"
+msgstr ""
+
+msgid "already up to date"
 msgstr ""
 
 msgid "path exists and is not a directory"
@@ -571,6 +586,9 @@ msgstr ""
 msgid "next steps"
 msgstr ""
 
+msgid "the upgrade journal is damaged; entries were ignored"
+msgstr ""
+
 msgid "target directory does not exist"
 msgstr ""
 
@@ -600,9 +618,6 @@ msgstr ""
 msgid "refusing to write outside the project directory"
 msgstr ""
 
-msgid "the target is a symlink, left alone"
-msgstr ""
-
 msgid "the target path is blocked by a file"
 msgstr ""
 
@@ -610,9 +625,6 @@ msgid "the target is a directory, refusing to overwrite"
 msgstr ""
 
 msgid "recovered from an interrupted upgrade"
-msgstr ""
-
-msgid "modified locally, left alone"
 msgstr ""
 
 msgid "no recorded fingerprint, left alone"
@@ -651,6 +663,9 @@ msgstr ""
 msgid "upgrade finished"
 msgstr ""
 
+msgid "the library could not be loaded"
+msgstr ""
+
 msgid "library file is missing"
 msgstr ""
 
@@ -667,9 +682,6 @@ msgid "module files present"
 msgstr ""
 
 msgid "library integrity"
-msgstr ""
-
-msgid "the library could not be loaded"
 msgstr ""
 
 msgid "environment check"
@@ -759,16 +771,13 @@ msgstr ""
 msgid "vendored library is out of date"
 msgstr ""
 
-msgid "run without --check to update"
+msgid "run without --check to sync (locally modified files are kept)"
 msgstr ""
 
 msgid "vendored library is up to date"
 msgstr ""
 
 msgid "refusing to overwrite a directory that is not a shellkit vendor"
-msgstr ""
-
-msgid "syncing"
 msgstr ""
 
 msgid "load it from your scripts"
@@ -828,13 +837,32 @@ msgstr ""
 msgid "where to read more"
 msgstr ""
 
-msgid "the target exists and is not a directory"
-msgstr ""
-
 msgid "the skill package is incomplete"
 msgstr ""
 
+msgid "the target exists and is not a directory"
+msgstr ""
+
+msgid "refusing to write through a symlink"
+msgstr ""
+
+msgid "the skill is up to date"
+msgstr ""
+
+msgid "skipped a path outside the install directory"
+msgstr ""
+
+msgid ""
+"cannot verify which files were installed by shellkit; nothing was removed"
+msgstr ""
+
+msgid "the directory is not empty, left in place"
+msgstr ""
+
 msgid "known AI clients"
+msgstr ""
+
+msgid "modified"
 msgstr ""
 
 msgid "installed"
@@ -871,13 +899,13 @@ msgstr ""
 msgid "only one client is allowed"
 msgstr ""
 
+msgid "installing"
+msgstr ""
+
 msgid "try a writable prefix"
 msgstr ""
 
 msgid "recovering the installed copy after an interrupted swap"
-msgstr ""
-
-msgid "installing"
 msgstr ""
 
 msgid "failed to write the install manifest"
@@ -893,9 +921,6 @@ msgid "nothing was removed, delete that directory by hand if you are sure"
 msgstr ""
 
 msgid "removing"
-msgstr ""
-
-msgid "skipped a path outside the install directory"
 msgstr ""
 
 msgid "failed to remove"
@@ -923,9 +948,6 @@ msgid "checking for a newer version"
 msgstr ""
 
 msgid "cannot read the latest version from the release API"
-msgstr ""
-
-msgid "already up to date"
 msgstr ""
 
 msgid "current version"
