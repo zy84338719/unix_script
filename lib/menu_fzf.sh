@@ -36,7 +36,7 @@ _MENU_FZF_SH_LOADED=1
 #   用户截图里管理项与分类入口明明在屏幕**下方**，「顶部」二字直接是错的。
 #   ⇒ 不写死位置，改成直接点名这些行长什么样（图标 + 简称），用户一眼能认出来。
 #   宽度控制在 80 列内（实测 76 列），免得窄终端被 fzf 截断。
-_MENU_FZF_HEADER_MAIN="TAB 多选 · 回车执行默认动作 · ESC 退出 ｜ ⚙状态总览 🗑卸载 🔄更新 ⟳刷新 ▸分类"
+_MENU_FZF_HEADER_MAIN="回车执行 · TAB 多选 · ESC 退出 ｜ 🔍搜索全部 ⚙状态总览 🗑卸载 🔄更新 ⟳刷新 ▸分类"
 
 # shellcheck disable=SC2016  # $p / $UXS_REPO_DIR 由 fzf 的 preview 子 shell 展开，非本 shell
 _MENU_FZF_PREVIEW='p={5}; if [ -n "$p" ] && [ -f "$UXS_REPO_DIR/$p/README.md" ]; then head -30 "$UXS_REPO_DIR/$p/README.md"; else echo "（这一行不是模块，没有 README 预览）"; fi'
@@ -51,6 +51,16 @@ _fzf_preview_supported() {
     [[ "$maj" =~ ^[0-9]+$ ]] || return 1
     if (( maj > 0 )); then return 0; fi
     [[ "$min" =~ ^[0-9]+$ ]] && (( min >= 20 ))
+}
+
+# ---------------- 搜索入口（跨分类直达，替代混排时代的全量平铺） ----------------
+# ★ 为什么单列一行：导航（管理/分类）与内容（模块列表）不该混在同一个可搜索列表里
+#   （导航行会污染搜索、reverse 布局下导航沉底像杂物、与老版分层结构不符，2026-11-12 用户反馈）。
+#   分层后跨分类模糊搜索（如直接搜 docker）由这个入口保留：选中进全量模块列表。
+menu_fzf_search_row() {
+    local n
+    n=$(registry_visible_modules | wc -w | tr -d ' ')
+    printf '🔍\t搜索全部模块\t在全部 %s 个模块里模糊搜索\t\t\t__uxs_search__\n' "$n"
 }
 
 # ---------------- 管理项（与 bash 菜单的 s/u/c/f 一一对应） ----------------
@@ -105,12 +115,19 @@ menu_fzf_category_rows() {
     done
 }
 
-# 构造 fzf 列表：管理项 + 分类入口在最前，模块行随后（纯函数，可测）
+# 构造 fzf 主列表 = 导航首页：搜索入口 + 管理项 + 分类入口（**不含模块行**）。
+# 模块行只出现在二级列表（menu_fzf_module_rows）—— 导航与内容分层（见搜索入口注释）。
 menu_fzf_build_list() {
-    local lines="" mod state icon label desc path
-    # $() 会吃掉末尾换行 ⇒ 两段之间自己补一个
-    lines=$(menu_fzf_admin_rows; menu_fzf_category_rows)
+    local lines
+    # $() 会吃掉末尾换行 ⇒ 段之间自己补一个
+    lines=$(menu_fzf_search_row; menu_fzf_admin_rows; menu_fzf_category_rows)
     lines+=$'\n'
+    printf '%s' "$lines"
+}
+
+# 全量模块行（二级列表「搜索全部模块」用；纯函数，可测）
+menu_fzf_module_rows() {
+    local lines="" mod state icon label desc path
     for mod in $(registry_visible_modules); do
         # 零 fork 出参（原每行 4 次 $( ) fork：state/icon/label/desc/path）
         _uxs_state_out "$mod" state
@@ -128,6 +145,7 @@ menu_fzf_key_kind() {
     case "$1" in
         __uxs_admin_*) echo admin ;;
         __uxs_cat_*) echo category ;;
+        __uxs_search__) echo search ;;
         "") echo module ;;
         *) echo unknown ;;
     esac
@@ -175,6 +193,20 @@ menu_fzf_run_category() {
     [ ${#mods[@]} -gt 0 ] || return 0
     menu_exec_actions "${mods[@]}"
 }
+# 搜索入口 → 全量模块二级列表 → 执行（与分类同款：执行完回到主列表）
+menu_fzf_run_search() {
+    local lines picked
+    local -a mods=()
+    lines=$(menu_fzf_module_rows)
+    [ -n "$lines" ] || return 0
+    menu_fzf_setup_args "TAB 多选 · 回车执行默认动作 · ESC 返回（搜索全部模块）"
+    picked=$(printf '%s' "$lines" | fzf "${_MENU_FZF_ARGS[@]}") || return 0
+    [ -n "$picked" ] || return 0
+    # 全是模块行（第 6 段恒空）⇒ 直接取第 2 段；--multi 时多行各取
+    read -ra mods <<< "$(printf '%s\n' "$picked" | awk -F'	' '{print $2}' | tr '\n' ' ')"
+    [ ${#mods[@]} -gt 0 ] || return 0
+    menu_exec_actions "${mods[@]}"
+}
 
 menu_fzf_main() {
     menu_status_ensure
@@ -208,6 +240,10 @@ menu_fzf_main() {
             category)
                 cat="${key#__uxs_cat_}"
                 menu_fzf_run_category "$cat" || true
+                continue
+                ;;
+            search)
+                menu_fzf_run_search || true
                 continue
                 ;;
             unknown)

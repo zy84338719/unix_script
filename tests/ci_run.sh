@@ -806,17 +806,8 @@ phase_routing() {
         declare -F uninstall_menu_loop >/dev/null &&
         declare -F menu_check_update >/dev/null &&
         declare -F menu_refresh_status_cache >/dev/null' _ "$REPO_DIR"
-    # shellcheck disable=SC2016
-    assert "fzf 菜单: 列表前 4 行是管理项、其后是分类入口与模块行" bash -c '
-        cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
-        detect_os; registry_scan
-        list=$(menu_fzf_build_list)
-        # 前 4 行第 6 段必须是管理键
-        printf "%s\n" "$list" | head -4 | awk -F"\t" "\$6 !~ /^__uxs_admin_/ {exit 1}"
-        # 其余行只有两种：分类入口（__uxs_cat_*）或模块行（动作键为空）
-        printf "%s\n" "$list" | tail -n +5 | awk -F"\t" "\$6 != \"\" && \$6 !~ /^__uxs_cat_/ {exit 1}"
-        # 模块行不能为空（注册表没扫上就是没接上）
-        [ "$(printf "%s\n" "$list" | tail -n +5 | awk -F"\t" "\$6 == \"\" && \$2 != \"\" {n++} END{print n+0}")" -gt 0 ]' _ "$REPO_DIR"
+    # （原「列表前 4 行是管理项…」布局断言已并入 18d —— 分层后主列表第 1 行是搜索入口，
+    #   布局判据只留 18d 一份，两份会互相打架。）
 
     # 18c. CLI 契约：install / remove 不带模块名时，
     #      交互环境（TTY）进菜单、非交互仍是用法错（退出码 2 不变）。
@@ -829,9 +820,9 @@ phase_routing() {
         [ "$rc" = "2" ] || exit 1
         printf "%s\n" "$out" | grep -q "用法: uxs remove" || exit 1' _ "$REPO_DIR"
 
-    # 18d. 分类导航：老版 bash 菜单是「先选分类、再选模块」，fzf 也必须能走这条路。
-    #      列表顶部补分类入口（__uxs_cat_<分类>）⇒ 选中后弹第二个 fzf 列该分类的模块。
-    #      一维模糊搜索保留 ⇒ 平铺模块行仍在列表里，两级导航是并行入口不是替代。
+    # 18d. 分层导航（2026-11-12 用户反馈：导航与模块列表不该混在同一个可搜索列表里）：
+    #      主列表 = 导航首页（🔍搜索 + 4 管理 + 5 分类，**不含模块行**）；
+    #      模块行只在二级列表 —— 分类入口进该分类、搜索入口进全量模块列表（跨分类模糊搜索由此保留）。
     # shellcheck disable=SC2016
     assert "fzf 菜单: 分类入口齐全（每个有可见模块的分类都有 __uxs_cat_ 入口）" bash -c '
         cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
@@ -847,26 +838,32 @@ phase_routing() {
         got=$(printf "%s\n" "$rows" | awk -F"\t" "\$6 ~ /^__uxs_cat_/ {n++} END{print n+0}")
         [ "$got" = "$want" ]' _ "$REPO_DIR"
     # shellcheck disable=SC2016
-    assert "fzf 菜单: 列表布局 = 管理项 → 分类入口 → 模块行" bash -c '
+    assert "fzf 菜单: 主列表 = 搜索+管理+分类的导航首页（不含模块行）" bash -c '
         cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
         detect_os; registry_scan
         list=$(menu_fzf_build_list)
-        admin=$(printf "%s\n" "$list" | awk -F"\t" "\$6 ~ /^__uxs_admin_/ {n++} END{print n+0}")
-        cats=$(printf "%s\n" "$list" | awk -F"\t" "\$6 ~ /^__uxs_cat_/ {n++} END{print n+0}")
-        mods=$(printf "%s\n" "$list" | awk -F"\t" "\$6 == \"\" && \$2 != \"\" {n++} END{print n+0}")
+        cnt() { printf "%s\n" "$list" | awk -F"\t" -v p="$1" '\''$6 ~ p {n++} END{print n+0}'\''; }
+        [ "$(cnt "^__uxs_search__$")" = "1" ] || exit 1
+        [ "$(cnt "^__uxs_admin_")" = "4" ] || exit 1
+        [ "$(cnt "^__uxs_cat_")" -gt 0 ] || exit 1
+        # 导航首页里不许有模块行（第 6 段空且第 2 段非空 = 模块行）
+        mods=$(printf "%s\n" "$list" | awk -F"\t" '\''$6 == "" && $2 != "" {n++} END{print n+0}'\'')
+        [ "$mods" = "0" ] || exit 1
+        # 顺序：第 1 行搜索、2-5 管理、其后全是分类
+        printf "%s\n" "$list" | sed -n 1p | awk -F"\t" '\''$6 != "__uxs_search__" {exit 1}'\'' || exit 1
+        printf "%s\n" "$list" | sed -n 2,5p | awk -F"\t" '\''$6 !~ /^__uxs_admin_/ {exit 1}'\'' || exit 1
+        printf "%s\n" "$list" | tail -n +6 | awk -F"\t" '\''$6 !~ /^__uxs_cat_/ {exit 1}'\'' || exit 1
+        # 模块段独立成二级列表：行数 = 可见模块数、动作键全空
+        mrows=$(menu_fzf_module_rows)
         nvis=$(registry_visible_modules | wc -w | tr -d " ")
-        [ "$admin" = "4" ] || exit 1
-        [ "$cats" -gt 0 ] || exit 1
-        [ "$mods" = "$nvis" ] || exit 1
-        # 顺序：前 4 行管理键，接着 cats 行分类键，其余模块行动作键为空
-        printf "%s\n" "$list" | head -4 | awk -F"\t" "\$6 !~ /^__uxs_admin_/ {exit 1}" || exit 1
-        printf "%s\n" "$list" | tail -n +5 | head -n "$cats" | awk -F"\t" "\$6 !~ /^__uxs_cat_/ {exit 1}" || exit 1
-        printf "%s\n" "$list" | tail -n +$((5 + cats)) | awk -F"\t" "\$6 != \"\" {exit 1}" || exit 1' _ "$REPO_DIR"
+        [ "$(printf "%s\n" "$mrows" | awk -F"\t" '\''$2 != "" {n++} END{print n+0}'\'')" = "$nvis" ] || exit 1
+        printf "%s\n" "$mrows" | awk -F"\t" '\''$6 != "" {exit 1}'\'' || exit 1' _ "$REPO_DIR"
     # shellcheck disable=SC2016
     assert "fzf 菜单: 动作键分派（admin / category / module / unknown）" bash -c '
         cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
         [ "$(menu_fzf_key_kind __uxs_admin_status__)" = "admin" ] || exit 1
         [ "$(menu_fzf_key_kind __uxs_cat_服务)" = "category" ] || exit 1
+        [ "$(menu_fzf_key_kind __uxs_search__)" = "search" ] || exit 1
         [ "$(menu_fzf_key_kind "")" = "module" ] || exit 1
         [ "$(menu_fzf_key_kind 垃圾键)" = "unknown" ] || exit 1' _ "$REPO_DIR"
     # shellcheck disable=SC2016
@@ -897,6 +894,25 @@ phase_routing() {
         out=$(PATH="$tmp:$PATH" menu_fzf_run_category "$cat")
         [ -z "$out" ]' _ "$REPO_DIR"
 
+    # shellcheck disable=SC2016
+    assert "fzf 菜单: 搜索入口 → 全量模块二级列表 → 执行（假 fzf 端到端）" bash -c '
+        cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
+        detect_os; registry_scan
+        tmp=$(mktemp -d)
+        trap "rm -rf $tmp" EXIT
+        # 假 fzf 回显 stdin 首行（= 全量列表第一行 = 第一个可见模块行）
+        printf "%s\n" "#!/usr/bin/env bash" "if [ \"\$1\" = \"--version\" ]; then echo \"0.74.4 (fake)\"; exit 0; fi" "IFS= read -r line" "printf \"%s\\n\" \"\$line\"" > "$tmp/fzf"
+        chmod +x "$tmp/fzf"
+        first=$(menu_fzf_module_rows | sed -n 1p | awk -F"\t" "{print \$2}")
+        [ -n "$first" ] || exit 1
+        menu_exec_actions() { echo "EXEC:$*"; }
+        out=$(PATH="$tmp:$PATH" menu_fzf_run_search)
+        [ "$out" = "EXEC:$first" ] || exit 1
+        # ESC（假 fzf 非 0 退出）⇒ 不执行任何动作
+        printf "%s\n" "#!/usr/bin/env bash" "if [ \"\$1\" = \"--version\" ]; then echo \"0.74.4 (fake)\"; exit 0; fi" "exit 1" > "$tmp/fzf"
+        chmod +x "$tmp/fzf"
+        out=$(PATH="$tmp:$PATH" menu_fzf_run_search)
+        [ -z "$out" ]' _ "$REPO_DIR"
     # 18e. 预览面板与顶栏文案：两个「看着像 bug 其实是真 bug」的点。
     #
     # ① 预览从来没显示过内容：fzf 把 {5} 替换成**shell 单引号包住**的值（'services/gitea'），
@@ -940,6 +956,7 @@ phase_routing() {
         hdr="$_MENU_FZF_HEADER_MAIN"
         [ -n "$hdr" ] || exit 1
         case "$hdr" in *状态总览*) ;; *) exit 1 ;; esac
+        case "$hdr" in *搜索*) ;; *) exit 1 ;; esac
         case "$hdr" in *"▸"*) ;; *) exit 1 ;; esac
         case "$hdr" in *顶部*|*置顶*) exit 1 ;; esac' _ "$REPO_DIR"
 
