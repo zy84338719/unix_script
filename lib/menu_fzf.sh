@@ -19,7 +19,7 @@ if [[ -n "${_MENU_FZF_SH_LOADED:-}" ]]; then return 0 2>/dev/null || exit 0; fi
 _MENU_FZF_SH_LOADED=1
 
 # ---------------- 预览命令（{5} = 模块物理路径） ----------------
-# ★ 踩过的坑（2026-08 起就在，v2.1.0 才修）：fzf 把占位符替换成**shell 单引号包住**的值，
+# ★ 踩过的坑（2026-08 起就在，v2.2.0 才修）：fzf 把占位符替换成**shell 单引号包住**的值，
 #   {5} ⇒ 'services/gitea'（实测 fzf 0.74.4）。
 #   老写法 --preview 'head -30 "$UXS_REPO_DIR/{5}/README.md"'
 #   ⇒ 路径里多了**字面单引号** ⇒ 必然找不到文件 ⇒ 预览面板永远只有「（无模块 README）」，
