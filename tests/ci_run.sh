@@ -791,6 +791,44 @@ phase_routing() {
             [ "$(resolve_menu_mode)" = "bash" ]
          fi' _ "$REPO_DIR"
 
+    # 18b. fzf 菜单的管理入口：fzf 接管后必须仍能到达
+    #      状态总览 / 卸载 / 检查更新 / 刷新缓存（老版 bash 菜单的 s/u/c/f），
+    #      否则「uxs 退化成只能装的搜索框」。
+    # shellcheck disable=SC2016
+    assert "fzf 菜单: 管理项含状态/卸载/更新/刷新四个入口" bash -c '
+        cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
+        rows=$(menu_fzf_admin_rows)
+        for k in __uxs_admin_status__ __uxs_admin_uninstall__ __uxs_admin_update__ __uxs_admin_refresh__; do
+            printf "%s\n" "$rows" | grep -q "$k" || exit 1
+        done
+        # 四个管理项都要有对应实现（不能是空壳入口）
+        declare -F show_installed_services >/dev/null &&
+        declare -F uninstall_menu_loop >/dev/null &&
+        declare -F menu_check_update >/dev/null &&
+        declare -F menu_refresh_status_cache >/dev/null' _ "$REPO_DIR"
+    # shellcheck disable=SC2016
+    assert "fzf 菜单: 列表前 4 行是管理项、模块行在其后" bash -c '
+        cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
+        detect_os; registry_scan
+        list=$(menu_fzf_build_list)
+        # 前 4 行第 6 段必须是管理键
+        printf "%s\n" "$list" | head -4 | awk -F"\t" "\$6 !~ /^__uxs_admin_/ {exit 1}"
+        # 第 5 行起是模块行：第 6 段（动作键）必须为空
+        printf "%s\n" "$list" | tail -n +5 | awk -F"\t" "\$6 != \"\" {exit 1}"
+        # 模块行不能为空（注册表没扫上就是没接上）
+        [ "$(printf "%s\n" "$list" | tail -n +5 | grep -c .)" -gt 0 ]' _ "$REPO_DIR"
+
+    # 18c. CLI 契约：install / remove 不带模块名时，
+    #      交互环境（TTY）进菜单、非交互仍是用法错（退出码 2 不变）。
+    # shellcheck disable=SC2016
+    assert "CLI: install/remove 不带模块且非交互 ⇒ 用法错（退出 2）" bash -c '
+        out=$("$1/install.sh" install </dev/null 2>&1); rc=$?
+        [ "$rc" = "2" ] || exit 1
+        printf "%s\n" "$out" | grep -q "用法: uxs install" || exit 1
+        out=$("$1/install.sh" remove </dev/null 2>&1); rc=$?
+        [ "$rc" = "2" ] || exit 1
+        printf "%s\n" "$out" | grep -q "用法: uxs remove" || exit 1' _ "$REPO_DIR"
+
     # 19. 补全：注册表驱动（与 list 同源）
     # shellcheck disable=SC2016
     assert "补全: bash 模块清单与注册表一致" bash -c '

@@ -211,6 +211,15 @@ menu_check_update() {
     read -r -p "按回车键返回主菜单..."
 }
 
+# 刷新状态缓存（bash 菜单的 f 分支与 fzf 的「刷新状态缓存」管理项共用）
+menu_refresh_status_cache() {
+    info "刷新安装状态..."
+    # shellcheck disable=SC2086  # $_REGISTRY_MODULES 为受控模块名列表
+    status_batch_query $_REGISTRY_MODULES
+    status_cache_save
+    success "状态缓存已刷新"
+}
+
 interactive_main() {
     local mode
     mode=$(resolve_menu_mode)
@@ -235,11 +244,7 @@ interactive_main_bash() {
                     u|U) uninstall_menu_loop; break ;;
                     c|C) menu_check_update; break ;;
                     f|F)
-                        info "刷新安装状态..."
-                        # shellcheck disable=SC2086  # $_REGISTRY_MODULES 为受控模块名列表
-                        status_batch_query $_REGISTRY_MODULES
-                        status_cache_save
-                        success "状态缓存已刷新"
+                        menu_refresh_status_cache
                         break
                         ;;
                     q|Q|0) info "感谢使用！再见！"; exit 0 ;;

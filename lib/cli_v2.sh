@@ -133,6 +133,12 @@ cli_v2_install() {
         esac
     done
     if [[ ${#mods[@]} -eq 0 ]]; then
+        # 不带模块名 → 进交互菜单（老版手感：进去就能挑模块）。
+        # 非 TTY 没有菜单可看 ⇒ 仍给用法（退出码 2 不变，脚本里判用法错照旧）。
+        if [[ -t 0 ]]; then
+            interactive_main
+            return 0
+        fi
         error "用法: uxs install <模块>... [--no-deps] [--dry-run]" >&2
         exit "$SK_USAGE"
     fi
@@ -160,6 +166,12 @@ cli_v2_remove() {
         esac
     done
     if [[ ${#mods[@]} -eq 0 ]]; then
+        # 不带模块名 → 进交互式卸载菜单（老版的卸载菜单）。
+        # 非 TTY ⇒ 仍给用法（退出码 2 不变）。
+        if [[ -t 0 ]]; then
+            uninstall_menu_loop
+            return 0
+        fi
         error "用法: uxs remove <模块>..." >&2
         exit "$SK_USAGE"
     fi
