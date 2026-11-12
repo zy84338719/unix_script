@@ -897,6 +897,52 @@ phase_routing() {
         out=$(PATH="$tmp:$PATH" menu_fzf_run_category "$cat")
         [ -z "$out" ]' _ "$REPO_DIR"
 
+    # 18e. 预览面板与顶栏文案：两个「看着像 bug 其实是真 bug」的点。
+    #
+    # ① 预览从来没显示过内容：fzf 把 {5} 替换成**shell 单引号包住**的值（'services/gitea'），
+    #    老写法 "$UXS_REPO_DIR/{5}/README.md" 把占位符套在自己的双引号里
+    #    ⇒ 路径里多了字面单引号 ⇒ 必然找不到文件 ⇒ 永远只显示「（无模块 README）」，
+    #    而 58 个模块**全都有** README.md。这个坑从 2026-08 就在，v2.1.0 才修。
+    #    判据做法：自己模拟 fzf 的替换（{5} ⇒ '路径'），跑预览命令，断言读出的首行
+    #    就是该模块 README 的首行 —— 比断言命令长什么样更有判据能力。
+    # shellcheck disable=SC2016
+    assert "fzf 菜单: 预览能真读出模块 README（占位符不被自己的引号包住）" bash -c '
+        cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
+        detect_os; registry_scan
+        export UXS_REPO_DIR="$SCRIPT_DIR"
+        q=$(printf "\047")
+        path=""
+        for m in $(registry_visible_modules); do
+            p=$(registry_path "$m")
+            if [ -n "$p" ] && [ -f "$SCRIPT_DIR/$p/README.md" ]; then path="$p"; break; fi
+        done
+        [ -n "$path" ] || exit 1
+        cmd=${_MENU_FZF_PREVIEW//\{5\}/${q}${path}${q}}
+        out=$(eval "$cmd" 2>/dev/null)
+        first=$(printf "%s\n" "$out" | sed -n 1p)
+        expect=$(head -1 "$SCRIPT_DIR/$path/README.md")
+        [ -n "$first" ] || exit 1
+        [ "$first" = "$expect" ] || exit 1
+        # 空路径（管理项 / 分类行）⇒ 给提示文案，不能回落到仓库根 README
+        cmd2=${_MENU_FZF_PREVIEW//\{5\}/${q}${q}}
+        out2=$(eval "$cmd2" 2>/dev/null)
+        [ -n "$out2" ] || exit 1
+        case "$out2" in
+            "#"*) exit 1 ;;
+        esac' _ "$REPO_DIR"
+    #
+    # ② 顶栏写死了「顶部」：fzf 有 layout=reverse（列表从下往上渲染，首批行贴着提示符），
+    #    用户机器上管理项与分类入口明明在屏幕**下方**，「顶部」二字直接是错的。
+    #    ⇒ 顶栏必须点名这些行长什么样（管理项 + 分类入口），且不得写死位置。
+    # shellcheck disable=SC2016
+    assert "fzf 菜单: 顶栏点名管理项与分类入口，且不写死位置" bash -c '
+        cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
+        hdr="$_MENU_FZF_HEADER_MAIN"
+        [ -n "$hdr" ] || exit 1
+        case "$hdr" in *状态总览*) ;; *) exit 1 ;; esac
+        case "$hdr" in *"▸"*) ;; *) exit 1 ;; esac
+        case "$hdr" in *顶部*|*置顶*) exit 1 ;; esac' _ "$REPO_DIR"
+
     # 19. 补全：注册表驱动（与 list 同源）
     # shellcheck disable=SC2016
     assert "补全: bash 模块清单与注册表一致" bash -c '

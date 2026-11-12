@@ -18,6 +18,29 @@
 if [[ -n "${_MENU_FZF_SH_LOADED:-}" ]]; then return 0 2>/dev/null || exit 0; fi
 _MENU_FZF_SH_LOADED=1
 
+# ---------------- 预览命令（{5} = 模块物理路径） ----------------
+# ★ 踩过的坑（2026-08 起就在，v2.1.0 才修）：fzf 把占位符替换成**shell 单引号包住**的值，
+#   {5} ⇒ 'services/gitea'（实测 fzf 0.74.4）。
+#   老写法 --preview 'head -30 "$UXS_REPO_DIR/{5}/README.md"'
+#   ⇒ 路径里多了**字面单引号** ⇒ 必然找不到文件 ⇒ 预览面板永远只有「（无模块 README）」，
+#   而 58 个模块**全都有** README.md ⇒ 这块预览从来没显示过任何内容。
+#   正确写法：占位符**不要套在自己的引号里**，让 shell 去做拼接。
+#
+# 另：--with-nth=1..5 把第 6 段藏了 ⇒ 预览里 {6} 取不到（实测为空），
+#   所以「这一行是不是模块」只能靠 {5} 是否为空来区分。
+# 抽成全局变量：既给 fzf 用，也给测试用（测试要模拟 fzf 的占位符替换）。
+# 主列表顶栏文案。
+#
+# ★ 措辞教训：早先写的是「顶部：管理项 4 行 + 分类入口 ▸ 行」，
+#   但 fzf 有 layout=reverse（列表从下往上渲染，首批行贴着提示符）——
+#   用户截图里管理项与分类入口明明在屏幕**下方**，「顶部」二字直接是错的。
+#   ⇒ 不写死位置，改成直接点名这些行长什么样（图标 + 简称），用户一眼能认出来。
+#   宽度控制在 80 列内（实测 76 列），免得窄终端被 fzf 截断。
+_MENU_FZF_HEADER_MAIN="TAB 多选 · 回车执行默认动作 · ESC 退出 ｜ ⚙状态总览 🗑卸载 🔄更新 ⟳刷新 ▸分类"
+
+# shellcheck disable=SC2016  # $p / $UXS_REPO_DIR 由 fzf 的 preview 子 shell 展开，非本 shell
+_MENU_FZF_PREVIEW='p={5}; if [ -n "$p" ] && [ -f "$UXS_REPO_DIR/$p/README.md" ]; then head -30 "$UXS_REPO_DIR/$p/README.md"; else echo "（这一行不是模块，没有 README 预览）"; fi'
+
 # fzf ≥ 0.20.0 才有 --preview；1.x 及以上恒真
 _fzf_preview_supported() {
     command -v fzf >/dev/null 2>&1 || return 1
@@ -118,7 +141,7 @@ menu_fzf_setup_args() {
     if _fzf_preview_supported; then
         # shellcheck disable=SC2016  # $UXS_REPO_DIR 由 fzf preview 子 shell 展开，非本 shell
         _MENU_FZF_ARGS+=(
-            --preview 'head -30 "$UXS_REPO_DIR/{5}/README.md" 2>/dev/null || echo "（无模块 README）"'
+            --preview "$_MENU_FZF_PREVIEW"
             --preview-window "right:40%:wrap"
         )
     fi
@@ -162,7 +185,7 @@ menu_fzf_main() {
         local lines
         lines=$(menu_fzf_build_list)
         # 每次循环都要重建参数：分类子列表会覆盖这份全局数组
-        menu_fzf_setup_args "顶部：管理项 4 行 + 分类入口 ▸ 行 ｜ TAB 多选 · 回车执行默认动作 · ESC 退出"
+        menu_fzf_setup_args "$_MENU_FZF_HEADER_MAIN"
 
         if ! selected=$(printf '%s' "$lines" | fzf "${_MENU_FZF_ARGS[@]}"); then
             # ESC / Ctrl-C / 无选择：静默返回
