@@ -101,6 +101,87 @@ registry_scan() {
 _reg_get() {
     registry_get "$1" "$2"
 }
+# ===== 零 fork 出参工具（性能：热路径批量预取） =====
+# ★ 为什么：热路径（菜单每行要 LABEL/DESC/PATH/可见性…）用 $( ) 拿值，
+#   每次命令替换 fork 一个子 shell（1-3ms），一个菜单几百次就是秒级
+#   （build_list 改造前 21.7s→3.3s 后仍残余 3~5s，大头就在这里）。
+#   这组函数直接读清单文件解析（page cache，约 0.1ms）+ printf -v 返回，全程零 fork。
+#   语义与 registry_get / registry_visible 逐字一致：行首 KEY= 取第一处、值去首尾空白、
+#   未声明返回空；出参名过 _sk_check_out_name（撞保留名单直接报错，不静默失效）。
+
+# _reg_path_out MOD OUTVAR —— 模块物理相对路径（如 services/docker）
+# @exitcode 0 找到；1 没找到（OUTVAR 置空）
+_reg_path_out() {
+    local __mod="${1:-}" __var="${2:-}" __dir
+    [ -n "$__mod" ] && [ -n "$__var" ] || return 1
+    _sk_check_out_name "$__var" || return $?
+    for __dir in $_CATEGORY_DIRS; do
+        if [ -f "$SCRIPT_DIR/$__dir/$__mod/.manifest" ]; then
+            printf -v "$__var" '%s' "$__dir/$__mod"
+            return 0
+        fi
+    done
+    printf -v "$__var" '%s' ""
+    return 1
+}
+
+# _reg_get_out MOD KEY OUTVAR —— _reg_get 的零 fork 出参版（语义同 registry_get）
+# @exitcode 0 总是成功（未声明时 OUTVAR 为空）
+_reg_get_out() {
+    local __mod="${1:-}" __key="${2:-}" __var="${3:-}" __rel __file __line __val=""
+    [ -n "$__mod" ] && [ -n "$__key" ] && [ -n "$__var" ] || return 1
+    _sk_check_out_name "$__var" || return $?
+    if _reg_path_out "$__mod" __rel; then
+        __file="$SCRIPT_DIR/$__rel/.manifest"
+        if [ -r "$__file" ]; then
+            while IFS= read -r __line; do
+                case "$__line" in
+                    "$__key"=*)
+                        __val="${__line#"$__key"=}"
+                        break
+                        ;;
+                esac
+            done < "$__file"
+        fi
+    fi
+    # 去掉首尾空白（与 registry_get 同款参数展开）
+    __val="${__val#"${__val%%[![:space:]]*}"}"
+    __val="${__val%"${__val##*[![:space:]]}"}"
+    printf -v "$__var" '%s' "$__val"
+    return 0
+}
+
+# _UXS_OS_CACHE —— os_name 进程内缓存（$(os_name) 每次 fork 子 shell；OS 不会变）
+_UXS_OS_CACHE=""
+# _reg_visible_out MOD OUTVAR —— uxs_module_visible 的零 fork 出参版
+# 语义：SHOW_ALL=1 恒可见；PLATFORMS 未声明=可见；逗号/空格分隔列表含当前 OS=可见
+# @exitcode 0 可见；1 不可见
+_reg_visible_out() {
+    local __mod="${1:-}" __var="${2:-}" __plats __p
+    [ -n "$__mod" ] && [ -n "$__var" ] || return 1
+    _sk_check_out_name "$__var" || return $?
+    if [ "${UNIX_SCRIPT_SHOW_ALL:-0}" = "1" ]; then
+        printf -v "$__var" '%s' 1
+        return 0
+    fi
+    _reg_get_out "$__mod" PLATFORMS __plats || __plats=""
+    if [ -z "$__plats" ]; then
+        printf -v "$__var" '%s' 1
+        return 0
+    fi
+    if [ -z "$_UXS_OS_CACHE" ]; then
+        _UXS_OS_CACHE="$(os_name)"
+    fi
+    __plats="${__plats//,/ }"
+    for __p in $__plats; do
+        if [ "$__p" = "$_UXS_OS_CACHE" ]; then
+            printf -v "$__var" '%s' 1
+            return 0
+        fi
+    done
+    printf -v "$__var" '%s' 0
+    return 1
+}
 
 # --- 查询 API ---
 registry_label()           { registry_get "$1" LABEL; }
@@ -166,22 +247,20 @@ platform_gate_or_die() {
 # registry_visible_modules — 当前系统可见的模块名（单个空格分隔串，注册序）。
 # 仅呈现层使用；dispatch/别名/依赖解析继续用全量 ${_REGISTRY_MODULES}。
 registry_visible_modules() {
-    local mod out=""
+    local mod out="" vis
     for mod in $_REGISTRY_MODULES; do
-        uxs_module_visible "$mod" && out="$out $mod"
+        if _reg_visible_out "$mod" vis && [ "$vis" = "1" ]; then out="$out $mod"; fi
     done
     echo "${out# }"
 }
 
 # 获取模块的物理相对路径（如 "services/docker"）
 registry_path() {
-    local mod="$1" category_dir
-    for category_dir in $_CATEGORY_DIRS; do
-        [[ -f "$SCRIPT_DIR/$category_dir/$mod/.manifest" ]] || continue
-        printf '%s
-' "$category_dir/$mod"
+    local __rel
+    if _reg_path_out "$1" __rel; then
+        printf '%s\n' "$__rel"
         return 0
-    done
+    fi
     return 1
 }
 
@@ -190,9 +269,10 @@ registry_all_modules() { echo "$_REGISTRY_MODULES"; }
 
 # 某分类下的模块名（空格分隔，保持注册顺序）
 registry_modules_in_category() {
-    local want="$1" mod result=""
+    local want="$1" mod result="" cat
     for mod in $_REGISTRY_MODULES; do
-        if [[ "$(registry_category "$mod")" == "$want" ]]; then
+        _reg_get_out "$mod" CATEGORY cat || cat=""
+        if [ "$cat" = "$want" ]; then
             result="$result $mod"
         fi
     done
@@ -231,19 +311,25 @@ registry_has_submenu_flag() {
 
 # 分类列表（去重，保持 CATEGORY_ORDER 顺序）
 registry_categories() {
-    local seen="" cat mod result=""
+    local cat mod result="" c
     for cat in $CATEGORY_ORDER; do
         for mod in $_REGISTRY_MODULES; do
-            if [[ "$(registry_category "$mod")" == "$cat" ]]; then
+            # 原实现每模块 $(registry_category) fork 一次；零 fork 出参（语义同 registry_get CATEGORY）
+            _reg_get_out "$mod" CATEGORY c || c=""
+            if [ "$c" = "$cat" ]; then
                 result="$result $cat"
                 break
             fi
         done
     done
     for mod in $_REGISTRY_MODULES; do
-        cat=$(registry_category "$mod")
-        if [[ -n "$cat" ]] && ! echo "$result" | grep -qw "$cat"; then
-            result="$result $cat"
+        _reg_get_out "$mod" CATEGORY c || c=""
+        if [ -n "$c" ]; then
+            # 原实现 echo|grep -qw 去重（每模块一次 fork）；等价的空格边界匹配
+            case " $result " in
+                *" $c "*) ;;
+                *) result="$result $c" ;;
+            esac
         fi
     done
     echo "${result# }"

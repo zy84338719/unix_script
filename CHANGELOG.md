@@ -4,6 +4,20 @@
 
 ## [Unreleased]
 
+### 性能
+- **菜单再砍一个数量级：build_list Pi 实测 3s → 0.29s**（2.3.0 是 21.7s→3.3s，这是第二段）。
+  残余的 3~5s 全在调用方 `$( )` —— 每处命令替换 fork 一个子 shell（高载下实测单次 ~135ms），
+  一个菜单热路径有几十处。现在热路径全部**出参化**（`printf -v` 零 fork）：
+  - `lib/registry.sh` 新增 `_reg_path_out` / `_reg_get_out` / `_reg_visible_out`；
+    `registry_path` / `registry_visible_modules` / `registry_modules_in_category` /
+    `registry_categories` 内核改走出参（输出语义逐字不变）
+  - `lib/status.sh` 新增 `_uxs_state_out` / `_status_icon_out`（`status_icon` 变薄包装）
+  - `lib/menu.sh`：`category_items`、`render_main_page`、`render_category_page` 行内查询出参化
+  - `lib/menu_fzf.sh`：`build_list` / `category_rows` / `pick_category` 行构建出参化
+- 判据（tests/ci_run.sh 18f，做过变异自检：改回 `$( )` 写法即红）：热路径 7 个函数体里
+  不许再出现对每行级字段查询的命令替换；`registry_visible_modules` 这类「列表整体取一次」
+  （1 fork/调用）明确不在禁令里
+
 ## [2.3.0] - 2026-11-12
 
 本版把「进菜单要等半分钟到一分半」砍到 3~5 秒 —— 根因是 shellkit 的注册表查询

@@ -943,6 +943,23 @@ phase_routing() {
         case "$hdr" in *"▸"*) ;; *) exit 1 ;; esac
         case "$hdr" in *顶部*|*置顶*) exit 1 ;; esac' _ "$REPO_DIR"
 
+    # 18f. 热路径零 fork（出参化回归防线）：菜单列表/分类/注册表查询函数体里，
+    #      不许再出现对字段查询函数的命令替换 $( ) —— 每处一次 fork，几处就是秒级
+    #      （build_list 曾 21.7s→3.3s→出参化后 Pi 0.29s；谁改回 $( ) 写法这条必红）。
+    # shellcheck disable=SC2016
+    assert "热路径零 fork: 字段查询不许回到命令替换写法" bash -c '
+        cd "$1" && SCRIPT_DIR=$PWD && source ./lib/common.sh && source ./lib/registry.sh && source ./lib/suggest.sh && source ./lib/status.sh && source ./lib/menu.sh && source ./lib/menu_fzf.sh
+        fail=0
+        for fn in menu_fzf_build_list menu_fzf_category_rows menu_fzf_pick_category category_items registry_categories registry_visible_modules registry_modules_in_category; do
+            body=$(awk -v f="$fn" '\''$0 ~ "^"f"\\(\\)" {infn=1} infn && !/^[[:space:]]*#/ {print} infn && /^}/ {exit}'\'' "$SCRIPT_DIR/lib/menu_fzf.sh" "$SCRIPT_DIR/lib/menu.sh" "$SCRIPT_DIR/lib/registry.sh" 2>/dev/null | awk -v f="$fn" '\''$0 ~ "^"f"\\(\\)" {infn=1} infn {print} infn && /^}/ {exit}'\'')
+            # 只禁「每行级」字段查询；列表整体取一次的 $(registry_visible_modules) 等（1 fork/调用）不在禁令里
+            bad=$(printf "%s\n" "$body" | grep -nE "\\$\\((status_state_get|status_icon|_reg_get|registry_desc|registry_path|registry_category|uxs_module_visible)" || true)
+            if [ -n "$bad" ]; then
+                echo "$fn 回到 fork 写法: $bad"
+                fail=1
+            fi
+        done
+        [ "$fail" -eq 0 ]' _ "$REPO_DIR"
     # 19. 补全：注册表驱动（与 list 同源）
     # shellcheck disable=SC2016
     assert "补全: bash 模块清单与注册表一致" bash -c '

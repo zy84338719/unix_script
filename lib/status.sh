@@ -141,6 +141,19 @@ status_state_get() {
     eval "echo \"\${${varname}:-}\""
 }
 
+# _uxs_state_out MOD OUTVAR —— status_state_get 的零 fork 出参版（菜单热路径用）
+# ★ 每次 $(status_state_get) 都 fork 子 shell；菜单每行一次就是几十上百次 fork。
+# 语义同 status_state_get：读内存态，未设置为空。
+# @exitcode 0 总是成功
+_uxs_state_out() {
+    local __var="${2:-}" __vn
+    [ -n "${1:-}" ] && [ -n "$__var" ] || return 1
+    _sk_check_out_name "$__var" || return $?
+    __vn="_UXS_STATE_${1//-/_}"
+    eval "$__var=\${$__vn:-}"
+    return 0
+}
+
 # --- 版本内存态（status --json 的版本列用；镜像 _uxs_state_* 模式）---
 _uxs_version_varname() {
     local safe_mod="${1//-/_}"
@@ -275,13 +288,24 @@ status_state_refresh() {
 }
 
 # 人类菜单状态图标
-status_icon() {
+# _status_icon_out STATE OUTVAR —— status_icon 的零 fork 出参版（菜单热路径用）
+_status_icon_out() {
+    local __var="${2:-}"
+    [ -n "$__var" ] || return 1
+    _sk_check_out_name "$__var" || return $?
     case "$1" in
-        installed*|configured) echo "✓" ;;
-        not_installed|not_configured) echo " " ;;
-        "n/a") echo "·" ;;
-        *) echo "?" ;;
+        installed*|configured) printf -v "$__var" '%s' "✓" ;;
+        not_installed|not_configured) printf -v "$__var" '%s' " " ;;
+        "n/a") printf -v "$__var" '%s' "·" ;;
+        *) printf -v "$__var" '%s' "?" ;;
     esac
+    return 0
+}
+
+status_icon() {
+    local uxs_icon
+    _status_icon_out "$1" uxs_icon || return $?
+    printf '%s\n' "$uxs_icon"
 }
 
 # 菜单入口：优先吃缓存，否则并行批查全量并落盘

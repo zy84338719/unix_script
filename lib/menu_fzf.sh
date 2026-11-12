@@ -96,7 +96,7 @@ menu_fzf_category_rows() {
         installed=0
         for mod in $mods; do
             total=$((total + 1))
-            state=$(status_state_get "$mod")
+            _uxs_state_out "$mod" state
             case "$state" in
                 installed*|configured) installed=$((installed + 1)) ;;
             esac
@@ -112,11 +112,12 @@ menu_fzf_build_list() {
     lines=$(menu_fzf_admin_rows; menu_fzf_category_rows)
     lines+=$'\n'
     for mod in $(registry_visible_modules); do
-        state=$(status_state_get "$mod")
-        icon=$(status_icon "$state")
-        label=$(_reg_get "$mod" LABEL)
-        desc=$(registry_desc "$mod")
-        path=$(registry_path "$mod")
+        # 零 fork 出参（原每行 4 次 $( ) fork：state/icon/label/desc/path）
+        _uxs_state_out "$mod" state
+        _status_icon_out "$state" icon
+        _reg_get_out "$mod" LABEL label
+        _reg_get_out "$mod" DESC desc
+        _reg_path_out "$mod" path
         lines+="${icon}	${mod}	${label}	${desc}	${path}	"$'\n'
     done
     printf '%s' "$lines"
@@ -151,11 +152,11 @@ menu_fzf_setup_args() {
 menu_fzf_pick_category() {
     local cat="$1" lines="" mod state icon label desc path selected
     for mod in $(category_items "$cat" ""); do
-        state=$(status_state_get "$mod")
-        icon=$(status_icon "$state")
-        label=$(_reg_get "$mod" LABEL)
-        desc=$(registry_desc "$mod")
-        path=$(registry_path "$mod")
+        _uxs_state_out "$mod" state
+        _status_icon_out "$state" icon
+        _reg_get_out "$mod" LABEL label
+        _reg_get_out "$mod" DESC desc
+        _reg_path_out "$mod" path
         lines+="${icon}	${mod}	${label}	${desc}	${path}	"$'\n'
     done
     [ -n "$lines" ] || return 0

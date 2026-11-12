@@ -76,7 +76,7 @@ render_main_page() {
         total=0; installed=0
         for mod in $vis; do
             total=$((total + 1))
-            state=$(status_state_get "$mod")
+            _uxs_state_out "$mod" state
             case "$state" in
                 installed*|configured) installed=$((installed + 1)) ;;
             esac
@@ -101,14 +101,18 @@ render_main_page() {
 
 # 分类页条目（空格分隔模块名）；filter 非空时按 模块名/LABEL/DESC 子串过滤（大小写不敏感）
 category_items() {
-    local cat="$1" filter="$2" mod label desc hay out=""
-    local lf
-    lf=$(printf '%s' "$filter" | tr '[:upper:]' '[:lower:]')
+    local cat="$1" filter="$2" mod label desc hay out="" vis
+    local lf=""
+    if [[ -n "$filter" ]]; then
+        lf=$(printf '%s' "$filter" | tr '[:upper:]' '[:lower:]')
+    fi
     for mod in $(registry_modules_in_category "$cat"); do
-        uxs_module_visible "$mod" || continue
+        # 零 fork 出参（原 uxs_module_visible / _reg_get / registry_desc 每模块各 fork 一次）
+        _reg_visible_out "$mod" vis || vis=0
+        [ "$vis" = "1" ] || continue
         if [[ -n "$lf" ]]; then
-            label=$(_reg_get "$mod" LABEL)
-            desc=$(registry_desc "$mod")
+            _reg_get_out "$mod" LABEL label
+            _reg_get_out "$mod" DESC desc
             hay=$(printf '%s %s %s' "$mod" "$label" "$desc" | tr '[:upper:]' '[:lower:]')
             if [[ "$hay" != *"$lf"* ]]; then continue; fi
         fi
@@ -132,12 +136,13 @@ render_category_page() {
         warn "无匹配模块"
     fi
     for mod in $mods; do
-        label=$(_reg_get "$mod" LABEL)
-        desc=$(registry_desc "$mod")
-        state=$(status_state_get "$mod")
-        icon=$(status_icon "$state")
+        _reg_get_out "$mod" LABEL label
+        _reg_get_out "$mod" DESC desc
+        _uxs_state_out "$mod" state
+        _status_icon_out "$state" icon
         marker=""
-        if [[ -n "$(_reg_get "$mod" HAS_SUBMENU)" ]]; then
+        _reg_get_out "$mod" HAS_SUBMENU uxs_submenu
+        if [[ -n "$uxs_submenu" ]]; then
             marker="（子菜单）"
         fi
         printf "  %2d) %s %-18s %-22s %s%s\n" "$n" "$icon" "$mod" "$label" "$desc" "$marker"
